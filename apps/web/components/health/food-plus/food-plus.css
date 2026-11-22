@@ -43,3 +43,10 @@
 .food-plus-photo-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0; }
 .food-plus-photo-row .food-plus-photo { width: 72px; height: 72px; }
 .food-plus-photo-row button { min-height: 44px; }
+.food-plus-book-item { align-items: flex-start; }
+.food-plus-book-main { flex: 1 1 240px; min-width: 0; display: grid; gap: 4px; }
+.food-plus-book-main h3 { font-size: 17px; }
+.food-plus-book-main ul, .food-plus-book-main ol { margin: 6px 0; padding-left: 20px; font-size: 15px; }
+.food-plus-cook { display: grid; gap: 12px; margin: 8px 0 12px; padding: 16px; border: 1px solid var(--line, #6a9cc342); border-radius: 16px; min-width: 0; }
+.food-plus-cook-step { font-size: 20px; line-height: 1.45; margin: 0; overflow-wrap: anywhere; }
+.food-plus-cook textarea { min-height: 140px; font-size: 16px; width: 100%; }

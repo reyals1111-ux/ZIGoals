@@ -106,6 +106,14 @@ describe('diary times and nutrient timing', () => {
     expect(text(zigi('which days are partly logged', showcaseAll(), food))).toContain('Days marked partly logged (left out of the maintenance estimate): Tue, Nov 17.');
     expect(text(zigi('when will I reach my goal weight', freshAll()))).toMatch(/^No goal weight is set/);
   });
+  test('recipe ideas from the built-in collection, and the method of one of your recipes', () => {
+    expect(text(zigi('give me some vegan recipe ideas'))).toMatch(/^Some vegan recipes to start from: Lentil and tomato soup \(35 min\)/);
+    expect(text(zigi('geef me een paar vegetarische recepten'))).toMatch(/^Een paar vegetarische recepten om mee te beginnen: Overnight oats met blauwe bessen/);
+    const s = showcaseAll(), recipe = s.health!.recipes[0]!, word = recipe.name.split(' ').find(w => w.length >= 4)!.toLowerCase();
+    const food = {...emptyFoodPlus(), steps: {[recipe.id]: ['Fictional first step.', 'Fictional second step.']}};
+    expect(text(zigi(`how do I make my ${word}`, s, food))).toContain('1. Fictional first step.');
+    expect(text(zigi(`hoe maak ik ${word}`, s))).toContain('nog geen bereiding bewaard');
+  });
   test('questions that are not about times are left to the other layers', () => {
     for (const q of ['what did I eat today', 'how much water did I drink', 'when should I eat', 'log 2 eggs and then remind me']) expect(zigi(q), q).toBeNull();
   });

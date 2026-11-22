@@ -5,7 +5,9 @@
  * anything becomes a food or recipe; nothing is fetched, nothing is guessed about nutrition.
  */
 export type ParsedIngredient = {raw: string; name: string; quantity: number | null; unit: string | null; grams: number | null};
-export type ParsedRecipe = {title: string; servings: number | null; ingredients: ParsedIngredient[]; steps: number};
+export type ParsedRecipe = {title: string; servings: number | null; ingredients: ParsedIngredient[]; steps: number;
+  /** Session AV lane 2 (food, LEDGER #200): the method's lines, kept for the cooking view (optional; older callers ignore it). */
+  stepLines?: string[]};
 const UNITS: Record<string, number | null> = {g: 1, gram: 1, grams: 1, kg: 1000, kilogram: 1000, ml: 1, millilitre: 1, milliliter: 1, l: 1000, litre: 1000, liter: 1000, tbsp: 15, tablespoon: 15, tablespoons: 15, tsp: 5, teaspoon: 5, teaspoons: 5, cup: 240, cups: 240, oz: 28, ounce: 28, ounces: 28, lb: 454, pound: 454, pounds: 454, pinch: 1, clove: null, cloves: null, slice: null, slices: null, piece: null, pieces: null, can: null, cans: null, bunch: null, handful: null};
 const FRACTIONS: Record<string, number> = {'½': 0.5, '¼': 0.25, '¾': 0.75, '⅓': 1 / 3, '⅔': 2 / 3, '⅛': 0.125};
 const HEADING = /^(ingredients?|method|instructions?|directions?|steps?|preparation|notes?)\b[:\s]*$/i;
@@ -48,16 +50,18 @@ export function parseRecipeText(text: string): ParsedRecipe {
   const body = start >= 0 ? lines.slice(start + 1) : lines.slice(title === 'Pasted recipe' ? 0 : 1);
   const ingredients: ParsedIngredient[] = [];
   let steps = 0, inSteps = false;
+  const stepLines: string[] = [], step = (l: string) => { steps++; const s = l.replace(/^\d{1,2}[.)]\s*/, '').trim(); if (s && stepLines.length < 60) stepLines.push(s.slice(0, 600)); };
   for (const l of body) {
     if (HEADING.test(l)) { inSteps = !/^ingredients?/i.test(l); continue; }
-    if (inSteps) { steps++; continue; }
+    if (inSteps) { step(l); continue; }
     if (SERVINGS_LINE.test(l)) continue; // "Serves 4" on a line of its own is the yield, never an ingredient
-    if (/^\d+\.\s/.test(l) && !/\d\s*(g|ml|kg|tbsp|tsp|cup)/i.test(l)) { steps++; continue; }
+    if (/^\d+\.\s/.test(l) && !/\d\s*(g|ml|kg|tbsp|tsp|cup)/i.test(l)) { step(l); continue; }
     const p = parseIngredientLine(l); if (p && (p.quantity !== null || ingredients.length < 40)) ingredients.push(p);
   }
-  return {title, servings: servings && servings > 0 && servings <= 100 ? servings : null, ingredients: ingredients.slice(0, 100), steps};
+  return {title, servings: servings && servings > 0 && servings <= 100 ? servings : null, ingredients: ingredients.slice(0, 100), steps, ...(stepLines.length ? {stepLines} : {})};
 }
 /** The shape of a schema.org Recipe as the URL import returns it (lib/server/recipe-import.ts), parsed into the same confirmable list. */
-export function fromSchemaRecipe(r: {name: string; ingredients: string[]; servings: number | null}): ParsedRecipe {
-  return {title: r.name.slice(0, 100), servings: r.servings, ingredients: r.ingredients.map(parseIngredientLine).filter((x): x is ParsedIngredient => !!x).slice(0, 100), steps: 0};
+export function fromSchemaRecipe(r: {name: string; ingredients: string[]; servings: number | null; instructions?: string[]}): ParsedRecipe {
+  const stepLines = (r.instructions ?? []).filter(s => typeof s === 'string' && s.trim()).slice(0, 60).map(s => s.slice(0, 600));
+  return {title: r.name.slice(0, 100), servings: r.servings, ingredients: r.ingredients.map(parseIngredientLine).filter((x): x is ParsedIngredient => !!x).slice(0, 100), steps: stepLines.length, ...(stepLines.length ? {stepLines} : {})};
 }

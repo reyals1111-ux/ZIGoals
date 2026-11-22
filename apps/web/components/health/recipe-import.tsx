@@ -9,6 +9,9 @@ import './health-aa.css';
 import { plural } from '../../lib/plural';
 import {foodLine, matchIngredient, type IngredientMatch} from '../../lib/health-aa/recipe-match';
 import {libraryFoodsFor, type LibraryFood} from '../../lib/food-plus/recipe-library';
+import {FOOD_PLUS} from '../../lib/food-plus/schema';
+import {setRecipeSteps} from '../../lib/food-plus/steps';
+import {useDeviceRecord} from '../ai/use-device-record';
 
 // Session AK (task 4.8): each row shows its match (exact, close or none) and the person can point it at any of their foods
 // or make it a new one; a row the person pointed stays put while its name is edited, others follow the name.
@@ -24,6 +27,7 @@ const CODES: Record<string, string> = {INVALID_URL: 'That is not a web address t
  * guessed) and the recipe is saved with those foods. Nothing is written before Save.
  */
 export function RecipeImport({data, perform}: {data: HealthData; perform: HealthPerform}) {
+  const steps = useDeviceRecord(FOOD_PLUS); // Session AV lane 2 (food, LEDGER #200): the method, kept with the saved recipe
   const [mode, setMode] = useState<'paste' | 'url'>('paste'), [text, setText] = useState(''), [url, setUrl] = useState(''), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const [parsed, setParsed] = useState<ParsedRecipe | null>(null), [rows, setRows] = useState<Row[]>([]), [title, setTitle] = useState(''), [servings, setServings] = useState('4');
   function show(p: ParsedRecipe) {
@@ -40,13 +44,13 @@ export function RecipeImport({data, perform}: {data: HealthData; perform: Health
   }
   async function fromUrl() {
     setBusy(true); setError('');
-    try { const res = await fetch('/api/recipe-import', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({url})}); const body = await res.json() as {error?: string; name?: string; ingredients?: string[]; servings?: number | null}; if (!res.ok || body.error) { setError(CODES[body.error ?? ''] ?? 'The page could not be read.'); return; } show(fromSchemaRecipe({name: body.name!, ingredients: body.ingredients!, servings: body.servings ?? null})); }
+    try { const res = await fetch('/api/recipe-import', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({url})}); const body = await res.json() as {error?: string; name?: string; ingredients?: string[]; servings?: number | null; instructions?: unknown[]}; if (!res.ok || body.error) { setError(CODES[body.error ?? ''] ?? 'The page could not be read.'); return; } show(fromSchemaRecipe({name: body.name!, ingredients: body.ingredients!, servings: body.servings ?? null, instructions: Array.isArray(body.instructions) ? body.instructions.filter((s): s is string => typeof s === 'string') : []})); }
     catch { setError('The page could not be read.'); } finally { setBusy(false); }
   }
   function save() {
     const kept = rows.filter(r => r.keep); if (!kept.length) { setError('Keep at least one ingredient.'); return; }
     let portions: number; try { portions = readFormNumber(servings, {min: 0.001, max: 1000}); } catch { setError('Servings: enter how many servings the recipe makes, from 0.001 to 1,000.'); return; }
-    const at = new Date().toISOString();
+    const at = new Date().toISOString(), recipeId = newHealthId(), method = parsed?.stepLines ?? [];
     void perform(latest => {
       let next = latest;
       const ingredients = kept.map(r => {
@@ -59,9 +63,9 @@ export function RecipeImport({data, perform}: {data: HealthData; perform: Health
         const quantityMilli = food.servingGrams ? Math.max(1, Math.round(grams / food.servingGrams * 1000)) : 1000;
         return {foodId: r.foodId, quantityMilli};
       });
-      next = saveRecipe(next, {id: newHealthId(), name: title.trim().slice(0, 80) || "Imported recipe", portionsMilli: Math.round(portions * 1000), items: ingredients}, at);
+      next = saveRecipe(next, {id: recipeId, name: title.trim().slice(0, 80) || "Imported recipe", portionsMilli: Math.round(portions * 1000), items: ingredients}, at);
       return next;
-    }, `Recipe "${title.trim() || 'Imported recipe'}" saved with ${kept.length} ${plural(kept.length, 'ingredient')}${(() => { const fromLib = kept.filter(r => !r.existing && r.lib !== null).length; return fromLib ? `, ${fromLib} from the offline food library` : ''; })()}. Foods without a label stay unknown until you fill them in.`, () => { setParsed(null); setRows([]); setText(''); setUrl(''); });
+    }, `Recipe "${title.trim() || 'Imported recipe'}" saved with ${kept.length} ${plural(kept.length, 'ingredient')}${(() => { const fromLib = kept.filter(r => !r.existing && r.lib !== null).length; return fromLib ? `, ${fromLib} from the offline food library` : ''; })()}. Foods without a label stay unknown until you fill them in.`, () => { if (method.length) { try { steps.update(r => setRecipeSteps(r, recipeId, method)); } catch { /* the recipe is saved; only its method is not kept */ } } setParsed(null); setRows([]); setText(''); setUrl(''); });
   }
   return <section className="panel health-aa-card" aria-labelledby="recipe-import-title">
     <p className="eyebrow">From text or a page</p><h2 id="recipe-import-title"><NebulaFlow identity="recipe-import-title">Import a recipe</NebulaFlow></h2>
@@ -73,7 +77,7 @@ export function RecipeImport({data, perform}: {data: HealthData; perform: Health
     </> : <form className="health-import-form" aria-label="Confirm the recipe" onSubmit={e => { e.preventDefault(); save(); }}>
       <label className="field"><span>Recipe name</span><input type="text" value={title} maxLength={80} onChange={e => setTitle(e.target.value)} /></label>
       <label className="field"><span>Servings</span><input type="text" inputMode="decimal" value={servings} onChange={e => setServings(e.target.value)} /></label>
-      {rows.length ? <p className="fine">{rows.length} {plural(rows.length, 'ingredient')} found{parsed.steps ? `, ${parsed.steps} ${plural(parsed.steps, 'step')} left aside` : ''}. Check each name and amount; an existing food of the same name is reused.</p> : <p role="alert">No ingredient lines were found. Put one ingredient on each line, with its amount (“200 g lentils” or “Lentils, 200 g”), then read it again.</p>}
+      {rows.length ? <p className="fine">{rows.length} {plural(rows.length, 'ingredient')} found{parsed.stepLines?.length ? `, ${parsed.stepLines.length} ${plural(parsed.stepLines.length, 'step')} kept for the cooking view` : parsed.steps ? `, ${parsed.steps} ${plural(parsed.steps, 'step')} left aside` : ''}. Check each name and amount; an existing food of the same name is reused.</p> : <p role="alert">No ingredient lines were found. Put one ingredient on each line, with its amount (“200 g lentils” or “Lentils, 200 g”), then read it again.</p>}
       <ul className="health-import-rows">{rows.map((r, i) => <li key={i}><input type="text" aria-label={`Ingredient ${i + 1} name`} value={r.name} maxLength={80} onChange={e => setRows(rows.map((x, j) => { if (j !== i) return x; const name = e.target.value; if (x.chosen) return {...x, name}; const match = matchIngredient(name, data.foods); const next = {...x, name, match, existing: match.food, foodId: match.food?.id ?? x.newId, libraryOptions: match.food ? null : 'loading' as const, lib: null}; if (!match.food) lookUp(i, next); return next; }))} /><input type="text" inputMode="numeric" aria-label={`Ingredient ${i + 1} grams`} placeholder="g" value={r.gramsText} onChange={e => setRows(rows.map((x, j) => j === i ? {...x, gramsText: e.target.value} : x))} /><small>{r.existing ? 'known' : r.lib !== null && Array.isArray(r.libraryOptions) ? 'library' : 'new food'}</small><MatchLine row={r} index={i} foods={data.foods} onPick={id => setRows(rows.map((x, j) => { if (j !== i) return x; if (id?.startsWith('lib:')) { const k = Number(id.slice(4)), o = Array.isArray(x.libraryOptions) ? x.libraryOptions[k] : undefined; return {...x, chosen: true, existing: null, foodId: x.newId, lib: o ? k : null, gramsText: x.gramsText || (o?.portionGrams ? String(o.portionGrams) : '')}; } const food = id ? data.foods.find(f => f.id === id) ?? null : null; return {...x, chosen: true, existing: food, foodId: food?.id ?? x.newId, lib: null, gramsText: x.gramsText || (food?.servingGrams ? String(food.servingGrams) : '')}; }))} /><button type="button" className="quiet" aria-label={`${r.keep ? 'Drop' : 'Keep'} ingredient ${i + 1}`} aria-pressed={!r.keep} onClick={() => setRows(rows.map((x, j) => j === i ? {...x, keep: !x.keep} : x))}>{r.keep ? 'Drop' : 'Keep'}</button></li>)}</ul>
       <div className="actions"><button type="submit" className="primary" disabled={!rows.some(r => r.keep)}>Save recipe</button><button type="button" className="quiet" onClick={() => { setParsed(null); setRows([]); }}>Cancel</button></div>
       {error && <p role="alert">{error}</p>}

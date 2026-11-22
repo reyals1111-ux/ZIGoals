@@ -269,3 +269,41 @@ Shared-file needs for the lead are collected at the end ("For the lead").
 - Answers: none new (recipes are already answered from the library the person saved).
 - Showcase: none (Import is a flow; nothing to seed).
 - Device keys: none. CSS touched: none. Always visible on Today: nothing.
+
+## F10 — Recipes to start from (EN and NL), and a cooking view with the method
+
+- LEDGER rows: **#91** MyFitnessPal Plan tab — built (a built-in recipe collection from offline generic foods, filtered
+  by diet style). **#200** Yazio Recipes with a cooking mode — built (the method kept by recipe id; a cooking view one
+  step at a time that keeps the screen on where the browser can).
+- What it does: Health → Foods & recipes → "Recipes to start from (English and Dutch)": 20 plain recipes written in the
+  repository in English and Dutch (`lib/food-plus/recipe-book.ts`), of the diet templates' library foods; Language
+  (English / Nederlands, from the device language), Style (vegetarian, vegan, Mediterranean, and high protein / low carb
+  worked out from each serving's nutrition — 20 g protein and a quarter of the calories; 15 g carbs or less, with at
+  most 15 % of the grams without a value); each shows a serving's kcal and macros from the library ("12+ g" when an
+  ingredient gives no value), ingredients and method; "Save to my recipes" adds the foods per 100 g (reused when there)
+  and the recipe with its method. Every recipe in the Foods list gets "Cook (N steps)" or "Add the method": the cooking
+  view shows the ingredients, then each step in 20 px type with Previous / Next (and the arrow keys), "Keep the screen
+  on" (Screen Wake Lock, only where the browser has it), "Change the method", Close and Escape; focus returns to Cook.
+  A pasted recipe's method lines and a page's schema.org `recipeInstructions` (HowToStep, HowToSection, text; no HTML;
+  at most 60 of 600 characters) are kept with the imported recipe instead of being left aside.
+- Files: `lib/food-plus/recipe-book.ts` (content), `lib/food-plus/recipe-book-apply.ts`, `lib/food-plus/steps.ts`,
+  `components/health/food-plus/recipe-book.tsx` (part `recipe-book`), `components/health/food-plus/cook-view.tsx` (part
+  `recipe-cook`), `components/health/recipe-import.tsx` (keeps the method), `lib/health-aa/recipe-text.ts` (`stepLines`,
+  additive), `lib/server/recipe-import.ts` (`instructions` in the reply, `instructionLines`), `components/health/health-app.tsx`
+  (an empty `data-recipe-cook` slot per recipe row; the fold and the part).
+- Tests: `lib/food-plus/av2-recipe-book.test.ts` (against the shipped CIQUAL file), `lib/server/recipe-import.test.ts`
+  (deliberate change, labelled: the exact object now carries `instructions`), `lib/ai/local-answers/av2-food.test.ts`.
+  Spec: `tests/av2-recipe-book.spec.ts`.
+- Stored changes: the `steps` part of `zigoals:food-plus:v1` (TIER 3 commit `e5c2a049`). The strict recipe record is
+  unchanged. The recipe-import API reply gains `instructions` (older clients ignore it).
+- Help (EN). Q: "Are there recipes in ZIGoals?" A: "Yes: Health → Foods & recipes → Recipes to start from has twenty
+  plain recipes in English and Dutch, by style, each with its nutrition from the offline food library. Save one to
+  your recipes and change it as you like." Q: "Can I cook step by step?" A: "Yes. Beside a recipe in Foods & recipes,
+  press Cook: you see the ingredients, then one step at a time in large type. Where your browser allows it, Keep the
+  screen on stops the screen going dark. Add or change the method with Add the method."
+- What's new: "Twenty recipes to start from, in English and Dutch, and a step-by-step cooking view."
+- Answers: intent `av2-food-recipe-ideas` (the collection's names by style); a recipe's method (`recipeMethod`, from the
+  device record) — not in the corpus (the Showcase recipes have no method).
+- Showcase: the collection is built in, so the Showcase shows it filled; nothing seeded (a seeded method would change
+  the Showcase's recipe rows other specs read).
+- Device keys: none new. CSS touched: `food-plus.css`. Always visible on Today: nothing.

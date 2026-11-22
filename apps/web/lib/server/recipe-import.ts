@@ -9,7 +9,18 @@
  */
 import {dohResolver, isPublicAddress, type Resolve} from './recipe-resolve';
 export const RECIPE_FETCH_TIMEOUT_MS = 8_000, RECIPE_MAX_BYTES = 1_000_000, RECIPE_MAX_INGREDIENTS = 100, RECIPE_MAX_TEXT = 200;
-export type RecipeImport = {name: string; ingredients: string[]; servings: number | null; steps: number; source: string};
+export type RecipeImport = {name: string; ingredients: string[]; servings: number | null; steps: number; source: string;
+  /** Session AV lane 2 (food, LEDGER #200): the method's text, a step a line (HowToStep text or plain strings; at most 60 of 600 characters). */
+  instructions: string[]};
+/** A schema.org recipeInstructions value as plain step lines: strings, HowToStep text, HowToSection items; never HTML. */
+export function instructionLines(v: unknown, depth = 0): string[] {
+  if (depth > 3) return [];
+  const strip = (s: string) => text(s.replace(/<[^>]*>/g, ' '), 600);
+  if (typeof v === 'string') return v.split(/\n+|(?<=\.)\s+(?=[A-Z])/).map(strip).filter(Boolean).slice(0, 60);
+  if (Array.isArray(v)) return v.flatMap(x => instructionLines(x, depth + 1)).slice(0, 60);
+  if (v && typeof v === 'object') { const o = v as {text?: unknown; itemListElement?: unknown; name?: unknown}; if (o.itemListElement) return instructionLines(o.itemListElement, depth + 1); if (typeof o.text === 'string') return [strip(o.text)].filter(Boolean); if (typeof o.name === 'string') return [strip(o.name)].filter(Boolean); }
+  return [];
+}
 export type RecipeRefusal = {code: 'INVALID_URL' | 'NOT_HTTPS' | 'PRIVATE_HOST' | 'REDIRECT' | 'TOO_LARGE' | 'TIMEOUT' | 'WRONG_TYPE' | 'NO_RECIPE' | 'UPSTREAM' | 'RESOLVER'};
 const PRIVATE_HOST = /^(localhost|.*\.(local|localhost|internal|home|lan|test|invalid|example))$|^[0-9.]+$|^\[?[0-9a-f:]*:[0-9a-f:]*\]?$/i;
 export function checkRecipeUrl(raw: string): URL | RecipeRefusal {
@@ -67,7 +78,7 @@ export function extractRecipe(html: string, source: string): RecipeImport | Reci
     if (!ingredients.length) continue;
     const y = Array.isArray(r.recipeYield) ? r.recipeYield[0] : r.recipeYield; const yn = typeof y === 'number' ? y : typeof y === 'string' ? Number(/\d+/.exec(y)?.[0]) : NaN;
     const steps = Array.isArray(r.recipeInstructions) ? r.recipeInstructions.length : typeof r.recipeInstructions === 'string' ? r.recipeInstructions.split(/\.\s+/).length : 0;
-    return {name, ingredients, servings: Number.isFinite(yn) && yn > 0 && yn <= 100 ? Math.round(yn) : null, steps: Math.min(steps, 100), source: new URL(source).hostname};
+    return {name, ingredients, servings: Number.isFinite(yn) && yn > 0 && yn <= 100 ? Math.round(yn) : null, steps: Math.min(steps, 100), source: new URL(source).hostname, instructions: instructionLines(r.recipeInstructions)};
   }
   return {code: 'NO_RECIPE'};
 }

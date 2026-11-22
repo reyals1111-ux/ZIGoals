@@ -6,6 +6,8 @@ import {HEALTH_EXTRAS, type HealthExtras} from '../../health-extras';
 import {mealRemindersOn} from '../../meal-reminders';
 import {coachCheckIn} from '../../health-aa/coach';
 import {weightChangeText, weightText} from '../../health-units';
+import {RECIPE_BOOK, type BookStyle} from '../../food-plus/recipe-book';
+import {fold} from './exact/text';
 import {dayTargets, sugarAlcoholMg, weekdayOfDay} from '../../food-plus/day-target';
 import {netCarbs} from '../../health-aa/macro-mode';
 import {healthZone, dailyData} from '../../health-daily';
@@ -259,5 +261,33 @@ function packPhotosAnswer(a: Ask): LocalReply | null {
     'Verpakkingsfoto’s bewaar je bij je eigen voedingsmiddelen: Health → Foods & recipes → “Package photos (optional)”. Kies het voedingsmiddel en maak of kies een foto van de voorkant; die staat naast de naam. De foto’s blijven alleen in deze browser en niets leest ze (ik ook niet), dus naam en getallen blijven wat je typte.'), [{tool: 'search_foods', args: {}, label: 'Your foods'}]);
 }
 
-const HANDLERS: readonly ((a: Ask) => LocalReply | null)[] = [packPhotosAnswer, eatingWindowAnswer, timingAnswer, whenEaten, netCarbsAnswer, weekdayTargets, oracleAnswer, mealRemindersAnswer, challengeAnswer, goalDateAnswer, checkInAnswer];
+// ── The recipe collection (LEDGER #91) and a recipe's method (LEDGER #200) ─────────────────────────────────────────
+
+const STYLE_WORDS: [RegExp, BookStyle | null][] = [[/\bvegan\b|\bveganistisch\w*\b|\bplantaardig\w*\b/, 'vegan'], [/\bvegetari\w*\b|\bvega\b/, 'vegetarian'], [/\bmediterr?an\w*\b|\bmediterraan\w*\b/, 'mediterranean']];
+/** "give me a vegan recipe", "recipe ideas", "geef me een vegetarisch recept": the built-in collection's names. */
+function recipeIdeas(a: Ask): LocalReply | null {
+  const en = /\brecipes?\b/.test(a.f) && /\b(?:idea|ideas|give me|suggest|show me|any|some|built ?in|collection|to start)\b/.test(a.f), nl = /\brecept(?:en)?\b/.test(a.f) && /\b(?:idee|ideeen|geef|stel|laat|een paar|sommige|ingebouwde|verzameling)\b/.test(a.f);
+  if (!(en || nl) || /\b(?:import|my recipes|mijn recepten|save|bewaar)\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang: Lang = nl && !en ? 'nl' : en && !nl ? 'en' : a.lang, style = STYLE_WORDS.find(([re]) => re.test(a.f))?.[1] ?? null;
+  const rows = RECIPE_BOOK.filter(r => !style || r.styles.includes(style)).slice(0, 8).map(r => `${lang === 'nl' ? r.nl : r.en} (${r.minutes} min)`);
+  const where = say(lang, 'Health → Foods & recipes → “Recipes to start from” shows each one’s nutrition from the offline food library, its ingredients and method, and saves it to your recipes in a tap. Information, not advice.', 'Health → Foods & recipes → “Recipes to start from” toont van elk de voedingswaarde uit de offline bibliotheek, de ingrediënten en de bereiding, en bewaart het met één tik bij je recepten. Informatie, geen advies.');
+  const which = style ? say(lang, `${style} recipes`, ({vegan: 'veganistische', vegetarian: 'vegetarische', mediterranean: 'mediterrane'} as const)[style] + ' recepten') : say(lang, 'recipes', 'recepten');
+  return answer(`${say(lang, `Some ${which} to start from: ${list(rows, 'en')}.`, `Een paar ${which} om mee te beginnen: ${list(rows, 'nl')}.`)} ${where}`, [{tool: 'search_foods', args: {}, label: 'Recipes'}]);
+}
+/** "how do I make my lentil soup", "what are the steps for …", "hoe maak ik …": the method kept with one of your recipes. */
+function recipeMethod(a: Ask): LocalReply | null {
+  const en = /\b(?:how do i (?:make|cook|prepare)|steps? for|method for|recipe steps|instructions for)\b/.test(a.f), nl = /\b(?:hoe maak ik|hoe bereid ik|hoe kook ik|bereiding van|stappen voor|stappen van)\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const lang = a.lang, health = a.env.health!, words = a.f.split(' ').filter(w => w.length >= 4 && !/^(?:make|cook|prepare|steps|step|method|recipe|instructions|maak|bereid|kook|bereiding|stappen|mijn|voor)$/.test(w));
+  const recipe = [...health.recipes].map(r => ({r, hits: words.filter(w => fold(r.name).includes(w)).length})).filter(x => x.hits).sort((x, y) => y.hits - x.hits)[0]?.r;
+  const calls = [{tool: 'search_foods', args: {}, label: 'Your recipes'}];
+  if (!recipe) return null;
+  const steps = a.food?.steps?.[recipe.id] ?? [];
+  if (!steps.length) return answer(say(lang, `“${clean(recipe.name, 60)}” has no method kept yet. In Health → Foods & recipes, “Add the method” beside it keeps one, a step a line; then “Cook” shows it step by step.`, `Bij “${clean(recipe.name, 60)}” is nog geen bereiding bewaard. In Health → Foods & recipes bewaart “Add the method” ernaast er een, een stap per regel; daarna toont “Cook” hem stap voor stap.`), calls);
+  return answer([say(lang, `${clean(recipe.name, 60)}, in ${steps.length} ${steps.length === 1 ? 'step' : 'steps'}:`, `${clean(recipe.name, 60)}, in ${steps.length} ${steps.length === 1 ? 'stap' : 'stappen'}:`), ...steps.slice(0, 20).map((s, i) => `${i + 1}. ${clean(s, 300)}`), say(lang, 'Health → Foods & recipes → Cook shows them one at a time.', 'Health → Foods & recipes → Cook toont ze een voor een.')].join('\n'), calls);
+}
+
+const HANDLERS: readonly ((a: Ask) => LocalReply | null)[] = [recipeIdeas, recipeMethod, packPhotosAnswer, eatingWindowAnswer, timingAnswer, whenEaten, netCarbsAnswer, weekdayTargets, oracleAnswer, mealRemindersAnswer, challengeAnswer, goalDateAnswer, checkInAnswer];
 export const AV2_FOOD_HANDLER_COUNT = HANDLERS.length;
