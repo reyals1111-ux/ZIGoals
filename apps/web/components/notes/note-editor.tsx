@@ -6,7 +6,7 @@ import {LoadBoundary} from '../load-boundary';
 import {SecretGuard} from '../secret-guard/secret-guard';
 import {ConfirmInline} from '../ui/confirm-inline';
 import {MAX_BODY, MAX_NOTE_PHOTOS_EACH, MAX_TITLE, noteName, notePhotoIdsOf, shortNoteName, type Note, type Notes} from '../../lib/notes/schema';
-import {PHOTOS_FULL, addNotePhoto, insertPhotoLine, photoRoom, removeNotePhoto, unplacedPhotoIds} from '../../lib/notes/note-photos';
+import {PHOTOS_FULL, addNotePhoto, insertPhotoLine, photoRoom, removeNotePhoto, unplacedPhotoIds, withoutPhotoLines} from '../../lib/notes/note-photos';
 import {ensureDaily, removeNote, updateNote, type NotesUndo} from '../../lib/notes/store';
 import {updateNoteKeepingVersion} from '../../lib/notes/versions';
 import {tickNote} from '../../lib/notes/ticks';
@@ -123,7 +123,7 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
       {note && saving && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteSave note={note} onClose={doneSaving}/></Suspense></LoadBoundary>}
       {note && printing && <LoadBoundary quiet><Suspense fallback={null}><NotePrint note={note} heading={heading || noteName(note)} index={index} onDone={donePrinting}/></Suspense></LoadBoundary>}
     </>}
-    {note && <NoteExtras note={note} change={change} onDeleted={onDeleted} onPlace={mode === 'edit' ? placePhoto : undefined} onLocked={() => setShown(true)}/>}
+    {note && <NoteExtras note={note} change={change} onDeleted={onDeleted} onPlace={mode === 'edit' ? placePhoto : undefined} onUnplace={mode === 'edit' ? (id => setBody(b => withoutPhotoLines(b, id))) : undefined} onLocked={() => setShown(true)}/>}
     {note && note.body.trim() && mode === 'read' && <NoteInfo note={note}/>}
     {note && record && <details className="note-fold note-props-fold" onToggle={e => setPropsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Properties <span className="fine">· {note.props?.length ? note.props.slice(0, 3).map(p => `${p.k}: ${p.t === 'tick' ? (p.v ? 'yes' : 'no') : String(p.v)}`).join(', ') : 'your own fields, such as a status or a day'}</span></summary>
       {propsOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NoteProps note={note} record={record} change={change}/></Suspense></LoadBoundary>}
@@ -140,7 +140,7 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted, s
  * holds up to eight photos — the first under the words, as before; each one after it placed in the words where it was
  * added (at the caret while editing, else at the end). An inbox capture keeps one photo (filing moves it).
  */
-function NoteExtras({note, change, onDeleted, onPlace, onLocked}: {note: Note; change: Change; onDeleted?: () => void; /** While editing: put the new photo's line at the caret (unsaved words). */ onPlace?: (id: string) => void; /** LEDGER #318: the note was locked on this visit (it stays shown until left). */ onLocked?: () => void}) {
+function NoteExtras({note, change, onDeleted, onPlace, onUnplace, onLocked}: {note: Note; change: Change; onDeleted?: () => void; /** Review b4g B4G-6: while editing, the deleted photo's line leaves the unsaved words too. */ onUnplace?: (id: string) => void; /** While editing: put the new photo's line at the caret (unsaved words). */ onPlace?: (id: string) => void; /** LEDGER #318: the note was locked on this visit (it stays shown until left). */ onLocked?: () => void}) {
   const [confirmPhoto, setConfirmPhoto] = useState<string | null>(null), [busy, setBusy] = useState(false), [said, setSaid] = useState('');
   const input = useRef<HTMLInputElement>(null);
   const multi = note.kind !== 'inbox', ids = notePhotoIdsOf(note), unplaced = unplacedPhotoIds(note), full = multi && photoRoom(note) <= 0;
@@ -158,7 +158,7 @@ function NoteExtras({note, change, onDeleted, onPlace, onLocked}: {note: Note; c
   const removePhoto = async (id: string) => {
     setConfirmPhoto(null);
     // Review b4g B4G-5: Undo puts it back, so the bytes stay until the arrival sweep (30 days with no note naming it).
-    change(r => removeNotePhoto(r, note.id, id, new Date().toISOString()), 'Photo taken out of the note. Undo puts it back.');
+    if (change(r => removeNotePhoto(r, note.id, id, new Date().toISOString()), 'Photo taken out of the note. Undo puts it back.')) onUnplace?.(id);
   };
   return <div className="note-extras">
     {unplaced.map(id => <NotePhotoUnder key={id} id={id} name={noteName(note)}/>)}
