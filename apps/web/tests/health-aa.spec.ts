@@ -120,6 +120,12 @@ test('N6: pasted recipe text becomes confirmable rows, then foods and a recipe; 
   await expect(panel.getByRole('textbox', {name: 'Ingredient 1 name'})).toHaveValue('chickpeas');
   await expect(panel.getByRole('textbox', {name: 'Ingredient 4 grams'})).toHaveValue('100');
   await panel.getByRole('button', {name: 'Drop ingredient 2'}).click();
+  // Session AV lane 2 (fixb4; deliberate): the offline library is read after the rows show; Save tapped while a row still
+  // says "Looking in the offline food library…" keeps that row a new food, so the spec saved before the lookups had
+  // ended (it passed on a faster build). As a person does: the rows have finished looking and olive oil names its library
+  // food, then Save; the same checks follow.
+  await expect(panel.getByText('Looking in the offline food library…')).toHaveCount(0);
+  await expect(panel.getByText('From the offline food library, check it: Olive oil, extra virgin', {exact: false})).toBeVisible();
   await panel.getByRole('button', {name: 'Save recipe', exact: true}).click();
   await expect(page.getByText(/Recipe "Fictional chickpea stew" saved with 3 ingredients/)).toBeVisible();
   const data = await stored(page, HEALTH_STORAGE_KEY) as HealthData;

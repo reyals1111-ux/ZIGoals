@@ -14,7 +14,9 @@ for (const theme of THEMES) test(`${theme}: Dining watched, €65 so far against
   if (!isMobile) await page.setViewportSize({width: 1440, height: 900});
   await seedDevice(page, {[MONEY_LOG_KEY]: moneyLog([entry('2026-11-05', '40.00', 'Dining'), entry('2026-11-12', '25.00', 'Dining'), entry('2026-10-10', '30.00', 'Dining'), entry('2026-10-28', '50.00', 'Dining')])});
   const section = await openWealthSection(page, 'budgets', 'Budgets by category');
-  const watch = section.getByRole('region', {name: 'Watching'});
+  // Session AV lane 2 (fixb4; deliberate): round 4's "Watching payees" (the same fold) also holds the word; exactly
+  // "Watching", as strict.
+  const watch = section.getByRole('region', {name: 'Watching', exact: true});
   // Session AV lane 2 (polish 2, P-34; deliberate): with nothing set up yet, Watching waits in the "More budget tools" fold
   // under "+ Set a monthly budget". As strict: it is folded away first, the fold is opened, then the same steps and checks.
   const more = section.locator('details.budgets-more-tools');

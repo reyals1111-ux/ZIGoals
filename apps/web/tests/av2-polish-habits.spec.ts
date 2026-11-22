@@ -64,7 +64,9 @@ for (const theme of ['nebula', 'light', 'dark'] as const)
     await go(page, '/app/habits');
     await expect(page.locator('.habits-workspace .habit-grid > .habit-card').first()).toBeVisible({timeout: 15_000});
     const grids = await page.locator('.habits-workspace .habit-grid').evaluateAll(gs => gs.map(g => {
-      const box = g.getBoundingClientRect(), cards = [...g.querySelectorAll(':scope > .habit-card')].map(c => c.getBoundingClientRect());
+      // Session AV lane 2 (fixb4; deliberate): the row the cards fill is the grid's content box (the section keeps 18 px of
+      // padding each side; a pair filled 1076 of 1112 too). Measured inside that padding, as strict.
+      const cs = getComputedStyle(g), box = {width: g.getBoundingClientRect().width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - parseFloat(cs.borderLeftWidth) - parseFloat(cs.borderRightWidth)}, cards = [...g.querySelectorAll(':scope > .habit-card')].map(c => c.getBoundingClientRect());
       const cadence = [...g.querySelectorAll(':scope > .habit-card > .habit-cadence')].map(c => c.getBoundingClientRect().width);
       return {width: box.width, count: cards.length, filled: cards.length ? Math.max(...cards.map(c => c.right)) - Math.min(...cards.map(c => c.left)) : 0, widest: Math.max(0, ...cadence)};
     }));

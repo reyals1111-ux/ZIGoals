@@ -29,7 +29,11 @@ for (const theme of THEMES) test(`${theme}: group entries into one line`, async 
   await search.getByRole('button', {name: 'Select', exact: true}).click();
   await search.getByRole('button', {name: 'Select all 3'}).click();
   const group = search.getByRole('button', {name: 'Group', exact: true});
-  await group.click();
+  // Session AV lane 2 (fixb4; deliberate): without a name Group is aria-disabled (it stays focusable and says what it
+  // needs), and Playwright's click waits for an enabled button, so it never clicked. As strict: it is aria-disabled, and
+  // pressed from the keyboard it says what it needs.
+  await expect(group).toHaveAttribute('aria-disabled', 'true');
+  await group.press('Enter');
   await expect(search.locator('.money-bulk .money-status')).toHaveText('Give the group a name, for example Weekend in Ghent.');
   await search.getByLabel('Group them as one, named').fill('Weekend in Ghent');
   await group.click();
