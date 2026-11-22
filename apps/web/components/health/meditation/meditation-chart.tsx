@@ -16,8 +16,10 @@ const weekLabel = (start: string) => formatDate(start, {year: false});
 const tick = (m: number) => m === 0 ? '0' : m % 60 === 0 ? `${m / 60} h` : m > 60 ? `${Math.floor(m / 60)} h ${m % 60}` : `${m} min`;
 const bar = (x: number, w: number, top: number, base: number) => { const r = Math.min(4, w / 2, (base - top) / 2); return `M${x},${base}V${top + r}Q${x},${top} ${x + r},${top}H${x + w - r}Q${x + w},${top} ${x + w},${top + r}V${base}Z`; };
 
+// Session AV lane 2 (fixb1): at 320 px the plot is 254 px wide, so the chart may be drawn that narrow (it was held at
+// 260 px and stood out of its plot); its 14 px labels keep their size.
 export function MeditationWeeksChart({weeks, goal}: {weeks: WeekBar[]; goal: number | null}) {
-  const [hover, setHover] = useState<number | null>(null), [plot, W] = useChartWidth(), plotW = W - PAD.left - PAD.right;
+  const [hover, setHover] = useState<number | null>(null), [plot, W] = useChartWidth(320, 240), plotW = W - PAD.left - PAD.right;
   const top = Math.max(30, goal ?? 0, ...weeks.map(w => w.minutes)), step = top <= 60 ? 15 : top <= 180 ? 30 : 60, max = Math.ceil(top / step) * step;
   const y = (m: number) => PAD.top + plotH - m / max * plotH, slot = plotW / weeks.length, w = Math.max(4, Math.min(48, slot - 8));
   const done = weeks.filter(w => w.sessions > 0);
