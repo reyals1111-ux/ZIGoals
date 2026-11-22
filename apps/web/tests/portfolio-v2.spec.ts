@@ -93,13 +93,19 @@ test('value over time: one history per coin, one after another, for the chosen r
   const chart = page.getByRole('region', {name: 'Value over time'});
   await expect(chart.getByRole('button', {name: '30D', exact: true})).toHaveAttribute('aria-pressed', 'true');
   await expect(chart.getByRole('img')).toBeVisible();
-  const histories = () => asked.filter(r => r.path === '/api/market-history').map(r => (r.body as {request: Request & {range: string}}).request).map(r => `${r.marketRef.id}:${r.range}`);
+  const all = () => asked.filter(r => r.path === '/api/market-history').map(r => (r.body as {request: Request & {range: string}}).request).map(r => `${r.marketRef.id}:${r.range}`);
+  // Session AV lane 2 (CI run 2007; deliberate): the same Analysis tab now holds lane 2's Time Machine ("On a past day"),
+  // which asks once for its first day, 30 days back, when only Bitcoin was held: Bitcoin over 90 days, whenever its chunk
+  // loads. The chart's own requests keep their exact order; the Time Machine's one request is counted exactly below, so
+  // every history asked is still accounted for.
+  const pastDay = 'bitcoin:90d', histories = () => all().filter(h => h !== pastDay);
   await expect.poll(histories).toEqual(['bitcoin:30d', 'ethereum:30d']);
   await chart.getByText('View exact values').click();
   const rows = chart.getByRole('region', {name: 'Exact values'}).getByRole('row');
   await expect(rows.last()).toContainText('$39,500.00');
   await chart.getByRole('button', {name: '7D', exact: true}).click();
   await expect.poll(histories).toEqual(['bitcoin:30d', 'ethereum:30d', 'bitcoin:7d', 'ethereum:7d']);
+  await expect.poll(() => all().filter(h => h === pastDay)).toEqual([pastDay]);
   await expect(chart).toContainText('in this range, buys and sells included');
   await expect(chart).toContainText('The scale fits these values; it does not start at zero.');
 });
