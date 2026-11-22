@@ -361,3 +361,40 @@ and an older build keeps the list untouched and never shows it. Each note in it 
 - Cases: `lib/ai/evals/as/cases-av2-r5-notes.ts` (`AV2_R5_NOTES`, 11 intents, 44 questions). Test:
   `lib/ai/local-answers/av2-r5-notes.test.ts` (every case in both languages from NOVA and ZIGi; the answer of its own
   intent; other questions left alone; no question of today's CORPUS answered here).
+
+## Review b5i fixes (`scratchpad/review-b5i.md`, at `b2e0cc67`)
+
+- **B5I-1, B5I-2 (Blockers), `14da0c3b`: a delete never drops a note from Recently deleted.** `toTrash` no longer makes
+  room by dropping notes. When the deleted notes would not fit (200 notes, 400,000 characters), the delete is refused in
+  words before anything changes: "Recently deleted is full … nothing was deleted. Open Notes → Notes → Recently deleted and
+  delete some there for good (or Empty now) first". More than 200 chosen at once gets "Choose 200 or fewer". So an Undo
+  gives back the trash exactly as it was. Test: `lib/notes/b5i-trash-room.test.ts`.
+- **B5I-3, B5I-4 (Blockers), `fdc8ca1b`: a restored daily note is never merged.** A daily note whose day has a new
+  daily note comes back as its own topic note, "2026-11-20 · restored" (then "(2)"). It keeps everything it had: its
+  lock (so a locked note's words reach no reader: Search, NOVA, the export, cards, mentions), every photo, its tags,
+  properties, look and earlier versions. The message says so, and that nothing was added to the new note. Test:
+  `lib/notes/b5i-trash-restore.test.ts`; `r5-trash.test.ts`'s merge case is a labelled deliberate change.
+- **B5I-5 (Major), `ecdfd929`: a table edit changes only what it changes.** Each line keeps its text as written. An
+  unchanged row stays byte for byte (also when rows move or sort), a changed cell is replaced inside its line, and a
+  column added or removed is spliced into each line. A table that could not be written back whole is not edited, and
+  Change a table says why: a row wider than its header, more than 20 columns or 100 rows, or a cell over 500 characters.
+  Test: `lib/notes/b5i-table-bytes.test.ts`.
+- **B5I-6 (Major), `d24ffbcf`: the tag template is chosen once the tag is final.** The template is picked when the Tags
+  field is left, or on Save (which then saves those words). A nested tag's own template wins over its parent's, and a
+  longer tag is never taken for a prefix. While the words are still the untouched template, a changed tag picks again.
+  New pure `startWords`. Test: `lib/notes/b5i-tag-template-final.test.ts`. The spec blurs the field.
+- **B5I-7, `9721c59c`:** a Markdown link's words (`[words](address)`, `![alt](…)`) are never a mention. Test:
+  `lib/notes/b5i-mention-md-link.test.ts`.
+- **B5I-8, `5fa2a56f`:** renaming a template's tag works with ten templates, in its place. Test:
+  `lib/notes/b5i-template-rename.test.ts`.
+- **B5I-9, `95fda6fb`:** Select moves focus to the chooser's first tick box, so Esc works at once. Test:
+  `lib/notes/b5i-select-focus.test.ts`, and the spec checks it.
+- **B5I-10, `52e9485e`:** after the last card, focus lands on "That is all for today". Test:
+  `lib/notes/b5i-cards-focus.test.ts`, and the spec checks it.
+- **B5I-11, `a3efad2c`:** the daily range counts only what its export holds and says how many locked notes stay out.
+  The button is off when there is nothing to export. Test: `lib/notes/b5i-range-count.test.ts`.
+- **B5I-12, `283c46f4`:** Tasks → Files counts what its list shows (`fileCounts`, no file of a removed task).
+- **B5I-13, `94b88892`:** a file refused by the device's 300 is told about photos, voice notes and files, and the 100 MB
+  of files is checked first. Test: `lib/tasks/b5i-files-caps.test.ts` (also covers B5I-12).
+- Help (EN) for #360 gains: "If Recently deleted is full, a delete waits until you empty some of it; nothing is dropped."
+- Stored formats: none changed by these fixes.
