@@ -21,7 +21,25 @@ const clock = z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/);
 export const MEAL_NAME_MAX = 24, CAFFEINE_MAX_MG = 1000;
 // Session AL fourth pass (C-DVG-38): an optional calorie target per meal (additive, optional; older builds ignore it).
 const mealPrefSchema = z.looseObject({name: z.string().trim().min(1).max(MEAL_NAME_MAX).optional(), time: clock.optional(), kcal: z.number().int().min(1).max(10_000).optional()});
-const drinkSchema = z.looseObject({type: z.enum(DRINK_TYPES), caffeineMg: z.number().int().min(0).max(CAFFEINE_MAX_MG).optional()});
+// Session AV lane 2 (health r3; LEDGER #281, #282, Waterllama; TIER 3 (stored format), additive): an entry's own drink
+// (`own`, its id) and the energy and sugar typed for it or copied from that drink (never guessed). The fixed `type` stays,
+// so an older build reads the entry as before; a value this build cannot read is dropped on its own.
+export const DRINK_KCAL_MAX = 2000, DRINK_SUGAR_MAX_G = 300;
+const drinkEnergy = {kcal: z.number().int().min(0).max(DRINK_KCAL_MAX).optional().catch(undefined), sugarG: z.number().min(0).max(DRINK_SUGAR_MAX_G).optional().catch(undefined)};
+const drinkSchema = z.looseObject({type: z.enum(DRINK_TYPES), caffeineMg: z.number().int().min(0).max(CAFFEINE_MAX_MG).optional(), own: z.string().min(1).max(40).optional().catch(undefined), ...drinkEnergy});
+/**
+ * Session AV lane 2 (health r3; LEDGER #281, Waterllama's drink creator; TIER 3 (stored format), additive): your own
+ * drinks, up to 30 — a name, a symbol, a colour, a usual size, the fixed type it counts as, and the caffeine, energy and
+ * sugar you typed. An unreadable drink is dropped and the others kept.
+ */
+export const OWN_DRINKS_MAX = 30, OWN_DRINK_NAME_MAX = 24, OWN_DRINK_SIZE_MAX_ML = 2000;
+export const ownDrinkSchema = z.looseObject({
+  id: z.string().regex(/^[a-z0-9-]{1,40}$/), name: z.string().trim().min(1).max(OWN_DRINK_NAME_MAX), type: z.enum(DRINK_TYPES),
+  sizeMl: z.number().int().min(1).max(OWN_DRINK_SIZE_MAX_ML), symbol: z.string().min(1).max(8).optional().catch(undefined), colour: z.string().regex(/^[a-z]{1,12}$/).optional().catch(undefined),
+  caffeineMg: z.number().int().min(0).max(CAFFEINE_MAX_MG).optional().catch(undefined), ...drinkEnergy,
+});
+export type OwnDrink = z.infer<typeof ownDrinkSchema>;
+const ownDrinksSchema = z.preprocess(v => Array.isArray(v) ? v.filter(x => ownDrinkSchema.safeParse(x).success).slice(0, OWN_DRINKS_MAX) : v, z.array(ownDrinkSchema).max(OWN_DRINKS_MAX));
 export const healthExtrasSchema = z.looseObject({
   version: z.literal(1),
   meals: z.partialRecord(z.enum(HEALTH_MEALS), mealPrefSchema).optional(),
@@ -37,6 +55,10 @@ export const healthExtrasSchema = z.looseObject({
   // {startedAt, plan} keyed by the run's start (lib/meditation/presets.ts), because the run record is strict. Optional and
   // loose; checked where read, and a value this build cannot read is dropped on its own, never the whole record.
   meditationRun: z.looseObject({}).optional().catch(undefined),
+  // Session AV lane 2 (health r3; LEDGER #281, #283; TIER 3 (stored format)): your own drinks, and whether the water card
+  // shows a tip a day (off unless chosen). Optional; a value this build cannot read is dropped on its own.
+  ownDrinks: ownDrinksSchema.optional().catch(undefined),
+  waterTips: z.boolean().optional().catch(undefined),
 });
 export type HealthExtras = z.infer<typeof healthExtrasSchema>;
 export const emptyHealthExtras = (): HealthExtras => ({version: 1});
@@ -71,7 +93,7 @@ export function setMealPref(r: HealthExtras, meal: Meal, input: {name: string; t
 }
 
 /** What a water entry was; an entry with no note is plain water. */
-export const drinkOf = (extras: HealthExtras | null | undefined, entryId: string): {type: DrinkType; caffeineMg?: number} => extras?.drinks?.[entryId] ?? {type: 'water'};
+export const drinkOf = (extras: HealthExtras | null | undefined, entryId: string): {type: DrinkType; caffeineMg?: number; own?: string; kcal?: number; sugarG?: number} => extras?.drinks?.[entryId] ?? {type: 'water'};
 export const drinkWord = (type: DrinkType) => type === 'soft drink' ? 'Soft drink' : type[0]!.toUpperCase() + type.slice(1);
 /** Reads the caffeine field: blank is unknown (undefined), never zero; the reason is said when it cannot be read. */
 export function readCaffeine(raw: string): {ok: true; mg: number | undefined} | {ok: false; message: string} {
@@ -82,11 +104,17 @@ export function readCaffeine(raw: string): {ok: true; mg: number | undefined} | 
   if (mg > CAFFEINE_MAX_MG) return {ok: false, message: `Caffeine for one drink goes up to ${CAFFEINE_MAX_MG} mg.`};
   return {ok: true, mg};
 }
-/** Notes (or clears, for plain water with no caffeine) what one water entry was. */
-export function setDrink(r: HealthExtras, entryId: string, type: DrinkType, caffeineMg?: number): HealthExtras {
-  const drinks = {...(r.drinks ?? {})};
-  if (type === 'water' && caffeineMg === undefined) delete drinks[entryId];
-  else drinks[entryId] = {type, ...(caffeineMg !== undefined ? {caffeineMg} : {})};
+/**
+ * Notes (or clears, for plain water with nothing else noted) what one water entry was. Session AV lane 2 (health r3,
+ * LEDGER #281, #282): `more` is the energy and sugar typed (and the own drink tapped); without it, what the entry had is
+ * kept (its own drink only while the type is unchanged).
+ */
+export function setDrink(r: HealthExtras, entryId: string, type: DrinkType, caffeineMg?: number, more?: {own?: string; kcal?: number; sugarG?: number}): HealthExtras {
+  const drinks = {...(r.drinks ?? {})}, was = drinks[entryId];
+  const energy = more ?? was ?? {}, own = more?.own ?? (was?.own && was.type === type ? was.own : undefined);
+  const extra = Object.fromEntries(Object.entries({own, kcal: energy.kcal, sugarG: energy.sugarG}).filter(([, v]) => v !== undefined));
+  if (type === 'water' && caffeineMg === undefined && !Object.keys(extra).length) delete drinks[entryId];
+  else drinks[entryId] = {type, ...(caffeineMg !== undefined ? {caffeineMg} : {}), ...extra};
   return healthExtrasSchema.parse({...r, drinks: Object.keys(drinks).length ? drinks : undefined});
 }
 /** Drops notes whose water entry no longer exists (after a removal), so the record does not grow forever. */

@@ -62,6 +62,8 @@
     // Session AV lane 2 (bodymind-r2; LEDGER #235, #236): the energy curve's reminders and plan steps, in the app's own words;
     // an own habit's name only where names are allowed (it is the label); never a sleep figure.
     (kinds.energy || []).slice(0, 2).forEach(function (e) { lines.push((e.detail || 'A reminder from your energy curve') + (named && e.label ? ' · ' + e.label : '')); });
+    // Session AV lane 2 (health r3; LEDGER #286): the weigh-in reminder; never a weight.
+    if (kinds.weighIn) lines.push('Time to weigh in');
     if (kinds.supplement) lines.push('A reminder you set in Health');
     // Session AV lane 2 (food, LEDGER #90): a meal's usual time, by its name only where names are allowed; never food.
     var meals = kinds.meal || [];

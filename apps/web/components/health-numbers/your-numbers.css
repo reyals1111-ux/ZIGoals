@@ -22,3 +22,5 @@
 .your-numbers-status { margin: 0; min-height: 1.2em; }
 .numbers-chart svg { width: 100%; height: auto; }
 .numbers-band { opacity: .55; }
+/* Session AV lane 2 (health r3; LEDGER #284): the sheet day's values taken before or after a meal. */
+.your-numbers-meal { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }

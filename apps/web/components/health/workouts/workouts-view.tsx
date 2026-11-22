@@ -62,6 +62,8 @@ const MuscleFreshToday = lazy(() => import('./muscle-freshness-today'));
 const ExerciseLibrary = lazy(() => import('./exercise-library'));
 // Session AV lane 2 (body; LEDGER #112, #115): the ready-made routines and an own routine's folder and note, one chunk.
 const RoutineLibrary = lazy(() => import('./routine-library-view'));
+// Session AV lane 2 (health r3; LEDGER #289): timed circuits, their own chunk, loaded when the fold opens.
+const Circuits = lazy(() => import('./circuits'));
 const RoutineEdit = lazy(() => import('./routine-library-view').then(m => ({default: m.RoutineEdit})));
 // Session AV lane 2 (body; LEDGER #117): the month report and sets per muscle over 8 weeks, its own chunk.
 const WorkoutsProgress = lazy(() => import('./workouts-progress'));
@@ -249,7 +251,7 @@ export default function WorkoutsView() {
             <button className="quiet" type="button" aria-label={`Remove routine ${t.name}`} onClick={() => change(x => removeTemplate(x, t.id), `Routine ${t.name} removed.`, `Routine ${t.name} is back.`)}>Remove</button></div>
           {editing === t.id && <Suspense fallback={<p className="fine" role="status">Opening…</p>}><RoutineEdit w={w} routine={t} change={change} unit={unit} onDone={() => setEditing(null)}/></Suspense>}
         </li>)}</ul></div>)}</>}
-        <Fold className="av2-fold workouts-guides-fold" summary="Ready-made routines, and routines shared with you" loading="Opening the routines…"><RoutineLibrary w={w} onSave={(g, lang) => saveFromLibrary(g, lang, false)} onStart={(g, lang) => saveFromLibrary(g, lang, true)} onImport={share => change(x => addSharedRoutine(x, share, new Date()).workouts, `${share.name} is added to your routines.`)}/></Fold>
+        <Fold className="av2-fold workouts-guides-fold" summary="Ready-made routines, and routines shared with you" loading="Opening the routines…"><RoutineLibrary w={w} onSave={(g, lang) => saveFromLibrary(g, lang, false)} onStart={(g, lang) => saveFromLibrary(g, lang, true)} onImport={share => change(x => addSharedRoutine(x, share, new Date()).workouts, `${share.name} is added to your routines.`)}/></Fold><Fold className="av2-fold workouts-circuits-fold" summary="Timed circuits: work, rest and rounds" loading="Opening the circuits…"><Circuits logDay={logDay || today}/></Fold>
       </section>}
     {asking === 'finish' && current && <ConfirmInline title="Finish with unticked sets?" confirmLabel="Finish workout" cancelLabel="Keep logging" tone="neutral" onConfirm={() => void finish()} onCancel={() => setAsking(null)}><p>Sets you have not ticked are left out. Tick a set when you finish it.</p></ConfirmInline>}
     {asking === 'discard' && <ConfirmInline title="Discard this workout?" confirmLabel="Discard workout" cancelLabel="Keep it" onConfirm={() => { setAsking(null); setRestUntil(null); change(discardWorkout, 'The workout in progress is discarded. Nothing was added to Health.'); }} onCancel={() => setAsking(null)}><p>Its sets are not kept.</p></ConfirmInline>}

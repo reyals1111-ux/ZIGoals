@@ -9,7 +9,7 @@ import type {DeviceRecordSpec} from '../device-record';
  * contribution times stay where they always were.
  */
 export const NOTIFY_KEY = 'zigoals:notify:v1';
-export const NOTIFY_TYPES = ['habits', 'morning', 'evening', 'water', 'contributions', 'windDown', 'review', 'prices', 'bills', 'supplements', 'tasks', 'countdowns', 'journal', 'money', 'meals', 'mood', 'energy', 'planDay'] as const;
+export const NOTIFY_TYPES = ['habits', 'morning', 'evening', 'water', 'contributions', 'windDown', 'review', 'prices', 'bills', 'supplements', 'tasks', 'countdowns', 'journal', 'money', 'meals', 'mood', 'energy', 'planDay', 'weighIn'] as const;
 export type NotifyType = (typeof NOTIFY_TYPES)[number];
 const time = z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/);
 export const notifyPrefsSchema = z.looseObject({
@@ -30,6 +30,20 @@ export const notifyPrefsSchema = z.looseObject({
    * keeps it untouched and simply has no energy type. Step reminders are the evening plan's own (`remind`).
    */
   energy: z.looseObject({focus: z.boolean().optional().catch(undefined), dip: z.boolean().optional().catch(undefined), windDown: z.boolean().optional().catch(undefined)}).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (health r3; LEDGER #280, Waterllama's reminders through the day; TIER 3 (stored format) and TIER 3
+   * (PWA)): water reminders every 1, 2 or 3 hours between a start and an end time, each skipped when the day is on pace.
+   * `on` false keeps the choice. Optional and loose; a value this build cannot read is dropped on read; an older build keeps
+   * it untouched and keeps its one water time.
+   */
+  waterSpread: z.looseObject({on: z.boolean(), from: time, to: time, every: z.union([z.literal(60), z.literal(120), z.literal(180)])}).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (health r3; LEDGER #286, Carb Manager's weigh-in reminders; TIER 3 (stored format) and TIER 3 (PWA)):
+   * an opt-in weigh-in reminder at a time, every day, on chosen weekdays (Monday = 1 … Sunday = 64, as the push Workers
+   * count) or on one day of the month (1–28), skipped once a weight is logged that day. Optional and loose; a value this
+   * build cannot read is dropped on read; an older build keeps it untouched.
+   */
+  weighIn: z.looseObject({time, repeat: z.enum(['daily', 'weekdays', 'monthly']), weekdays: z.number().int().min(1).max(127).optional().catch(undefined), day: z.number().int().min(1).max(28).optional().catch(undefined)}).optional().catch(undefined),
   /** Set while notifications are on on this device: a cheap hint so most pages never load the notification code. */
   here: z.boolean().optional(),
 });
@@ -37,7 +51,7 @@ export type NotifyPrefs = z.infer<typeof notifyPrefsSchema>;
 export const emptyNotifyPrefs = (): NotifyPrefs => ({version: 1, types: {}});
 export const NOTIFY_PREFS: DeviceRecordSpec<NotifyPrefs> = {key: NOTIFY_KEY, schema: notifyPrefsSchema, empty: emptyNotifyPrefs};
 /** On by default: what most people want from a reminder app; the evening wrap-up is opt-in. */
-export const DEFAULT_ON: Record<NotifyType, boolean> = {habits: true, morning: true, evening: false, water: true, contributions: true, windDown: true, review: true, prices: true, bills: true, supplements: false, tasks: true /* Session AV (follow-up 1, F-TASK-NOTIFY): a reminder the person set on a task */, countdowns: true /* Session AV (1c): a reminder the person set on a countdown */, journal: true /* Session AV lane 2: the reminder to write is itself off until set in the Journal */, money: true /* Session AV lane 2 (money): budgets near or over, payday, the low-balance line */, meals: false /* Session AV lane 2 (food, LEDGER #90): opt-in */, mood: false /* Session AV lane 2 (LEDGER #180): opt-in */, energy: false /* Session AV lane 2 (bodymind-r2, LEDGER #235, #236): opt-in */, planDay: true /* Session AV lane 2 (r3-plan, LEDGER #256): the reminder itself is off until a time is set in Tasks → This week */};
+export const DEFAULT_ON: Record<NotifyType, boolean> = {habits: true, morning: true, evening: false, water: true, contributions: true, windDown: true, review: true, prices: true, bills: true, supplements: false, tasks: true /* Session AV (follow-up 1, F-TASK-NOTIFY): a reminder the person set on a task */, countdowns: true /* Session AV (1c): a reminder the person set on a countdown */, journal: true /* Session AV lane 2: the reminder to write is itself off until set in the Journal */, money: true /* Session AV lane 2 (money): budgets near or over, payday, the low-balance line */, meals: false /* Session AV lane 2 (food, LEDGER #90): opt-in */, mood: false /* Session AV lane 2 (LEDGER #180): opt-in */, energy: false /* Session AV lane 2 (bodymind-r2, LEDGER #235, #236): opt-in */, planDay: true /* Session AV lane 2 (r3-plan, LEDGER #256): the reminder itself is off until a time is set in Tasks → This week */, weighIn: true};
 export const DEFAULT_TIMES = {morning: '08:00', evening: '20:30', mood: '20:00'} as const;
 export const typeOn = (p: NotifyPrefs, type: NotifyType) => p.types[type] ?? DEFAULT_ON[type];
 export const morningTime = (p: NotifyPrefs) => p.morning?.time ?? DEFAULT_TIMES.morning;
@@ -72,6 +86,8 @@ export const NOTIFY_LABELS: Record<NotifyType, {title: string; blurb: string}> =
   // Session AV lane 2 (bodymind-r2, LEDGER #235, #236): off by default; which ones is chosen under the energy curve and the plan steps.
   // Session AV lane 2 (r3-plan, LEDGER #256; Structured's morning planning): its time is set in Tasks → This week.
   planDay: {title: 'Plan your day', blurb: 'At the time you set in Tasks → This week, with how many tasks are overdue; a tap opens Plan my day. Never a task’s name.'},
+  // Session AV lane 2 (health r3, LEDGER #286): the reminder itself is set in Health → Weight.
+  weighIn: {title: 'Weigh-in', blurb: 'At the weigh-in time you set in Health → Weight, unless a weight is already logged that day. Never a weight.'},
   energy: {title: 'Energy curve and plan steps', blurb: 'From your energy curve (the focus window, before the dip, winding down) and at the steps of your morning and evening plan you chose, in Health → Sleep. Never a sleep figure.'},
 };
 export type EnergyReminders = {focus: boolean; dip: boolean; windDown: boolean};
