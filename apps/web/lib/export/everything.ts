@@ -104,6 +104,7 @@ import {AR_EXPORT_KEYS} from '../ar-device-keys';
 import {AU_EXPORT_KEYS} from '../au-device-keys';
 import {AV_EXPORT_KEYS} from '../av-device-keys';
 import {AV2_EXPORT_KEYS} from '../av2-device-keys';
+import {HIDE_BODY_FIGURES_KEY} from '../ah-device-keys';
 import {accountsSchema, type Account} from '../accounts/schema';
 import {exportHealthCsv} from '../health-daily';
 import {exerciseData} from '../health-counters';
@@ -245,7 +246,13 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   // Session AV (lib/av-device-keys.ts; ADR-045 F-COUNTDOWN-YEARLY): yearly countdowns and their reminders.
   ...AV_EXPORT_KEYS,
   // Session AV lane 2 (lib/av2-device-keys.ts; owner follow-up 4): Tasks' planning and templates, budget pay periods.
-  ...AV2_EXPORT_KEYS} as const;
+  ...AV2_EXPORT_KEYS,
+  // Session AV lane 2 (nl-days, R3; q3-36; TIER 3 (stored formats), additive): Health's "Hide calories and weight"
+  // switch (components/hide-figures.tsx HIDE_FIGURES_KEY), a display choice kept as the raw text `on` (not JSON): it is
+  // written into the file as that text (TEXT_DEVICE_KEYS), so a restore on a new device keeps the figures hidden.
+  hideBodyFigures: HIDE_BODY_FIGURES_KEY} as const;
+/** Session AV lane 2 (R3): device keys whose stored value is plain text, not JSON; Export everything copies the text as it is (`"on"`). */
+export const TEXT_DEVICE_KEYS: ReadonlySet<string> = new Set([HIDE_BODY_FIGURES_KEY]);
 export const EVERYTHING_KEYS: readonly string[] = [...Object.values(MODULE_KEYS), PORTFOLIO_KEY, ...Object.values(DEVICE_KEYS)];
 export const EVERYTHING_NOTE = 'Readable export of your ZIGoals records. It contains personal information: keep it private. Settings → Your data → Restore from a backup reads it back; Settings → Keep a protected copy makes an encrypted copy.';
 export const CSV_FILES = ['goals.csv', 'contributions.csv', 'habits.csv', 'check-ins.csv', 'health-diary.csv', 'weights.csv', 'water.csv', 'activity.csv', 'wealth-positions.csv',
@@ -364,7 +371,7 @@ export function collectEverything(texts: EverythingTexts, {now, version, commit,
   const read = (key: string): unknown => { const text = texts[key]; if (text === null || text === undefined) return undefined; try { return parseJson(text); } catch { unreadable.push(key); return undefined; } };
   for (const [name, key] of Object.entries(MODULE_KEYS) as [keyof typeof MODULE_KEYS, string][]) { const value = read(key); if (value !== undefined) json.modules[name] = value; }
   const portfolio = read(PORTFOLIO_KEY); if (portfolio !== undefined) json.portfolio = portfolio;
-  for (const [name, key] of Object.entries(DEVICE_KEYS) as [keyof typeof DEVICE_KEYS, string][]) { const value = read(key); if (value !== undefined) json.device[name] = value; }
+  for (const [name, key] of Object.entries(DEVICE_KEYS) as [keyof typeof DEVICE_KEYS, string][]) { const value = TEXT_DEVICE_KEYS.has(key) ? texts[key] ?? undefined : read(key); if (value !== undefined) json.device[name] = value; }
   if (aiChats !== undefined) json.device.aiChats = aiChats;
   if (localSimulation) { json.localSimulation = JSON.parse(localSimulation.section); if (localSimulation.warning) warnings.push(localSimulation.warning); }
   const typed = <T,>(name: string, value: unknown, parse: (value: unknown) => {success: true; data: T} | {success: false}): T | null => { if (value === undefined) return null; const result = parse(value); if (result.success) return result.data; warnings.push(`Your ${name} records did not read as expected, so their CSV files hold the header only; everything.json still holds them as stored.`); return null; };

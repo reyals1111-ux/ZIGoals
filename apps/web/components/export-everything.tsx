@@ -67,6 +67,7 @@ export function ExportEverything() {
     {error && <p role="alert">{error}</p>}
     <p className="fine">Made on this device. Nothing is uploaded. Settings → Your data → Restore from a backup reads it back.</p>
     {/* Session AV lane 2 (LEDGER #69; QUALITY "Not fixed"): the hide switch offered here too; the file itself is always complete. */}
-    {figuresHidden && <p className="fine" data-testid="export-figures-hidden">Calorie and weight figures are hidden on screen on this device. This file still holds them, so it stays a complete copy.</p>}
+    {/* Session AV lane 2 (nl-days, R3; q3-36): the file keeps the switch too, so a restore hides the figures again. */}
+    {figuresHidden && <p className="fine" data-testid="export-figures-hidden">Calorie and weight figures are hidden on screen on this device. This file still holds them, so it stays a complete copy, and it keeps this choice: a restore hides them again.</p>}
   </section>;
 }

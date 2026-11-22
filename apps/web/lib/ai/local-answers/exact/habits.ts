@@ -3,7 +3,7 @@ import {habitDay, habitRuleOn, habitStats, latestHabitRule, measurementUnit, typ
 import {localWeekday} from '../../../local-date';
 import {formatNumber} from '../../../visual-format';
 import {text as clean} from '../../tools/format';
-import {dayWords, periodSpan, periodWords, previousPeriod, resolvePeriod, weekdayName, type Period} from './period';
+import {dayIn, periodSpan, periodWords, previousPeriod, resolvePeriod, weekdayName, type Period} from './period';
 import {dayList, rate, tally, type DayPoint, type DayState, type Tally} from './series';
 import {listWords, t} from './text';
 import {periodFor, streakText, trackAnswer, type Track} from './track';
@@ -97,7 +97,7 @@ export function habitsAnswer(q: Query, habits: readonly Habit[], today: string):
   const most = /\b(?:most|often|usually|vaakst|meest|meestal|vaak)\b/.test(q.read) && (q.ask === 'missed' || q.ask === 'not-done' || q.ask === 'skipped');
   const fallback = most ? 'last-30-days' : q.ask === 'open' || (q.ask === 'done' && q.shape !== 'count' && !q.period) ? 'today' : q.ask === 'status' || q.ask === 'missed' || q.ask === 'not-done' || q.ask === 'skipped' || q.ask === 'done' ? 'this-week' : 'this-month';
   const p = periodFor({...q, shape: q.shape === 'yes-no' && (q.ask === 'missed' || q.ask === 'not-done' || q.ask === 'skipped') ? 'list' : q.shape}, today, fallback), rows = habitRows(habits, p, today);
-  const span = periodSpan(p, lang, today), day = (d: string) => dayWords(d, today), widgets = habitWidgets(q.ask, p);
+  const span = periodSpan(p, lang, today), day = (d: string) => dayIn(lang, d, today), widgets = habitWidgets(q.ask, p);
   if (!rows.length) return out(t(lang, `No habit was due ${span}.`, `Er stond geen gewoonte gepland ${span}.`), {due: 0}, widgets, p);
   const sum = (pick: (T: Tally) => number) => rows.reduce((n, r) => n + pick(r.T), 0);
   const openRows = rows.filter(r => r.T.open > 0), openNote = openRows.length ? t(lang, ` Still open today: ${listWords(openRows.map(r => r.name), 'en')}.`, ` Vandaag nog open: ${listWords(openRows.map(r => r.name), 'nl')}.`) : '';

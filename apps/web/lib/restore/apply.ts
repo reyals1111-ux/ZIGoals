@@ -11,7 +11,8 @@ import {PROGRESS_PHOTOS_KEY} from '../aa-device-keys';
 import {addPhotoEntry, deletePhotoBlob, getPhotoBlob, photoFileName, photoScope, progressPhotosSchema, putPhotoBlob, type ProgressPhotos} from '../health-aa/photos';
 import {deleteImages, getImage, putImage} from '../vision/store';
 import {imageSize, tooLarge} from '../image-header';
-import {DEVICE_PARTS, MODULE_PARTS, nextValue, type PlannedPart, type RestoreMode} from './plan';
+import {DEVICE_PARTS, MODULE_PARTS, RESTORABLE_DEVICE_PARTS, nextValue, partTextOf, partValueOf, type PlannedPart, type RestoreMode} from './plan';
+import {HIDE_BODY_FIGURES_KEY} from '../ah-device-keys';
 import {entryBytes, RESTORE_LIMITS, type OpenedBackup} from './read-backup';
 import {RESTORE_MEDIA_DBS, anyMediaLeft, removeMedia, type RestoreMediaDb} from './media-dbs';
 import type {MediaOutcome, MediaPlan, MediaRecords} from './media';
@@ -93,10 +94,12 @@ function announceModule(key: string) {
 function announceDevice(key: string) {
   window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: key}));
   if (key === PORTFOLIO_KEY) window.dispatchEvent(new Event('zigoals:portfolio-change'));
+  // Session AV lane 2 (R3): the switch's own event (components/hide-figures.tsx), so a restored "Hide calories and weight" applies at once.
+  if (key === HIDE_BODY_FIGURES_KEY) window.dispatchEvent(new Event('zigoals-hide-body-figures'));
 }
 /** Every key a restore may write: the parts in plan.ts and the progress-photo index, nothing else (and its own undo record, RESTORE_UNDO_KEY). */
-export const RESTORE_KEYS: readonly string[] = [...MODULE_PARTS.map(p => p.key), ...DEVICE_PARTS.map(p => p.key), PROGRESS_PHOTOS_KEY];
-const MODULE_KEYS = new Set(MODULE_PARTS.map(p => p.key)), DEVICE_KEYS = new Set(DEVICE_PARTS.map(p => p.key));
+export const RESTORE_KEYS: readonly string[] = [...MODULE_PARTS.map(p => p.key), ...RESTORABLE_DEVICE_PARTS.map(p => p.key), PROGRESS_PHOTOS_KEY];
+const MODULE_KEYS = new Set(MODULE_PARTS.map(p => p.key)), DEVICE_KEYS = new Set(RESTORABLE_DEVICE_PARTS.map(p => p.key));
 
 async function sha256(text: string): Promise<string> { return [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)))].map(b => b.toString(16).padStart(2, '0')).join(''); }
 const sha256OrNull = (text: string | null) => text === null ? Promise.resolve(null) : sha256(text);
@@ -165,7 +168,7 @@ export async function currentValue(storage: Storage, part: PlannedPart): Promise
   const raw = storage.getItem(part.key);
   if (raw === null) return undefined;
   if (part.kind === 'module') return isDurableMarker(raw) ? readDurableStore(storage, part.key, part.schema) : parsePrivateData(raw, part.schema);
-  const parsed = part.schema.safeParse(JSON.parse(raw));
+  const parsed = part.schema.safeParse(partValueOf(part, raw));
   if (!parsed.success) throw Error('This device’s copy does not read.');
   return parsed.data;
 }
@@ -237,7 +240,7 @@ async function restorePart(part: PlannedPart, mode: Exclude<RestoreMode, 'leave'
       // through the restore's reader, and put back on the value about to be written.
       let value = next.value;
       if (part.kind === 'device' && part.local && before !== null) { try { value = part.local(JSON.parse(before), value); } catch { /* an unreadable copy keeps nothing */ } }
-      try { if (copy) storage.setItem(copy, before!); storage.setItem(part.key, JSON.stringify(value)); }
+      try { if (copy) storage.setItem(copy, before!); storage.setItem(part.key, partTextOf(part, value)); }
       catch { if (copy && storage.getItem(part.key) === before) try { storage.removeItem(copy); } catch { /* an extra copy is harmless */ } throw Error('This browser’s storage is full, so this part was not restored.'); }
       session.steps.push({kind: 'device', key: part.key, label: part.label, before, after: await sha256(storage.getItem(part.key)!)});
       announceDevice(part.key);

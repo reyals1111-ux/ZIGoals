@@ -108,7 +108,8 @@ describe('R-1 and R-12 (Sanne): a habit named by its own word is the habit, in D
     for (const [name, env] of [...Object.entries(both(sanne())), ...Object.entries(both(sanne(), false)).map(([k, v]) => [`${k}, Health closed`, v] as const)]) {
       const nl = ask('Welke dag heb ik mijn water gemist?', env), en = ask('which day did I miss my water', env);
       expect(nl.kind, name).toBe('answer');
-      expect(nl.text, name).toBe('Water drinken: gemist op 4 dagen deze maand (Sun, Nov 1 t/m Tue, Nov 17): Wed, Nov 11, Thu, Nov 12, Fri, Nov 13 en Sat, Nov 14. Vandaag staat nog open.');
+      // Session AV lane 2 (Dutch dates, deliberate): the Dutch answer writes its days the Dutch way (was "(Sun, Nov 1 t/m Tue, Nov 17): Wed, Nov 11, …").
+      expect(nl.text, name).toBe('Water drinken: gemist op 4 dagen deze maand (zo 1 nov t/m di 17 nov): wo 11 nov, do 12 nov, vr 13 nov en za 14 nov. Vandaag staat nog open.');
       expect(en.text, name).toBe('Water drinken: missed on 4 days this month (Sun, Nov 1 to Tue, Nov 17): Wed, Nov 11, Thu, Nov 12, Fri, Nov 13 and Sat, Nov 14. Today is still open.');
       expect(nl.facts, name).toMatchObject({ask: 'missed', dates: {missed: ['2026-11-11', '2026-11-12', '2026-11-13', '2026-11-14']}});
     }
@@ -122,11 +123,13 @@ describe('R-2 and R-3 (Tom): what was lifted and how far was run, from the worko
   test('open: today\'s exercises with their working sets and top weight; the week\'s run distance, a GPX import included', () => {
     for (const env of Object.values(both(tom()))) {
       expect(text('What did I lift today?', env)).toBe('Lifted today (Tue, Nov 17): Push day — Bench press 3 sets, top 72.5 kg × 6; Overhead press 2 sets, top 42.5 kg × 6.');
-      expect(text('Wat heb ik vandaag getild?', env)).toBe('Getild vandaag (Tue, Nov 17): Push day — Bench press 3 sets, zwaarst 72.5 kg × 6; Overhead press 2 sets, zwaarst 42.5 kg × 6.');
+      // Session AV lane 2 (Dutch dates, deliberate): "(di 17 nov)", was "(Tue, Nov 17)".
+      expect(text('Wat heb ik vandaag getild?', env)).toBe('Getild vandaag (di 17 nov): Push day — Bench press 3 sets, zwaarst 72.5 kg × 6; Overhead press 2 sets, zwaarst 42.5 kg × 6.');
       const week = ask('How far did I run this week?', env);
       expect(week.text).toBe('You ran 13.4 km this week (Mon, Nov 16 to Tue, Nov 17), in 2 runs: 5 km on Mon, Nov 16 and 8.4 km on Tue, Nov 17.');
       expect(week.facts).toMatchObject({km: 13.4, count: 2, workouts: [{day: '2026-11-16', km: 5, imported: false}, {day: '2026-11-17', km: 8.4, imported: true}]});
-      expect(text('Hoe ver heb ik deze week hardgelopen?', env)).toBe('Je liep 13.4 km deze week (Mon, Nov 16 t/m Tue, Nov 17), in 2 loopjes: 5 km op Mon, Nov 16 en 8.4 km op Tue, Nov 17.');
+      // Session AV lane 2 (Dutch dates, deliberate): the Dutch answer writes its days the Dutch way (was "(Mon, Nov 16 t/m Tue, Nov 17) … op Mon, Nov 16 …").
+      expect(text('Hoe ver heb ik deze week hardgelopen?', env)).toBe('Je liep 13.4 km deze week (ma 16 nov t/m di 17 nov), in 2 loopjes: 5 km op ma 16 nov en 8.4 km op di 17 nov.');
       expect(text('how far did I run last week', env)).toBe('You ran 7.5 km last week (Mon, Nov 9 to Sun, Nov 15), in 1 run: 7.5 km on Sun, Nov 15.');
     }
   });
@@ -148,13 +151,15 @@ describe('R-4 (Max): today by the person\'s own day end', () => {
     for (const env of Object.values(both(max()))) {
       expect(text('What day is it?', env)).toBe('It\'s Monday, Nov 23 for you: your day ends at 03:00 (the calendar already says Tuesday).');
       expect(text('what\'s the date', env)).toBe('It\'s Monday, Nov 23 for you: your day ends at 03:00 (the calendar already says Tuesday).');
-      expect(text('Welke dag is het?', env)).toBe('Voor jou is het maandag, Nov 23: je dag eindigt om 03:00 (de kalender zegt al dinsdag).');
+      // Session AV lane 2 (Dutch dates, deliberate): "maandag 23 nov", was "maandag, Nov 23".
+      expect(text('Welke dag is het?', env)).toBe('Voor jou is het maandag 23 nov: je dag eindigt om 03:00 (de kalender zegt al dinsdag).');
     }
   });
   test('a day that ends at midnight: the plain date', () => {
     const env = novaEnv({...max(), habitDay: '2026-11-24', healthDay: '2026-11-24'});
     expect(text('What day is it?', env)).toBe('It\'s Tuesday, Nov 24.');
-    expect(text('Welke datum is het vandaag?', env)).toBe('Het is dinsdag, Nov 24.');
+    // Session AV lane 2 (Dutch dates, deliberate): "dinsdag 24 nov", was "dinsdag, Nov 24".
+    expect(text('Welke datum is het vandaag?', env)).toBe('Het is dinsdag 24 nov.');
   });
 });
 
@@ -167,7 +172,8 @@ describe('R-5 and R-14 (Max): the Checklist\'s days under his own "A day counts 
       expect(a.facts).toMatchObject({dayGoal: 3, done: ['2026-11-23', '2026-11-24'], notDone: ['2026-11-25', '2026-11-26', '2026-11-27'], everyDot: ['2026-11-24'], today: {counts: false}});
       expect(a.text).not.toMatch(/\b11-2\d\b|0 perfect orbits/);
       expect(text('which days this week did I not finish my checklist', env)).toBe(a.text);
-      expect(text('Hoeveel dagen heb ik deze week mijn checklist afgemaakt?', env)).toBe('Deze week op je Checklist (Mon, Nov 23 t/m vandaag, Sat, Nov 28), een dag telt als gedaan bij 3 stippen (jouw regel): gedaan op 2 van 5 dagen: Mon, Nov 23 (3 van 4) en Tue, Nov 24 (4 van 4, elke stip); niet gedaan op 3: Wed, Nov 25 (0 van 4), Thu, Nov 26 (2 van 4) en Fri, Nov 27 (1 van 4). Vandaag loopt nog: 0 van 4 tot nu toe.');
+      // Session AV lane 2 (Dutch dates, deliberate): the Dutch answer writes its days the Dutch way (was "(Mon, Nov 23 t/m vandaag, Sat, Nov 28) … Mon, Nov 23 (3 van 4)…").
+      expect(text('Hoeveel dagen heb ik deze week mijn checklist afgemaakt?', env)).toBe('Deze week op je Checklist (ma 23 nov t/m vandaag, za 28 nov), een dag telt als gedaan bij 3 stippen (jouw regel): gedaan op 2 van 5 dagen: ma 23 nov (3 van 4) en di 24 nov (4 van 4, elke stip); niet gedaan op 3: wo 25 nov (0 van 4), do 26 nov (2 van 4) en vr 27 nov (1 van 4). Vandaag loopt nog: 0 van 4 tot nu toe.');
     }
   });
   test('without a rule every dot counts: Tuesday alone; the week\'s orbit question gets the same answer (l7-fourth\'s "This week on your Checklist")', () => {
@@ -199,7 +205,8 @@ describe('R-6 (Lina): a bill\'s price change, from the Bills page\'s own notice'
       const a = ask('Did any bill go up in price?', env);
       expect(a.text).toBe('Fictional Phone went up from €15.00 to €17.50 since Sep 2026. From their payments in your money log, as Bills → Price changes shows them.');
       expect(a.facts).toMatchObject({changes: [{bill: 'Fictional Phone', direction: 'up', previousCents: 1500, latestCents: 1750, currency: 'EUR', latestDate: '2026-10-15'}]});
-      expect(text('Is een rekening duurder geworden?', env)).toBe('Fictional Phone ging omhoog van €15.00 naar €17.50 sinds Sep 2026. Uit de betalingen in je geldlog, zoals Bills → Price changes ze toont.');
+      // Session AV lane 2 (Dutch dates, deliberate): "sinds september 2026", was "sinds Sep 2026".
+      expect(text('Is een rekening duurder geworden?', env)).toBe('Fictional Phone ging omhoog van €15.00 naar €17.50 sinds september 2026. Uit de betalingen in je geldlog, zoals Bills → Price changes ze toont.');
     }
   });
 });

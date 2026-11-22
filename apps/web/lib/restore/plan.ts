@@ -1,4 +1,5 @@
-import type {z} from 'zod';
+import {z} from 'zod';
+import {HIDE_BODY_FIGURES_KEY} from '../ah-device-keys';
 import type {DeviceRecordSpec} from '../device-record';
 import {PLATFORM_KEY, platformSchema} from '../positions';
 import {HABITS_KEY, habitDataSchema, type HabitData} from '../habits';
@@ -148,7 +149,9 @@ export type ModulePart = Part & {kind: 'module'; name: ModuleName};
 export type PartSlice = {pick: (value: unknown) => unknown; has: (value: unknown) => boolean; replace: (current: unknown, backup: unknown) => unknown; summarize?: (value: unknown) => PartSummary};
 export type DevicePart = Part & {kind: 'device'; name: string; slice?: PartSlice;
   /** What a restore never changes on this device (security review AM-S9): given this device's stored record as it is and the value about to be written, the value to write. */
-  local?: (currentRaw: unknown, next: unknown) => unknown};
+  local?: (currentRaw: unknown, next: unknown) => unknown;
+  /** Session AV lane 2 (R3): the stored value is plain text, not JSON (read and written as it is). */
+  text?: true};
 const mod = (name: ModuleName, label: string, group: RestoreGroup, key: string, schema: z.ZodType<unknown>): ModulePart => ({kind: 'module', id: `module:${name}`, name, label, group, key, schema, empty: () => undefined, health: name === 'health'});
 const dev = <T,>(name: string, label: string, group: RestoreGroup, spec: DeviceRecordSpec<T>, health = false): DevicePart => ({kind: 'device', id: `device:${name}`, name, label, group, key: spec.key, schema: spec.schema as z.ZodType<unknown>, empty: spec.empty as () => unknown, health});
 const spec = <T,>(key: string, schema: z.ZodType<T>, empty: () => T): DeviceRecordSpec<T> => ({key, schema, empty});
@@ -357,8 +360,25 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('aisles', 'Shopping aisles', 'Health', AISLES_RECORD, true),
   dev('measurementsCustom', 'Custom measurements', 'Health', MEASUREMENTS_CUSTOM, true),
 ];
+/**
+ * Session AV lane 2 (nl-days, R3; q3-36; TIER 3 (stored formats), additive): the display choices a restore brings back,
+ * each stored as plain text, not JSON — Health's "Hide calories and weight" (`zigoals:hide-body-figures` = `on`), with
+ * Health, so a restore on a new device keeps the figures hidden. Kept apart from DEVICE_PARTS on purpose: "Erase one
+ * area" leaves display choices as they are (lib/restore/erase-area.ts reads DEVICE_PARTS), and the protected copy's
+ * record sections carry records, not display choices (lib/vault/backup-records.ts reads DEVICE_PARTS too). A file
+ * without the entry restores as before; a build without this part never reads it (its plan has no such name).
+ */
+export const TEXT_DEVICE_PARTS: readonly DevicePart[] = [
+  {...dev('hideBodyFigures', 'Hide calories and weight (on screen)', 'Health', spec(HIDE_BODY_FIGURES_KEY, z.literal('on'), () => 'on' as const)), text: true},
+];
+/** Every device part a restore may write: the records, then the plain-text display choices. */
+export const RESTORABLE_DEVICE_PARTS: readonly DevicePart[] = [...DEVICE_PARTS, ...TEXT_DEVICE_PARTS];
+/** A device part's stored text as its value (JSON, or the plain text of a TEXT_DEVICE_PARTS part); throws when JSON does not read. */
+export const partValueOf = (part: ModulePart | DevicePart, raw: string): unknown => part.kind === 'device' && part.text ? raw : JSON.parse(raw);
+/** The text a device part's value is stored as. */
+export const partTextOf = (part: ModulePart | DevicePart, value: unknown): string => part.kind === 'device' && part.text ? String(value) : JSON.stringify(value);
 /** What a file may hold and this never restores, said in the preview. */
-export const NEVER_RESTORED = 'Never restored: keys and secrets (Export everything never holds them), notifications, ZIGi’s settings, usage and conversations, an import’s undo, a timer or routine in progress, the welcome’s setup, display choices, recent searches, linked wallet addresses, Point & tell notes, Earn progress and choices, today’s Checklist ticks, the staking journal and the practice/real choice, linked wallet balances, Goal Vault links, validator health alerts, ZIGi\'s plans, My universe milestones, Day timeline times and the Stories you opened and legacy simulation Goals (use an encrypted copy for those).';
+export const NEVER_RESTORED = 'Never restored: keys and secrets (Export everything never holds them), notifications, ZIGi’s settings, usage and conversations, an import’s undo, a timer or routine in progress, the welcome’s setup, display choices (except Hide calories and weight, which comes back with Health), recent searches, linked wallet addresses, Point & tell notes, Earn progress and choices, today’s Checklist ticks, the staking journal and the practice/real choice, linked wallet balances, Goal Vault links, validator health alerts, ZIGi\'s plans, My universe milestones, Day timeline times and the Stories you opened and legacy simulation Goals (use an encrypted copy for those).';
 export const NEWER_PART_MESSAGE = 'Saved by a newer ZIGoals. Update the app on this device, then restore this part.';
 export const INVALID_PART_MESSAGE = 'This part did not read as a valid record, so it is left out.';
 export const MAX_DEVICE_PART_CHARS = 5_000_000;
@@ -453,7 +473,7 @@ export function planParts(json: {modules?: Record<string, unknown>; device?: Rec
     const note = typeof version === 'number' && typeof read === 'number' && read > version ? {note: OLDER_READABLE_NOTE} : {};
     out.push(parsed.success ? {...part, ...note, value: parsed.data, summary: moduleSummary(part, parsed.data)} : {...part, problem: INVALID_PART_MESSAGE, summary: null});
   }
-  for (const part of DEVICE_PARTS) {
+  for (const part of RESTORABLE_DEVICE_PARTS) {
     const value = part.name === 'portfolio' ? json.portfolio : json.device?.[part.name];
     if (value === undefined) continue;
     const version = isObject(value) ? value.version : undefined;
