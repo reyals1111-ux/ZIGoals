@@ -64,8 +64,8 @@ Help: Q "Can ZIGoals remind me to plan my day?" A "Yes. In Tasks → This week, 
 With notifications on, a notification comes at that time each day, says how many tasks are overdue (never their names) and
 opens Plan my day. Without it, the morning notification says the overdue count instead."
 What's new: "Tasks: a “Plan your day” notification that opens Plan my day, with the overdue count."
-Showcase: none (the Showcase plans no notification, by rule). Today: nothing new. Weight: Tasks first chunk gains a few
-lines in plan-day.tsx (already a lazy chunk); the settings are in the This week chunk.
+Showcase: none (the Showcase plans no notification, by rule). Today: nothing new. Weight: nothing in the Tasks first chunk;
+the ?plan=1 opening is in plan-day.tsx (a lazy chunk) and the setting in the This week chunk.
 CSS: none.
 
 ## Feature 2 — Task symbols and colours (LEDGER #257, Structured) — built
