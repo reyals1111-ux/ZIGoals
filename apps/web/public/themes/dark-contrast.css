@@ -8418,6 +8418,23 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .habit-identity-list > li:not(#\-):not(#\-) {
+        border-color: var(--line, color-mix(in srgb, currentColor 16%, transparent))
+    }
+    .habit-identity-habits:not(#\-):not(#\-) {
+        border-color: currentcolor
+    }
+    .habit-step-up:not(#\-):not(#\-) {
+        border-top-color: var(--line, color-mix(in srgb, currentColor 16%, transparent))
+    }
+    .habit-step-up-sizes:not(#\-):not(#\-) {
+        border-color: currentcolor
+    }
+    .habit-step-card:not(#\-):not(#\-) {
+        border-left-color: color-mix(in srgb, var(--pillar-habits, var(--brand-violet, #9287f9)) 70%, transparent)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .habit-options-set:not(#\-):not(#\-) {
         border-color: currentcolor
     }
@@ -11093,6 +11110,60 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .r4-facts dt:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--muted, inherit) 25%, #fff)
+    }
+    .r4-nap:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff1a)
+    }
+    .r4-list > li:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff1a)
+    }
+    .r4-state:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff1a)
+    }
+    .r4-state[data-state="done"]:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--brand-cyan, #6fe6f680)
+    }
+    .r4-day:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff1a)
+    }
+    .r4-day[data-today="true"]:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f680)
+    }
+    .r4-day[data-over="true"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--surface-2, #8fb6ff22) 30%, #000)
+    }
+    .r4-zone-bar:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--line, #8fb6ff33) 30%, #000)
+    }
+    .r4-zone-bar i[data-zone="1"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-cyan, #074951) 30%, #000)
+    }
+    .r4-zone-bar i[data-zone="2"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-cyan, #074951) 30%, #000)
+    }
+    .r4-zone-bar i[data-zone="3"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-cyan, #074951) 30%, #000)
+    }
+    .r4-zone-bar i[data-zone="4"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-violet, #502995) 30%, #000)
+    }
+    .r4-zone-bar i[data-zone="5"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-violet, #502995) 30%, #000)
+    }
+    .r4-note:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--brand-cyan, #6fe6f680)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .sleep-need:not(#\-):not(#\-) {
         border-color: color-mix(in srgb, var(--line) 40%, #fff)
     }
@@ -11972,6 +12043,38 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .journal-entry-md blockquote:not(#\-):not(#\-) {
+        border-left-color: color-mix(in srgb, var(--brand-violet, #9287f9) 60%, transparent);
+        color: color-mix(in srgb, var(--text-secondary, inherit) 25%, #fff)
+    }
+    .journal-md-table :is(th, td):not(#\-):not(#\-) {
+        border-bottom-color: color-mix(in srgb, currentColor 18%, transparent)
+    }
+    .journal-tick-box:not(#\-):not(#\-) {
+        accent-color: color-mix(in srgb, var(--brand-violet, #9287f9) 40%, #fff)
+    }
+    .journal-tick[data-ticked] > span:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-secondary, inherit) 25%, #fff)
+    }
+    .journal-hl:not(#\-):not(#\-) {
+        color: inherit;
+        background-image: none;
+        background-color: color-mix(in srgb, var(--hl) 34%, transparent);
+        border-bottom-color: color-mix(in srgb, var(--hl) 80%, transparent)
+    }
+    @media (forced-colors: active) {
+        .journal-hl:not(#\-):not(#\-) {
+            background-image: none;
+            background-color: transparent;
+            color: MarkText
+        }
+    }
+    .journal-format-swatch:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--hl) 30%, #000)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .journal-energy:not(#\-):not(#\-) {
         border-color: currentcolor
     }
@@ -12165,6 +12268,9 @@
     }
     .journal-entry-sealed:not(#\-):not(#\-) {
         border-color: color-mix(in srgb, var(--brand-violet, #9287f9) 60%, transparent)
+    }
+    .journal-entry-star[aria-pressed=true]>span:first-child:not(#\-):not(#\-), .journal-list-star[aria-pressed=true]>span:first-child:not(#\-):not(#\-) {
+        color: var(--pillar-wealth, var(--brand-magenta))
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
@@ -12891,6 +12997,9 @@
     }
     .mood-words-strength:focus-visible:not(#\-):not(#\-) {
         outline-color: var(--focus, var(--violet))
+    }
+    .mood-words-meaning:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-secondary, inherit) 25%, #fff)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {

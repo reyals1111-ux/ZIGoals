@@ -4280,6 +4280,36 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
+    .r4-day[data-over="true"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--surface-2, #8fb6ff22)
+    }
+    .r4-zone-bar:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--line, #8fb6ff33)
+    }
+    .r4-zone-bar i[data-zone="1"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--brand-cyan, #6fe6f6)
+    }
+    .r4-zone-bar i[data-zone="2"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--brand-cyan, #6fe6f6)
+    }
+    .r4-zone-bar i[data-zone="3"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--brand-cyan, #6fe6f6)
+    }
+    .r4-zone-bar i[data-zone="4"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--brand-violet, #a98bff)
+    }
+    .r4-zone-bar i[data-zone="5"]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--brand-violet, #a98bff)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
     .evening-ready:not(#\-):not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb, var(--text-secondary, #c9d6ea) 20%, transparent)
@@ -4502,6 +4532,22 @@
     .prompt-picker-card:not(#\-):not(#\-) {
         background-image: none;
         background-color: transparent
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
+    .journal-hl:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--hl) 34%, transparent)
+    }
+    @media (forced-colors: active) {
+        .journal-hl:not(#\-):not(#\-) {
+            background-image: none;
+            background-color: transparent
+        }
+    }
+    .journal-format-swatch:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--hl)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
