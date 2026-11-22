@@ -378,6 +378,20 @@ expectations changed. expected.json was not re-recorded.
 - R4-F7: the average, All spending, the category lines and the crossover spending all spread a cost over its months.
   Month by month counts the person's share and spreads too.
 
-**Still noted, not changed:** these views fall outside the lead's list and are left as they were:
-- Top payees (`topPayees`) still counts a shared cost whole.
-- Compare's spending factor (round 3's note) still counts a shared cost whole.
+**Follow-up (the lead's request): Top payees and Compare's spending factor.**
+
+`lane2/batch3` was merged into this branch with a merge commit, `7d8af67d`. After the merge:
+- **Compare's spending factor** (`lib/compare/engine.ts` `expenses`, `spentByDay`) already counts by the shared rule,
+  through lane2/loose-ends: counted entries only, and a shared cost by `mineCents`. It is a figure per day, counted on the
+  day a cost was paid, so no change was needed. The `lib/compare` tests are green.
+- **Top payees** (`topPayees` in `lib/money-insights/cash-flow.ts`) now counts each expense by `countedDayParts`, in its
+  own commit, `5de45379`:
+  - the person's share of a shared cost;
+  - nothing for an entry left out, a transfer or a refund;
+  - a cost spread over months by its share in this month and in last month, a share placed after today not yet counted.
+
+  A month counts as recorded only with a counted figure (`countedIn`). This month's payees add up to `countedBetween`
+  for the month. Test: `lib/money-insights/revb4f-top-payees.test.ts`. NOVA's money card reads `topPayees`; its tests
+  pass unchanged.
+- **Corpus:** `corpus.test.ts` passes unchanged after the merge and this fix, so no corpus case changes. expected.json was
+  not re-recorded.
