@@ -1,6 +1,8 @@
 import type {MoneyEntry} from '../../money-log/schema';
 import type {Accounts} from '../../accounts/schema';
 import {yesterdayMoney} from '../../money-log/yesterday';
+import {yearSoFar} from '../../budgets/year-so-far';
+import type {BudgetsRecord} from '../../budgets/schema';
 import type {NotifyPrefs} from '../../notify/prefs';
 import {typeOn} from '../../notify/prefs';
 import type {ToolEnv} from '../tools/env';
@@ -62,3 +64,23 @@ function yesterday(a: Asked): LocalReply | null {
     `${when('nl')}: ${count('nl')}${figures('nl').length ? `, ${list(figures('nl'), 'nl')}` : ''}.${balances('nl').length ? ` Contant en spaargeld: ${list(balances('nl'), 'nl')}.` : ''} Geteld zoals Uitgaven telt.${tail('nl')}`), calls);
 }
 add(yesterday);
+
+// ── This year so far against the budgets (#385) ────────────────────────────────────────────────────────────────────
+const budgetsOf = (env: ToolEnv): BudgetsRecord | null => (env.nova as {budgets?: BudgetsRecord | null} | null | undefined)?.budgets ?? null;
+/** "How are my budgets doing this year so far", "hoe staan mijn budgetten dit jaar tot nu toe". */
+function yearBudgets(a: Asked): LocalReply | null {
+  const en = /\bbudgets?\b/.test(a.f) && /\b(?:this year so far|so far this year|year to date|ytd)\b/.test(a.f);
+  const nl = /\bbudget(?:ten)?\b/.test(a.f) && /\bdit jaar\b/.test(a.f) && /\btot nu toe\b/.test(a.f);
+  if (!(en || nl)) return null;
+  const shut = closed(a.env, 'wealth'); if (shut) return shut;
+  const data = yearSoFar(budgetsOf(a.env), entriesOf(a.env), a.today), calls = call('budgets', {year: data.year}, 'Budgets · this year so far');
+  if (!data.rows.length) return answer(say(a.lang, `No budgets yet. Once you set one in ${PLACES.budgets.en}, each month of ${data.year} adds up beside what you spent, under "${data.year} so far against your budgets".`,
+    `Nog geen budgetten. Zodra je er een instelt in ${PLACES.budgets.nl}, telt elke maand van ${data.year} op naast wat je uitgaf, onder "${data.year} so far against your budgets".`), calls);
+  const diff = (lang: Lang, d: number, currency: string) => d === 0 ? say(lang, 'exactly on budget', 'precies op budget') : say(lang, `${moneyIn('en', Math.abs(d), currency)} ${d > 0 ? 'under' : 'over'}`, `${moneyIn('nl', Math.abs(d), currency)} ${d > 0 ? 'onder' : 'boven'} budget`);
+  const totals = (lang: Lang) => data.totals.map(t => say(lang, `${moneyIn('en', t.spent, t.currency)} spent against ${moneyIn('en', t.budgeted, t.currency)} budgeted, ${diff('en', t.difference, t.currency)} so far`,
+    `${moneyIn('nl', t.spent, t.currency)} uitgegeven tegenover ${moneyIn('nl', t.budgeted, t.currency)} gebudgetteerd, tot nu toe ${diff('nl', t.difference, t.currency)}`));
+  const rows = (lang: Lang) => data.rows.slice(0, 5).map(r => `${r.category} ${diff(lang, r.difference, r.currency)}`);
+  return answer(say(a.lang, `${data.year} so far: ${list(totals('en'), 'en')}. By budget: ${list(rows('en'), 'en')}${data.rows.length > 5 ? ` and ${data.rows.length - 5} more` : ''}. Each month's budget beside what was spent, counted as your budgets count it; it is in ${PLACES.budgets.en} → "${data.year} so far against your budgets".`,
+    `${data.year} tot nu toe: ${list(totals('nl'), 'nl')}. Per budget: ${list(rows('nl'), 'nl')}${data.rows.length > 5 ? ` en nog ${data.rows.length - 5}` : ''}. Het budget van elke maand naast wat je uitgaf, geteld zoals je budgetten tellen; het staat in ${PLACES.budgets.nl} → "${data.year} so far against your budgets".`), calls);
+}
+add(yearBudgets);

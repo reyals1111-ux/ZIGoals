@@ -84,3 +84,34 @@ corpus (`CORPUS`) nor round 4's (`AV2_R4_MONEY`), and the answers that run befor
 - Registries: none. CSS touched: `components/wealth/spending/money-r5.css` (new, theme variables only).
 - Today: nothing always visible. The line shows only after the person ticks "A quiet line on Today", as plain text with
   no Tab stop, and never in the Showcase. Settings → Notifications gains one switch ("Yesterday's money").
+
+### R5-F2 (group V6). This year so far against the budgets
+
+- LEDGER row: #385 Tiller this year so far against the budgets — **built** (Wealth → Budgets → "<year> so far against your
+  budgets", a fold that loads its own chunk when there is at least one budget: one line per currency — "€3,160.00 spent
+  against €3,400.00 budgeted in EUR — €240.00 under so far (2 budgets)" — and a table of each budget: its months (from
+  January, or its own first month when it started this year), what was budgeted, what was spent and the difference as a
+  fact ("€270.00 under so far", "€30.00 over so far", "exactly on budget so far"; never "overspending"); tap a category
+  for its months one by one. This month counts whole, as its budget does. Hide amounts blurs every amount).
+- Spending function used: `countedBetween` (lib/money-log/counted.ts) per month, with the budget's category and currency
+  (`yearSoFar` in lib/budgets/year-so-far.ts): the share of a shared cost, a split entry by its part, nothing left out,
+  a cost spread over months by its share each month. The unit test shows each month equals what that month's budget
+  (`monthView`) counts. Budgeted is each month's own amount (`budgetedIn`) with that month's moves (`movedIn`); money
+  carried from earlier months is not added again (it is not new money), said in the view.
+- Files: `lib/budgets/year-so-far.ts` (new), `components/wealth/budgets/year-so-far.tsx` (new, lazy on its fold),
+  `components/wealth/budgets/budgets-month.tsx` (the fold, beside "<year> in review"),
+  `components/wealth/spending/money-r5.css` (`.money-ytd-*`).
+- Tests: `lib/budgets/av2-year-so-far.test.ts` (pure, against `monthView`, and the view in jsdom),
+  `lib/ai/local-answers/av2-r5-money.test.ts`.
+- Spec: `tests/av2-money-year-budgets.spec.ts`.
+- Stored: nothing.
+- Help (EN): **Q: How are my budgets doing over the whole year?** A: Wealth → Budgets → "<year> so far against your
+  budgets" sets each budget's months so far beside what you spent, with the difference, such as "€120 under so far". Tap a
+  category to see it month by month. It counts as your budgets do; money carried from earlier months is not counted twice.
+- What's new: "Budgets: this year so far against your budgets, with the difference per budget."
+- Answers: `yearBudgets` (corpus `av2r5-money-year-budgets`; reads `env.nova.budgets`, already in the NOVA tool sources).
+- Showcase hook: none written. The fold reads the Showcase's own budgets and money log (pinned by the NOVA corpus), so the
+  Showcase shows its year by itself; it adds one fold (one Tab stop) to Budgets — the lead re-records any screen that pins
+  Budgets. Empty state teaches ("No budgets yet. Once you set a budget, each month of 2026 adds up here…").
+- Registries: none. CSS touched: `components/wealth/spending/money-r5.css`.
+- Today: nothing added.

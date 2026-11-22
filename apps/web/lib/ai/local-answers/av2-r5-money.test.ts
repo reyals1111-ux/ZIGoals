@@ -79,3 +79,22 @@ describe('yesterday’s money (#384)', () => {
     expect(text(zigi('give me my money summary for yesterday', withLog(freshAll(), [])))).toBe('Nothing was logged for Mon, Nov 16. Wealth → Spending → Yesterday’s money can send it each morning, or show it on Today.');
   });
 });
+
+describe('this year so far against the budgets (#385)', () => {
+  const budgets = {version: 1 as const, budgets: [
+    {id: 'b1', category: 'Groceries', currency: 'EUR', monthly: '300.00', rollover: false, since: '2026-01'},
+    {id: 'b2', category: 'Fun', currency: 'EUR', monthly: '50.00', rollover: false, since: '2026-10'},
+  ]};
+  const entries = [mine({category: 'Groceries', amount: '3000.00', date: '2026-06-10'}), mine({category: 'Groceries', amount: '90.00', share: '30.00', date: '2026-11-02'}),
+    mine({category: 'Fun', amount: '130.00', date: '2026-10-04'}), mine({category: 'Fun', amount: '40.00', excluded: true, date: '2026-11-04'})];
+  const s = {...withLog(freshAll(), entries), nova: {...(freshAll().nova ?? {}), budgets} as ToolSources['nova']};
+  test('English: per currency and per budget, the difference as a fact', () => {
+    expect(text(zigi('how are my budgets doing this year so far', s))).toBe('2026 so far: €3,160.00 spent against €3,400.00 budgeted, €240.00 under so far. By budget: Fun €30.00 over and Groceries €270.00 under. Each month\'s budget beside what was spent, counted as your budgets count it; it is in Wealth → Budgets → "2026 so far against your budgets".');
+  });
+  test('Dutch money', () => {
+    expect(text(zigi('hoe staan mijn budgetten dit jaar tot nu toe', s))).toContain('2026 tot nu toe: € 3.160,00 uitgegeven tegenover € 3.400,00 gebudgetteerd, tot nu toe € 240,00 onder budget.');
+  });
+  test('no budgets teaches where to set one', () => {
+    expect(text(zigi('show my budgets year to date', freshAll()))).toContain('No budgets yet.');
+  });
+});

@@ -8,3 +8,10 @@
 .money-yesterday-choices{border:0;margin:0;padding:0;display:grid;gap:6px;min-width:0}
 .money-yesterday-choices legend{font-weight:600;font-size:15px;padding:0;margin-bottom:4px}
 .money-yesterday-fold summary,.money-sheet-fold summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600}
+.money-ytd{display:grid;gap:8px;min-width:0}
+.money-ytd-total{margin:0;font-size:15px}
+.money-ytd-scroll{max-width:100%;overflow-x:auto}
+.money-ytd-table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.money-ytd-table caption{text-align:left;font-size:14px;color:var(--text-secondary,var(--muted));padding-bottom:4px}
+.money-ytd-table th,.money-ytd-table td{padding:6px 8px 6px 0;text-align:left;vertical-align:baseline;border-bottom:1px solid var(--line,rgba(140,160,220,.25));overflow-wrap:anywhere}
+.money-ytd-open{min-height:44px;text-align:left}
