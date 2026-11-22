@@ -46,3 +46,18 @@ there). One commit per finding. No stored format changes in any of them; no new 
 - Help (EN), to add to "How are net carbs counted?" (av2-food-how-are-net-carbs-counted): "The Carbs tile, Targets and
   ZIGi count them the same way, and say so when fiber could not be taken off."
 - What's new: none needed (a fix).
+
+## B2B-5 Major: "Skip this day" in the week grid overwrote the day's note
+
+- Verdict: fixed.
+- Fix: `applyDayChoice` (apps/web/lib/habits-order/week-day-edit.ts) skips with the day's own note, as the History's
+  skip does (habit-history.tsx passes `day.note`); the words "Skipped from the week" are written only on a day that had
+  no note. Undo (`restoreHabitEntry` with the entry read before) already put back the whole entry, note included; now
+  the note is never lost in the first place. No stored change (the same `note` field, the same values).
+- Tests: `apps/web/lib/habits-order/week-day-edit.test.ts` → "a skip from the week keeps the day's note (review b2b #5)":
+  a noted, logged day is skipped with its note unchanged, and Undo restores count, disposition and note; a day with no
+  note gets the skip words, and a second skip keeps them.
+- Spec (lead runs): `apps/web/tests/av2-revb2b-week-skip-note.spec.ts`.
+- Seen in passing, not changed (outside this finding): Checklist's skip (components/checklist/list-extras.tsx:90, "Skipped
+  from the Checklist") writes its words over a day's note the same way.
+- Help / What's new: none needed (a fix).

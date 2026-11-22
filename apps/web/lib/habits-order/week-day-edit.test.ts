@@ -47,3 +47,24 @@ describe('one day of the week grid: skip, amount, done, clear', () => {
     expect(dayChoiceWords('Read', 'today', {kind: 'skip'}, '')).toBe('Read: skipped today. A skipped day keeps the streak.');
   });
 });
+
+/** Review b2b #5: Skip this day from the week grid keeps the person's note; Undo puts the day back with it. */
+describe('a skip from the week keeps the day\'s note (review b2b #5)', () => {
+  it('a noted, logged day: skipped, the note unchanged; Undo restores the count and the note', () => {
+    const noted = logHabitValue(journal(), READ, '2026-11-23', 4, {note: 'Fictional · read in the rain'}, NOW);
+    const before = entryBefore(noted, READ, '2026-11-23');
+    const skipped = applyDayChoice(noted, READ, '2026-11-23', {kind: 'skip'}, NOW);
+    expect(habitDay(habit(skipped, READ), '2026-11-23', TODAY)).toMatchObject({status: 'skipped', note: 'Fictional · read in the rain'});
+    expect(entryBefore(skipped, READ, '2026-11-23')).toMatchObject({disposition: 'skipped', note: 'Fictional · read in the rain'});
+    const undone = restoreHabitEntry(skipped, READ, '2026-11-23', before, NOW);
+    expect(entryBefore(undone, READ, '2026-11-23')).toMatchObject({disposition: 'logged', count: 4, note: 'Fictional · read in the rain'});
+    expect(habitDay(habit(undone, READ), '2026-11-23', TODAY)).toMatchObject({status: 'failed', count: 4, note: 'Fictional · read in the rain'});
+  });
+  it('a day without a note says where the skip came from; a skip of a skipped day keeps its words', () => {
+    const d = applyDayChoice(journal(), WALK, '2026-11-24', {kind: 'skip'}, NOW);
+    expect(entryBefore(d, WALK, '2026-11-24')?.note).toBe('Skipped from the week');
+    const again = applyDayChoice(d, WALK, '2026-11-24', {kind: 'skip'}, NOW);
+    expect(entryBefore(again, WALK, '2026-11-24')?.note).toBe('Skipped from the week');
+  });
+});
+
