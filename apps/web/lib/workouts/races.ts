@@ -44,6 +44,14 @@ export function timeText(seconds: number): string {
   const s = Math.round(seconds), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), r = s % 60, two = (n: number) => String(n).padStart(2, '0');
   return h ? `${h}:${two(m)}:${two(r)}` : `${m}:${two(r)}`;
 }
+/**
+ * The distance list's choice (review B4E-6): one of the race distances, or "own" once the person chose "Another
+ * distance" — kept apart from the typed text, so typing "10" on the way to "10.5" never flips the list back to 10 km.
+ */
+export function distanceChoice(own: boolean, text: string): number | 'own' {
+  if (own) return 'own';
+  return RACE_DISTANCES.find(x => String(x.km) === text.trim())?.km ?? 'own';
+}
 export const distanceWords = (km: number) => RACE_DISTANCES.find(d => Math.abs(d.km - km) < 0.01)?.en ?? `${km.toLocaleString('en-US', {maximumFractionDigits: 2})} km`;
 export type RaceDraft = {name: string; date: string; distanceKm: string; goal: string; priority: Race['priority']};
 export type RaceIssue = {field: 'name' | 'date' | 'distance' | 'goal'; message: string};

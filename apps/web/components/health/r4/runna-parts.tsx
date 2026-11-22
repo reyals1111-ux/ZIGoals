@@ -2,7 +2,7 @@
 import {useId, useState, type FormEvent, type ReactNode} from 'react';
 import type {Workouts} from '../../../lib/workouts/schema';
 import {clearMaxHr, MAX_HR_MAX, MAX_HR_MIN, setMaxHr, WORKOUT_HR, ZONE_EDGES, ZONE_SOURCE, zoneMinutes, zoneSeconds} from '../../../lib/workouts/hr-zones';
-import {distanceWords, goalWords, RACE_DISTANCES, raceYear, RACES, removeRace, restoreRace, saveRace, timeText, type Race, type RaceDraft, type RaceIssue} from '../../../lib/workouts/races';
+import {distanceChoice, distanceWords, goalWords, RACE_DISTANCES, raceYear, RACES, removeRace, restoreRace, saveRace, timeText, type Race, type RaceDraft, type RaceIssue} from '../../../lib/workouts/races';
 import {addCountdown, COUNTDOWNS} from '../../../lib/countdowns/schema';
 import {formatDate} from '../../../lib/visual-format';
 import {deviceSettingFailureMessage} from '../../../lib/storage-error-copy';
@@ -77,17 +77,19 @@ export function RacesAhead({w, today}: {w: Workouts; today: string}) {
 
 function RaceForm({initial, edit = false, onSave, onCancel}: {initial: RaceDraft; edit?: boolean; onSave: (d: RaceDraft, countdown: boolean) => RaceIssue | null; onCancel: () => void}) {
   const id = useId(), [d, setD] = useState(initial), [countdown, setCountdown] = useState(false), [issue, setIssue] = useState<RaceIssue | null>(null);
+  // Review B4E-6: "Another distance" is a choice of its own, so the typed distance never flips the list (or drops focus).
+  const [own, setOwn] = useState(() => distanceChoice(false, initial.distanceKm) === 'own');
   const set = (patch: Partial<RaceDraft>) => { setD(x => ({...x, ...patch})); setIssue(null); };
   const submit = (e: FormEvent) => { e.preventDefault(); const problem = onSave(d, countdown); setIssue(problem); if (problem) document.getElementById(`${id}-${problem.field}`)?.focus(); };
   const field = (f: RaceIssue['field'], label: string, input: ReactNode) => <div><label className="field"><span>{label}</span>{input}</label>{issue?.field === f && <p className="field-error" id={`${id}-${f}-issue`} role="alert">{issue.message}</p>}</div>;
   const err = (f: RaceIssue['field']) => issue?.field === f ? {'aria-invalid': true as const, 'aria-describedby': `${id}-${f}-issue`} : {};
-  const preset = RACE_DISTANCES.find(x => String(x.km) === d.distanceKm)?.km;
+  const choice = distanceChoice(own, d.distanceKm);
   return <form className="health-form" aria-label={edit ? 'Edit the race' : 'Add a race'} noValidate onSubmit={submit}>
     <div className="health-form-grid">
       {field('name', 'Name', <input id={`${id}-name`} type="text" maxLength={60} value={d.name} onChange={e => set({name: e.target.value})} {...err('name')}/>)}
       {field('date', 'Race day', <input id={`${id}-date`} type="date" value={d.date} onChange={e => set({date: e.target.value})} {...err('date')}/>)}
-      <label className="field"><span>Distance</span><select value={preset !== undefined ? String(preset) : 'own'} onChange={e => set({distanceKm: e.target.value === 'own' ? '' : e.target.value})}>{RACE_DISTANCES.map(x => <option key={x.km} value={String(x.km)}>{x.en}</option>)}<option value="own">Another distance</option></select></label>
-      {preset === undefined && field('distance', 'Distance (km)', <input id={`${id}-distance`} type="text" inputMode="decimal" value={d.distanceKm} onChange={e => set({distanceKm: e.target.value})} {...err('distance')}/>)}
+      <label className="field"><span>Distance</span><select value={String(choice)} onChange={e => { const v = e.target.value; setOwn(v === 'own'); set({distanceKm: v === 'own' ? '' : v}); }}>{RACE_DISTANCES.map(x => <option key={x.km} value={String(x.km)}>{x.en}</option>)}<option value="own">Another distance</option></select></label>
+      {choice === 'own' && field('distance', 'Distance (km)', <input id={`${id}-distance`} type="text" inputMode="decimal" value={d.distanceKm} onChange={e => set({distanceKm: e.target.value})} {...err('distance')}/>)}
       {field('goal', 'Goal time (optional, like 1:55:00)', <input id={`${id}-goal`} type="text" inputMode="numeric" value={d.goal} onChange={e => set({goal: e.target.value})} {...err('goal')}/>)}
       <label className="field"><span>Which race</span><select value={d.priority} onChange={e => set({priority: e.target.value as RaceDraft['priority']})}><option value="main">Main race</option><option value="b">B race (on the way)</option></select></label>
     </div>

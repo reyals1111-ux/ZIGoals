@@ -4,7 +4,7 @@ import {nextValue, planParts} from '../restore/plan';
 import {readWorkoutFile} from './import-file';
 import {miniXmlParser} from './mini-xml';
 import {clearMaxHr, emptyWorkoutHr, hrHistogram, setMaxHr, WORKOUT_HR_KEY, withHr, withoutHr, workoutHrSchema, zoneRanges, zoneSeconds, zoneMinutes} from './hr-zones';
-import {emptyRaces, goalWords, raceResult, RACES_KEY, racesSchema, raceYear, readTime, removeRace, restoreRace, saveRace, timeText, weeksBetween, type RaceDraft} from './races';
+import {distanceChoice, emptyRaces, goalWords, raceResult, RACES_KEY, racesSchema, raceYear, readTime, removeRace, restoreRace, saveRace, timeText, weeksBetween, type RaceDraft} from './races';
 import {emptyWorkouts, type Workouts} from './schema';
 
 /** Session AV lane 2, round 4 (health; Runna, LEDGER #336, #337): heart-rate zones from your own maximum, races ahead. */
@@ -98,5 +98,13 @@ describe('races ahead (LEDGER #337)', () => {
     expect(part).toBeDefined();
     const back = nextValue(part!, 'replace', undefined);
     expect('value' in back ? back.value : undefined).toEqual(out.value);
+  });
+  // Session AV lane 2 (review B4E-6): the list's choice is kept apart from the typed distance.
+  test('"Another distance" stays chosen while a preset number is typed on the way', () => {
+    expect(distanceChoice(false, '10')).toBe(10);
+    expect(distanceChoice(false, '21.0975')).toBe(21.0975);
+    expect(distanceChoice(false, '7')).toBe('own');
+    expect(distanceChoice(true, '10')).toBe('own');
+    expect(distanceChoice(true, '5')).toBe('own');
   });
 });
