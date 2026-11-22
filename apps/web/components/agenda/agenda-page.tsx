@@ -43,6 +43,10 @@ const CalendarImport = lazy(() => import('./calendar-import'));
 const AgendaHourGrid = lazy(() => import('./agenda-hour-grid'));
 // Session AV lane 2 (tasks-r2, LEDGER #224): the reminders written in notes on the day or week shown, linking to each note.
 const AgendaNoteReminders = lazy(() => import('../tasks/note-reminders-in-tasks').then(m => ({default: m.AgendaNoteReminders})));
+// Session AV lane 2 (r3-plan, LEDGER #261): "Copy this day to…" and "Clear this day" on the day view, their own chunk.
+const AgendaDayTools = lazy(() => import('./agenda-day-tools'));
+// Session AV lane 2 (r3-plan, LEDGER #262): the cycle day and period days, opt-in under the Health gate, their own chunk.
+const AgendaCycleDays = lazy(() => import('../cycle/cycle-on-plan').then(m => ({default: m.AgendaCycleDays})));
 const VIEW_LABEL: Record<AgendaView, string> = {day: 'Day', week: 'Week', month: 'Month'};
 const plural = (n: number, one: string, many = `${one}s`) => `${formatNumber(n)} ${n === 1 ? one : many}`;
 const TEACH: Record<AgendaSource, [string, string]> = {
@@ -141,8 +145,10 @@ export function AgendaPage() {
         {view === 'day' && <p className="agenda-hours-toggle"><button type="button" className="secondary" aria-pressed={hours} onPointerEnter={() => void import('./agenda-hour-grid').catch(() => undefined)} onClick={() => setHours(h => !h)}>By the hour</button></p>}
         {view === 'day' && (hours ? <LoadBoundary label="The day by the hour"><Suspense fallback={<p className="fine">Opening the hours…</p>}><AgendaHourGrid day={days[0]!} today={today} onMove={moveTask} onTick={tickTask} /></Suspense></LoadBoundary> : <rows.DayList day={days[0]!} heading={false} {...rowProps} />)}
         {view === 'day' && days[0]!.date >= today && !list.tasks.unreadable && <rows.TaskAddForm compact onAdd={list.add} goals={[]} today={today} fixedDue={days[0]!.date} label={`Add a task for ${formatDate(days[0]!.date, {weekday: true, year: false})}`} submit="Add task" />}
+        {view === 'day' && list.tasks.loaded && !list.tasks.unreadable && list.tasks.data.tasks.some(t => t.due === days[0]!.date) && <LoadBoundary quiet><Suspense fallback={null}><AgendaDayTools key={days[0]!.date} day={days[0]!.date} today={today} record={list.tasks.data} change={list.change} /></Suspense></LoadBoundary>}
         {view === 'week' && <ol className="agenda-week">{days.map(d => <li key={d.date}><rows.DayList day={d} heading {...rowProps} /></li>)}</ol>}
         {view === 'month' && <rows.MonthGrid days={days} first={range.first} last={range.last} selected={at} onSelect={setAnchor} {...rowProps} />}
+        {view !== 'month' && <LoadBoundary quiet><Suspense fallback={null}><AgendaCycleDays from={range.from} to={range.to} today={today} /></Suspense></LoadBoundary>}
         {view !== 'month' && <LoadBoundary quiet><Suspense fallback={null}><AgendaNoteReminders from={range.from} to={range.to} today={today} /></Suspense></LoadBoundary>}
         <rows.TaskStatusLine status={list.status} error={list.error} onUndo={list.runUndo} />
         {note && <p className="fine" role="status">{note}</p>}

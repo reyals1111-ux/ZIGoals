@@ -1,5 +1,5 @@
 'use client';
-import {useEffect, useId, useMemo, useState} from 'react';
+import {Suspense, lazy, useEffect, useId, useMemo, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {showStatus} from '../ui/undo-toast';
 import {CALENDAR_IMPORT} from '../../lib/ics/calendar';
@@ -23,6 +23,8 @@ import {formatClock, formatNumber} from '../../lib/visual-format';
  * - The day's limit (LEDGER #26) and the daily goal with its streak (LEDGER #9), chosen in Tasks → This week.
  */
 type Change = (fn: (r: Tasks) => Tasks, text: string, undone?: string) => boolean;
+/** Session AV lane 2 (r3-plan, LEDGER #259; Structured's Energy Monitor): the day's energy line, its own chunk. */
+const TaskEnergyLine = lazy(() => import('./task-energy-line'));
 const clockNow = () => Date.now();
 export default function TodayPlanner({record, today, clock, shown, change, doneDay}: {record: Tasks; today: string; clock: string; shown: readonly Task[]; change: Change; doneDay: (iso: string) => string}) {
   const plan = useDeviceRecord(TASK_PLAN), calendars = useDeviceRecord(CALENDAR_IMPORT), id = useId();
@@ -67,6 +69,7 @@ export default function TodayPlanner({record, today, clock, shown, change, doneD
     <h3 id={`${id}-title`} className="sr-only">Your day</h3>
     {over.over ? <p className="notice tasks-over-limit" role="status">About {minutesWords(load)} planned: {minutesWords(over.by)} more than the {minutesWords(limit!)} your day holds. Move a task to tomorrow, or let one go.</p>
       : limit && load ? <p className="fine">About {minutesWords(load)} of the {minutesWords(limit)} your day holds.</p> : null}
+    {open.some(t => t.energy) && <Suspense fallback={null}><TaskEnergyLine tasks={open} today={today} amount={plan.data.energyAmount} /></Suspense>}
     {goal && streak && <p className="fine tasks-goal-line">Daily goal: {formatNumber(streak.today)} of {formatNumber(goal)} done today{streak.reached ? ' — reached' : ''}. {streak.current ? `${formatNumber(streak.current)} ${streak.current === 1 ? 'day' : 'days'} in a row` : 'No streak yet'}{streak.best > streak.current ? ` (best ${formatNumber(streak.best)})` : ''}.</p>}
     {running.length > 0 && <ul className="tasks-timers" aria-label="Timers running">{running.map(({x, task}) => <li key={x.taskId}><span aria-hidden="true">⏱ </span><span dir="auto">{task.title}</span> · {minutesWords(timerMinutes(x.since, now))}{task.minutes ? ` of ${minutesWords(task.minutes)} planned` : ''}
       <button type="button" className="secondary" onClick={() => timer(task)}>Stop</button></li>)}</ul>}

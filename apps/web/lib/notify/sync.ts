@@ -28,6 +28,7 @@ import {supplementReminders} from '../supplements/log';
 import {GOV_REMINDERS, governanceEvents} from '../zigchain-eco/governance';
 import {stakingItems} from './staking-items';
 import {TASKS} from '../tasks/schema';
+import {TASK_PLAN} from '../tasks/plan-record';
 import {reminderInstants} from '../tasks/reminders';
 import {NOTES} from '../notes/schema';
 import {noteReminders} from '../notes/reminders';
@@ -110,6 +111,13 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
   // Session AV (follow-up 1, F-TASK-NOTIFY): the reminders set on open tasks — the instant, the id, and a title for the
   // plan to show only where names are allowed.
   try { const tasks = reminderInstants(readDeviceRecord(storage, TASKS).data, zone).filter(r => r.at > now); if (tasks.length) input.tasks = tasks.slice(0, 60).map(r => ({id: r.task.id, title: r.task.title, at: r.at})); } catch { /* tasks unreadable: no task wakes */ }
+  // Session AV lane 2 (r3-plan, LEDGER #256): the "Plan your day" time set in Tasks, and how many open tasks are overdue on
+  // each of the plan's days (a task due today is overdue tomorrow if still open) — a count, never a name.
+  try {
+    const tasks = readDeviceRecord(storage, TASKS).data.tasks.filter(t => !t.doneAt && t.due), plan = readDeviceRecord(storage, TASK_PLAN).data;
+    if (plan.planReminder) input.planDay = {time: plan.planReminder.time};
+    input.overdue = [today, addDays(today, 1), addDays(today, 2)].map(date => ({date, count: tasks.filter(t => t.due! < date).length}));
+  } catch { /* tasks unreadable: no overdue line */ }
   // Session AV lane 2 (LEDGER #31; Notion): reminders written inside notes ("@remind tomorrow 9:00 …") wake the device as
   // task reminders do, under the same switch; each opens its note (no Done). A title only where names are allowed.
   try { const fromNotes = noteReminders(readDeviceRecord(storage, NOTES).data, today, zone, now, {pastMs: 0}); if (fromNotes.length) input.tasks = [...(input.tasks ?? []), ...fromNotes.slice(0, 30).map(r => ({id: r.note.id, note: r.note.id, title: r.what, at: r.at}))]; } catch { /* notes unreadable: no note wakes */ }

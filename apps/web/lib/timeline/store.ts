@@ -16,6 +16,25 @@ export const MEAL_SLOTS = ['Breakfast', 'Lunch', 'Snacks', 'Dinner'] as const;
 export type MealSlot = (typeof MEAL_SLOTS)[number];
 /** The keys this build moves; any other key is a newer build's and is kept as it is. */
 export const TIME_KEY = /^(habit:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|meal:(Breakfast|Lunch|Snacks|Dinner))$/i;
+/**
+ * Session AV lane 2 (r3-plan, LEDGER #258; Structured's timeline for any day; TIER 3 (stored format), additive): a block
+ * moved on another day than today keeps its time for that date only, under `<YYYY-MM-DD>/habit:<id>` or
+ * `<YYYY-MM-DD>/meal:<slot>`. Older builds read only TIME_KEY's keys, so they keep these untouched and never show them;
+ * a dated key of a day already past is dropped at the next move.
+ */
+export const DATED_TIME_KEY = /^(\d{4}-\d{2}-\d{2})\/(habit:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|meal:(Breakfast|Lunch|Snacks|Dinner))$/i;
+export const datedTimeKey = (date: string, key: string) => `${date}/${key}`;
+/** The override for a block on a date: the date's own, else the everyday one. */
+export function timeOn(times: Readonly<Record<string, TimeOverride>>, key: string, date?: string): TimeOverride | undefined {
+  return (date ? times[datedTimeKey(date, key)] : undefined) ?? times[key];
+}
+/** The record without the dated moves of days before `today` (they can no longer show). */
+export function dropPastDated(record: DayTimelineRecord, today: string): DayTimelineRecord {
+  const stale = Object.keys(record.times).filter(k => { const m = DATED_TIME_KEY.exec(k); return !!m && m[1]! < today; });
+  if (!stale.length) return record;
+  const times = {...record.times}; for (const k of stale) delete times[k];
+  return dayTimelineSchema.parse({...record, times});
+}
 const timeSchema = z.looseObject({time: z.string().regex(CLOCK), minutes: z.number().int().min(MIN_MINUTES).max(MAX_MINUTES).optional()});
 export const dayTimelineSchema = z.looseObject({
   version: z.literal(1),
@@ -38,7 +57,7 @@ export const snapMinutes = (minutes: number) => Math.min(24 * 60 - SNAP, Math.ma
 export class TimelineMoveError extends Error {}
 /** Sets one block's time (and optionally its length); only keys this build knows, a real clock time, a sane length. */
 export function setTime(record: DayTimelineRecord, key: string, time: string, minutes?: number): DayTimelineRecord {
-  if (!TIME_KEY.test(key)) throw new TimelineMoveError('Only habits and meals move on the timeline.');
+  if (!TIME_KEY.test(key) && !DATED_TIME_KEY.test(key)) throw new TimelineMoveError('Only habits and meals move on the timeline.');
   if (!CLOCK.test(time)) throw new TimelineMoveError('Choose a time on a 24-hour clock.');
   if (minutes !== undefined && (!Number.isInteger(minutes) || minutes < MIN_MINUTES || minutes > MAX_MINUTES)) throw new TimelineMoveError(`Choose a length from ${MIN_MINUTES} to ${MAX_MINUTES} minutes.`);
   const old = record.times[key];

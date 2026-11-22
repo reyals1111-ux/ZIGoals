@@ -25,6 +25,12 @@ export const cycleSchema = z.looseObject({
   version: z.literal(1),
   /** true: the cycle log shows in Health. Missing or false: hidden (the default); entries are kept either way. */
   on: z.boolean().optional(),
+  /**
+   * Session AV lane 2 (r3-plan, LEDGER #262; Structured's Cycle Seasons, without the phase advice; TIER 3 (stored format),
+   * additive and optional): true shows the cycle day and the period days on the Day Timeline and the Agenda (with the log
+   * on and Health shown). Missing: not shown. A value this build cannot read is dropped on read; older builds keep it.
+   */
+  plan: z.literal(true).optional().catch(undefined),
   days: z.record(day, cycleDaySchema).default({}).refine(d => Object.keys(d).length <= MAX_CYCLE_DAYS, `Up to ${MAX_CYCLE_DAYS} days.`),
 });
 export type CycleDay = z.infer<typeof cycleDaySchema>;
@@ -32,5 +38,7 @@ export type Cycle = z.infer<typeof cycleSchema>;
 export const emptyCycle = (): Cycle => ({version: 1, days: {}});
 export const CYCLE: DeviceRecordSpec<Cycle> = {key: CYCLE_KEY, schema: cycleSchema, empty: emptyCycle};
 export const cycleOn = (c: Pick<Cycle, 'on'>) => c.on === true;
+/** Session AV lane 2 (r3-plan, LEDGER #262): the cycle shown on the day plan (the log on and the plan choice made). */
+export const cycleOnPlan = (c: Pick<Cycle, 'on' | 'plan'>) => c.on === true && c.plan === true;
 /** The days with a period logged (a flow), oldest first. */
 export const periodDays = (c: Pick<Cycle, 'days'>): string[] => Object.entries(c.days).filter(([, d]) => !!d.flow).map(([d]) => d).sort();

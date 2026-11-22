@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {Fragment, useCallback, useMemo, useState} from 'react';
+import {Fragment, Suspense, lazy, useCallback, useEffect, useMemo, useState} from 'react';
 import {PageHeader} from '../page-header';
 import {OrbitArt} from '../header-art/orbit-art';
 import {RemindersGlyph} from '../header-art/glyphs/reminders';
@@ -12,7 +12,12 @@ import {logMealPlan} from '../../lib/health-daily';
 import {setHabitEntryStatus} from '../../lib/habits';
 import {storageMessageOr} from '../../lib/storage-error-copy';
 import {BANDS, bandOf, defaultHabitTime, MEAL_TIMES, type TimelineBlock} from '../../lib/timeline/build';
-import {clearTime, minutesClock, restoreTime, setTime, type TimeOverride} from '../../lib/timeline/store';
+import {clearTime, dropPastDated, minutesClock, restoreTime, setTime, type TimeOverride} from '../../lib/timeline/store';
+import {addLocalDays} from '../../lib/local-date';
+import {TimelineDayPicker} from './timeline-day-picker';
+import {LoadBoundary} from '../load-boundary';
+// Session AV lane 2 (r3-plan, LEDGER #262): the cycle day on the all-day line, opt-in under the Health gate (its own chunk).
+const CycleOnTimeline = lazy(() => import('../cycle/cycle-on-plan'));
 import {entryOn, restoreHabitEntry, type HabitEntry} from '../../lib/timeline/actions';
 import {setHabitTime} from '../../lib/habits-extras/store';
 import {CHECKLIST_ROUTE} from '../../lib/af-checklist-keys';
@@ -28,8 +33,20 @@ import '../skeleton/zg-skeleton.css';
  * function (with Undo); a habit or a meal moves by drag, by keyboard or by the time picker, and the moved time is kept on
  * this device only. Viewing writes nothing.
  */
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+const askedDay = () => { try { const d = new URLSearchParams(window.location.search).get('day'); return d && DAY.test(d) ? d : null; } catch { return null; } };
 export function DayTimelinePage() {
-  const state = useDayTimeline(), {day, loaded, habits, health, record, extras} = state;
+  // Session AV lane 2 (r3-plan, LEDGER #258; Structured's timeline for any day): the day shown, today unless chosen
+  // (?day=YYYY-MM-DD keeps it for Back and a reload).
+  const [chosen, setChosen] = useState<string | null>(null);
+  useEffect(() => { const d = askedDay(); if (d) queueMicrotask(() => setChosen(d)); }, []);
+  const state = useDayTimeline({date: chosen}), {day, loaded, habits, health, record, extras} = state;
+  const today = habits.today, other = !!day && day.date !== today;
+  const pick = useCallback((d: string) => {
+    const next = d === today ? null : d;
+    setChosen(next);
+    try { const url = new URL(window.location.href); if (next) url.searchParams.set('day', next); else url.searchParams.delete('day'); window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash); } catch { /* the address stays */ }
+  }, [today]);
   const [busy, setBusy] = useState(false);
   const run = useCallback(async (work: () => Promise<void>) => { setBusy(true); try { await work(); } finally { setBusy(false); } }, []);
   const actions = useMemo<BlockActions>(() => ({
@@ -63,9 +80,11 @@ export function DayTimelinePage() {
       if (!b.timeKey) return;
       const key = b.timeKey, previous: TimeOverride | undefined = record.data.times[key], time = minutesClock(minutes);
       if (previous?.time === time && (length === undefined || previous.minutes === length)) return;
+      // Session AV lane 2 (r3-plan, LEDGER #258): on another day the move keeps that date only (a dated key).
+      const onDay = day && day.date !== habits.today ? ` on ${formatDate(day.date, {weekday: true, year: false})} only` : '';
       try {
-        record.update(r => setTime(r, key, time, length));
-        showUndo({message: `${b.title} moved to ${formatClock(time)} on this device.`, restore: () => record.update(r => restoreTime(r, key, previous)), undone: `${b.title} is back at ${b.start === null ? 'Any time' : clockLabel(b.start)}.`});
+        record.update(r => setTime(dropPastDated(r, habits.today), key, time, length));
+        showUndo({message: `${b.title} moved to ${formatClock(time)}${onDay} on this device.`, restore: () => record.update(r => restoreTime(r, key, previous)), undone: `${b.title} is back at ${b.start === null ? 'Any time' : clockLabel(b.start)}.`});
       } catch (e) { showStatus(storageMessageOr(e, 'The new time could not be kept on this device.'), {tone: 'error'}); }
     },
     putBack: b => {
@@ -93,28 +112,31 @@ export function DayTimelinePage() {
       catch (e) { showStatus(storageMessageOr(e, 'The time could not be changed.'), {tone: 'error'}); }
     },
   }), [run, day, habits, health, record, extras]);
+  const eyebrow = !day ? 'Today' : day.date === today ? `Today · ${formatDate(day.date, {weekday: true})}` : day.date === addLocalDays(today, 1) ? `Tomorrow · ${formatDate(day.date, {weekday: true})}` : formatDate(day.date, {weekday: true});
 
   const bands = useMemo(() => {
     if (!day) return [];
-    return BANDS.map(band => ({...band, blocks: day.blocks.filter(b => bandOf(b.start!) === band.band), hasNow: bandOf(day.nowMinute) === band.band}))
+    return BANDS.map(band => ({...band, blocks: day.blocks.filter(b => bandOf(b.start!) === band.band), hasNow: day.date === today && bandOf(day.nowMinute) === band.band}))
       .filter(b => b.blocks.length || b.hasNow);
-  }, [day]);
+  }, [day, today]);
 
   return <div className="timeline-page" data-timeline={!loaded ? 'loading' : day?.quiet ? 'quiet' : 'ready'}>
-    <PageHeader className="page-heading timeline-hero" titleId="timeline-title" eyebrow={`Today${day ? ` · ${formatDate(day.date, {weekday: true})}` : ''}`} title="Your day on one line"
+    <PageHeader className="page-heading timeline-hero" titleId="timeline-title" eyebrow={eyebrow} title="Your day on one line"
       lede="Habits at their times, meals, sleep, a running fast, timers, reminders and your Checklist’s planets. Tap to complete; drag the arrows, use the arrow keys or change the time to move a habit or a meal."
       actions={<p className="timeline-links"><Link className="text-link" href={CHECKLIST_ROUTE}>Your Checklist →</Link> <Link className="text-link" href="/app/habits">Habits →</Link></p>}
       art={<OrbitArt glyph={RemindersGlyph} spin={14} />} />
+    {loaded && day && <TimelineDayPicker date={day.date} today={today} onPick={pick} />}
     {!loaded || !day ? <div className="timeline-skeleton aa-skeleton zg-skeleton" aria-hidden="true"><i /><i /><i /></div> : <>
       {state.failed && <p role="status" className="timeline-note">Some of your records could not be read on this device; the timeline shows what it can.</p>}
       <ReplanCard leftovers={day.leftovers} actions={actions} busy={busy} />
+      <LoadBoundary quiet><Suspense fallback={null}><CycleOnTimeline date={day.date} today={today} /></Suspense></LoadBoundary>
       {day.anytime.length > 0 && <section className="timeline-band timeline-anytime" aria-labelledby="timeline-anytime-title">
         <h2 id="timeline-anytime-title">Anytime</h2>
         <ul className="timeline-list">{day.anytime.map(b => <TimelineBlockRow key={b.id} block={b} actions={actions} busy={busy} />)}</ul>
       </section>}
       {day.quiet ? <section className="panel timeline-quiet" aria-labelledby="timeline-quiet-title">
         <h2 id="timeline-quiet-title">A quiet day</h2>
-        <p>Nothing is scheduled yet. Give a habit a time, or plan a meal.</p>
+        <p>{other ? 'Nothing is planned for this day yet. Give a task this day, a habit a time, or plan a meal for it.' : 'Nothing is scheduled yet. Give a habit a time, or plan a meal.'}</p>
         <p className="timeline-links"><Link className="secondary" href="/app/habits">Open Habits</Link> <Link className="secondary" href="/app/health?view=plan">Plan a meal</Link></p>
       </section> : bands.map(band => <section key={band.band} className="timeline-band" data-band={band.band} aria-labelledby={`timeline-band-${band.band}`}>
         <h2 id={`timeline-band-${band.band}`}>{band.label}<small>{formatClock(minutesClock(band.from))} – {formatClock(minutesClock(Math.min(band.to, 1439)))}</small></h2>
@@ -123,6 +145,7 @@ export function DayTimelinePage() {
           <TimelineBlockRow block={b} actions={actions} busy={busy} />
         </Fragment>)}{band.hasNow && (band.blocks.length === 0 || band.blocks.at(-1)!.start! <= day.nowMinute) && <NowLine minute={day.nowMinute} />}</ol>
       </section>)}
+      {other && <p className="fine timeline-fine">Planning ahead: a habit or a meal you move on this day keeps that time for this date only. Ticking off and logging happen on the day itself.</p>}
       <p className="fine timeline-fine">Times you move here are kept on this device only; your habits and their reminders stay as they are. A habit time you set with “Every day, on all my devices” goes with your habit to every device. Fasts and running timers keep their own clocks.</p>
     </>}
   </div>;

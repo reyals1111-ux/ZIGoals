@@ -7,7 +7,8 @@ import './customize-settings.css';
 /** The words for each choice; the first of each is today's look, the default. */
 const GROUPS: {key: LookKey; legend: string; note: string; words: Record<string, string>}[] = [
   // Session AV lane 2 (N6 #192): three more, from this device's own fonts.
-  {key: 'font', legend: 'Font', note: 'The letters of every page. Serif, Rounded and Monospace use the fonts this device already has.', words: {system: 'System', inter: 'Inter', serif: 'Serif', rounded: 'Rounded', mono: 'Monospace'}},
+  // Session AV lane 2 (r3-plan, LEDGER #263): Reading-friendly, from fonts the device may have, with wider spacing.
+  {key: 'font', legend: 'Font', note: 'The letters of every page. Serif, Rounded, Monospace and Reading-friendly use the fonts this device already has. Reading-friendly uses Atkinson Hyperlegible or OpenDyslexic when the device has one (else Verdana), with more space between letters, words and lines.', words: {system: 'System', inter: 'Inter', serif: 'Serif', rounded: 'Rounded', mono: 'Monospace', reading: 'Reading-friendly'}},
   {key: 'textSize', legend: 'Text size', note: 'Large makes the words bigger; the page keeps its width.', words: {standard: 'Standard', large: 'Large'}},
   {key: 'density', legend: 'Density', note: 'Compact puts lists, cards and panels closer together.', words: {comfortable: 'Comfortable', compact: 'Compact'}},
   {key: 'glow', legend: 'Glow', note: 'Soft dims the glow around buttons and art. Colours stay.', words: {full: 'Full', soft: 'Soft'}},

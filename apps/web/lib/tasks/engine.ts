@@ -157,7 +157,9 @@ export type TaskPatch = {title?: string; priority?: TaskPriority; due?: string |
   /** Session AV lane 2 (tasks): start-early days, a background task, minutes worked, the week objective, comments. */
   early?: number | null; parallel?: true | null; spent?: number | null; objective?: string | null; comments?: NonNullable<Task['comments']>;
   /** Session AV lane 2 (tasks-r2, LEDGER #229): the values of the project's own fields (lib/tasks/custom-fields.ts checks them); null clears all. */
-  fields?: NonNullable<Task['fields']> | null};
+  fields?: NonNullable<Task['fields']> | null;
+  /** Session AV lane 2 (r3-plan, LEDGER #257, #259): the task's symbol and colour, and how much it asks (null clears). */
+  look?: NonNullable<Task['look']> | null; energy?: NonNullable<Task['energy']> | null};
 /**
  * Changes a task's title, priority, day, time or goal. `null` clears an optional field; a field left out is kept. A day
  * may be moved earlier than today only when it already was (an overdue task keeps its day until the person moves it),
@@ -170,7 +172,7 @@ export function editTask(record: Tasks, id: string, patch: TaskPatch, today: str
   if (patch.title !== undefined) { const title = patch.title.trim(); if (!title) throw new Error('Give the task a few words.'); if (title.length > TASK_TITLE_MAX) throw new Error(`A task title can be at most ${TASK_TITLE_MAX} characters (this one has ${title.length}).`); next.title = title; }
   if (patch.priority !== undefined) { next.priority = patch.priority; delete next.level; }
   if (patch.level !== undefined) Object.assign(next, levelFields(patch.level));
-  for (const key of ['due', 'time', 'goal', 'projectId', 'sectionId', 'parentId', 'recur', 'notes', 'habit', 'health', 'deadline', 'minutes', 'early', 'parallel', 'spent', 'objective'] as const) { const value = patch[key]; if (value === null || value === '') delete next[key]; else if (value !== undefined) next[key] = value; }
+  for (const key of ['due', 'time', 'goal', 'projectId', 'sectionId', 'parentId', 'recur', 'notes', 'habit', 'health', 'deadline', 'minutes', 'early', 'parallel', 'spent', 'objective', 'look', 'energy'] as const) { const value = patch[key]; if (value === null || value === '') delete next[key]; else if (value !== undefined) next[key] = value; }
   if (patch.projectId !== undefined && patch.sectionId === undefined && next.sectionId) {
     const section = record.sections?.find(s => s.id === next.sectionId);
     if (!section || section.projectId !== next.projectId) delete next.sectionId;

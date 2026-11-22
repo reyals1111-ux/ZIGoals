@@ -73,7 +73,9 @@ export const uiPrefsSchema = z.looseObject({
   look: z.looseObject({
     // Session AV lane 2 (N6 #192; TIER 3 (stored format), additive): three more system fonts. Older builds read them as
     // System (their enum drops the value on read) and keep the group.
-    font: z.enum(['system', 'inter', 'serif', 'rounded', 'mono']).optional().catch(undefined),
+    // Session AV lane 2 (r3-plan, LEDGER #263; TIER 3 (stored format), additive): "reading", a reading-friendly stack of fonts
+    // the device may have, with wider spacing. Older builds read it as System (their enum drops it) and keep the group.
+    font: z.enum(['system', 'inter', 'serif', 'rounded', 'mono', 'reading']).optional().catch(undefined),
     textSize: z.enum(['standard', 'large']).optional().catch(undefined),
     density: z.enum(['comfortable', 'compact']).optional().catch(undefined),
     glow: z.enum(['full', 'soft']).optional().catch(undefined),
