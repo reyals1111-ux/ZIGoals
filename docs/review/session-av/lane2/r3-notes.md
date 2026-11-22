@@ -20,6 +20,7 @@ AR's NOVA composition, the locked ZIGi look). Nothing of Notes or the Journal is
 | #265 Grid Diary Every answer to one prompt | built | F3 |
 | #266 Grid Diary Grid layout and the Mandala | built | F4 |
 | #269 Grid Diary Entries for a week, a month or a year | built | F5 |
+| #272 Grid Diary Export as Markdown | built | F6 |
 
 ## Features
 
@@ -154,3 +155,24 @@ AR's NOVA composition, the locked ZIGi look). Nothing of Notes or the Journal is
 - Showcase: none (a Showcase entry would change the pinned entry count of 10; a `period` on an existing Showcase entry
   would move what the pinned Journal specs show on its row).
 - CSS touched: `components/journal/journal.css`. Today: nothing added.
+
+### F6 The journal as Markdown files — LEDGER #272 (Grid Diary)
+
+- Verdict: **built**.
+- What: Journal → Import and export → Export the journal: the same ZIP now also holds `Markdown/`, one .md per entry
+  ("2026-11-20 A fictional walk by the sea.md"), each with YAML front matter (date, created, updated, journal, tags,
+  template, period, night, opens-on, its id, `app: ZIGoals`), its words as written, ZIGi's question and the answer as a
+  quote, and its photos linked beside it (`../photos/…`), for Obsidian and other apps. journal.json carries the round-3
+  fields too. Import of a ZIGoals ZIP reads journal.json and leaves the Markdown copies out (nothing doubles); the
+  Markdown files on their own import back with their journal, template, period, night and opening day.
+- Files: `lib/journal/export.ts` (`entryMarkdown`), `lib/journal/import.ts` (the round-3 fields from journal.json and own
+  Markdown front matter), `components/journal/journal-files.tsx`.
+- Tests: `lib/journal/r3-markdown-export.test.ts`; a labelled deliberate change in `lib/journal/av2-import.test.ts` (the
+  export's file list now ends with the two entries' .md files, listed exactly).
+- Spec: `tests/av2-journal-markdown.spec.ts` (reads the downloaded stored ZIP).
+- Stored: nothing.
+- Help (EN). Q: "Can I take my journal to Obsidian?" A: "Yes. Journal → Import and export → Export the journal makes a
+  ZIP with every entry as its own Markdown file in Markdown/ (its day, journal and tags at the top, its photos beside
+  it). Put that folder in your vault. ZIGoals' own Import reads the same ZIP back without doubling anything."
+- What's new: "Journal: the export now holds every entry as a Markdown file too, for Obsidian and other apps."
+- Showcase: the Showcase journal exports the same way (its file name says example). CSS: none. Today: nothing added.
