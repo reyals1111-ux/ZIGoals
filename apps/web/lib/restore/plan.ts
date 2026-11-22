@@ -55,6 +55,10 @@ import {TASK_PLAN} from '../tasks/plan-record';
 import {TASK_TEMPLATES} from '../tasks/templates';
 import {BUDGET_PERIODS} from '../budgets/periods';
 import {CHESS_COMPUTER} from '../chess/computer-record';
+import {EVENING_PLAN} from '../evening-plan/schema';
+import {BODY_EXTRAS} from '../body-extras/schema';
+import {WEALTH_SHEET} from '../wealth-sheet/schema';
+import {FOOD_PLUS} from '../food-plus/schema';
 import {MONEY_TAGS_RECORD} from '../money-tags/schema';
 import {MOOD_TAGS} from '../mood-tags/schema';
 import {MEAL_WORDS} from '../meal-words/schema';
@@ -266,6 +270,11 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('taskTemplates', 'Tasks: project templates', 'Today and Life', TASK_TEMPLATES),
   dev('budgetPeriods', 'Budgets: pay periods and the paycheck fill', 'Goals and Wealth', BUDGET_PERIODS),
   dev('chessComputer', 'Chess: games against the computer', 'Today and Life', CHESS_COMPUTER),
+  // Session AV lane 2, batch 2 (Health records restore with Health and its consent, as the other Health device records).
+  dev('eveningPlan', 'Sleep: the evening plan', 'Health', EVENING_PLAN, true),
+  dev('bodyExtras', 'Workouts: units, assisted sets and shoes', 'Health', BODY_EXTRAS, true),
+  dev('foodPlus', 'Food diary extras (times, weekday macros, check-in)', 'Health', FOOD_PLUS, true),
+  dev('wealthSheet', 'Your net-worth sheet', 'Goals and Wealth', WEALTH_SHEET),
   // Session AR (6b; TIER 3 (stored format), additive): whether "Your orbits" shows on Today (a display choice).
   dev('todayOrbits', 'Your orbits on Today', 'Today and Life', TODAY_ORBITS),
   dev('moneyTags', 'Tags on money entries', 'Goals and Wealth', MONEY_TAGS_RECORD),

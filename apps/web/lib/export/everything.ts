@@ -1,3 +1,4 @@
+import {WORKOUT_SET_COLUMNS, workoutSetRows} from '../workouts/csv';
 import {CALCULATOR_KEY} from '../compound/store';
 import {WORKOUTS_KEY, workoutsSchema, type Workouts} from '../workouts/schema';
 import {MONEY_LOG_KEY, moneyLogSchema, type MoneyLog} from '../money-log/schema';
@@ -296,7 +297,8 @@ const CSV_HEADERS: Record<CsvFileName, string[]> = {
   'checklist.csv': ['item_id', 'type', 'kind', 'label', 'orbit', 'health_input', 'habit_id', 'goal_id', 'added_at_utc'],
   'checklist-days.csv': ['date', 'total', 'done', 'perfect'],
   'wealth-holdings.csv': [...READABLE_HOLDINGS_HEADER],
-  'workout-sets.csv': ['workout_id', 'workout_name', 'date', 'started_at_utc', 'ended_at_utc', 'exercise', 'exercise_id', 'set_number', 'set_kind', 'weight_kg', 'reps', 'distance_km', 'seconds'],
+  // Session AV lane 2 (body, #207): RPE and notes columns (lib/workouts/csv.ts).
+  'workout-sets.csv': [...WORKOUT_SET_COLUMNS],
   // Session AH Part 3 (DS6, N-042): Portfolio's own trades and transfers (its record is in everything.json since Session U).
   'portfolio-transactions.csv': ['portfolio_id', 'portfolio_name', 'portfolio_kind', 'currency', 'transaction_id', 'coin', 'coin_name', 'symbol', 'kind', 'quantity', 'price_per_coin', 'fee', 'date', 'note', 'created_at_utc'],
 };
@@ -431,7 +433,7 @@ export function collectEverything(texts: EverythingTexts, {now, version, commit,
   const portfolios = typed<PortfolioData>('Portfolio', json.portfolio, v => portfolioDataSchema.safeParse(v));
   out['portfolio-transactions.csv'] = csv(CSV_HEADERS['portfolio-transactions.csv'], (portfolios?.portfolios ?? []).flatMap(p => p.transactions.map(t => { const coin = p.coins.find(c => coinKey(c.ref) === t.coin); return [p.id, p.name, p.kind, p.currency, t.id, t.coin, coin?.name ?? '', coin?.symbol ?? '', t.kind, t.quantity, t.price ?? '', t.fee ?? '', t.date, t.note, t.createdAt] as Cell[]; })));
   const workouts = typed<Workouts>('Workouts', json.device.workouts, v => workoutsSchema.safeParse(v));
-  out['workout-sets.csv'] = csv(CSV_HEADERS['workout-sets.csv'], (workouts?.workouts ?? []).filter(x => x.endedAt).flatMap(x => x.exercises.flatMap(e => e.sets.map((st, i) => [x.id, x.name, x.date, x.startedAt, x.endedAt ?? '', e.name, e.exerciseId, i + 1, st.kind, st.weightKg ?? '', st.reps ?? '', st.distanceKm ?? '', st.seconds ?? '']))));
+  out['workout-sets.csv'] = csv(CSV_HEADERS['workout-sets.csv'], workoutSetRows(workouts));
   const moneyLog = typed<MoneyLog>('Spending', json.device.moneyLog, v => moneyLogSchema.safeParse(v));
   out['money-log.csv'] = csv(CSV_HEADERS['money-log.csv'], (moneyLog?.entries ?? []).map(x => [x.id, x.date, x.kind, x.amount, x.currency, x.category, x.note ?? '', x.createdAt]));
   const journal = typed<Journal>('Journal', json.device.journal, v => journalSchema.safeParse(v));

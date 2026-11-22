@@ -42,7 +42,10 @@ export async function makeEverythingExport(): Promise<{notes: string[]}> {
     m.exportMoneyPhotoEntries(a.photoScope(), new Map(dr.readDeviceRecord(storage, sch.MONEY_LOG).data.entries.map(e => [e.id, e.date] as const)), now)).catch(() => []);
   // Session AV lane 2 (LEDGER #8): photos and voice notes on tasks, beside their task's title.
   const taskFiles = kept ? [] : await Promise.all([import('../health-aa/photos'), import('../tasks/attachments'), import('../tasks/schema'), import('../device-record')]).then(([a, t, sch, dr]) => t.exportTaskAttachmentEntries(a.photoScope(), new Map(dr.readDeviceRecord(storage, sch.TASKS).data.tasks.map(x => [x.id, x.title] as const)), now)).catch(() => []);
-  const photos = [...progressPhotos, ...mealPhotos, ...notePhotos, ...moneyPhotos, ...taskFiles];
+  // Session AV lane 2, batch 2: documents kept with the net-worth sheet (#221) and front-of-pack food photos (#103).
+  const wealthDocs = kept ? [] : await Promise.all([import('../health-aa/photos'), import('../wealth-sheet/docs')]).then(([a, w]) => w.exportWealthDocEntries(a.photoScope(), now)).catch(() => []);
+  const foodPhotos = kept ? [] : await Promise.all([import('../health-aa/photos'), import('../food-plus/photos')]).then(([a, f]) => f.exportFoodPhotoEntries(a.photoScope(), now)).catch(() => []);
+  const photos = [...progressPhotos, ...mealPhotos, ...notePhotos, ...moneyPhotos, ...taskFiles, ...wealthDocs, ...foodPhotos];
   const {name, bytes} = buildEverythingZip(collected, {date: localDate(now), showcase: isShowcase(), now, images}, photos);
   const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], {type: 'application/zip'}));
   const link = document.createElement('a'); link.href = url; link.download = name; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
