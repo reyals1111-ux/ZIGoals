@@ -265,3 +265,28 @@ before (an archived note in its list; only the first photo).
   a web page (.html, with its photos inside), plain text (.txt) or a Word file (.docx). Each is made on this device."
 - What's new: "Notes: save a note as a web page, plain text or a Word file."
 - Showcase: none needed. CSS touched: `components/notes/notes.css`. Today: nothing added.
+
+### F11 The journal as an e-book and a Word file — LEDGER #320 (Journey)
+
+- Verdict: **built**.
+- What: Journal → Import and export → "E-book and Word" (shown when the journal has entries): Journal (All journals,
+  Journal, or one of your journals), From and To (the first entry's day to today, by default); a line says how many
+  entries the pick holds and how many letters wait unopened (#279: a letter not yet open is left out, so its words wait
+  for their day). "Save as e-book (.epub)": EPUB 3 with an EPUB 2 contents file (toc.ncx) for older readers — `mimetype`
+  first and stored, META-INF/container.xml, a package file, a contents page (each month, each entry under it), one XHTML
+  chapter per month ("November 2026"; each entry under its day, its journal when all are chosen, its tags, its words as
+  the reading view parses them, ZIGi's question and the answer, its photos inside). "Save as Word (.docx)": the same as
+  one Word file (months as Heading 1, days as Heading 2, photos made JPEG), through #319's Word writer. Both written by
+  hand through `lib/export/zip.ts`, no package; made on this device.
+- Built on round 3's #272 (Markdown per entry): the same entries, with the same Showcase label in words.
+- Files: new `lib/journal/ebook.ts`, new `components/journal/journal-ebook.tsx` (lazy), `components/journal/journal-files.tsx`,
+  `components/journal/journal.css`; shares `lib/notes/note-files.ts` and `lib/notes/doc-image.ts`.
+- Tests: `lib/journal/r4-ebook.test.ts` (the pick, letters held back, the EPUB's order and parts, every XML part
+  well-formed, the Word file). Spec: `tests/av2-journal-ebook.spec.ts` (reads both downloads).
+- Stored: nothing.
+- Help (EN). Q: "Can I turn my journal into a book?" A: "Yes. Journal → Import and export → E-book and Word: choose a
+  journal and the days, then Save as e-book (.epub) for Apple Books, Kobo or any e-reader — a chapter a month with a
+  contents page and your photos — or Save as Word (.docx). Letters that have not opened yet stay out."
+- What's new: "Journal: your journal as an e-book or a Word file, for the days you choose."
+- Showcase: the Showcase journal's ten entries make an example book (its file name says example). CSS touched:
+  `components/journal/journal.css`. Today: nothing added.
