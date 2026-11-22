@@ -65,7 +65,7 @@ function ExtraRows({data, date}: {data: HealthData; date: string}) {
   const shown = rows.filter(r => r.total !== null);
   return <section className="health-extra-micros" aria-label="More micronutrients">
     <h3>More from your foods</h3>
-    {shown.length ? <ul className="health-micro-list">{shown.map(r => { const value = r.total! / r.scale, reference = r.reference === null ? null : r.reference / r.scale; // Session AV lane 2 (LEDGER #93): each row's own unit return <li key={r.key}>
+    {shown.length ? <ul className="health-micro-list">{shown.map(r => { const value = r.total! / r.scale, reference = r.reference === null ? null : r.reference / r.scale; /* Session AV lane 2 (LEDGER #93): each row in its own unit */ return <li key={r.key}>
       <div><strong>{r.label}</strong> <small>{reference !== null ? `general reference ${r.direction === 'at-most' ? 'at most ' : ''}${formatNutrient(reference)} ${r.unit} a day` : 'no reference'}{r.known < r.entries ? <span className="health-micro-coverage"><span className="sr-only">. </span>from {r.known} of {r.entries} {r.entries === 1 ? 'entry' : 'entries'}</span> : ''}</small></div>
       <div><span>{formatNutrient(value)} {r.unit}</span></div>
       {reference !== null && <GlassBar identity={`micro:${r.key}`} className="health-micro-bar" role="progressbar" aria-label={`${r.label}: ${formatNutrient(value)} of ${formatNutrient(reference)} ${r.unit}`} aria-valuenow={value} aria-valuemin={0} aria-valuemax={reference} value={Math.min(1, value / reference)} />}

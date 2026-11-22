@@ -11,13 +11,14 @@ Builder: the remainders builder, on `lane2/rest` (from `lane2/batch2`). Scope: t
 | #17 Things repeating projects | **built** | R1 |
 | #33 Notion version history — tasks | **built** | R2 |
 | #79 Calm Shift — the slow left-right sound | **built** | R4 |
+| #93 Cronometer nutrients | **built** for CoFID (22 further nutrients, 25 → 47); CIQUAL's further nutrients left: **needs an outside service** (its source answered 503, URL below) | R5 |
 | #41 Day One, #134 YNAB, #209 Strong — the sync service side | **built** in the repository (Worker and its tests); its deploy is the owner's (OWNER_STEPS line below) | R3 |
 
 ## Answers wiring line for engine.ts (one line, before AV's own answers)
 
 ```ts
 // Session AV lane 2 (rest): the last remainders' own answers (lib/ai/local-answers/av2-rest.ts).
-if (!subject) { const own = av2RestAnswer(question, env, {templates: env.nova?.taskTemplates, plan: env.nova?.taskPlan}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
+if (!subject) { const own = av2RestAnswer(question, env, {templates: env.nova?.taskTemplates, plan: env.nova?.taskPlan, nutrientExtras: /* zigoals:nutrient-extras:v1, once the env carries it */ undefined}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
 ```
 Corpus: `AV2_REST` in `lib/ai/evals/as/cases-av2-rest.ts` (add to CORPUS and expected.json).
 
@@ -142,3 +143,52 @@ Corpus: `AV2_REST` in `lib/ai/evals/as/cases-av2-rest.ts` (add to CORPUS and exp
 - What's new: "Calm: a slow left-right sound for your sittings, made on your device."
 - Showcase hook: none (sound must not start in a Showcase visit by itself; opt-in only).
 - CSS: `components/health/meditation/calm.css` (`.calm-sound`, `.calm-volume`, `.calm-sound-line`). Nothing on Today.
+
+## R5 More nutrients in the offline food library — LEDGER #93 (Cronometer)
+
+- What: `scripts/food/build-generic-db.mjs` now also reads the further nutrients the CoFID 2021 workbook carries (22:
+  water, starch, alcohol, glucose, fructose, sucrose, lactose, monounsaturated, polyunsaturated, omega-6 and trans fat,
+  cholesterol, phosphorus, copper, chloride, manganese, selenium, iodine, retinol, carotene, pantothenic acid, biotin;
+  `COFID_MORE_MAP`, units checked as the others) and writes them to a side file `<source>-more-v1.json` beside the
+  library file (`packMore`; bound to the library file by its SHA-256). The library file, its manifest and every released
+  reader stay byte for byte as they were (rebuilt here from the official download, checksum matching LICENCES.json:
+  `cofid-v1.json` and `manifest.json` identical). The app reads the side file with the library file
+  (`lib/food-generic/more.ts`; a missing, broken, oversized or mismatched side file is simply not used), so a CoFID food
+  carries them in `more`; a food saved from the library keeps them in the nutrient extras record (as the seven before),
+  and Health → Targets → Micronutrients → "More from your foods" and the nutrient report show them in their own unit
+  (g, mg or µg), grouped (minerals, carbs and fats, vitamins, more), with the US Daily Value as general reference where
+  there is one (cholesterol and trans fat read as limits). The nutrients the app knows: 25 → 47.
+- Left: CIQUAL's further nutrients — **needs an outside service**: the CIQUAL dataset's host answered HTTP 503 to
+  `https://entrepot.recherche.data.gouv.fr/api/datasets/:persistentId/?persistentId=doi:10.57745/RDMHWY` (2026-11-22,
+  through this environment's proxy, the server's own answer), so its tables could not be read; its build is unchanged and
+  gets a side file once a `CIQUAL_MORE_MAP` is added and the source is reachable. Fineli has no verified download (as
+  before). The side file is not kept in IndexedDB (fetched with the library file each page life; offline after a reload
+  the further nutrients are not offered, the library works as before).
+- Files: `scripts/food/lib/sources.mjs`, `scripts/food/lib/pack.mjs`, `scripts/food/build-generic-db.mjs`,
+  `apps/web/public/food-generic/cofid-more-v1.json` (new, 276,933 bytes, 76,142 gzip; loaded only with the library),
+  `apps/web/lib/food-generic/more.ts` (new), `apps/web/lib/food-generic/load.ts`, `apps/web/lib/food-generic/search.ts`,
+  `apps/web/lib/health-vitamins/extras.ts`, `apps/web/lib/health-aa/nutrient-report.ts`, `apps/web/components/health/micro-panel.tsx`,
+  `apps/web/components/health/barcode-food-lookup.tsx`.
+- Tests: `scripts/food/build-generic-db.test.mjs` (new test for packMore/roundedMore; the committed-library test now also
+  checks every side file strictly — a labelled deliberate change); `apps/web/lib/food-generic/av2-more.test.ts` (read,
+  attached, in `more` in mg, kept as extras in thousandths of a mg, refused when broken or for another file, the report's
+  units, references and groups, the committed side file); `apps/web/lib/health-aa/nutrition-ak.test.ts` and
+  `apps/web/lib/food-generic/food-generic.test.ts` (two labelled deliberate changes, each pinning the new exact list).
+- Spec: `tests/av2-food-more.spec.ts`.
+- Stored change (TIER 3 (stored formats), separate commit): 22 additive optional keys in the loose values of
+  `zigoals:nutrient-extras:v1` (`foods` and `entries`; integers in thousandths of a mg). Older releases keep and ignore
+  them (loose); no new key, so no device-key, catalogue, export or erase entry.
+- Answers: "how much selenium did I have today" (and phosphorus, iodine, copper, manganese, cholesterol, biotin,
+  pantothenic acid, omega-6, trans fat, starch), EN and NL, in `av2-rest.ts`; it needs the extras record passed as
+  `nutrientExtras` (the env does not carry `zigoals:nutrient-extras:v1` yet — the lead's wiring), and says "unknown,
+  never 0" without it.
+- Help (EN): **Q: Which nutrients does ZIGoals count?** A: Calories and the macros, fibre, sugars, saturated fat, sodium,
+  potassium, calcium, iron, the vitamins, and — when a food gives them — magnesium, zinc, B vitamins, omega-3 and, from
+  the food library (CoFID), water, starch, the sugars and fats one by one, cholesterol, phosphorus, copper, chloride,
+  manganese, selenium, iodine, retinol, carotene, pantothenic acid and biotin. A nutrient a food does not give stays
+  unknown, never zero.
+- What's new: "The food library now carries 22 more nutrients, from selenium to biotin."
+- Showcase hook: none (the Showcase's foods are its own; their counts are pinned elsewhere).
+- CSS: none. Nothing on Today.
+- Note for the lead: `lib/food-plus/av2-fit-plan.test.ts` ("NOVA and ZIGi say the plan in English and Dutch") fails on
+  `lane2/batch2` itself, before any change here (checked by running it on the branch's own files).

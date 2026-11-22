@@ -2,6 +2,11 @@ import {nextRepeat, repeatWords, repeatsOf} from '../../tasks/repeat-projects';
 import type {TaskTemplates} from '../../tasks/templates';
 import type {TaskPlan} from '../../tasks/plan-record';
 import {PACE_WORDS, readCalm} from '../../calm/visuals';
+import {nutrientDay} from '../../health-aa/nutrient-report';
+import {emptyNutrientExtras, type ExtraKey, type NutrientExtras} from '../../health-vitamins/extras';
+import {emptyHealthVitamins} from '../../health-vitamins/schema';
+import {emptyMicroTargets} from '../../health-aa/micro';
+import {formatNutrient} from '../../health';
 import {text as clean} from '../tools/format';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, closed, count, dayIn, isQuestion, say, type Asked} from './av-words';
@@ -13,9 +18,12 @@ import type {LocalReply} from './engine';
  * - Repeating projects (LEDGER #17): which projects come round, how often and when next (Today's switch: Tasks).
  * - Task versions (LEDGER #33): which tasks have earlier versions kept on this device (Today's switch: Tasks).
  * - The slow left-right sound (LEDGER #79, Calm's Shift): on or off, its volume and pace (Health's gate, as the calm visual).
+ * - The library's further nutrients (LEDGER #93): today's phosphorus, selenium, iodine, copper, manganese, cholesterol…
+ *   from the foods logged (Health's gate); the extras record comes in `extra.nutrientExtras` (the lead passes
+ *   `zigoals:nutrient-extras:v1`); without it the answer reads the diary as having none and says where they show.
  * The records come in `extra` or from the env (`nova.taskTemplates`); without them the answer says where the choice lives.
  */
-export type Av2RestExtra = {templates?: TaskTemplates | null; plan?: TaskPlan | null};
+export type Av2RestExtra = {templates?: TaskTemplates | null; plan?: TaskPlan | null; nutrientExtras?: NutrientExtras | null};
 type Ask = Asked & {extra: Av2RestExtra};
 const TASK_CALLS = [{tool: 'tasks', args: {}, label: 'Tasks'}];
 
@@ -23,8 +31,8 @@ export function av2RestAnswer(question: string, env: ToolEnv, extra: Av2RestExtr
   const a = asked(question, env);
   if (!a || !isQuestion(a)) return null;
   const nova = env.nova as (typeof env.nova & {taskTemplates?: TaskTemplates | null; taskPlan?: TaskPlan | null}) | null | undefined;
-  const ask: Ask = {...a, extra: {templates: extra.templates ?? nova?.taskTemplates ?? null, plan: extra.plan ?? nova?.taskPlan ?? null}};
-  for (const one of [repeatingProjects, taskVersions, shiftSound]) {
+  const ask: Ask = {...a, extra: {templates: extra.templates ?? nova?.taskTemplates ?? null, plan: extra.plan ?? nova?.taskPlan ?? null, nutrientExtras: extra.nutrientExtras ?? null}};
+  for (const one of [repeatingProjects, taskVersions, shiftSound, furtherNutrient]) {
     const r = one(ask);
     if (r) return r;
   }
@@ -70,4 +78,25 @@ function shiftSound(a: Ask): LocalReply | null {
     'Het langzame links-rechts geluid staat uit (het staat uit tot je het aanzet). In Health → Meditation kies je, bij het rustige beeld, een zacht geluid dat langzaam van links naar rechts gaat, met het volume en “Try it”.'));
   return answer(say(a.lang, `The slow left-right sound is on, at volume ${c.sound} of 100, ${PACE_WORDS[c.pace].en.toLowerCase()}. It plays during a sitting, quiet while paused; “Sound off for this session” hushes it there.`,
     `Het langzame links-rechts geluid staat aan, op volume ${c.sound} van 100, ${PACE_WORDS[c.pace].nl.toLowerCase()}. Het speelt tijdens een zitmeditatie, stil tijdens een pauze; “Sound off for this session” zet het daar stil.`));
+}
+
+const FURTHER: [RegExp, ExtraKey, string][] = [
+  [/\b(?:phosphorus|fosfor)\b/, 'phosphorusMg', 'Fosfor'], [/\bselen(?:ium)?\b/, 'seleniumUg', 'Selenium'], [/\b(?:iodine|jodium)\b/, 'iodineUg', 'Jodium'],
+  [/\b(?:copper|koper)\b/, 'copperMg', 'Koper'], [/\bmanga(?:nese|an)\b/, 'manganeseMg', 'Mangaan'], [/\b(?:cholesterol)\b/, 'cholesterolMg', 'Cholesterol'],
+  [/\b(?:biotin|biotine)\b/, 'biotinUg', 'Biotine'], [/\b(?:pantothenic acid|pantotheenzuur)\b/, 'pantothenateMg', 'Pantotheenzuur'], [/\b(?:omega ?6|omega-6)\b/, 'omega6Mg', 'Omega-6-vetten'],
+  [/\btrans ?fats?\b|\btransvet\b/, 'transFatMg', 'Transvet'], [/\b(?:starch|zetmeel)\b/, 'starchMg', 'Zetmeel'],
+];
+/** "how much selenium did I have today", "hoeveel selenium heb ik vandaag gehad": the foods logged today, the report's rule. */
+function furtherNutrient(a: Ask): LocalReply | null {
+  const hit = FURTHER.find(([re]) => re.test(a.f));
+  if (!hit || !/\b(?:how much|how many|hoeveel|today|vandaag)\b/.test(a.f)) return null;
+  const shut = closed(a.env, 'health'); if (shut) return shut;
+  const [, key, nl] = hit, day = a.env.healthDay, health = a.env.health;
+  const calls = [{tool: 'nutrient_totals', args: {}, label: 'Nutrients'}];
+  const row = health ? nutrientDay({data: health, vitamins: emptyHealthVitamins(), extras: a.extra.nutrientExtras ?? emptyNutrientExtras(), micro: emptyMicroTargets()}, day).find(r => r.key === `extra:${key}`) : undefined;
+  const name = row?.label ?? key;
+  if (!row || row.total === null) return answer(say(a.lang, `${name}: no food you logged today carries a value, so today’s total is unknown (never 0). Foods from the food library (CoFID) and barcodes that give it count; Health → Food → More from your foods shows it.`,
+    `${nl}: geen eten dat je vandaag logde heeft een waarde, dus het totaal van vandaag is onbekend (nooit 0). Eten uit de voedingsbibliotheek (CoFID) en barcodes die het geven tellen mee; Health → Food toont het onder de extra voedingsstoffen.`), calls);
+  const total = `${formatNutrient(row.total, row.scale)} ${row.unit}`, ref = row.reference === null ? '' : say(a.lang, ` (general reference ${row.direction === 'at-most' ? 'at most ' : ''}${formatNutrient(row.reference, row.scale)} ${row.unit} a day; not advice)`, ` (algemene richtwaarde ${row.direction === 'at-most' ? 'hoogstens ' : ''}${formatNutrient(row.reference, row.scale)} ${row.unit} per dag; geen advies)`);
+  return answer(say(a.lang, `${name} today: ${total} from ${row.known} of ${row.entries} logged ${row.entries === 1 ? 'entry' : 'entries'}${ref}.`, `${nl} vandaag: ${total} uit ${row.known} van ${row.entries} gelogde ${row.entries === 1 ? 'item' : 'items'}${ref}.`), calls);
 }

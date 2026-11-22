@@ -8,6 +8,7 @@ import {addRepeat, pauseRepeat} from '../../tasks/repeat-projects';
 import {BUILT_IN_TEMPLATES, emptyTaskTemplates} from '../../tasks/templates';
 import {emptyTaskPlan} from '../../tasks/plan-record';
 import {keepTaskVersion} from '../../tasks/versions';
+import {emptyNutrientExtras, rememberExtras} from '../../health-vitamins/extras';
 
 /** Session AV lane 2 (rest): the on-device answers to the last remainders, English and Dutch, NOVA and ZIGi. */
 const text = (r: LocalReply | null) => r && 'text' in r ? r.text : '';
@@ -53,6 +54,16 @@ describe('answers read the features', () => {
     expect(text(av2RestAnswer('how loud is the left and right sound', zigiEnv(s)))).toBe('The slow left-right sound is on, at volume 35 of 100, slower (5 s a side). It plays during a sitting, quiet while paused; “Sound off for this session” hushes it there.');
     expect(text(av2RestAnswer('staat het links rechts geluid aan', zigiEnv(s)))).toMatch(/^Het langzame links-rechts geluid staat aan, op volume 35 van 100, langzamer \(5 s per kant\)/);
     expect(av2RestAnswer('is the left right sound on', zigiEnv(s, false))?.kind).toBe('refusal');
+  });
+  test('a further nutrient today, from the extras record (EN and NL); none logged: unknown, never 0', () => {
+    const s = showcaseAll(), day = zigiEnv(s).healthDay, entry = s.health!.diary.find(d => d.date === day && d.sourceKind === 'food');
+    expect(text(av2RestAnswer('how much selenium did i have today', zigiEnv(s)))).toMatch(/^Selenium: no food you logged today carries a value, so today’s total is unknown \(never 0\)/);
+    expect(entry).toBeTruthy();
+    const nutrientExtras = rememberExtras(emptyNutrientExtras(), [entry!.id], entry!.sourceId, {seleniumUg: 20});
+    const scaled = Math.round(20 * entry!.quantityMilli / 1000);
+    expect(text(av2RestAnswer('how much selenium did i have today', zigiEnv(s), {nutrientExtras}))).toMatch(new RegExp(`^Selenium today: ${scaled} µg from 1 of \\d+ logged entries \\(general reference 55 µg a day; not advice\\)\\.$`));
+    expect(text(av2RestAnswer('hoeveel selenium heb ik vandaag gehad', zigiEnv(s), {nutrientExtras}))).toMatch(new RegExp(`^Selenium vandaag: ${scaled} µg uit 1 van \\d+ gelogde items \\(algemene richtwaarde 55 µg per dag; geen advies\\)\\.$`));
+    expect(av2RestAnswer('how much selenium did i have today', zigiEnv(s, false))?.kind).toBe('refusal');
   });
   test('Today off: the switch is named', () => {
     const env = zigiEnv(showcaseAll());
