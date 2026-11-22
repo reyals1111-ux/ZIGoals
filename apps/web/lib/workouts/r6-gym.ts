@@ -24,11 +24,14 @@ export function favouritesFirst<T extends Pick<LibraryExercise, 'id'>>(found: re
   return {favourites, rest: found.filter(x => !order.includes(x.id))};
 }
 
-/** #421: a finished workout as a light week (its sets leave the bests, the "new best" marks and the next weights), or not. */
+/**
+ * #421: a workout as a light week (its sets leave the bests, the "new best" marks and the next weights), or not. Review
+ * B6P-6: also while it is in progress, so a routine that keeps your last weights (lib/workouts/keep-weights.ts) leaves a
+ * light week's weights out when it is finished.
+ */
 export function setLight(w: Workouts, workoutId: string, on: boolean): Workouts {
   const x = w.workouts.find(y => y.id === workoutId);
   if (!x) throw Error('This workout is no longer here.');
-  if (!x.endedAt) throw Error('Finish the workout first.');
   return parse({...w, workouts: w.workouts.map(y => y.id !== workoutId ? y : on ? {...y, light: true} : without(y, 'light'))});
 }
 

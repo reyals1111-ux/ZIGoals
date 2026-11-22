@@ -22,7 +22,8 @@ const VALUE_KEYS = ['weightKg', 'reps', 'seconds', 'distanceKm', 'addedKg', 'ass
 /** The routine with the workout's done values written in, or null when the routine does not keep weights or nothing changed. */
 export function keepLastWeights(w: Workouts, workout: Workout): {workouts: Workouts; before: WorkoutTemplate; changed: number} | null {
   const routine = workout.templateId ? w.templates.find(t => t.id === workout.templateId) : undefined;
-  if (!routine?.keepWeights) return null;
+  // Review B6P-6 (r6-body; LEDGER #421): a light week leaves the next weights alone.
+  if (!routine?.keepWeights || workout.light) return null;
   const used = new Set<string>();
   let changed = 0;
   const exercises = routine.exercises.map(rx => {

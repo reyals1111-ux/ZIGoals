@@ -31,7 +31,7 @@ describe('#421: a light week is left out of the bests, never the history or the 
     const started = addExercise(startWorkout(W, {date: '2026-11-22', now: new Date('2026-11-22T17:00:00.000Z')}), EXERCISES.find(e => e.id === 'squat')!);
     expect(inProgress(started)!.exercises[0]!.sets.map(s => s.weightKg)).toEqual([105, 105]);
   });
-  test('only a finished workout can be a light week; turning it off counts it again', () => {
+  test('a workout can be a light week (in progress too, review B6P-6); turning it off counts it again', () => {
     expect(exerciseHistory(setLight(W, 'w3', false), 'squat')!.lightLeftOut).toBe(0);
     expect(setLight(W, 'w1', true).workouts[0]!.light).toBe(true);
     expect(() => setLight(W, 'nope', true)).toThrow('This workout is no longer here.');
