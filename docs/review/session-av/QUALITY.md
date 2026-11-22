@@ -57,7 +57,7 @@ Their tables, unedited: [q1 Tasks](quality/q1.md), [q2 Money](quality/q2.md), [q
 | 3 (round 3: planned day, money views, water/habits/body, notes and journal) | 41 | [lane2-b3](quality/lane2-b3.md) | 2 | 14 | 22 | all fixed (A and B by their builders, C on `lane2/revb3c`, merged) |
 | 4 (round 4: planned week, journal and habits, sleep and training, money, notes and files) | 47 | [lane2-b4](quality/lane2-b4.md) | 5 | 14 | 35 | all fixed by their builders (merged; B4D-1 by the lead) |
 | 5 (round 5: planned day, notes and learning, gym, body log and day parts, money) | 42 | [lane2-b5](quality/lane2-b5.md) | 6 | 12 | 30 | H–K fixed by their builders (merged); L on `lane2/r5-plan` before batch 5 joins |
-| 6 (round 6: projects on hold and in order, notes and journal tidying, refunds and paychecks, calm, meditation days, sleep tonight, bests) | 41 | [lane2-b6](quality/lane2-b6.md) | 8 | 16 | 39 | M–P fixed by their builders (merged); Q: Help rows by the lead, answers on `lane2/fixb6q` before batch 6 joins |
+| 6 (round 6: projects on hold and in order, notes and journal tidying, refunds and paychecks, calm, meditation days, sleep tonight, bests) | 41 | [lane2-b6](quality/lane2-b6.md) | 8 | 16 | 39 | all fixed: M–P by their builders (merged), Q's Help rows by the lead and its answer rows on `lane2/fixb6q` (merged), B6Q-1's corpus entry re-recorded |
 
 Passed everywhere in batch 1: no sideways scroll and nothing cut on the Tasks views, Notes, Journal, Habits and Journey;
 axe 0 serious/critical on those routes and the chess game, the evening check-in and the journal calendar; keyboard play
