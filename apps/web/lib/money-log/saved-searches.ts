@@ -1,7 +1,7 @@
 import {addLocalDays} from '../local-date';
 import {monthKey, shiftMonth} from '../budgets/engine';
-import {monthOf, totals, weekOf} from './engine';
-import {countedBetween, countedByCategoryBetween, foldName, type CountedFilter} from './counted';
+import {monthOf, weekOf} from './engine';
+import {countedBetween, countedByCategoryBetween, countedDayParts, foldName, type CountedFilter} from './counted';
 import {searchEntries, type MoneyQuery} from './search';
 import {parseNumberInput} from '../numbers/parse';
 import type {MoneyEntry} from './schema';
@@ -85,7 +85,8 @@ export function questionChart(found: readonly MoneyEntry[], q: SavedQuestion, to
     // This month by category does); on a subcategory, only the parts in the entry's own category.
     const only: CountedFilter['only'] = q.category ? (_e, p) => foldName(p.category) === foldName(q.category!) : q.sub ? (e, p) => foldName(p.category) === foldName(e.category) : undefined;
     const mine = found.filter(e => e.currency === currency), sum = (a: string, b: string) => countedBetween(mine, a, b, {kind, currency, ...(only ? {only} : {})}).get(currency) ?? 0;
-    const sums = totals(mine, from, to), total = sum(from, to), count = sums.find(x => x.currency === currency)?.count ?? 0;
+    // Review b4f #5: "N entries counted" counts only the counted entries of the kind charted (spent or received) that add to it.
+    const total = sum(from, to), count = mine.filter(e => e.kind === kind && countedDayParts(e).some(d => d.date >= from && d.date <= to && d.parts.some(p => p.cents > 0 && (!only || only(e, p))))).length;
     let bars: Bar[];
     if (by === 'category') bars = countedByCategoryBetween(mine, from, to, kind, only).filter(r => r.currency === currency).map(r => ({key: r.category, label: r.category, cents: r.total}));
     else if (by === 'week') {
