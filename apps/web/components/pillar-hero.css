@@ -48,7 +48,7 @@
 :root .life-rings > .life-ring[data-pillar=wealth] { --pillar: var(--pillar-wealth); }
 :root .life-rings > .life-ring::before { content: ''; position: absolute; left: 0; top: 22px; bottom: 22px; width: 3px; border-radius: 3px; background: linear-gradient(180deg, var(--pillar), transparent); opacity: .85; }
 :root .life-rings > .life-ring:is(:hover, :focus-visible) { background: linear-gradient(90deg, color-mix(in srgb, var(--pillar) 10%, transparent), transparent 70%); }
-:root .life-ring-pillar { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; color: color-mix(in srgb, var(--pillar) 70%, #ffffff); }
+:root .life-ring-pillar { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; color: color-mix(in srgb, var(--pillar) 70%, #ffffff); }
 :root .life-ring-pillar .pillar-mark-disc { width: 24px; height: 24px; }
 :root .life-rings .flow-ring { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--pillar) 45%, transparent)); }
 /* Each figure has a long form (computers, tablets) and a short one for the phone tiles; the long one is what is read aloud. */

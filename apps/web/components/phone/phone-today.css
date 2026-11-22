@@ -39,6 +39,10 @@
   :root .today-page .dashboard-layout-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   :root .today-page .dashboard-layout-grid > .placed-module { grid-column: 1 / -1; min-width: 0; }
   :root .today-page .dashboard-layout-grid > .placed-module[data-kind="widget"][data-size="compact"] { grid-column: auto !important; }
+  /* Session AV lane 2 (P-11): two small widgets side by side are the same height (the taller one's), folded or open. */
+  :root .today-page .dashboard-layout-grid > .placed-module[data-kind="widget"][data-size="compact"] { align-self: stretch; display: flex; flex-direction: column; }
+  :root .today-page .dashboard-layout-grid > .placed-module[data-kind="widget"][data-size="compact"] > .phone-fold { flex: 1 1 auto; display: flex; flex-direction: column; }
+  :root .today-page .dashboard-layout-grid > .placed-module[data-kind="widget"][data-size="compact"] > .phone-fold:not([data-open]) > .phone-fold-toggle { flex: 1 1 auto; }
   /* While arranging, every widget takes the full width so its move controls never cover its own buttons. */
   :root[data-layout-editing] .today-page .dashboard-layout-grid > .placed-module[data-kind="widget"][data-size="compact"] { grid-column: 1 / -1 !important; }
   :root .today-page :is(.dashboard-layout-grid, .today-rail) > .placed-module > * { margin-bottom: 0; }
@@ -158,6 +162,8 @@
   :root .today-page .habits-today .habit-timer-chip > span { white-space: nowrap; font-size: 14px; }
   :root .today-page .habits-today .habit-timer-chip .quiet { min-height: 44px; min-width: 44px; padding: 2px 9px; font-size: 14px; white-space: nowrap; }
   :root .today-page .habits-today .habit-today-list li > .habit-completion-compact > div:first-child { white-space: nowrap; }
+  /* Session AV lane 2 (P-6): the auto check-in note has the row's full width, under the controls. */
+  :root .today-page .habits-today .habit-today-list li > .habit-completion-compact > .habit-auto-badge { grid-column: 1 / -1; grid-row: 5; margin-top: 6px; font-size: 14px; }
 
   /* Recent activity: compact rows with the time at the top right; the whole row opens its record. */
   :root .today-page .recent-panel .unified-activity ol { gap: 8px; margin: 12px 0; }

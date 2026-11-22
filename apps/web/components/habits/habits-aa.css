@@ -33,6 +33,8 @@
 .habit-area-bar .eyebrow { margin: 0 6px 0 0; font-size: 14px; }
 .habit-area-bar .quiet { min-height: 44px; padding: 8px 16px; border-radius: 99px; }
 .habit-area-bar .quiet[aria-pressed="true"] { background: #6fe6f61c; border-color: #6fe6f655; color: #e4fbff; }
+/* Session AV lane 2 (P-28): every chip of the area filter and the list tools (Reorder, Cards / Compact) is outlined, the chosen one filled, so none reads as plain text. */
+:root .habit-area-bar .quiet:not([aria-pressed="true"]), :root .habit-list-tools button.quiet:not([aria-pressed="true"]) { border: 1px solid var(--line); border-radius: 99px; padding-inline: 16px; }
 .habit-area-chip { min-height: 44px; font-size: 14px; color: #c6c4ff; }
 .habit-area-chip.habit-area-set { color: #a7f0dc; border-color: #86f0d644; }
 .habit-area-select { margin: 0; max-width: 260px; }
@@ -172,7 +174,7 @@
 /* B49: Today's widget groups its rows under slim labels instead of folding panels. */
 .habit-section-compact { border: 0; border-radius: 0; background: none; overflow: visible; }
 .habit-section-compact > :not(.habit-section-label) { padding: 0; }
-.habit-section-label { display: flex; align-items: center; gap: 8px; margin: 14px 0 0; font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--text-soft, #b9aee0); }
+.habit-section-label { display: flex; align-items: center; gap: 8px; margin: 14px 0 0; font-size: 14px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--text-soft, #b9aee0); }
 .habit-section-label h3 { margin: 0; font: inherit; }
 .habit-section-label .habit-section-mark { width: 22px; height: 22px; font-size: 12px; }
 .habit-section-label .habit-section-count { margin-left: auto; font-weight: 500; letter-spacing: 0; text-transform: none; }
