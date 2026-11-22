@@ -6,7 +6,7 @@ import {HEALTH_EXTRAS, RETURN_NOTE_MAX} from '../../../lib/health-extras';
 import {closeReturnNote, returnNoteDue, setReturnNote} from '../../../lib/food-log/return-note';
 import {MORE_GOALS, type MoreGoals} from '../../../lib/health-goals/more';
 import {bandDays, clearWeightBand, setWeightBand} from '../../../lib/health-goals/band';
-import {CALORIE_WEEK, clearFreeDay, freeDayShares, MAX_FREE_EXTRA, MIN_FREE_EXTRA, planFreeDay} from '../../../lib/health-aa/calorie-week';
+import {CALORIE_WEEK, clearFreeDay, freeDayLine, freeDayShares, MAX_FREE_EXTRA, MIN_FREE_EXTRA, planFreeDay} from '../../../lib/health-aa/calorie-week';
 import {weekDays} from '../../../lib/health-aa/planner';
 import {KCAL_FLOOR} from '../../../lib/health-aa/energy';
 import {GRAMS_PER_LB, weightText} from '../../../lib/health-units';
@@ -79,7 +79,7 @@ export function FoodDayNotes({data, date, today}: {data: HealthData; date: strin
   const shares = week.loaded && !week.unreadable && data.targets.kcal ? freeDayShares(week.data, data.targets.kcal, weekDays(date)) : null;
   const due = date === today && extras.loaded && !extras.unreadable && !closed ? returnNoteDue(data, extras.data, today) : null;
   return <>
-    {shares && shares.date === date && shares.extra > 0 && <p className="fine r4-free-line" data-body-figure="">A planned free day: {formatNumber(shares.extra)} kcal more today, taken evenly from this week’s other days.</p>}
+    {shares && shares.date === date && shares.extra > 0 && <p className="fine r4-free-line" data-body-figure="">{freeDayLine(shares.extra, date, today, {number: n => formatNumber(n), day: d => formatDate(d, {weekday: true, year: false})})}</p>}
     {due && <section className="r4-note" aria-labelledby={`${id}-note`}>
       <h3 id={`${id}-note`}>Your note for a harder week</h3>
       <p>{due.text}</p>

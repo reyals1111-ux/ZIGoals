@@ -76,6 +76,13 @@ export function planFreeDay(r: CalorieWeek, base: number, date: string, extraKca
   return next;
 }
 const formatKcal = (n: number) => n.toLocaleString('en-US');
+/**
+ * The food day's line for a planned free day (review B4E-9): "today" only on today; another day is named
+ * ("on Sat, Nov 21"), since the line shows whenever that day's diary is open.
+ */
+export function freeDayLine(extra: number, date: string, today: string, fmt: {number: (n: number) => string; day: (d: string) => string}): string {
+  return `A planned free day: ${fmt.number(extra)} kcal more ${date === today ? 'today' : `on ${fmt.day(date)}`}, taken evenly from ${date === today ? 'this' : 'that'} week’s other days.`;
+}
 export const clearFreeDay = (r: CalorieWeek): CalorieWeek => { const rest: Record<string, unknown> = {...r}; delete rest.freeDay; return calorieWeekSchema.parse(rest); };
 
 /** `partial` (Session AL, MO-013): some of the day's entries carry no calories, so `eaten` is the known part, a lower bound. */

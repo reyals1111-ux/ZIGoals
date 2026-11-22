@@ -1,6 +1,6 @@
 import {describe, expect, test} from 'vitest';
 import {createEmptyHealth, type HealthData} from '../health';
-import {CALORIE_WEEK, calorieWeekSchema, clearFreeDay, freeDayShares, planFreeDay, shiftCalories, weekBudget, type CalorieWeek} from './calorie-week';
+import {CALORIE_WEEK, calorieWeekSchema, clearFreeDay, freeDayLine, freeDayShares, planFreeDay, shiftCalories, weekBudget, type CalorieWeek} from './calorie-week';
 import {KCAL_FLOOR} from './energy';
 import {weekDays} from './planner';
 import {emptyHealthExtras} from '../health-extras';
@@ -39,6 +39,15 @@ describe('a planned free day (LEDGER #328)', () => {
     expect(weekBudget(withTarget(2000), r, '2026-11-25', '2026-11-25')!.days.every(d => !d.free && !d.gave && d.budget === 2000)).toBe(true);
     expect(clearFreeDay(r).freeDay).toBeUndefined();
     expect(calorieWeekSchema.parse(clearFreeDay(r))).toEqual(empty);
+  });
+});
+
+// Session AV lane 2 (review B4E-9): the food day's line names the free day unless it is today.
+describe('the free day’s line on the food day', () => {
+  const fmt = {number: (n: number) => n.toLocaleString('en-US'), day: (d: string) => `day ${d}`};
+  test('"today" on today, the day named on another', () => {
+    expect(freeDayLine(600, TODAY, TODAY, fmt)).toBe('A planned free day: 600 kcal more today, taken evenly from this week’s other days.');
+    expect(freeDayLine(1200, '2026-11-21', TODAY, fmt)).toBe('A planned free day: 1,200 kcal more on day 2026-11-21, taken evenly from that week’s other days.');
   });
 });
 
