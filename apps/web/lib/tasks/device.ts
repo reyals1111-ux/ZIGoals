@@ -83,6 +83,11 @@ function write(change: (r: Tasks) => Tasks, storage?: Storage_): Tasks {
   return next;
 }
 /**
+ * Session AV lane 2 (r3-plan, review B3A-5): the one writer for a change made outside the task list's own hook (a focus
+ * note added to its task): it refuses an unreadable record and tells every open view (ZIGI_STORE_EVENT), as `write` does.
+ */
+export const writeTasks = (change: (r: Tasks) => Tasks, storage?: Storage_): Tasks => write(change, storage);
+/**
  * Adds a task (NOVA's and ZIGi's confirm card and the global Quick add call this only after the person confirms).
  * Throws with nothing written on a refusal (no title, the 500-task limit, a time without a day; a past day unless
  * `allowPast`). The `undo` removes it again.

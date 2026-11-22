@@ -6,11 +6,8 @@ import {startSoundscape} from '../music/soundscape-start';
 import {FOCUS_SESSIONS} from '../../lib/focus-sessions/schema';
 import {POMODORO_DEFAULTS, cleanSettings, phaseShare, runMinutes, secondsLeft} from '../../lib/focus-sessions/pomodoro';
 import {dismissPomodoroResult, keepPomodoroNote, setPomodoroNote, skipPomodoroBreak, startPomodoro, stopPomodoro, undoPomodoroTick} from '../../lib/focus-sessions/pomodoro-run';
-import {appendTaskNote, restoreTaskNotes} from '../../lib/focus-sessions/notes';
+import {addNoteToTask} from '../../lib/focus-sessions/notes';
 import {FOCUS_NOTE_MAX} from '../../lib/focus-sessions/schema';
-import {readDeviceRecord, updateDeviceRecord} from '../../lib/device-record';
-import {getAppStorage} from '../../lib/showcase-storage';
-import {TASKS} from '../../lib/tasks/schema';
 import {showStatus} from '../ui/undo-toast';
 import {formatMinutes} from '../../lib/zone-time';
 import {formatNumber} from '../../lib/visual-format';
@@ -58,12 +55,11 @@ export function PomodoroPanel({task, goalId, onClose, heading = 'h3'}: {task?: {
   // Session AV lane 2 (r3-plan, LEDGER #260; Structured): the run's note goes under the task's own notes on the person's tap.
   const [noteAdded, setNoteAdded] = useState('');
   const addNote = (taskId: string, title: string, note: string) => {
-    const storage = getAppStorage();
+    // Review B3A-5: through the tasks' own writer, so the open list and editor refresh and a later Undo keeps the note.
     try {
-      const before = readDeviceRecord(storage, TASKS).data.tasks.find(t => t.id === taskId)?.notes;
-      updateDeviceRecord(storage, TASKS, r => appendTaskNote(r, taskId, note));
+      const {undo} = addNoteToTask(taskId, note);
       setNoteAdded(last?.runId ?? 'x');
-      showUndo({message: `The note is under “${title}”’s notes.`, undone: `“${title}”’s notes are as they were.`, restore: () => { updateDeviceRecord(storage, TASKS, r => restoreTaskNotes(r, taskId, before)); setNoteAdded(''); }});
+      showUndo({message: `The note is under “${title}”’s notes.`, undone: `“${title}”’s notes are as they were.`, restore: () => { undo(); setNoteAdded(''); }});
     } catch (e) { showStatus(e instanceof Error ? e.message : 'The note could not be added on this device.', {tone: 'error'}); }
   };
   return <section className="pomodoro" aria-labelledby={`${id}-t`} data-phase={phase?.kind ?? (last ? 'finished' : 'idle')}>

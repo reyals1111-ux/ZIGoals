@@ -235,3 +235,11 @@ It uses Atkinson Hyperlegible or OpenDyslexic when your device has one (otherwis
 space between letters, words and lines. Large text can go with it."
 What's new: "Appearance: a Reading-friendly font choice, with more space between letters and lines."
 Showcase: none. Today: nothing. CSS: app/customize.css (not a theme-sheet source).
+
+## Review fixes (batch 3 review A: B3A-5 to B3A-8)
+
+- **B3A-5 (Major), fixed.** Adding a focus note to its task now goes through the tasks' own writer. `lib/tasks/device.ts`
+  `writeTasks` is the existing `write`: it refuses an unreadable record and tells open views (ZIGI_STORE_EVENT), so the
+  list and the editor refresh and a later unrelated Undo keeps the note. The note's own Undo puts back only the notes, and
+  only while they are still what the note made them. Files: lib/tasks/device.ts, lib/focus-sessions/notes.ts
+  (`addNoteToTask`), components/focus/pomodoro-panel.tsx. Test: lib/focus-sessions/r3-notes-device.test.ts.
