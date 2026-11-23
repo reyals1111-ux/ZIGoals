@@ -21,7 +21,8 @@ export default function PlaySteps({parent, onClose}: {parent: Task; onClose: () 
   const tasks = useDeviceRecord(TASKS), id = useId(), nextRef = useRef<HTMLButtonElement>(null);
   const [clock, setClock] = useState<StepClock>(() => startClock(clockNow())), [now, setNow] = useState(() => clockNow()), [said, setSaid] = useState('');
   useEffect(() => { if (clock.since === null) return; const t = window.setInterval(() => setNow(clockNow()), 1000); return () => window.clearInterval(t); }, [clock.since]);
-  useEffect(() => { nextRef.current?.focus(); }, []);
+  // Session AV lane 2 (fixb5): the record is read after the first render (loaded false: nothing drawn), so focus goes to Next once it is there.
+  useEffect(() => { if (tasks.loaded) nextRef.current?.focus(); }, [tasks.loaded]);
   if (!tasks.loaded) return null;
   const steps = playSteps(tasks.data, parent.id), step = steps.now, ms = runMs(clock, now), shown = step ? clockText(step, ms) : null;
   // Review B5L-2: the Undo puts back every task the change touched (a repeating parent's steps, a step's own subtasks).
