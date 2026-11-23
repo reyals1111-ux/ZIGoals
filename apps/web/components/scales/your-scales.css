@@ -31,7 +31,12 @@
 .scale-stats-bar { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
 .scale-stats-bar span { display: block; height: 100%; background: var(--cyan); }
 .scale-stats-chart { width: 100%; max-width: 560px; height: auto; }
-.scale-stats-chart text { font-size: 10px; fill: currentColor; }
+/* Session AV lane 2 (polish4): the axis words beside and under the chart, 14 px at every width (SVG text was about 10 px). */
+.scale-stats-plot { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 6px; max-width: 560px; }
+.scale-stats-plot > .scale-stats-chart { grid-column: 2; grid-row: 1; max-width: none; }
+.scale-stats-y { grid-column: 1; grid-row: 1; position: relative; min-width: 1.4ch; font-size: 14px; line-height: 1; color: var(--text-secondary, var(--muted)); font-variant-numeric: tabular-nums; }
+.scale-stats-y > span { position: absolute; right: 0; transform: translateY(-50%); }
+.scale-stats .scale-stats-x { grid-column: 2; grid-row: 2; display: flex; justify-content: space-between; gap: 8px; margin: 2px 0 0; font-size: 14px; color: var(--text-secondary, var(--muted)); }
 .scale-stats-grid { stroke: var(--line); }
 .scale-stats-dot { fill: var(--cyan); }
 @media (forced-colors: active) { .scale-stats-bar span, .scale-stats-dot { background: Highlight; fill: Highlight; } }

@@ -286,7 +286,7 @@ details[open] > summary.health-fold-button { margin-bottom: 10px; }
 /* Session AV lane 2 (food, LEDGER #197): an extra meal's section — "Save this meal" in its heading, and its teaching empty state. */
 .health-extra-save { min-height: 44px; }
 .health-extra-empty, .health-meal-empty { display: grid; gap: 8px; justify-items: start; }
-.health-extra-empty p, .health-meal-empty p { margin: 0; font-size: .875rem; }
+.health-extra-empty p, .health-meal-empty p { margin: 0; font-size: .9375rem; } /* Session AV lane 2 (polish4): body copy at 15 px */
 .health-extra-empty button, .health-meal-empty button { min-height: 44px; }
 .import-warnings ul { padding-left: 20px; }
 
