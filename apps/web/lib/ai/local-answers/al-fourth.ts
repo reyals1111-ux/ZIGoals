@@ -6,7 +6,7 @@ import type {ToolOk} from '../tools/types';
 import {summaries} from '../tools/goals';
 import {latestHabitRule, type Habit} from '../../habits';
 import {addLocalDays} from '../../local-date';
-import {formatDate} from '../../visual-format';
+import {formatDate, formatNumber} from '../../visual-format';
 import {checklistToday} from '../proactive/brief-sources';
 import {shortName, listNames} from '../proactive/calm';
 import {quickCommand} from '../quick-commands/commands';
@@ -341,7 +341,7 @@ export function fourthFirst(question: string, env: ToolEnv | null, lang: Lang, p
   if (saveBy || (WANT_SAVE_AND_SPEND.test(q) && /\bspend\b/i.test(q))) {
     const raw = saveBy ? saveBy[1]!.replace(/\s/g, '') : '', european = /^\d{1,3}(?:\.\d{3})+$/.test(raw), value = raw ? Number(european ? raw.replace(/\./g, '') : raw.replace(/,(?=\d{3}\b)/g, '').replace(',', '.')) * (/^(?:k|thousand)$/i.test(saveBy?.[2] ?? '') ? 1000 : 1) : NaN;
     const by = saveBy?.[3]?.trim();
-    const what = Number.isFinite(value) && value > 0 ? say(lang, `Saving ${new Intl.NumberFormat('en-GB').format(value)}${by ? ` by ${by}` : ''}`, `${new Intl.NumberFormat('nl-NL').format(value)} sparen${by ? ` voor ${by}` : ''}`) : say(lang, 'Saving', 'Sparen');
+    const what = Number.isFinite(value) && value > 0 ? say(lang, `Saving ${formatNumber(value)}${by ? ` by ${by}` : ''}`, `${new Intl.NumberFormat('nl-NL').format(value)} sparen${by ? ` voor ${by}` : ''}`) : say(lang, 'Saving', 'Sparen');
     return {kind: 'answer', text: say(lang, `${what} is a goal. Open the goal form below: give it a name, the amount${by ? ' and the date' : ''}; nothing is saved until you create it, and no money moves.${/\bspend\b/i.test(q) ? ' Spending is logged in Wealth → Spending when it happens, not ahead.' : ''}`, `${what} is een doel. Open het doelformulier hieronder: geef het een naam, het bedrag${by ? ' en de datum' : ''}; er wordt niets opgeslagen tot je het aanmaakt.`) + fence({kind: 'open-page', page: 'goals', view: 'new-goal'}), calls: []};
   }
   const want = GOAL_WANT.exec(q);
@@ -375,7 +375,7 @@ export function fourthFirst(question: string, env: ToolEnv | null, lang: Lang, p
   const alert = /\b(?:alert|notify|tell|ping|warn)\s+me\s+(?:when|if)\s+(btc|eth|sol|zig|bitcoin|ether|ethereum|solana)\s+(?:hits|reaches|goes (?:above|over|below|under)|is (?:above|over|below|under)|drops (?:below|under)|crosses)\s+(?:[$€]\s?)?(\d+(?:[.,]\d+)?)\s*(k)?\s*(usd|eur|dollars?|euros?)?/i.exec(q);
   if (alert) {
     const sym = ({bitcoin: 'BTC', ether: 'ETH', ethereum: 'ETH', solana: 'SOL'} as Record<string, string>)[alert[1]!.toLowerCase()] ?? alert[1]!.toUpperCase(), price = Number(alert[2]!.replace(',', '.')) * (alert[3] ? 1000 : 1), below = /\b(?:below|under|drops)\b/i.test(q);
-    return {kind: 'answer', text: say(lang, `A price alert for ${sym} ${below ? 'below' : 'above'} ${new Intl.NumberFormat('en-GB').format(price)} ${/eur/i.test(alert[4] ?? '') ? 'EUR' : 'USD'}, kept on this device and checked when prices are read; added only when you add it. Information, never advice: nothing is bought or sold.`, `Een prijsalarm voor ${sym}, pas toegevoegd als je het toevoegt. Informatie, nooit advies.`) + fence({kind: 'create-price-alert', coin: sym, direction: below ? 'below' : 'above', price, currency: /eur/i.test(alert[4] ?? '') ? 'EUR' : 'USD'}), calls: []};
+    return {kind: 'answer', text: say(lang, `A price alert for ${sym} ${below ? 'below' : 'above'} ${formatNumber(price)} ${/eur/i.test(alert[4] ?? '') ? 'EUR' : 'USD'}, kept on this device and checked when prices are read; added only when you add it. Information, never advice: nothing is bought or sold.`, `Een prijsalarm voor ${sym}, pas toegevoegd als je het toevoegt. Informatie, nooit advies.`) + fence({kind: 'create-price-alert', coin: sym, direction: below ? 'below' : 'above', price, currency: /eur/i.test(alert[4] ?? '') ? 'EUR' : 'USD'}), calls: []};
   }
   return null;
 }

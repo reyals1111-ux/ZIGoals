@@ -1,3 +1,4 @@
+import {formatNumber} from '../../visual-format';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, clockIn, closed, dayIn, isQuestion, list, MIXED, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
@@ -32,7 +33,7 @@ export function av2R5BodyAnswer(question: string, env: ToolEnv): LocalReply | nu
 const CYCLE_CALLS = [{tool: 'cycle_log', args: {}, label: 'Cycle log'}], HEALTH_CALLS = [{tool: 'health_summary', args: {}, label: 'Health summary'}];
 const LINE_NL = 'Informatie voor jou, geen anticonceptie en geen diagnose.';
 const line = (a: Asked) => say(a.lang, CYCLE_LINE, LINE_NL);
-const days = (a: Asked, n: number) => { const v = Math.round(n * 10) / 10, t = a.lang === 'nl' ? String(v).replace('.', ',') : String(v); return `${t} ${v === 1 ? say(a.lang, 'day', 'dag') : say(a.lang, 'days', 'dagen')}`; };
+const days = (a: Asked, n: number) => { const v = Math.round(n * 10) / 10, t = a.lang === 'nl' ? v.toLocaleString('nl-NL', {maximumFractionDigits: 1}) : formatNumber(v, {maximumFractionDigits: 1}); return `${t} ${v === 1 ? say(a.lang, 'day', 'dag') : say(a.lang, 'days', 'dagen')}`; };
 /** The cycle log under the Health gate and its own switch: the record, or the answer that says why not. */
 function cycleOf(a: Asked): {rec: Cycle} | {reply: LocalReply} {
   const shut = closed(a.env, 'health'); if (shut) return {reply: shut};

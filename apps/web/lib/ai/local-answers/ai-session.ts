@@ -1,3 +1,4 @@
+import {localQty} from './words';
 import {novaAreaClosed, novaEnvInfo} from './nova-env';
 import Decimal from 'decimal.js';
 import {briefChatText} from '../proactive/brief';
@@ -239,8 +240,8 @@ function spendAnswer(lang: Lang, q: string, env: ToolEnv): LocalReply {
   if (!s.result.ok) return refusalOf(s.result, [s.record]);
   const d = dataOf(s.result) as {note?: string; totals?: {currency: string; spent: string; received: string}[]; byCategory?: {category: string; spent: string}[]; roomToSpendThisWeek?: {left: string; budget: string; daysLeft: number}; matched?: string};
   if (d.note) return {kind: 'answer', text: say(lang, d.note, 'Er is nog niets gelogd in Vermogen → Uitgaven.'), calls: [s.record]};
-  const tot = (d.totals ?? []).map(t => t.spent).join(' and '), top = (d.byCategory ?? []).slice(0, 3).map(c => `${c.category} ${c.spent}`).join(', ');
-  const room = d.roomToSpendThisWeek ? say(lang, ` Room to spend this week: ${d.roomToSpendThisWeek.left} of ${d.roomToSpendThisWeek.budget}.`, ` Ruimte deze week: ${d.roomToSpendThisWeek.left} van ${d.roomToSpendThisWeek.budget}.`) : '';
+  const tot = (d.totals ?? []).map(t => localQty(t.spent)).join(' and '), top = (d.byCategory ?? []).slice(0, 3).map(c => `${c.category} ${localQty(c.spent)}`).join(', ');
+  const room = d.roomToSpendThisWeek ? say(lang, ` Room to spend this week: ${localQty(d.roomToSpendThisWeek.left)} of ${localQty(d.roomToSpendThisWeek.budget)}.`, ` Ruimte deze week: ${localQty(d.roomToSpendThisWeek.left)} van ${localQty(d.roomToSpendThisWeek.budget)}.`) : '';
   const what = cat ? say(lang, ` on ${cat.trim()}`, ` aan ${cat.trim()}`) : '';
   return {kind: 'answer', text: say(lang, `You spent ${tot || 'nothing'}${what} ${period}.${top && !cat ? ` Biggest: ${top}.` : ''}${room} From your own entries in Wealth → Spending, never converted.`,
     `Je gaf ${period === 'this week' ? 'deze week' : period === 'last week' ? 'vorige week' : period === 'last month' ? 'vorige maand' : 'deze maand'} ${tot || 'niets'}${what} uit.${top && !cat ? ` Grootste: ${top}.` : ''}${room} Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.`), calls: [s.record]};

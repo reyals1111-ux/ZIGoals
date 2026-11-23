@@ -9,7 +9,7 @@ import {findRanges, previousRange, type DayRange} from '../tools/range';
 import {runTool} from '../tools/registry';
 import {normalise, stem, tokens} from '../tools/subjects';
 import type {ToolOk, ToolResult} from '../tools/types';
-import {amount, dayText, goalMoney, groupUnits, grouped, instantText, n, plural, span} from './words';
+import {amount, dayText, goalMoney, groupUnits, grouped, instantText, localQty, n, nlSpan, plural, span} from './words';
 import {EXAMPLES_INTRO, examplesFor} from './examples';
 import {normalizeSpoken} from '../spoken/normalize';
 import {afLocalAnswer} from './af';
@@ -665,7 +665,7 @@ function habitListAnswer(env: ToolEnv, q: string): LocalReply | null {
   if (HABITS_OPEN.test(q)) {
     const r = call(env, 'habits_due', {}), refused = refusalOf([r]); if (refused) return refused;
     const open = (dataOf(r.result).open ?? []) as {title: string; status: string; logged: unknown; loggedText?: string; target: string}[];
-    const text = open.length ? `${plural(open.length, 'habit')} still open today:\n${open.map(h => `- ${h.title}: ${typeof h.logged === 'number' ? `${h.loggedText ?? h.logged} of ${h.target}` : h.status === 'partial' ? `partly done, target ${h.target}` : `not yet, target ${h.target}`}`).join('\n')}` : 'Nothing is open today: every habit scheduled for today is done.';
+    const text = open.length ? `${plural(open.length, 'habit')} still open today:\n${open.map(h => `- ${h.title}: ${typeof h.logged === 'number' ? `${h.loggedText ?? localQty(h.logged)} of ${h.target}` : h.status === 'partial' ? `partly done, target ${h.target}` : `not yet, target ${h.target}`}`).join('\n')}` : 'Nothing is open today: every habit scheduled for today is done.';
     return {kind: 'answer', text, calls: [r.record]};
   }
   if (HABITS_COUNT.test(q) || HABITS_LIST.test(q) || HABITS_ARCHIVED.test(q)) {
@@ -865,7 +865,7 @@ function weightAnswer(env: ToolEnv, found: DayRange[]): LocalReply {
   const d = dataOf(r.result), readings = d.readings as {date: string; weight: string}[], when = span(range, env.healthDay);
   if (!readings.length) return {kind: 'answer', text: `No weight is recorded ${when}.`, calls: [r.record]};
   const first = readings[0]!, last = readings.at(-1)!, year = env.healthDay.slice(0, 4), change = /^([+-][\d.]+ (?:kg|lb))/.exec(String(d.change))?.[1];
-  return {kind: 'answer', text: lines(`Your latest weight is ${last.weight}, on ${dayText(last.date, year)}.`, [readings.length > 1 && change && `Change from ${dayText(first.date, year)} to ${dayText(last.date, year)}: ${change}`, `${plural(d.count, 'reading')} ${when}`]), calls: [r.record]};
+  return {kind: 'answer', text: lines(`Your latest weight is ${localQty(last.weight)}, on ${dayText(last.date, year)}.`, [readings.length > 1 && change && `Change from ${dayText(first.date, year)} to ${dayText(last.date, year)}: ${localQty(change)}`, `${plural(d.count, 'reading')} ${when}`]), calls: [r.record]};
 }
 function measurementAnswer(env: ToolEnv, q: string, found: DayRange[]): LocalReply {
   const kind = (['waist', 'hips', 'chest', 'thigh', 'arm'] as const).find(k => new RegExp(`\\b${k}s?\\b`).test(q));

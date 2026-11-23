@@ -1,3 +1,4 @@
+import {localQty} from './words';
 import {addLocalDays} from '../../local-date';
 import {targetSaid} from './al-more';
 import {minutesWords} from '../../tasks/minutes';
@@ -99,7 +100,7 @@ export function novaLocalAnswer(question: string, env: ToolEnv): LocalReply | nu
     const named = budget[1]?.toLowerCase(), rows = (d.budgets as Data[]).filter(r => !named || String(r.category).toLowerCase().includes(named));
     if (!rows.length) return `No budget is called "${budget[1]}". Your budgets: ${(d.budgets as Data[]).map(r => r.category).join(', ')}.`;
     const over = rows.filter(r => r.over);
-    return [`This month, from your own entries (per currency, never converted):`, ...rows.slice(0, 8).map(r => `• ${r.category}: ${r.spent} of ${r.available}${r.over ? ' — over' : `, ${r.left} left`}${targetSaid(r.target, 'en')}`), ...(named ? [] : [over.length ? `${plural(over.length, 'budget')} over.` : 'None is over.'])].join('\n');
+    return [`This month, from your own entries (per currency, never converted):`, ...rows.slice(0, 8).map(r => `• ${r.category}: ${localQty(r.spent)} of ${localQty(r.available)}${r.over ? ' — over' : `, ${localQty(r.left)} left`}${targetSaid(r.target, 'en')}`), ...(named ? [] : [over.length ? `${plural(over.length, 'budget')} over.` : 'None is over.'])].join('\n');
   });
   return null;
 }
