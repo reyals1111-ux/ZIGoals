@@ -104,7 +104,12 @@ Minors (41): 23 fixed (two of them with the Major they repeat), 3 partly (FR-MAX
 
 ### Second pass (the re-check's Partly rows)
 
-(to follow: lane2/fr-recheck, on FR-L-4, FR-TJ-4 and FR-TJ-5)
+A builder fixed the three Partly rows that were not Carried (merge `ed454d25`); FR-TJ-7 stays Carried (above).
+- **FR-L-4** (`fd8a4d93`): Log spending sits right under the headline total, in its own block. The Showcase now measures 661–708 at 390 (tab bar 779; it was 1000) and 704–752 at 1440 (fold 900); the figure stays above it (546–591). `pillar-phone-length` now checks the Showcase too, at both sizes (stricter; it fails on `63798740`).
+- **FR-TJ-4** (`c91d1e7a`): nutrient totals ("137,6 g") and the answer chart's caption, stat card, labels and table ("5.750 mL") use the display locale; en-US is unchanged. Tests through NOVA and ZIGi fail on the old code.
+- **FR-TJ-5** (`6cb5df5b`): "Wat is mijn vermogen?" names the linked wallet (view only), as the English net-worth answer does.
+- The corpus is unchanged: no recorded intent's answer differs (5 of 5 as recorded). On the production build of `ed454d25`, the 11 touched spec files pass: 82 passed, 6 skipped by design. Every route is within its budget (the tightest is Settings, 521.4 of 531 kB).
+- Not re-checked by a fresh helper after the second pass. The specs above are the proof.
 
 
 ## Walk: sanne
