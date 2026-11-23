@@ -96,7 +96,7 @@ export default function PeoplePanel({log, update, today, currencies}: {log: Mone
       <span className="people-actions">
         {!done && (repaying === l.id ? <span className="people-repay" role="group" aria-label={`A repayment on ${l.name}`}>
           <label className="field"><span>Repaid ({l.currency})</span><input inputMode="decimal" autoComplete="off" autoFocus value={part} placeholder={(r.left / 100).toFixed(2)} onChange={e => setPart(e.target.value)}/></label>
-          <button type="button" className="secondary" onClick={() => { const v = readMoneyAmount(part || (r.left / 100).toFixed(2)); if (!v) { setProblem('Enter the amount repaid above zero, with at most two decimals.'); return; } if (write(m => repay(m, l.id, v, today), `${money(cents(v), l.currency)} repaid ${l.kind === 'lent' ? 'by' : 'to'} ${l.name}.`, 'Repayment taken off.')) { setRepaying(null); setPart(''); } }}>Keep</button>
+          <button type="button" className="secondary" onClick={() => { const v = readMoneyAmount(part || (r.left / 100).toFixed(2)); if (!v) { setProblem('Enter the amount repaid above zero, with at most two decimals.'); return; } if (write(m => repay(m, l.id, v, today), `${money(cents(v), l.currency)} repaid ${l.kind === 'lent' ? 'by' : 'to'} ${l.name}.`, 'Repayment taken off.')) { setRepaying(null); setPart(''); } }}>Save</button>
           <button type="button" className="quiet" onClick={() => { setRepaying(null); setPart(''); }}>Cancel</button></span>
         : <button type="button" className="secondary" aria-label={`A repayment on ${KIND_WORDS[l.kind].toLowerCase()} ${l.name}`} onClick={() => { setRepaying(l.id); setPart(''); }}>Repayment</button>)}
         {!done && <button type="button" className="quiet" aria-label={`Close ${KIND_WORDS[l.kind].toLowerCase()} ${l.name}: repaid`} onClick={() => write(m => closeLoan(m, l.id, today), `${l.name}: closed as repaid.`, 'Open again.')}>Close</button>}
@@ -115,7 +115,7 @@ export default function PeoplePanel({log, update, today, currencies}: {log: Mone
       {draft.due && <label className="budgets-check"><input type="checkbox" checked={!!draft.remind} onChange={e => setDraft(d => ({...d, remind: e.target.checked}))}/><span>Remind me (Today, and a money notice if those are on)</span></label>}
       <label className="field"><span>Note — optional</span><input value={draft.note ?? ''} maxLength={80} onChange={e => setDraft(d => ({...d, note: e.target.value}))}/></label>
       {problem && <p role="alert">{problem}</p>}
-      <div className="budgets-form-actions"><button type="submit" className="secondary">Keep it</button><button type="button" className="quiet" onClick={() => { setAdding(false); setProblem(''); }}>Cancel</button></div>
+      <div className="budgets-form-actions"><button type="submit" className="secondary">Save</button><button type="button" className="quiet" onClick={() => { setAdding(false); setProblem(''); }}>Cancel</button></div>
     </form>}
     {problem && !adding && <p role="alert">{problem}</p>}
     <p className="fine" role="status">{said}</p>

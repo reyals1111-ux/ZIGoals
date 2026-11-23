@@ -44,12 +44,12 @@ for (const theme of THEMES) test(`${theme}: a shared cost, settle up, money lent
   await lend.getByLabel('Amount').fill('100');
   await lend.getByLabel('Due — optional').fill('2026-11-16');
   await lend.getByLabel(/^Remind me/).check();
-  await lend.getByRole('button', {name: 'Keep it'}).click();
+  await lend.getByRole('button', {name: 'Save', exact: true}).click();
   await expect(people).toContainText('Lent to Noor');
   await expect(people).toContainText('€100.00 left');
   await people.getByRole('button', {name: 'A repayment on lent to Noor'}).click();
   await people.getByLabel('Repaid (EUR)').fill('40');
-  await people.getByRole('button', {name: 'Keep', exact: true}).click();
+  await people.getByRole('button', {name: 'Save', exact: true}).click();
   await expect(people).toContainText('€60.00 left');
   const more = await readRecord<MoneyMore>(page, MONEY_MORE_KEY);
   expect(more.loans).toEqual([expect.objectContaining({kind: 'lent', name: 'Noor', amount: '100.00', due: '2026-11-16', remind: true, repaid: [{date: '2026-11-14', amount: '40.00'}]})]);

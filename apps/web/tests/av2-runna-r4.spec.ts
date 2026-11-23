@@ -30,7 +30,7 @@ for (const theme of THEMES) test(`${theme}: heart-rate zones and races ahead`, a
   const zones = history.getByRole('region', {name: 'Heart-rate zones for Fictional parkrun'});
   await expect(zones).toContainText('never guessed from age');
   await zones.getByRole('textbox', {name: /^Maximum heart rate/}).fill('190');
-  await zones.getByRole('button', {name: 'Keep it'}).click();
+  await zones.getByRole('button', {name: 'Save', exact: true}).click();
   await expect(zones.getByRole('status')).toHaveText('Your maximum: 190 beats a minute. Every run’s zones use it.');
   await expect(zones).toContainText('Zone 2 (114–132 bpm): 10 min');
   await expect(zones).toContainText('Zone 3 (133–151 bpm): 15 min');

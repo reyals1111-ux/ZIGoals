@@ -29,7 +29,7 @@ for (const theme of THEMES) test(`${theme}: subcategory, paid with, a saved entr
   await form.getByLabel('Note — optional').fill('Corner café');
   await form.getByRole('button', {name: 'Keep as a saved entry'}).click();
   await form.getByLabel('Name of the saved entry').fill('Coffee');
-  await form.getByRole('button', {name: 'Keep it'}).click();
+  await form.getByRole('button', {name: 'Add to saved entries'}).click();
   await expect(form).toContainText('Kept as a saved entry: Coffee');
   await form.getByRole('button', {name: 'Save', exact: true}).click();
   await expect.poll(async () => (await readRecord<MoneyLog>(page, MONEY_LOG_KEY)).entries.find(e => e.sub === 'Coffee')).toMatchObject({amount: '3.20', category: 'Food & drink', paidWith: 'debit'});

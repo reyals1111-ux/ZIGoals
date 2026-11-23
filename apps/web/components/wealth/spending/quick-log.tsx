@@ -76,7 +76,7 @@ export function FormExtras({log, update, category, sub, setSub, paidWith, setPai
     {!editing && keepPlace && onPayee && <PlacePicker kind={draft.kind} entries={log.entries} onPayee={onPayee} keepRef={keepPlace}/>}
     <label className="field quick-paid"><span>Paid with — optional</span><select value={paidWith} onChange={e => setPaidWith(e.target.value as PaidWith | '')}><option value="">Not said</option>{PAID_WITH.map(p => <option key={p} value={p}>{PAID_WITH_WORDS[p].en}</option>)}</select></label>
     {!editing && more.loaded && !more.unreadable && (!keeping ? <button type="button" className="text-link quick-keep" aria-expanded={false} onClick={() => setKeeping(true)}>Keep as a saved entry</button>
-      : <div className="spending-own-row quick-keep-row"><label className="field"><span>Name of the saved entry</span><input value={name} maxLength={40} autoComplete="off" placeholder={draft.note || 'Coffee'} onChange={e => setName(e.target.value)}/></label><button type="button" className="secondary" onClick={keep}>Keep it</button><button type="button" className="quiet" onClick={() => setKeeping(false)}>Cancel</button></div>)}
+      : <div className="spending-own-row quick-keep-row"><label className="field"><span>Name of the saved entry</span><input value={name} maxLength={40} autoComplete="off" placeholder={draft.note || 'Coffee'} onChange={e => setName(e.target.value)}/></label><button type="button" className="secondary" onClick={keep}>Add to saved entries</button><button type="button" className="quiet" onClick={() => setKeeping(false)}>Cancel</button></div>)}
     <p className="fine" role="status">{note}</p>
   </div>;
 }
