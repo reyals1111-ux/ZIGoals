@@ -1,5 +1,5 @@
 import {afterAll, beforeAll, describe, expect, test, vi} from 'vitest';
-import {activityDay, chooseDayEnd, dayEndsSchema, dayUnder, emptyDayEnds, readDayEnds, type DayEnds} from './day-boundary';
+import {activityDay, chooseDayEnd, dayEndStatus, dayEndsSchema, dayUnder, emptyDayEnds, readDayEnds, type DayEnds} from './day-boundary';
 import {readFileSync} from 'node:fs';
 
 const at = (iso: string) => new Date(iso);
@@ -105,5 +105,22 @@ describe('the shell reads the record without its schema, by exactly its rules', 
   });
   test('the keeper names the same key', () => {
     expect(readFileSync(new URL('../components/day-ends-keeper.tsx', import.meta.url), 'utf8')).toContain("'zigoals:day-ends:v1'");
+  });
+});
+
+// FR-MAX-8: the status line says when a choice takes effect.
+describe('the status after a choice', () => {
+  const brussels = (iso: string) => new Date(`${iso}+01:00`);
+  const midnight = {version: 1 as const, endsAt: 0}, three = {version: 1 as const, endsAt: 180};
+  test('3:00 chosen at 01:30: from tonight on, today keeps its midnight start', () => {
+    expect(dayEndStatus(midnight, 180, brussels('2026-11-24T01:30:00'), 'Europe/Brussels')).toBe('Your day now ends at 3:00, from tonight on: today already started at midnight, so it keeps that start.');
+  });
+  test('midnight chosen at 02:00 under 3:00: once the day in progress ends', () => {
+    expect(dayEndStatus(three, 0, brussels('2026-11-24T02:00:00'), 'Europe/Brussels')).toBe('Your day ends at midnight once the day in progress ends, at 3:00.');
+  });
+  test('a choice that changes nothing about the day in progress says it plainly, as before', () => {
+    expect(dayEndStatus(midnight, 180, brussels('2026-11-24T11:00:00'), 'Europe/Brussels')).toBe('Your day now ends at 3:00.');
+    expect(dayEndStatus(three, 0, brussels('2026-11-24T11:00:00'), 'Europe/Brussels')).toBe('Your day ends at midnight.');
+    expect(dayEndStatus(three, 180, brussels('2026-11-24T01:00:00'), 'Europe/Brussels')).toBe('Your day ends at 3:00.');
   });
 });

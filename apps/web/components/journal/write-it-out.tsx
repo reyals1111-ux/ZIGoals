@@ -3,7 +3,7 @@ import {useEffect, useId, useRef, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {JOURNAL, MAX_TEXT, type JournalEntry} from '../../lib/journal/schema';
 import {WRITE_IT_OUT_ID, letGoLine} from '../../lib/journal/write-it-out';
-import {localDate} from '../../lib/local-date';
+import {journalDay} from '../../lib/journal/journal-day';
 import {entranceAllowed} from '../use-entrance';
 import {useQuestionLang} from './question-lang';
 import './write-it-out.css';
@@ -29,7 +29,7 @@ export default function WriteItOut() {
   const keep = () => {
     const words = text.trim();
     if (!words) return;
-    const entry: JournalEntry = {id: crypto.randomUUID(), date: localDate(), text: words.slice(0, MAX_TEXT), createdAt: new Date().toISOString(), template: WRITE_IT_OUT_ID};
+    const entry: JournalEntry = {id: crypto.randomUUID(), date: journalDay(), text: words.slice(0, MAX_TEXT), createdAt: new Date().toISOString(), template: WRITE_IT_OUT_ID};
     try { journal.update(c => ({...c, entries: [...c.entries, entry].slice(-5000)})); setText(''); setProblem(''); setClosing(nl ? 'Bewaard als een gewoon dagboekstuk van vandaag.' : 'Kept as an ordinary journal entry for today.'); area.current?.focus(); }
     catch { setProblem(nl ? 'Dit kon niet op dit apparaat worden bewaard. Je woorden staan er nog.' : 'This could not be kept on this device. Your words are still here.'); }
   };

@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import {journalLines} from '../../lib/journal/today';
-import {localDate} from '../../lib/local-date';
+import {journalDay} from '../../lib/journal/journal-day';
 import {formatNumber} from '../../lib/visual-format';
 import {useJournalToday} from './use-journal-today';
 import './on-this-day.css';
@@ -20,7 +20,7 @@ export default function TodayJournalLine({glance = false}: {glance?: boolean} = 
   const todays = day.today.length, memory = day.memories;
   const parts = [todays ? `Written today: ${formatNumber(todays)} ${todays === 1 ? 'entry' : 'entries'}` : '', memory.length ? `On this day: ${memory.length === 1 ? `an entry ${memory[0]!.label.toLowerCase()}` : `${formatNumber(memory.length)} memories`}` : ''].filter(Boolean);
   if (!parts.length) return null;
-  const lines = day.lines ? journalLines(day, localDate()) : [];
+  const lines = day.lines ? journalLines(day, journalDay()) : [];
   const list = lines.length > 0 ? <ul className="today-journal-lines" aria-label="First lines from your journal">{lines.map(l => <li key={l.id}><span className="today-journal-when">{l.when}</span> <span dir="auto">{l.text}</span></li>)}</ul> : null;
   // Session AV (1c, q4 #33): on Today's glance lines the line is its own region, the opt-in first lines inside it; in the
   // journal card, the count line only.

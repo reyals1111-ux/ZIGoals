@@ -4,7 +4,8 @@ import {NebulaFlow} from '../nebula-flow';
 import {Suspense, lazy, useEffect, useMemo, useState} from 'react';
 import {formatDate, formatNumber, formatWeekday} from '../../lib/visual-format';
 import {useDeviceRecord} from '../ai/use-device-record';
-import {addLocalDays, localDate} from '../../lib/local-date';
+import {addLocalDays} from '../../lib/local-date';
+import {journalDay} from '../../lib/journal/journal-day';
 import {ENERGY, ENERGY_WORDS} from '../../lib/energy/schema';
 import {JOURNAL, restoreJournalEntry, type EntryVersion, type JournalEntry} from '../../lib/journal/schema';
 import {putBackVersions, removeWithVersions} from '../../lib/journal/versions';
@@ -89,7 +90,7 @@ const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 const dayWords = (day: string) => formatDate(day, {weekday: true, year: false});
 
 export function JournalPage({showcase = false}: {showcase?: boolean}) {
-  const journal = useDeviceRecord(JOURNAL), energy = useDeviceRecord(ENERGY), today = localDate();
+  const journal = useDeviceRecord(JOURNAL), energy = useDeviceRecord(ENERGY), today = journalDay();
   // Session AV lane 2 (LEDGER #178 follow-up): the week's screen-reader line says the mood in the person's own words.
   const moodWords = useMoodLook().words;
   useUndoShortcut(); // Session AL (P-LS-08): Ctrl/⌘+Z runs the toast's Undo, never in a text field.
