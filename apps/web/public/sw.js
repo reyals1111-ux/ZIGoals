@@ -208,8 +208,12 @@ async function warmOnce() {
   const order = [...await laterParts(shared)];
   for (const path of WARM_ORDER) if (named.has(path)) order.push(...await laterParts(named.get(path).filter(f => !shared.includes(f))));
   let bytes = 0;
+  // Session AV lane 2 ([TIER 3] (PWA), CI run 2016, j04-offline): a newer worker installing or waiting ends this warm at
+  // once. It keeps its own version's parts after the page reloads, and this worker's long warm (up to WARM_BYTES, one file
+  // after another) no longer holds back the "Reload" the person tapped (measured: 20 s and more on a slow runner).
+  const superseded = () => Boolean(self.registration.installing || self.registration.waiting);
   for (const part of new Set(order)) {
-    if (forgotten || bytes >= WARM_BYTES) break;
+    if (forgotten || bytes >= WARM_BYTES || superseded()) break;
     if (await statics.match(part) || await lazy.match(part)) continue;
     try {
       const response = await fetch(part);
@@ -218,7 +222,7 @@ async function warmOnce() {
       await lazy.put(part, response);
     } catch { return; } // offline again: the next page that settles online asks again
   }
-  if (!forgotten) await lazy.put(WARM_DONE, new Response('', {headers: {'Cache-Control': 'no-store'}}));
+  if (!forgotten && !superseded()) await lazy.put(WARM_DONE, new Response('', {headers: {'Cache-Control': 'no-store'}}));
 }
 self.addEventListener('install', event => {
   // The first worker takes over at once; a later one waits for the page's "Reload" (or for every window to close).
