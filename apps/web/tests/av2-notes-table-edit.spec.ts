@@ -31,9 +31,7 @@ for (const theme of THEMES) test(`${theme}: change a table in a note`, async ({p
   await edit.getByLabel('Row 4, Price').fill('3');
   await edit.getByLabel('New column').fill('Shop');
   await edit.getByRole('button', {name: 'Add a column'}).click();
-  // Session AV lane 2 (fixb5; deliberate): getByLabel reads a wrapping <label>'s whole text, its options' words included, so
-  // an exact "Column" never matched; the select is found by its exact accessible name.
-  await edit.getByRole('combobox', {name: 'Column', exact: true}).selectOption({label: 'Price'});
+  await edit.getByLabel('Column', {exact: true}).selectOption({label: 'Price'});
   await edit.getByRole('button', {name: 'Sort A to Z'}).click();
   await expect(edit.getByRole('status')).toHaveText('Sorted by “Price”, A to Z (small to large).');
   const findings = await axe(page, edit);
