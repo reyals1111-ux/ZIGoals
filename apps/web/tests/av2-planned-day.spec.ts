@@ -97,7 +97,8 @@ for (const theme of THEMES) test(`${theme}: a time block, Doing and Cancelled, a
 
   // Cancelled (LEDGER #350): closed, in Completed as cancelled, never "Done".
   form = await openEditor(page, 'Fictional tickets');
-  await form.getByRole('button', {name: 'Cancel the task'}).click();
+  // (fix2011; deliberate) the action reads "Won’t do this task", so the editor's one Cancel closes it without saving.
+  await form.getByRole('button', {name: 'Won’t do this task'}).click();
   await expect.poll(async () => storedTask(page, 'task_fictional-tickets')).toMatchObject({state: {kind: 'cancelled'}});
   expect((await storedTask(page, 'task_fictional-tickets'))?.doneAt).toBeTruthy();
   await expect(page.locator('body')).not.toBeFocused();

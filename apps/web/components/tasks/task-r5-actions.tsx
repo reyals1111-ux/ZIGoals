@@ -15,7 +15,7 @@ const PlaySteps = lazy(() => import('./play-steps'));
 /**
  * Session AV lane 2 (r5-plan), at the top of the task editor, its own chunk. Each acts at once (not with Save), with Undo:
  * - "Doing now" / "Not doing it now" (LEDGER #350, Logseq's DOING): first in Tasks → Today, its start day kept;
- * - "Cancel the task" (LEDGER #350, Logseq's CANCELED): closed without counting as done (Completed lists it as cancelled);
+ * - "Won’t do this task" (was "Cancel the task", fix2011; LEDGER #350, Logseq's CANCELED): closed without counting as done (Completed lists it as cancelled);
  * - "Copy link" (LEDGER #356, Akiflow's task links): the app's own `?task=` link, to paste into a note or the journal;
  * - "Play the steps" (LEDGER #351) for a task with subtasks.
  * `onWrote` gives the editor the task's new change time, so it does not read its own write as another tab's.
@@ -55,7 +55,7 @@ export default function TaskR5Actions({task, onWrote, onClosed}: {task: Task; on
     {!task.doneAt && <button type="button" className="secondary" onClick={toggleDoing}>{/* review B5L-12: the words say the state; no aria-pressed as well */}{doing ? 'Not doing it now' : 'Doing now'}</button>}
     {steps.length > 0 && !task.doneAt && <button type="button" className="secondary" aria-expanded={playing} onClick={() => setPlaying(p => !p)}>{playing ? 'Close the steps' : `Play the steps (${steps.length})`}</button>}
     <button type="button" className="quiet" onClick={() => void copy()}>Copy link</button>
-    {!task.doneAt && !task.recur && <button type="button" className="quiet" onClick={cancel}>Cancel the task</button>}
+    {/* fix2011: "Won’t do", so the editor's one Cancel is closing it without saving (the row then says Cancelled) */}{!task.doneAt && !task.recur && <button type="button" className="quiet" onClick={cancel}>Won’t do this task</button>}
     {link && <label className="field task-link-copy"><span>The task’s link (select it and copy)</span><input ref={linkRef} id={`${id}-link`} readOnly value={link} onFocus={e => e.currentTarget.select()} /></label>}
     {playing && <Suspense fallback={<p className="fine" role="status">Opening the steps…</p>}><PlaySteps parent={task} onClose={() => setPlaying(false)} /></Suspense>}
   </div>;
