@@ -4,6 +4,7 @@ import {entry, moneyLog, noSideScroll, readRecord, seedDevice, spending} from '.
 import {hydrated} from './ah-helpers';
 import {MONEY_LOG_KEY} from '../lib/money-log/schema';
 import {STORE_CARDS_KEY, type StoreCards} from '../lib/store-cards/schema';
+import {openPhoneRow} from './phone-length-folds';
 
 /**
  * Session AV lane 2, round 2 (money; Wallet's loyalty and club cards): Wealth → Spending → Store and club cards — a card
@@ -16,7 +17,12 @@ for (const theme of THEMES) test(`${theme}: a store card shown at the till`, asy
   if (!isMobile) await page.setViewportSize({width: 1440, height: 900});
   await seedDevice(page, {[MONEY_LOG_KEY]: moneyLog([entry('2026-11-10', '12.00')])});
   await page.goto('/app/wealth'); await hydrated(page);
+  // Session AV lane 2 (phone-length, deliberate): on a phone "Store and club cards" is one row of Spending that says what it
+  // holds (tests/phone-length-folds.ts: there and closed on a phone, absent at 1440); it is opened, then checked as before.
+  if (isMobile) await expect(spending(page).locator('.phone-fold-toggle').filter({hasText: 'Store and club cards'})).toContainText('Loyalty and club cards, shown at the till');
+  await openPhoneRow(page, 'Store and club cards', spending(page));
   const cards = spending(page).locator('.store-cards');
+  await expect(cards).toBeVisible();
   await expect(cards).toContainText('Keep your loyalty and club cards here');
   await cards.getByRole('button', {name: '+ Add a card'}).click();
   const form = cards.getByRole('form', {name: 'Add a store card'});

@@ -49,7 +49,8 @@ for (const theme of THEMES) test(`${theme}: a note for a harder week, a free day
   await page.goto('/app/health?view=targets'); await hydrated(page);
   await page.getByText('Weekly calorie budget (optional)').click();
   const free = page.getByRole('form', {name: 'Plan a free day'});
-  await free.getByLabel('Day').fill('2026-11-21');
+  // Session AV lane 2 (fixb4; deliberate): "Day" also matched "Extra that day (kcal, …)"; exactly "Day", as strict.
+  await free.getByLabel('Day', {exact: true}).fill('2026-11-21');
   await free.getByRole('textbox', {name: /^Extra that day/}).fill('600');
   await free.getByRole('button', {name: 'Plan the free day'}).click();
   await expect(page.getByRole('region', {name: 'A planned free day'})).toContainText('600 kcal more, taken evenly from 4 other days of that week.');
@@ -64,7 +65,9 @@ for (const theme of THEMES) test(`${theme}: a note for a harder week, a free day
   await band.getByRole('textbox', {name: 'From (kg)'}).fill('71');
   await band.getByRole('textbox', {name: 'To (kg)'}).fill('73');
   await band.getByRole('button', {name: 'Keep this band'}).click();
-  await expect(page.getByRole('region', {name: 'Keep my weight between …'}).getByRole('status')).toContainText('Your band: 71');
+  // Session AV lane 2 (CI run 2007; deliberate): the band now speaks through "More goals"' one status line (the section had
+  // two at once); the same words, in the section's only status (strict mode: exactly one).
+  await expect(page.locator('#goals-health').locator('.more-goals').getByRole('status')).toContainText('Your band: 71');
   expect(await page.evaluate(k => JSON.parse(localStorage.getItem(k)!).weightBand, MORE_GOALS_KEY)).toMatchObject({lowGrams: 71_000, highGrams: 73_000});
   await page.goto('/app/health?view=weight'); await hydrated(page);
   const trend = page.getByRole('region', {name: 'Weight trend'});

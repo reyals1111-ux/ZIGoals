@@ -22,7 +22,7 @@ test('Max at 1440: "What day is it?" after midnight is answered by his own day e
   await openAt(page, at(DAY2, '01:30'), '/app/nova');
   await page.keyboard.press('Shift');
   expect(await novaSays(page, 'What day is it?')).toContain('It\'s Monday, Nov 23 for you: your day ends at 03:00 (the calendar already says Tuesday).');
-  expect(await novaSays(page, 'Welke dag is het?')).toContain('Voor jou is het maandag, Nov 23');
+  expect(await novaSays(page, 'Welke dag is het?')).toContain('Voor jou is het maandag 23 nov: je dag eindigt om 03:00 (de kalender zegt al dinsdag).'); // (CI run 2007; deliberate) lane 2's Dutch dates: a Dutch answer writes the day and month in Dutch; the whole sentence now, as in English
 
   await openAt(page, at(DAY2, '09:00'), '/app/nova');
   await page.keyboard.press('Shift');

@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import {useId, useRef, useState} from 'react';
 import {ENERGY} from '../../../lib/energy/schema';
 import {addLift, liftsOf, LIFT_MAX_CHARS, MAX_LIFTS, moveLift, removeLift, restoreLift} from '../../../lib/mood-words/lifts';
@@ -50,7 +51,7 @@ export default function Lifts({lowDay = false}: {lowDay?: boolean}) {
       <button type="button" className="secondary" onClick={add}>Add</button>
     </div>}
     {list.length > 0 && <p><button type="button" className="text-link" aria-expanded={editing} onClick={() => setEditing(v => !v)}>{editing ? 'Done editing' : 'Edit what lifts you'}</button></p>}
-    {lowDay && <p className="fine"><a className="text-link" href="/app/health?view=meditation#low-day">Open your “On a low day” page</a>: the small things you wrote down for a harder day.</p>}
+    {lowDay && <p className="fine"><Link className="text-link" href="/app/health?view=meditation#low-day">Open your “On a low day” page</Link>: the small things you wrote down for a harder day.</p>}
     <p className="fine" role="status" aria-live="polite">{status}</p>
   </div>;
 }

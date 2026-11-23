@@ -73,7 +73,8 @@ export function showSection(anchor:string,tries=60){
  if(!el){if(tries>0)requestAnimationFrame(()=>showSection(anchor,tries-1));return;}
  const state={...window.history.state};delete state.__NA;delete state._N;
  window.history.replaceState(state,'',`${location.pathname}${location.search}#${anchor}`);window.dispatchEvent(new HashChangeEvent('hashchange'));
- el.scrollIntoView({block:'start'});document.getElementById(`${anchor}-title`)?.focus({preventScroll:true});
+ // Session AV lane 2 (CI run 2007): a folded section comes into view with its fold's row, the title a person sees (P-36).
+ foldOf(el).scrollIntoView({block:'start'});document.getElementById(`${anchor}-title`)?.focus({preventScroll:true});
 }
 import {ActionIntent} from '../action-intent';
 import {GlassBar} from '../progress/glass-progress';
@@ -107,7 +108,7 @@ const HoldingsImportPanel=lazy(()=>import('../import/holdings-import').then(m=>(
 // Session AK (A14, 7.1): a bank statement file or a CSV into the money log, from the same lazily loaded import sheet.
 const MoneyImportPanel=lazy(()=>import('../import/holdings-import').then(m=>({default:m.MoneyImportPanel})));
 import type {ImportRecord} from '../../lib/import/undo-schema';
-import {PhoneFold} from '../phone/phone-fold';
+import {PhoneFold,foldOf} from '../phone/phone-fold';
 import {DeskFold} from '../phone/desk-fold';
 import {restoreAsset} from '../../lib/asset-management';
 import {PinToToday} from '../pin-to-today';

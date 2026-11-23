@@ -50,7 +50,10 @@ for (const theme of THEMES) test(`${theme}: caffeine and steps beside the night`
   await expect(explorer).toContainText('Something else could explain it: busy or tiring days');
 
   await factor.selectOption({label: 'Caffeine after a time'});
-  await expect(page.getByLabel('Caffeine after')).toHaveValue('14');
+  // Session AV lane 2 (fixb4; deliberate): getByLabel reads a <label>'s whole text, its options' words with it, so
+  // "Caffeine after" also matched "On days with…" (its option "Caffeine after a time"). The new select's accessible name,
+  // exactly; as strict.
+  await expect(page.getByRole('combobox', {name: 'Caffeine after', exact: true})).toHaveValue('14');
   await expect(explorer).toContainText('On days with caffeine logged after 14:00');
 
   await factor.selectOption({label: 'Steps above an amount'});

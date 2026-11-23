@@ -49,6 +49,11 @@ for (const theme of THEMES) test(`${theme}: plan, move and realign workouts`, as
   await expect(plan.getByRole('status')).toHaveText('Easy 5 km run moved to Sat, Nov 21.');
   // Drag it back to Friday on the calendar.
   const friday = plan.getByRole('listitem', {name: /^Fri, Nov 20: nothing planned$/});
+  // Session AV lane 2 (fixb4; deliberate): after Move the focus is back on the workout, which leaves that week's row at the
+  // viewport's top edge, the chip a fraction above it; a drag started there never began (mousedown and mouseup, no
+  // dragstart), as ap-hour-grid.spec.ts found for its drop row. The week is brought to the middle of the view first; the
+  // same drag and the same check follow.
+  await friday.evaluate(el => el.scrollIntoView({block: 'center'}));
   await chip.dragTo(friday);
   await expect(plan.getByRole('status')).toHaveText('Easy 5 km run moved to Fri, Nov 20.');
 
@@ -56,9 +61,13 @@ for (const theme of THEMES) test(`${theme}: plan, move and realign workouts`, as
   await plan.getByLabel('Away until').fill('2026-11-22');
   await plan.getByRole('button', {name: 'Set them aside'}).click();
   await expect(plan).toContainText('planned workouts in that time are set aside');
-  await expect(chip).toHaveAccessibleName(/set aside while you are away/);
+  // Session AV lane 2 (fixb4; deliberate): `chip` is found by its "planned" name, so once set aside it matched nothing.
+  // The same workout's chip, found by its words, with the same two names checked.
+  const sameChip = plan.locator('.r4-day').getByRole('button', {name: /^Easy 5 km run · 18:00, /});
+  await expect(sameChip).toHaveCount(1);
+  await expect(sameChip).toHaveAccessibleName(/set aside while you are away/);
   await plan.getByRole('button', {name: 'I’m back'}).click();
-  await expect(chip).toHaveAccessibleName(/, planned\./);
+  await expect(sameChip).toHaveAccessibleName(/, planned\./);
 
   const findings = await axe(page, plan);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);

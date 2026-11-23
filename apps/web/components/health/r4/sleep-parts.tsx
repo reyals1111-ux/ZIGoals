@@ -44,9 +44,10 @@ export function SleepTiming({sleep, today}: {sleep: Sleep; today: string}) {
 }
 
 /** A sleep tip a day on Health's Sleep card (LEDGER #334): off unless chosen; English or Dutch. */
-export function SleepTipCard({today}: {today: string}) {
+// Session AV lane 2 (CI run 2007): what it says goes to the Sleep card's one status line (`say`), not a second one of its own.
+export function SleepTipCard({today, say: setSaid}: {today: string; say: (text: string) => void}) {
   const rec = useDeviceRecord(HEALTH_EXTRAS), on = rec.loaded && !rec.unreadable && rec.data.sleepTips === true, id = useId();
-  const [step, setStep] = useState(0), [lang, setLang] = useState<'en' | 'nl'>('en'), [said, setSaid] = useState(''), [seenAt] = useState(() => Date.now());
+  const [step, setStep] = useState(0), [lang, setLang] = useState<'en' | 'nl'>('en'), [seenAt] = useState(() => Date.now());
   if (!rec.loaded) return null;
   const tip = sleepTipOf(today, step);
   const set = (next: boolean) => { try { rec.update(r => healthExtrasSchema.parse({...r, sleepTips: next || undefined})); setSaid(next ? 'A sleep tip shows here each day.' : 'Sleep tips are off.'); } catch (e) { setSaid(`Not kept on this device. ${deviceSettingFailureMessage(e)}`); } };
@@ -58,7 +59,6 @@ export function SleepTipCard({today}: {today: string}) {
     </section>}
     {(() => { const nap = napRunOf(rec.unreadable ? null : rec.data); if (!nap) return null; const end = formatTime(new Date(napEndsAt(nap)).toISOString()); return <p className="fine r4-nap-away">{napOnReturn(nap, seenAt) === 'ended' ? `Your nap ended at ${end}.` : `A nap is running until ${end}; its bell rings on Sleep.`} <Link className="text-link" href="/app/health?view=sleep">Open Sleep →</Link></p>; })()}
     <div className="r3-toggle"><button type="button" className="quiet" aria-pressed={on} aria-describedby={`${id}-note`} disabled={rec.unreadable} onClick={() => set(!on)}>Show a sleep tip each day</button><span className="fine" id={`${id}-note`}>Small habits for the evening and the morning. Off unless you choose it.</span></div>
-    <p className="fine" role="status" aria-live="polite">{said}</p>
   </div>;
 }
 

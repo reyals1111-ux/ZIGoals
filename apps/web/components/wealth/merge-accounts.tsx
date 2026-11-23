@@ -49,9 +49,11 @@ export default function MergeAccounts({list, title}: {list: readonly Account[]; 
   return <section className="money-merge" aria-labelledby={`${id}-title`}>
     <h4 id={`${id}-title`} ref={heading} tabIndex={-1}>Merge two accounts · {title}</h4>
     <p className="fine">After a bank changed its name, or a file named an account differently: one account&rsquo;s history goes into the other. Nothing is lost; the one merged is archived with its own history.</p>
+    {/* Session AV lane 2 (fixb5): each select is named by its label's own word only (aria-labelledby); inside the <label> its
+        options' words were part of the label's text, so "Merge" did not find it by its label. */}
     <div className="money-merge-pick">
-      <label className="field"><span>Merge</span><select value={fromId} onChange={e => { setFromId(e.target.value); reset(); }}><option value="">Choose…</option>{list.map(a => <option key={a.id} value={a.id}>{a.name} ({a.currency})</option>)}</select></label>
-      <label className="field"><span>into</span><select value={into?.id ?? ''} onChange={e => { setIntoId(e.target.value); reset(); }}><option value="">Choose…</option>{targets.map(a => <option key={a.id} value={a.id}>{a.name} ({a.currency})</option>)}</select></label>
+      <label className="field"><span id={`${id}-from-name`}>Merge</span><select aria-labelledby={`${id}-from-name`} value={fromId} onChange={e => { setFromId(e.target.value); reset(); }}><option value="">Choose…</option>{list.map(a => <option key={a.id} value={a.id}>{a.name} ({a.currency})</option>)}</select></label>
+      <label className="field"><span id={`${id}-into-name`}>into</span><select aria-labelledby={`${id}-into-name`} value={into?.id ?? ''} onChange={e => { setIntoId(e.target.value); reset(); }}><option value="">Choose…</option>{targets.map(a => <option key={a.id} value={a.id}>{a.name} ({a.currency})</option>)}</select></label>
     </div>
     {plan && from && into ? <>
       <ul className="money-merge-plan" aria-label="What the merge moves">

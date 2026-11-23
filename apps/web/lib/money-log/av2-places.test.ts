@@ -48,9 +48,9 @@ describe('payee places (#346)', () => {
     const more: MoneyMore = keepPayeeAt(base, 'w', 'Canteen');
     localStorage.setItem(MONEY_MORE_KEY, JSON.stringify(more));
     const box = document.createElement('div'); document.body.append(box);
-    const keep = createRef<KeepPayee>() as {current: KeepPayee}, filled: string[] = [];
+    const keep = createRef<KeepPayee>() as {current: KeepPayee}, filled: string[] = [], said: string[] = [];
     const root = createRoot(box);
-    await act(async () => { root.render(createElement(PlacePicker, {kind: 'expense', entries: [e('Canteen')], onPayee: (p: string) => { filled.push(p); }, keepRef: keep})); });
+    await act(async () => { root.render(createElement(PlacePicker, {kind: 'expense', entries: [e('Canteen')], onPayee: (p: string) => { filled.push(p); }, keepRef: keep, say: (text: string) => { said.push(text); }})); });
     await act(async () => { await new Promise(r => setTimeout(r, 0)); });
     expect(box.querySelector('legend')?.textContent).toBe('Where are you? — optional');
     const work = [...box.querySelectorAll('label')].find(l => l.textContent === 'Work')!.querySelector('input')!;
@@ -58,6 +58,9 @@ describe('payee places (#346)', () => {
     const canteen = [...box.querySelectorAll('button')].find(b => b.textContent?.startsWith('Canteen'))!;
     await act(async () => { canteen.click(); });
     expect(filled).toEqual(['Canteen']);
+    // Session AV lane 2 (CI run 2007): the picker speaks through Spending's one status line (`say`), with no line of its own.
+    expect(said).toEqual(['Canteen is in the note, and Food & drink offered.']);
+    expect(box.querySelector('[role="status"]')).toBeNull();
     expect(typeof keep.current).toBe('function');
     await act(async () => { keep.current!('Bakery Bart · pin'); });
     expect(JSON.parse(localStorage.getItem(MONEY_MORE_KEY)!).places[0].payees).toEqual(['Bakery Bart', 'Canteen']);

@@ -30,7 +30,11 @@ for (const theme of THEMES) test(`${theme}: symptoms as lines in the visit repor
   await builder.getByRole('button', {name: 'Show the report'}).click();
   const sym = page.getByRole('article', {name: 'Report'}).getByRole('region', {name: 'Symptoms and factors'});
   // Session AV lane 2 (each symptom now has its own small line too: the report's chart by its class, its whole name, deliberate)
-  await expect(sym.locator('svg.report-chart')).toHaveAttribute('aria-label', 'Symptom levels per day, 0 None to 3 Strong: Fictional headache (solid line, circles); Fictional tiredness (dashed line, squares). Gaps are days without a rating.');
+  const chartName = 'Symptom levels per day, 0 None to 3 Strong: Fictional headache (solid line, circles); Fictional tiredness (dashed line, squares). Gaps are days without a rating.';
+  await expect(sym.locator('svg.report-chart')).toHaveAttribute('aria-label', chartName);
+  // Session AV lane 2 (restore-b): the chart is an image to a screen reader again, by its exact accessible name, and it is that one chart.
+  await expect(sym.getByRole('img', {name: chartName, exact: true})).toHaveClass(/(^|\s)report-chart(\s|$)/);
+  await expect(sym.locator('svg.report-chart')).toHaveAttribute('role', 'img');
   await expect(sym.locator('.report-key li')).toHaveText(['Fictional headache: solid line, circles', 'Fictional tiredness: dashed line, squares']);
   const findings = await axe(page, sym);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);

@@ -46,8 +46,11 @@ for (const theme of THEMES) test(`${theme}: heart-rate zones and races ahead`, a
   await racesBox.getByRole('button', {name: '+ Add a race'}).click();
   let form = racesBox.getByRole('form', {name: 'Add a race'});
   await form.getByRole('textbox', {name: 'Name'}).fill('Fictional parkrun');
+  // Session AV lane 2 (fixb4; deliberate): a select inside its <label> — getByLabel reads the label's whole text, the
+  // options' words with it ("DistanceParkrun 5 km…"), so an exact "Distance" never matched. The combobox's accessible
+  // name is exactly "Distance"; as strict.
   await form.getByLabel('Race day').fill(day);
-  await form.getByLabel('Distance', {exact: true}).selectOption('5');
+  await form.getByRole('combobox', {name: 'Distance', exact: true}).selectOption('5');
   await form.getByRole('textbox', {name: /^Goal time/}).fill('26:00');
   await form.getByLabel('Which race').selectOption('b');
   await form.getByRole('button', {name: 'Save the race'}).click();
@@ -57,7 +60,7 @@ for (const theme of THEMES) test(`${theme}: heart-rate zones and races ahead`, a
   form = racesBox.getByRole('form', {name: 'Add a race'});
   await form.getByRole('textbox', {name: 'Name'}).fill('Fictional half');
   await form.getByLabel('Race day').fill('2026-12-13');
-  await form.getByLabel('Distance', {exact: true}).selectOption('21.0975');
+  await form.getByRole('combobox', {name: 'Distance', exact: true}).selectOption('21.0975');
   await form.getByRole('textbox', {name: /^Goal time/}).fill('1:55:00');
   await form.getByRole('checkbox', {name: 'Also make a countdown for it'}).check();
   await form.getByRole('button', {name: 'Save the race'}).click();

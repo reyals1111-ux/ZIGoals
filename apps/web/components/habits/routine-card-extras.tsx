@@ -1,5 +1,5 @@
 'use client';
-import {useRef, useState} from 'react';
+import {useRef} from 'react';
 import {habitDay, logHabitValue} from '../../lib/habits';
 import {compactToggle, compactToggleWords} from '../../lib/habits-order/compact-toggle';
 import type {Routine} from '../../lib/routines/engine';
@@ -20,8 +20,10 @@ import './routine-card.css';
  * routine's reminder: a time on its first habit's reminder (this device, as every habit reminder) whose notification
  * and Today card open the player at the first step still open.
  */
-export function RoutineCardExtras({routine, store}: {routine: Routine; store: Pick<HabitsStore, 'data' | 'today' | 'update'>}) {
-  const reminders = useReminders(), [note, setNote] = useState(''), timeField = useRef<HTMLInputElement>(null);
+// Session AV lane 2 (CI run 2007): what a card says goes to Routines' one status line (`say`), not a status line per card —
+// Routines held one live region per routine plus its own.
+export function RoutineCardExtras({routine, store, say}: {routine: Routine; store: Pick<HabitsStore, 'data' | 'today' | 'update'>; say: (text: string) => void}) {
+  const reminders = useReminders(), setNote = say, timeField = useRef<HTMLInputElement>(null);
   const head = routine.habits[0]!, time = reminders.data.habits[head.id]?.time ?? '';
   async function tick(habitId: string, done: boolean) {
     const habit = store.data.habits.find(h => h.id === habitId), change = habit && compactToggle(habit, store.today, store.today, done);
@@ -49,6 +51,5 @@ export function RoutineCardExtras({routine, store}: {routine: Routine; store: Pi
       <label className="field"><span>Remind me to start</span><input ref={timeField} type="time" step={60} value={time} aria-label={`${routine.title}: reminder time`} onChange={e => remind(e.target.value || null)}/></label>
       {time && <button type="button" className="quiet" aria-label={`Turn the ${routine.title} reminder off`} onClick={() => { remind(null); timeField.current?.focus(); /* the Off button goes away: the focus stays on the time */ }}>Off</button>}
     </div>}
-    <p className="fine" role="status" aria-live="polite">{note}</p>
   </div>;
 }

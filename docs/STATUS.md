@@ -1,3 +1,17 @@
+# Session AV lane 2 (continued) — DRAFT, in progress (`feature/session-av-2`, Draft [PR #109](https://github.com/reyals1111-ux/ZIGoals/pull/109) "Session AV (continued)"; not complete)
+
+**Base:** `main` `1c1b5953` ([PR #108](https://github.com/reyals1111-ux/ZIGoals/pull/108) merged; merged into this branch with a merge commit, `76217a38`). **Rules (owner):** follow-ups 4, 5 and 6, verbatim in `docs/architecture/ADR-045-session-av.md`. The final entry replaces this draft.
+
+## Part 0 — records (23 Nov)
+- **PR #108** merged into `main` as `1c1b5953` (parents `836534c3` and `807f247e`).
+- **Alpha #58** = Manual Alpha deployment run 61 (22 Nov, about 23:55 Brussels), source `1c1b5953ebadb45c8afd228fd64f2d38bfd6cd00`: version `f2729d28-e9db-436f-a66a-67922cf5d924`, rollback `e0bc17f3-27c0-4900-aa55-416f20ece6f6` (#57); **VERIFIED** after 3 reads, live prices **VERIFIED** (owner); market policy period ends 2026-11-30T16:00:00Z; build archive SHA-256 `ef1aee3bcfad982d902e944065d38a1f8534b6f328c3d778bfdded4f0a18e578`.
+- **Frozen readers** are #37–#58 from now on (`scripts/frozen-readers.mjs`: #58 = `1c1b5953`).
+
+| Alpha | Manual Alpha run | source | version | rollback to | verified |
+|---|---|---|---|---|---|
+| #58 | 61 (22 Nov) | `1c1b5953` | `f2729d28-e9db-436f-a66a-67922cf5d924` | `e0bc17f3-27c0-4900-aa55-416f20ece6f6` (#57) | yes, 3 reads; live prices yes |
+| #57 | [60](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44616699114) (19 Nov) | `836534c3` | `e0bc17f3-27c0-4900-aa55-416f20ece6f6` | `064ff8bc-8cc3-4ae7-8be4-783225ae75dd` (#56) | yes, 4 reads; live prices yes |
+
 # Session AV — "ALPHA QUALITY" (ADR-045) (2026-11-20/21, `feature/session-au-dress-rehearsal`, Draft [PR #108](https://github.com/reyals1111-ux/ZIGoals/pull/108) "Session AU + AV"; complete, not merged, not deployed)
 **Base:** Session AU's head `3ea87dff` on `main` `836534c3` (already merged in; `main` did not move). **Rules (owner):** the brief, one approved plan with nine amendments, and owner follow-up 1 (21 Nov), all verbatim in `docs/architecture/ADR-045-session-av.md` (decisions, D-BUILD, closing table). Resume file: `docs/handoff/AV_RESUME.md`.
 

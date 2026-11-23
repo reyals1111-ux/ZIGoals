@@ -32,7 +32,7 @@
 .cycle-history-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .cycle-history-list li, .cycle-words-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 8px; padding: 4px 0; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
 .cycle-history-list li > span, .cycle-word-name { flex: 1 1 12em; min-width: 0; }
-.cycle-table-wrap, .cycle-glance-wrap { overflow-x: auto; max-width: 100%; border: 1px solid var(--line); border-radius: 12px; }
+.cycle-table-wrap, .cycle-glance-wrap { overflow-x: auto; max-width: 100%; border: 1px solid var(--line); border-radius: 12px; position: relative; } /* fixb5: position makes the wrap the containing block of the cells' sr-only words (position: absolute), so its scroll clips them and they no longer widen the page */
 .cycle-table-wrap:focus-visible, .cycle-glance-wrap:focus-visible { outline: 2px solid var(--accent, currentColor); outline-offset: 2px; }
 .cycle-table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .cycle-table th, .cycle-table td { padding: 4px 6px; text-align: start; border-bottom: 1px solid var(--line); vertical-align: middle; }

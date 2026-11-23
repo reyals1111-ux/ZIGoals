@@ -39,6 +39,9 @@
 .r4-zones ul { margin: 0; padding-inline-start: 1.1rem; font-size: 14px; }
 .r4-note { padding: 10px 12px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--brand-cyan, #6fe6f6); display: grid; gap: 6px; }
 .r4-note p { margin: 0; white-space: pre-line; }
+/* Session AV lane 2 (CI run 2008): the band's longer estimate tag ("the trend is an estimate, not medical advice") wraps
+   inside the column (the tag's max-content width pushed Goals 39 px sideways at 320). */
+.r4-band .health-estimate-tag { width: auto; max-width: 100%; }
 /* Session AV lane 2 (polish4): Workouts' plan and race forms are outside .health-page, so its 16 px field rule missed them
    and they kept Health's older 14 px (an iPhone zooms into a field under 16 px). */
 :root :is(.r4-plan, .r4-races) .health-form .field :is(input, select) { font-size: 16px; }

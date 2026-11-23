@@ -1,6 +1,7 @@
 import {expect, test} from '@playwright/test';
 import {createEmptyHealth, saveFood} from '../../../lib/health';
 import {freshHealth, openHealth, storedHealth} from './al-health-helpers';
+import {openDrinkDetails} from '../../phone-length-folds';
 
 // Session AL lane L2, third pass, competitor rows built: GAP-045 (C-MO-03) your own meal names and times, GAP-079
 // (C-MO-09) a drink's type and caffeine, GAP-048 (C-MO-08) cups and spoons for a food measured in millilitres. Desktop
@@ -31,6 +32,9 @@ for (const width of [1280, 375]) test.describe(`${width}px`, () => {
     await openHealth(page, '?view=diary');
     const water = page.getByRole('form', {name: 'Water entry'});
     await water.getByLabel('Water amount').fill('250');
+    // Session AV lane 2 (phone-length, deliberate): at 375 px the drink and its caffeine sit in a fold under the amount; it
+    // is opened as a person would (tests/phone-length-folds.ts: there at 375, absent at 1280), then the same fields are used.
+    await openDrinkDetails(page);
     await water.getByLabel('Drink').selectOption('coffee');
     await water.getByLabel('Caffeine (mg, optional)').fill('95');
     await water.getByRole('button', {name: 'Log water'}).click();

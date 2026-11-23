@@ -8,11 +8,12 @@ const TEXT = 'Shopping\n\n| Item | Price |\n| :--- | ---: |\n| Tea | 4 |\n| appl
 describe('tables in a note', () => {
   test('found as the reading view draws them, never inside code', () => {
     // Session AV lane 2 (review b5i B5I-5, deliberate): a table now also carries its lines as written and why it may not
-    // be edited; the same fields are checked as before, plus those.
+    // be edited; the same fields are checked as before, plus those. restore-b: one exact `toEqual` of the whole table
+    // again (an extra field fails), its lines included.
     const [t, ...more] = findTables(TEXT);
     expect(more).toEqual([]);
-    expect(t).toMatchObject({first: 2, last: 7, head: ['Item', 'Price'], align: ['left', 'right'], rows: [['Tea', '4'], ['apples', '12'], ['Bread', ''], ['a|b', '3.5']], blocked: null});
-    expect(t!.src).toEqual({head: '| Item | Price |', delim: '| :--- | ---: |', rows: ['| Tea | 4 |', '| apples | 12 |', '| Bread |  |', '| a\\|b | 3.5 |']});
+    expect(t).toEqual({first: 2, last: 7, head: ['Item', 'Price'], align: ['left', 'right'], rows: [['Tea', '4'], ['apples', '12'], ['Bread', ''], ['a|b', '3.5']],
+      src: {head: '| Item | Price |', delim: '| :--- | ---: |', rows: ['| Tea | 4 |', '| apples | 12 |', '| Bread |  |', '| a\\|b | 3.5 |']}, blocked: null});
     expect(mayHoldTable(TEXT)).toBe(true); expect(mayHoldTable('a | b\nno')).toBe(false);
   });
   test('rows and columns added, moved and removed; cells changed; written back in place', () => {

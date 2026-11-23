@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openPhoneRow} from './phone-length-folds';
 
 // Session M, Part A1 (QA2-02): Health and the reminders say a storage refusal the same coded way as Habits, Staking
 // and Portfolio (lib/storage-error-copy.ts): what happened, what to do, and a short code. Before this, Health replaced a
@@ -82,6 +83,10 @@ test('QA2-02: a reminder card that cannot be dismissed gives the coded reason, f
 test('QA2-02: a water reminder time that cannot be kept gives the coded reason', async ({page}) => {
   await start(page, '19:58');
   await page.goto('/app/health');
+  // Session AV lane 2 (phone-length, deliberate): on a phone the water reminder sits in the Water card's row "Your drinks,
+  // reminders and tips" (tests/phone-length-folds.ts: there and closed on a phone, absent on a computer); it is opened as a
+  // person would, then the same form is used and checked as before.
+  await openPhoneRow(page, 'Your drinks, reminders and tips');
   const form = page.getByRole('form', {name: 'Water reminder'});
   await form.getByLabel('Reminder time — on this device').fill('20:00');
   await refuse(page, REMINDERS, 'QuotaExceededError');

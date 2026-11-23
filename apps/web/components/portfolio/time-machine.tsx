@@ -1,6 +1,7 @@
 'use client';
 import {useEffect, useId, useMemo, useState} from 'react';
-import {createMarketHistoryCache, fetchPublicMarketHistory, formatHistoryValue, type HistoryRange} from '../../lib/market-history';
+import {formatHistoryValue, type HistoryRange} from '../../lib/market-history';
+import {portfolioHistoryCache as cache} from './history-cache';
 import {coinKey, type Portfolio} from '../../lib/portfolio/schema';
 import type {PricePoint} from '../../lib/portfolio/performance';
 import {holdings} from '../../lib/portfolio/math';
@@ -15,11 +16,12 @@ import {localDate, addLocalDays} from '../../lib/local-date';
  * the value chart reads; nothing new is asked of any service), the cost of what was held and the result then, beside
  * its value now. The Showcase uses its own labelled example prices. Lazy.
  */
-const cache = createMarketHistoryCache((request, refresh) => fetchPublicMarketHistory(request, refresh));
 const rangeFor = (days: number): HistoryRange => days <= 29 ? '30d' : days <= 89 ? '90d' : '1y';
 export default function TimeMachine({portfolio, showcase, valueNow}: {portfolio: Portfolio; showcase: boolean; valueNow: string | null}) {
   const id = useId(), today = localDate(), [now] = useState(() => Date.now()), bounds = timeMachineBounds(portfolio, today, now);
-  const [date, setDate] = useState(() => { const d = addLocalDays(today, -30); return d < bounds.min ? bounds.min : d; });
+  // Session AV lane 2 (CI run 2007): the first day offered is 29 days back, the last whole day inside the value chart's own
+  // 30D history (rangeFor), so opening Analysis asks for nothing the chart has not (30 days back needed 90 days of history).
+  const [date, setDate] = useState(() => { const d = addLocalDays(today, -29); return d < bounds.min ? bounds.min : d; });
   const day = date >= bounds.min && date <= bounds.max ? date : null;
   const coins = useMemo(() => day ? [...holdings({transactions: portfolio.transactions.filter(t => t.date <= day)}).values()].filter(h => Number(h.quantity) > 0).map(h => h.coin) : [], [portfolio.transactions, day]);
   const refs = useMemo(() => new Map(portfolio.coins.map(c => [coinKey(c.ref), c])), [portfolio.coins]);

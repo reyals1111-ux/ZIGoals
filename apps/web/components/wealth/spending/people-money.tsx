@@ -8,6 +8,7 @@ import {readMoneyAmount} from '../../../lib/money-log/form';
 import {formatDate} from '../../../lib/visual-format';
 import {showUndo} from '../../ui/undo-toast';
 import {moneyCents} from '../money-tools/format';
+import {PhoneFold} from '../../phone/phone-fold';
 import './people-money.css';
 
 /**
@@ -84,7 +85,11 @@ export default function PeoplePanel({log, update, today, currencies}: {log: Mone
     if (write(m => addLoan(m, input, `ln_${crypto.randomUUID().slice(0, 12)}`), `${KIND_WORDS[input.kind]} ${input.name.trim()}: ${money(cents(input.amount), input.currency)}, kept.`, 'Taken off again.')) { setAdding(false); setDraft(d => ({...d, name: '', raw: '', due: undefined, remind: false, note: ''})); requestAnimationFrame(() => heading.current?.focus()); }
   };
   const anything = owed.length > 0 || loans.length > 0;
-  return <section className="people-money" aria-labelledby={`${id}-t`}>
+  // Session AV lane 2 (phone-length): on a phone this is one row of Spending that says what it holds and opens in place, so
+  // Wealth stays within its pinned screens (tests/pillar-phone-length.spec.ts); elsewhere it shows as it was.
+  const openLoans = loans.filter(r => r.state !== 'closed' && r.state !== 'forgiven').length;
+  const holds = [owed.length ? `${owed.length} ${owed.length === 1 ? 'person owes' : 'people owe'} you` : '', openLoans ? `${openLoans} lent or borrowed` : ''].filter(Boolean).join(' · ') || 'Money lent or borrowed, and shared costs';
+  return <PhoneFold label="Between you and others" detail={holds}><section className="people-money" aria-labelledby={`${id}-t`}>
     <h3 id={`${id}-t`} ref={heading} tabIndex={-1}>Between you and others</h3>
     {!anything && <p className="fine">Money you lent or borrowed, and what friends owe you for shared costs (Edit a cost → Shared with others). On this device only; nothing is sent to anyone.</p>}
     {owed.length > 0 && <><h4>Owed to you from shared costs</h4><ul className="people-list">{owed.map(o => <li key={`${o.name}-${o.currency}`}>
@@ -119,5 +124,5 @@ export default function PeoplePanel({log, update, today, currencies}: {log: Mone
     </form>}
     {problem && !adding && <p role="alert">{problem}</p>}
     <p className="fine" role="status">{said}</p>
-  </section>;
+  </section></PhoneFold>;
 }

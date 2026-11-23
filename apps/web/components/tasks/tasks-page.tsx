@@ -99,6 +99,9 @@ export function TasksPage() {
   const list = useTaskList({toast: true}), goals = useGoalOptions(), {tasks, today, clock} = list, record = tasks.data;
   const [view, setView] = useState<TaskView>({kind: 'today'}), [query, setQuery] = useState(''), [board, setBoard] = useState(false);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set()), [focusId, setFocusId] = useState<string | null>(null), [editId, setEditId] = useState<string | null>(null);
+  // Session AV lane 2 (fixb5): while a task's editor is open its row keeps its group in Today, Doing or not, so "Doing now"
+  // (which acts at once, editor still open) never moves the row to another list, which would close the editor and drop focus.
+  const [held, setHeld] = useState<ReadonlyMap<string, boolean>>(() => new Map());
   // Release review AL (RR-18): a row has one checkbox, the one that marks it done. Selecting for bulk actions is a mode
   // ("Select" in the list's head, or x on a row): while it is on, each row's box selects it ("Select “…”") and Done is
   // the bar's; Escape, Clear or "Select" again ends it.
@@ -333,6 +336,7 @@ export function TasksPage() {
       selected={selected.has(t.id)} onSelect={selectMode ? (on, shift) => pick(t.id, on, shift) : undefined} focused={focusId === t.id}
       onToggle={d => list.toggle(t, d)} onRemove={() => list.remove(t)} onEdit={(patch, scope) => { const ok = list.edit(t, patch, scope); if (ok) setEditId(null); return ok; }} onFocus={() => setFocus(t)}
       onMove={canMove ? step => reorder(t.id, step, sib) : undefined} drag={dragProps(t)} editor="inline"
+      onEditing={on => setHeld(m => { const n = new Map(m); if (on) n.set(t.id, t.state?.kind === 'doing'); else n.delete(t.id); return n; })}
       onSkip={t.recur && t.due && !t.doneAt ? () => list.change(r => skipOccurrence(r, t.id, today), `Skipped this time: “${t.title}” moves to its next day.`, `“${t.title}” is back on its day.`) : undefined}>
       {editId === t.id && <EditorBridge onClose={() => setEditId(null)} />}
       {/* CI1 (p6-keyboard, 2.4.3): "Add a subtask" is always in the page, so Shift+Tab finds it as Tab did; tasks.css keeps it out
@@ -400,8 +404,9 @@ export function TasksPage() {
     body = group('inbox', null, shown);
   } else {
     // Session AV lane 2 (r5-plan, LEDGER #350; Logseq's DOING): the tasks being done come first in Today, as their own group.
-    const doing = view.kind === 'today' && !query ? shown.filter(t => t.state?.kind === 'doing') : [];
-    const notDoing = doing.length ? shown.filter(t => t.state?.kind !== 'doing') : shown;
+    const isDoingHere = (t: Task) => held.get(t.id) ?? t.state?.kind === 'doing';
+    const doing = view.kind === 'today' && !query ? shown.filter(isDoingHere) : [];
+    const notDoing = doing.length ? shown.filter(t => !isDoingHere(t)) : shown;
     const mine = view.kind === 'today' && !query ? notDoing.filter(t => picked.has(t.id)) : [], rest = mine.length ? notDoing.filter(t => !picked.has(t.id)) : notDoing;
     body = <>{doing.length > 0 && group('doing', 'Doing', doing)}{mine.length > 0 && group('myday', 'My Day', mine, <small className="fine tasks-day-load">picked for today; each keeps its own day</small>)}{STATE_GROUPS.map(g => group(g.state, g.title, rest.filter(t => taskState(t, today, clock) === g.state)))}</>;
   }

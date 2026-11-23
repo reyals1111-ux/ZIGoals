@@ -51,8 +51,10 @@ import { LinksSettings } from "../../../components/links/links-settings";
 import { MusicSettings } from "../../../components/music/music-settings";
 import { PagesSettings } from "../../../components/settings/pages-settings";
 import { AfChecklistSection } from "../../../components/settings/af-checklist-section";
-import { AfEarnSection } from "../../../components/settings/af-earn-section";
-import { AfSigningSection } from "../../../components/settings/af-signing-section";
+// Session AV lane 2 (trim-settings; weights, never a raised budget): Earn's and signing's choices show only once the chain is
+// chosen, which the browser learns after the page has loaded (the server's page never has them), so they load as their own
+// chunk then, as the tracked wallets do. Their styles stay with the page, where they always were.
+import "../../../components/settings/af-signing-section.css";
 import { AfExtrasSection } from "../../../components/settings/af-extras-section";
 import { useChainChoice } from "../../../components/chain/use-chain-choice";
 import { SettingsFoldAll, SettingsFoldGroup, SettingsFolds } from "../../../components/settings/settings-fold";
@@ -60,6 +62,8 @@ import { HideFiguresToggle } from "../../../components/hide-figures";
 import type { SettingsGroupId } from "../../../lib/settings-folds";
 // Session AL (BN-112): its own chunk, loaded only once the chain is chosen and the wallet group shows.
 const TrackedWallets = lazy(() => import("../../../components/staking/tracked-wallets"));
+const AfEarnSection = lazy(() => import("../../../components/settings/af-earn-section").then(m => ({default: m.AfEarnSection})));
+const AfSigningSection = lazy(() => import("../../../components/settings/af-signing-section").then(m => ({default: m.AfSigningSection})));
 /**
  * Session W Part 24: Settings in six labelled groups, Data & privacy first (backups stay on a phone's first screen, as
  * Session E chose). The chips and the phone's list jump to them; every section keeps its own id and content.
@@ -242,8 +246,8 @@ export default function Settings() {
         <PagesSettings/>
         <AfChecklistSection/>
         {/* Session AK X1 (RELEASE_REVIEW R4): Earn's, Staking's and Governance's own choices once the chain is chosen. */}
-        {chain && <AfEarnSection/>}
-        {chain && <AfSigningSection/>}
+        {chain && <LoadBoundary quiet><Suspense fallback={null}><AfEarnSection/></Suspense></LoadBoundary>}
+        {chain && <LoadBoundary quiet><Suspense fallback={null}><AfSigningSection/></Suspense></LoadBoundary>}
         <AfExtrasSection/>
         {/* Session AA-Cloud: a named place for Session AA-Local's game-layer switch (components/progress/slot.tsx). */}
         <Slot place="settings:your-app"/>

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --hostname 127.0.0.1 --port 3100",
-    "build": "next build",
+    "build": "NODE_OPTIONS=--max-old-space-size=6144 next build",
     "start": "next start --hostname 127.0.0.1 --port 3100",
     "build:alpha": "node scripts/build-alpha.mjs",
     "preview:alpha": "wrangler dev --config wrangler.alpha.jsonc --env-file ../../scripts/run11/fixtures/no-local-secrets.env --ip 127.0.0.1 --port 8788",

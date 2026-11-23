@@ -158,7 +158,10 @@ export function LiquidGlass() {
       const found = targetsFor(event.target as Element), el = found ? (kindOf(found.inner) === 'control' ? found.card : found.inner) : undefined;
       // Session AR: a press on something that can be carried (data-glass-carry) settles nothing around it. The settle is a
       // brief press cue; held for the length of a drag it kept the whole card around the dragged one at 99 %.
-      if (!el || still || (event.target as Element).closest?.('[data-glass-carry]')) return;
+      // Session AV lane 2 (CI run 2008): nor does a press on an open ⋯ menu's item. The menu floats past its card's edge (a
+      // habit's has eleven items now); the press's scale made the card a stacking context, so the next card covered the
+      // menu between press and release and the click landed on that card instead ("Ask ZIGi about this habit" did nothing).
+      if (!el || still || (event.target as Element).closest?.('[data-glass-carry], .card-options-panel')) return;
       el.dataset.glass ??= kindOf(el); el.dataset.glassPress = '';
       const release = () => { delete el.dataset.glassPress; if (el.dataset.glassHover === undefined) disarm(el); window.removeEventListener('pointerup', release); window.removeEventListener('pointercancel', release); };
       window.addEventListener('pointerup', release); window.addEventListener('pointercancel', release);

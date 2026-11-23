@@ -82,7 +82,9 @@ function sleepTimingAnswer(a: Asked): LocalReply | null {
 }
 /** "what is today's sleep tip", "wat is de slaaptip van vandaag" (LEDGER #334). */
 function sleepTip(a: Asked): LocalReply | null {
-  if (!(/\bsleep tips?\b|\btips? (?:for|to) (?:better )?sleep\b/.test(a.f) || /\bslaaptips?\b/.test(a.f))) return null;
+  // Session AV lane 2 (CI run 2008): the feature's own name only ("sleep tip", "slaaptip"). "Give me tips to sleep better
+  // this week" asks for advice, which goes to the person's own AI when one is connected (P-MO-10), not today's one tip.
+  if (!(/\bsleep tips?\b/.test(a.f) || /\bslaaptips?\b/.test(a.f))) return null;
   const shut = closed(a.env, 'health'); if (shut) return shut;
   const tip = sleepTipOf(a.env.healthDay);
   return answer(say(a.lang, `Today’s sleep tip: ${tip.en} (Health’s Sleep card shows one a day once you choose “Show a sleep tip each day”.)`, `De slaaptip van vandaag: ${tip.nl} (De slaapkaart in Health laat er elke dag een zien als je “Show a sleep tip each day” kiest.)`));

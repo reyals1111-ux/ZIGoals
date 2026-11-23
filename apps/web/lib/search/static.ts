@@ -503,7 +503,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["av2-r6-notes-can-the-screen-cover-come-back-when-i-have", "Can the screen cover come back when I have been away?"],
   ["av2-r6-money-how-do-i-log-money-i-got-back-for-someth", "How do I log money I got back for something I bought?"],
   ["av2-r6-money-can-i-put-my-budgets-in-my-own-order", "Can I put my budgets in my own order?"],
-  ["av2-r6-money-can-i-fund-next-month-s-budgets-now", "Can I fund next month’s budgets now?"],
+  ["av2-r6-money-can-i-fund-next-month-s-budgets-now", "Can I fund next month’s budgets ahead of time?"],
   ["av2-r6-money-i-m-paid-twice-a-month-can-i-plan-each-p", "I’m paid twice a month. Can I plan each paycheck?"],
   ["av2-r6-money-is-there-a-streak-for-looking-after-my-m", "Is there a streak for looking after my money?"],
   ["av2-r6-money-can-zigoals-check-my-money-records-for-m", "Can ZIGoals check my money records for mistakes?"],
