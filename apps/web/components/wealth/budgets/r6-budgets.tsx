@@ -29,10 +29,18 @@ const readAmount = (raw: string) => { const r = parseNumberInput(raw); return r.
 
 /** #429: "Reorder budgets": up and down (keyboard and touch), or drag with a mouse; kept, with Undo. */
 export default function ReorderBudgets({record, onChange}: {record: BudgetsRecord; onChange: Change}) {
-  const list = useMemo(() => budgetsInOrder(record.budgets), [record.budgets]), [focus, setFocus] = useState<string | null>(null), box = useRef<HTMLOListElement>(null), [drag, setDrag] = useState<string | null>(null);
-  useEffect(() => { if (!focus) return; const el = box.current?.querySelector<HTMLElement>(`[data-focus-key="${focus}"]`) ?? box.current?.querySelector<HTMLElement>('button:not([disabled])'); el?.focus(); setFocus(null); }, [focus, list]);
+  const list = useMemo(() => budgetsInOrder(record.budgets), [record.budgets]), [focus, setFocus] = useState<{key: string; from: typeof list} | null>(null), box = useRef<HTMLOListElement>(null), [drag, setDrag] = useState<string | null>(null);
+  // Session AV lane 2 (fixb6): focus moves once the new order is drawn (the save is async), to the button pressed, or to
+  // the row's other arrow when that one is now at the end and disabled, so focus is never lost on a disabled button.
+  useEffect(() => {
+    if (!focus || focus.from === list) return;
+    const at = (key: string) => box.current?.querySelector<HTMLElement>(`[data-focus-key="${key}"]:not([disabled])`);
+    const other = focus.key.endsWith('-up') ? `${focus.key.slice(0, -3)}-down` : focus.key.endsWith('-down') ? `${focus.key.slice(0, -5)}-up` : '';
+    const el = at(focus.key) ?? (other ? at(other) : null) ?? box.current?.querySelector<HTMLElement>('button:not([disabled])');
+    el?.focus(); setFocus(null);
+  }, [focus, list]);
   const move = (id: string, by: -1 | 1, name: string) => {
-    setFocus(`${id}-${by < 0 ? 'up' : 'down'}`);
+    setFocus({key: `${id}-${by < 0 ? 'up' : 'down'}`, from: list});
     void changeWithUndo(onChange, r => moveBudget(r, id, by), `${name} moved ${by < 0 ? 'up' : 'down'}.`, {undone: 'Order put back.', undoLabel: `Undo moving ${name}`}).catch(() => showStatus('This could not be saved on this device. Nothing was changed.', {tone: 'error'}));
   };
   const drop = (target: number) => { const id = drag; setDrag(null); if (!id) return; const name = list.find(b => b.id === id)?.category ?? 'The budget'; void changeWithUndo(onChange, r => moveBudgetTo(r, id, target), `${name} moved.`, {undone: 'Order put back.', undoLabel: `Undo moving ${name}`}).catch(() => showStatus('This could not be saved on this device. Nothing was changed.', {tone: 'error'})); };
@@ -44,7 +52,7 @@ export default function ReorderBudgets({record, onChange}: {record: BudgetsRecor
       <button type="button" className="quiet" data-focus-key={`${b.id}-up`} disabled={i === 0} aria-label={`Move ${b.category} (${b.currency}) up`} onClick={() => move(b.id, -1, b.category)}>↑</button>
       <button type="button" className="quiet" data-focus-key={`${b.id}-down`} disabled={i === list.length - 1} aria-label={`Move ${b.category} (${b.currency}) down`} onClick={() => move(b.id, 1, b.category)}>↓</button>
     </li>)}</ol>
-    {hasOwnOrder(record.budgets) && <p><button type="button" className="quiet" onClick={() => { setFocus('none'); void changeWithUndo(onChange, clearOrder, 'Back to the usual order: the most spent first.', {undone: 'Your order is back.', undoLabel: 'Undo: keep my order'}).catch(() => showStatus('This could not be saved on this device.', {tone: 'error'})); }}>Back to the usual order</button></p>}
+    {hasOwnOrder(record.budgets) && <p><button type="button" className="quiet" onClick={() => { setFocus({key: 'none', from: list}); void changeWithUndo(onChange, clearOrder, 'Back to the usual order: the most spent first.', {undone: 'Your order is back.', undoLabel: 'Undo: keep my order'}).catch(() => showStatus('This could not be saved on this device.', {tone: 'error'})); }}>Back to the usual order</button></p>}
   </div>;
 }
 
