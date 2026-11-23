@@ -18,6 +18,7 @@ import {EVERY_DAY} from '../../supplements/schema';
 import {exerciseHistory, finished, volumeKg} from '../../workouts/engine';
 import {clockOf, runBests} from '../../workouts/run-bests';
 import {text as clean} from '../tools/format';
+import {linkedSoFar} from '../tools/habits';
 import {novaEnvInfo} from './nova-env';
 import {answer, clockIn, closed, count, dayIn, hm, isQuestion, journalClosed, list, monthIn, num, say, type Asked, type Lang} from './av-words';
 import type {LocalReply} from './engine';
@@ -305,10 +306,10 @@ function yesterdayOpen(a: Asked): LocalReply | null {
   const nl = /\bgewoonte[sn]?\b/.test(a.f) && /\bgisteren\b/.test(a.f) && /\b(?:open|blijven liggen|laten liggen|niet af|niet afgemaakt|niet voltooid)\b/.test(a.f);
   if (!(en || nl) || !isQuestion(a)) return null;
   const shut = closed(a.env, 'habits'); if (shut) return shut;
-  const lang = a.lang, y = yesterdaysOpen(a.env.habits, a.today), day = dayIn(lang, y.day, a.today);
+  const lang = a.lang, y = yesterdaysOpen(a.env.habits, a.today, linkedSoFar(a.env)), day = dayIn(lang, y.day, a.today);
   if (!y.open.length) return answer(say(lang, `Yesterday (${day}) no daily habit was left open.`, `Gisteren (${day}) bleef geen dagelijkse gewoonte open.`), [{tool: 'habits_due', args: {}, label: 'Open today'}]);
   const unit = (id: string) => { const h = a.env.habits.habits.find(x => x.id === id); return h ? measurementUnit(latestHabitRule(h)) : ''; };
-  const rows = y.open.map(o => `${clean(o.title, 60)} (${amount(o.count, '')} ${say(lang, 'of', 'van')} ${amount(o.target, unit(o.id))})`);
+  const rows = y.open.map(o => `${clean(o.title, 60)} (${amount(o.shown, '')} ${say(lang, 'of', 'van')} ${amount(o.target, unit(o.id))})`);
   return answer(say(lang, `Yesterday (${day}) ${count(rows.length, 'en', ['habit was', 'habits were'], ['', ''])} left open: ${list(rows, 'en')}. Habits → “Yesterday, still open” ticks them late in one go.`, `Gisteren (${day}) ${count(rows.length, 'nl', ['', ''], ['gewoonte bleef', 'gewoontes bleven'])} open: ${list(rows, 'nl')}. Habits → “Yesterday, still open” vinkt ze in één keer alsnog af.`), [{tool: 'habits_due', args: {}, label: 'Open today'}]);
 }
 /** q4 #24: "what is my focus habit today" (lib/habit-focus.ts, today's pick only). */
