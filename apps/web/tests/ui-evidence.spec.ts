@@ -88,9 +88,13 @@ for(const [path,region,desktopLabel,phoneLabel] of [['/app/health','health:body'
   await expect(page.getByRole('button',{name:'Unlock layout to rearrange',exact:true})).toBeVisible();
  });
 
-test('unlocked layouts: each card keeps its move controls inside itself, never over another card\'s',async({page})=>{
+// Session AV lane 2 (CI run 2023, deliberate, as strict): in two parts (3 pages, then 7: 11–14 s and 19–20 s locally; as halves 29 s and 14 s) so each has the whole test budget, as the hydration
+// checks below are — every page walked in one test ran past 45 s on a slow 2-worker runner (runs 1994, 2023). Every page
+// and every check is kept, in the same order.
+for(const [part,pages] of [['first part',PAGES.slice(0,3)],['second part',PAGES.slice(3)]] as const)
+test(`unlocked layouts: each card keeps its move controls inside itself, never over another card's (${part})`,async({page})=>{
  await showcase(page);
- for(const path of PAGES){await open(page,path);
+ for(const path of pages){await open(page,path);
   const lock=page.getByRole('button',{name:'Unlock layout to rearrange',exact:true});if(!await lock.count())continue;
   await lock.first().click();await expect(page.locator('.layout-controls').first()).toBeVisible();
   const problems=await page.evaluate(()=>{const bars=[...document.querySelectorAll<HTMLElement>('.layout-controls')].map(e=>({name:e.getAttribute('aria-label')??'',box:e.getBoundingClientRect(),card:e.parentElement!.getBoundingClientRect(),flow:getComputedStyle(e).flexDirection}));const out:string[]=[];
