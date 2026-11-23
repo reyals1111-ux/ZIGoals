@@ -19,3 +19,4 @@
 :root .dh-subhead { margin: 14px 0 4px; font-size: 16px; }
 /* Session AV lane 2 (fr-layout, FR-L-7): the header's jump to Restore from a backup, 44 px tall like its neighbour. */
 :root .data-restore-jump { display: inline-flex; align-items: center; min-height: 44px; }
+:root .data-restore-jump-row { margin: 0; }

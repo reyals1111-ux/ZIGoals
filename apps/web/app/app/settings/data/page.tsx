@@ -13,7 +13,10 @@ import {ReportLauncher} from '../../../../components/report/report-launcher';
 export const metadata: Metadata = {title: 'Your data'};
 export default function Page() {
   return <div className="dashboard data-health-page">
-    <PageHeader className="page-heading" eyebrow="Settings · data health" title="Your data" lede="Where each part of your data lives, what this device holds and what ZIGi can see. It changes nothing unless you restore a backup." actions={<><Link className="secondary" href="/app/settings">← Settings</Link>{/* Session AV lane 2 (fr-layout, FR-L-7): the restore is 6–8 screens down (About this Alpha and the lists come first); one jump. */}<a className="text-link data-restore-jump" href="#restore">Restore from a backup ↓</a></>} art={<OrbitArt glyph={DataGlyph} spin={8}/>} />
+    <PageHeader className="page-heading" eyebrow="Settings · data health" title="Your data" lede="Where each part of your data lives, what this device holds and what ZIGi can see. It changes nothing unless you restore a backup." actions={<Link className="secondary" href="/app/settings">← Settings</Link>} art={<OrbitArt glyph={DataGlyph} spin={8}/>} />
+    {/* Session AV lane 2 (fr-layout, FR-L-7): the restore is 6–8 screens down (About this Alpha and the lists come first); one jump,
+        right under the header: in the header's actions it wrapped into the header art's corner on a phone (CI run 2012, header-art-ae). */}
+    <p className="data-restore-jump-row"><a className="text-link data-restore-jump" href="#restore">Restore from a backup ↓</a></p>
     {/* Session AC (owner finding 3): this Alpha's facts, always here (they left the footer). */}
     <section className="panel about-alpha-panel" aria-labelledby="about-alpha-title"><SectionHeading id="about-alpha-title" eyebrow="Settings · your data" title="About this Alpha"/><AboutThisAlpha/></section>
     <DataHealthView />
