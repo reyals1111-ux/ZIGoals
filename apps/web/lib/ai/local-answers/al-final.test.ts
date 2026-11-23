@@ -149,7 +149,8 @@ describe('7. habit and streak copy (Z-061, Z-021, Z-025)', () => {
     expect(plannedDaysLine({quietDays: ['2026-10-03'], habits: []})).toBe('Days with a habit planned and no check-in: 1 (2026-10-03).');
   });
   test('Z-021: a streak longer than the month\'s check-ins says why', () => {
-    expect(typed('What is my longest Exercise streak?', zigiEnv(sc())).text).toBe('Your longest Exercise streak is 26 days; the current one is 26 days.\n- The current one runs since Thu, Sep 10: a streak counts scheduled days in a row across months, and a skipped day keeps it going (skipped days never count against you), so it can be longer than one month’s check-ins');
+    // Session AV lane 2 (fr-answers; FR-MAX-5, deliberate): the run's start is its earliest check-in counted back over the skipped days it keeps (Sun, Sep 6), no longer 25 calendar days before today (Thu, Sep 10); the whole sentence, as strictly.
+    expect(typed('What is my longest Exercise streak?', zigiEnv(sc())).text).toBe('Your longest Exercise streak is 26 days; the current one is 26 days.\n- The current one runs since Sun, Sep 6: a streak counts scheduled days in a row across months, and a skipped day keeps it going (skipped days never count against you), so it can be longer than one month’s check-ins');
   });
   test('Z-025: a "Walk goal" question answers the Health goal and the habit, each named', () => {
     const shared = typed('What is my Walk goal progress?', zigiEnv({...sc(), healthGoals: HG}, {health: true})).text;
