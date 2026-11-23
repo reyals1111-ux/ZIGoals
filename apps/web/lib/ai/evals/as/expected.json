@@ -1311,7 +1311,7 @@
  },
  "walk-done-count-lastweek": {
   "en": "Walk: done on 6 of 7 due days last week (Mon, Nov 9 to Sun, Nov 15). 48,000 steps in total.",
-  "nl": "Walk: gedaan op 6 van 7 geplande dagen vorige week (ma 9 nov t/m zo 15 nov). 48,000 steps in totaal.",
+  "nl": "Walk: gedaan op 6 van 7 geplande dagen vorige week (ma 9 nov t/m zo 15 nov). 48.000 steps in totaal.",
   "facts": {
    "about": "Walk",
    "subject": "92000000-0000-4000-8000-000000000003",
@@ -2233,7 +2233,7 @@
   "facts": null,
   "widgets": [],
   "fresh": "That isn’t something I can answer from your records here. Without a brain I answer about your habits, Checklist, tasks, goals, Health (once you share it) and money, and I prepare cards you confirm for check-offs, tasks and new habits.\nUntil you give me a brain, I answer from your own records on this device. For example:",
-  "freshNl": "Tot je me een brein geeft, beantwoord ik vragen uit je eigen gegevens op dit apparaat, voorlopig in het Engels. Tik op een voorbeeld:"
+  "freshNl": "Tot je me een brein geeft, beantwoord ik vragen uit je eigen gegevens op dit apparaat. Tik op een voorbeeld:"
  },
  "hab-week-nl": {
   "en": "This week: 12 check-ins over 7 habits.\n• Read: 2 of 2 planned days done\n• Exercise: 1 of 2 planned days done\n• Walk: 2 of 2 planned days done\n• Meditate: 1 of 2 planned days done\n• Contribute: 2 of 2 planned days done\n• Drink water: 1 of 2 planned days done\n• Late-night snacks (Showcase): 2 of 2 planned days done",
@@ -2252,7 +2252,7 @@
   "freshNl": "Nog geen meditatie gelogd."
  },
  "au-r1-habit-streak": {
-  "en": "Your current Drink water streak is 26 days (longest: 26 days).\n- The current one runs since Fri, Oct 23: a streak counts scheduled days in a row across months, and a skipped day keeps it going (skipped days never count against you), so it can be longer than one month’s check-ins",
+  "en": "Your current Drink water streak is 26 days (longest: 26 days).\n- The current one runs since Mon, Oct 19: a streak counts scheduled days in a row across months, and a skipped day keeps it going (skipped days never count against you), so it can be longer than one month’s check-ins",
   "nl": "Drink water: nu 26 dagen op rij; je langste reeks is 26 dagen.",
   "facts": null,
   "widgets": [],
@@ -2314,7 +2314,7 @@
  },
  "water-today": {
   "en": "You logged 1,000 mL of water today (Tue, Nov 17).",
-  "nl": "Water: 1,000 mL vandaag, van je doel van 2,000 mL. Nog 1,000 mL te gaan.",
+  "nl": "Water: 1.000 mL vandaag, van je doel van 2.000 mL. Nog 1.000 mL te gaan.",
   "facts": null,
   "widgets": [],
   "fresh": "No water is logged today (Tue, Nov 17).",
@@ -2322,7 +2322,7 @@
  },
  "water-yesterday": {
   "en": "You logged 2,100 mL of water yesterday (Mon, Nov 16).",
-  "nl": "Water: 2,100 mL gisteren, van je doel van 2,000 mL. Doel gehaald.",
+  "nl": "Water: 2.100 mL gisteren, van je doel van 2.000 mL. Doel gehaald.",
   "facts": null,
   "widgets": [],
   "fresh": "No water is logged yesterday (Mon, Nov 16).",
@@ -2425,7 +2425,7 @@
  },
  "water-average-week": {
   "en": "You logged 14,500 mL of water the last 7 days (Wed, Nov 11 to Tue, Nov 17).\n- On average 2,071 mL on the 7 days with water logged",
-  "nl": "Water: gemiddeld 2,071 mL per dag in de afgelopen 7 dagen (wo 11 nov t/m di 17 nov) (7 dagen gelogd).",
+  "nl": "Water: gemiddeld 2.071 mL per dag in de afgelopen 7 dagen (wo 11 nov t/m di 17 nov) (7 dagen gelogd).",
   "facts": null,
   "widgets": [],
   "fresh": "You logged 0 mL of water the last 7 days (Wed, Nov 11 to Tue, Nov 17).\n- 7 days without water logged (not counted as 0)",
@@ -2433,7 +2433,7 @@
  },
  "water-compare-weeks": {
   "en": "Water: 3,100 mL this week (Mon, Nov 16 to Tue, Nov 17), and 13,500 mL last week (Mon, Nov 9 to Sun, Nov 15).\n- 10,400 mL less this week than last week.",
-  "nl": "Water: 3,100 mL deze week; 13,500 mL vorige week, 10,400 mL minder.",
+  "nl": "Water: 3.100 mL deze week; 13.500 mL vorige week, 10.400 mL minder.",
   "facts": null,
   "widgets": [],
   "fresh": "Water: 0 mL this week (Mon, Nov 16 to Tue, Nov 17), and 0 mL last week (Mon, Nov 9 to Sun, Nov 15).\n- The same in both periods.",
@@ -2441,7 +2441,7 @@
  },
  "steps-today": {
   "en": "You logged 8,800 steps today (Tue, Nov 17).",
-  "nl": "Stappen: 8,800 stappen vandaag, van je doel van 8,000 stappen. Doel gehaald.",
+  "nl": "Stappen: 8.800 stappen vandaag, van je doel van 8.000 stappen. Doel gehaald.",
   "facts": null,
   "widgets": [],
   "fresh": "No steps are recorded today (Tue, Nov 17).",
@@ -2449,7 +2449,7 @@
  },
  "steps-yesterday": {
   "en": "You logged 8,100 steps yesterday (Mon, Nov 16).",
-  "nl": "Stappen: 8,100 stappen gisteren, van je doel van 8,000 stappen. Doel gehaald.",
+  "nl": "Stappen: 8.100 stappen gisteren, van je doel van 8.000 stappen. Doel gehaald.",
   "facts": null,
   "widgets": [],
   "fresh": "No steps are recorded yesterday (Mon, Nov 16).",
@@ -2569,7 +2569,7 @@
  },
  "steps-compare-weeks": {
   "en": "Steps: 16,900 steps this week; 51,100 steps last week, 34,200 steps less.",
-  "nl": "Stappen: 16,900 stappen deze week; 51,100 stappen vorige week, 34,200 stappen minder.",
+  "nl": "Stappen: 16.900 stappen deze week; 51.100 stappen vorige week, 34.200 stappen minder.",
   "facts": {
    "about": "Steps",
    "ask": "compare",
@@ -2620,7 +2620,7 @@
  },
  "steps-average-month": {
   "en": "You averaged 7,524 steps a day this month (Sun, Nov 1 to Tue, Nov 17), over the 17 days with steps recorded.\n- Total: 127,900 steps",
-  "nl": "Stappen: gemiddeld 7,524 stappen per dag deze maand (zo 1 nov t/m di 17 nov) (17 dagen gelogd).",
+  "nl": "Stappen: gemiddeld 7.524 stappen per dag deze maand (zo 1 nov t/m di 17 nov) (17 dagen gelogd).",
   "facts": null,
   "widgets": [],
   "fresh": "No steps are recorded this month (Sun, Nov 1 to Tue, Nov 17).",
@@ -2628,7 +2628,7 @@
  },
  "steps-best-month": {
   "en": "Your best day for steps this month (Sun, Nov 1 to Tue, Nov 17) was Mon, Nov 2 with 8,800 steps.",
-  "nl": "Stappen: je beste dag deze maand (zo 1 nov t/m di 17 nov) was ma 2 nov (8,800 stappen).",
+  "nl": "Stappen: je beste dag deze maand (zo 1 nov t/m di 17 nov) was ma 2 nov (8.800 stappen).",
   "facts": null,
   "widgets": [],
   "fresh": "No steps are recorded this month (Sun, Nov 1 to Tue, Nov 17).",
@@ -3001,7 +3001,7 @@
  },
  "weight-now": {
   "en": "Your latest weight is 73.5 kg, on Mon, Nov 16.\n- Change from Mon, Oct 19 to Mon, Nov 16: -1.1 kg\n- 8 readings the last 30 days (Mon, Oct 19 to Tue, Nov 17)",
-  "nl": "Gewicht: 73.48 kg (ma 16 nov), 1.12 kg lager dan op 19 okt. Je doel is 72 kg.",
+  "nl": "Gewicht: 73,48 kg (ma 16 nov), 1,12 kg lager dan op 19 okt. Je doel is 72 kg.",
   "facts": null,
   "widgets": [],
   "fresh": "No weight is recorded the last 30 days (Mon, Oct 19 to Tue, Nov 17).",
@@ -3009,7 +3009,7 @@
  },
  "weight-last-weighin": {
   "en": "Your latest weight is 73.5 kg, on Mon, Nov 16.\n- Change from Mon, Oct 19 to Mon, Nov 16: -1.1 kg\n- 8 readings the last 30 days (Mon, Oct 19 to Tue, Nov 17)",
-  "nl": "Gewicht: voor het laatst gewogen op ma 16 nov (gisteren), 73.48 kg.",
+  "nl": "Gewicht: voor het laatst gewogen op ma 16 nov (gisteren), 73,48 kg.",
   "facts": null,
   "widgets": [],
   "fresh": "No weight is recorded the last 30 days (Mon, Oct 19 to Tue, Nov 17).",
@@ -3392,7 +3392,7 @@
  },
  "calories-today": {
   "en": "Energy today (Tue, Nov 17): 1,970 kcal from 4 diary entries.",
-  "nl": "Calorieën: 1,970 kcal vandaag.",
+  "nl": "Calorieën: 1.970 kcal vandaag.",
   "facts": null,
   "widgets": [],
   "fresh": "Energy today (Tue, Nov 17): no entries.",
@@ -3513,7 +3513,7 @@
  },
  "calories-week": {
   "en": "Calories: 4,039 kcal this week (Mon, Nov 16 to Tue, Nov 17), 2,020 kcal a day on 2 days.",
-  "nl": "Calorieën: 4,039 kcal deze week (ma 16 nov t/m di 17 nov), 2,020 kcal per dag op 2 dagen.",
+  "nl": "Calorieën: 4.039 kcal deze week (ma 16 nov t/m di 17 nov), 2.020 kcal per dag op 2 dagen.",
   "facts": {
    "about": "Calories",
    "ask": "total",
@@ -3589,7 +3589,7 @@
  },
  "health-overall": {
   "en": "Your health, from what is recorded: sleep 7 h 17 min of 8 h; steps today 8,800 of 8,000 steps; water today 1,000 of 2,000 mL; weight 73.48 kg (Mon, Nov 16); 1 workout this week. Nothing recorded for: resting heart rate.",
-  "nl": "Je gezondheid, uit wat er is vastgelegd: slaap 7 h 17 min van 8 h; stappen vandaag 8,800 van 8,000 stappen; water vandaag 1,000 van 2,000 mL; gewicht 73.48 kg (ma 16 nov); 1 workout deze week. Niets vastgelegd voor: rusthartslag.",
+  "nl": "Je gezondheid, uit wat er is vastgelegd: slaap 7 h 17 min van 8 h; stappen vandaag 8.800 van 8.000 stappen; water vandaag 1.000 van 2.000 mL; gewicht 73,48 kg (ma 16 nov); 1 workout deze week. Niets vastgelegd voor: rusthartslag.",
   "facts": {
    "about": "health",
    "ask": "status",
@@ -3624,7 +3624,7 @@
  },
  "au-r2-lift-today": {
   "en": "Nothing lifted is logged today (Tue, Nov 17). Your last lifting day was Mon, Nov 16: Push day — Bench press 3 sets, top 62.5 kg × 8; Overhead press 2 sets, top 37.5 kg × 8; Triceps pushdown 2 sets, top 27.5 kg × 12.",
-  "nl": "Er is vandaag (di 17 nov) niets getild gelogd. Je laatste keer was ma 16 nov: Push day — Bench press 3 sets, zwaarst 62.5 kg × 8; Overhead press 2 sets, zwaarst 37.5 kg × 8; Triceps pushdown 2 sets, zwaarst 27.5 kg × 12.",
+  "nl": "Er is vandaag (di 17 nov) niets getild gelogd. Je laatste keer was ma 16 nov: Push day — Bench press 3 sets, zwaarst 62,5 kg × 8; Overhead press 2 sets, zwaarst 37,5 kg × 8; Triceps pushdown 2 sets, zwaarst 27,5 kg × 12.",
   "facts": {
    "about": "workouts",
    "ask": "done",
@@ -3643,7 +3643,7 @@
  },
  "au-r2-lift-yesterday": {
   "en": "Lifted yesterday (Mon, Nov 16): Push day — Bench press 3 sets, top 62.5 kg × 8; Overhead press 2 sets, top 37.5 kg × 8; Triceps pushdown 2 sets, top 27.5 kg × 12.",
-  "nl": "Getild gisteren (ma 16 nov): Push day — Bench press 3 sets, zwaarst 62.5 kg × 8; Overhead press 2 sets, zwaarst 37.5 kg × 8; Triceps pushdown 2 sets, zwaarst 27.5 kg × 12.",
+  "nl": "Getild gisteren (ma 16 nov): Push day — Bench press 3 sets, zwaarst 62,5 kg × 8; Overhead press 2 sets, zwaarst 37,5 kg × 8; Triceps pushdown 2 sets, zwaarst 27,5 kg × 12.",
   "facts": {
    "about": "workouts",
    "ask": "done",
@@ -3736,7 +3736,7 @@
  },
  "spend-month": {
   "en": "You spent 435.59 EUR this month. Biggest: Groceries 187.10 EUR, Bills 120.00 EUR, Food & drink 49.10 EUR. Room to spend this week: 144.40 EUR of 200.00 EUR. From your own entries in Wealth → Spending, never converted.",
-  "nl": "Je gaf deze maand 435.59 EUR uit. Grootste: Groceries 187.10 EUR, Bills 120.00 EUR, Food & drink 49.10 EUR. Ruimte deze week: 144.40 EUR van 200.00 EUR. Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.",
+  "nl": "Je gaf deze maand € 435,59 uit. Grootste: Groceries € 187,10, Bills € 120,00, Food & drink € 49,10. Ruimte deze week: € 144,40 van € 200,00. Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is logged in Wealth → Spending yet.",
@@ -3744,7 +3744,7 @@
  },
  "spend-lastmonth": {
   "en": "You spent 190.39 EUR last month. Biggest: Groceries 80.90 EUR, Gifts 58.00 EUR, Food & drink 22.50 EUR. Room to spend this week: 144.40 EUR of 200.00 EUR. From your own entries in Wealth → Spending, never converted.",
-  "nl": "Je gaf vorige maand 190.39 EUR uit. Grootste: Groceries 80.90 EUR, Gifts 58.00 EUR, Food & drink 22.50 EUR. Ruimte deze week: 144.40 EUR van 200.00 EUR. Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.",
+  "nl": "Je gaf vorige maand € 190,39 uit. Grootste: Groceries € 80,90, Gifts € 58,00, Food & drink € 22,50. Ruimte deze week: € 144,40 van € 200,00. Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is logged in Wealth → Spending yet.",
@@ -3752,7 +3752,7 @@
  },
  "spend-week": {
   "en": "You spent 55.60 EUR this week. Biggest: Groceries 38.90 EUR, Food & drink 16.70 EUR. Room to spend this week: 144.40 EUR of 200.00 EUR. From your own entries in Wealth → Spending, never converted.",
-  "nl": "Je gaf deze week 55.60 EUR uit. Grootste: Groceries 38.90 EUR, Food & drink 16.70 EUR. Ruimte deze week: 144.40 EUR van 200.00 EUR. Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.",
+  "nl": "Je gaf deze week € 55,60 uit. Grootste: Groceries € 38,90, Food & drink € 16,70. Ruimte deze week: € 144,40 van € 200,00. Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is logged in Wealth → Spending yet.",
@@ -3760,7 +3760,7 @@
  },
  "spend-yesterday": {
   "en": "€51.40 spent yesterday (Mon, Nov 16); most on Groceries (76%), in 2 entries.",
-  "nl": "€51.40 uitgegeven gisteren (ma 16 nov); het meest aan Groceries (76%), in 2 boekingen.",
+  "nl": "€ 51,40 uitgegeven gisteren (ma 16 nov); het meest aan Groceries (76%), in 2 boekingen.",
   "facts": {
    "about": "spending",
    "ask": "done",
@@ -3792,7 +3792,7 @@
  },
  "spend-top-month": {
   "en": "€435.59 spent this month (Sun, Nov 1 to Tue, Nov 17); most on Groceries €187.10 (43%), Bills €120.00 (28%), Food & drink €49.10 (11%) and Shopping €35.00 (8%).",
-  "nl": "€435.59 uitgegeven deze maand (zo 1 nov t/m di 17 nov); het meest aan Groceries €187.10 (43%), Bills €120.00 (28%), Food & drink €49.10 (11%) en Shopping €35.00 (8%).",
+  "nl": "€ 435,59 uitgegeven deze maand (zo 1 nov t/m di 17 nov); het meest aan Groceries € 187,10 (43%), Bills € 120,00 (28%), Food & drink € 49,10 (11%) en Shopping € 35,00 (8%).",
   "facts": {
    "about": "spending",
    "ask": "best",
@@ -3844,7 +3844,7 @@
  },
  "spend-top-lastmonth": {
   "en": "€190.39 spent last month (Thu, Oct 1 to Sat, Oct 31); most on Groceries €80.90 (42%), Gifts €58.00 (30%), Food & drink €22.50 (12%) and Health €15.00 (8%).",
-  "nl": "€190.39 uitgegeven vorige maand (do 1 okt t/m za 31 okt); het meest aan Groceries €80.90 (42%), Gifts €58.00 (30%), Food & drink €22.50 (12%) en Health €15.00 (8%).",
+  "nl": "€ 190,39 uitgegeven vorige maand (do 1 okt t/m za 31 okt); het meest aan Groceries € 80,90 (42%), Gifts € 58,00 (30%), Food & drink € 22,50 (12%) en Health € 15,00 (8%).",
   "facts": {
    "about": "spending",
    "ask": "best",
@@ -3888,7 +3888,7 @@
  },
  "spend-groceries-month": {
   "en": "You spent 187.10 EUR on groceries this month. Room to spend this week: 144.40 EUR of 200.00 EUR. From your own entries in Wealth → Spending, never converted.",
-  "nl": "Groceries: €187.10 uitgegeven deze maand (zo 1 nov t/m di 17 nov), in 4 boekingen.",
+  "nl": "Groceries: € 187,10 uitgegeven deze maand (zo 1 nov t/m di 17 nov), in 4 boekingen.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is logged in Wealth → Spending yet.",
@@ -3896,7 +3896,7 @@
  },
  "spend-biggest-expense": {
   "en": "Your largest expense this month (Sun, Nov 1 to Tue, Nov 17): €120.00 on Sun, Nov 8 (Energy).",
-  "nl": "Je grootste uitgave deze maand (zo 1 nov t/m di 17 nov): €120.00 op zo 8 nov (Energy).",
+  "nl": "Je grootste uitgave deze maand (zo 1 nov t/m di 17 nov): € 120,00 op zo 8 nov (Energy).",
   "facts": {
    "about": "spending",
    "ask": "best",
@@ -3953,7 +3953,7 @@
  },
  "spend-compare-months": {
   "en": "€435.59 spent this month; €190.39 last month, €245.20 more.",
-  "nl": "€435.59 uitgegeven deze maand; €190.39 vorige maand, €245.20 meer.",
+  "nl": "€ 435,59 uitgegeven deze maand; € 190,39 vorige maand, € 245,20 meer.",
   "facts": {
    "about": "spending",
    "ask": "compare",
@@ -4016,7 +4016,7 @@
  },
  "spend-days-month": {
   "en": "€435.59 spent on 13 days this month (Sun, Nov 1 to Tue, Nov 17): Mon, Nov 2, Tue, Nov 3, Thu, Nov 5, Sat, Nov 7, Sun, Nov 8, Mon, Nov 9, Tue, Nov 10, Thu, Nov 12, Fri, Nov 13, Sat, Nov 14, Sun, Nov 15, Mon, Nov 16 and 1 more.",
-  "nl": "€435.59 uitgegeven op 13 dagen deze maand (zo 1 nov t/m di 17 nov): ma 2 nov, di 3 nov, do 5 nov, za 7 nov, zo 8 nov, ma 9 nov, di 10 nov, do 12 nov, vr 13 nov, za 14 nov, zo 15 nov, ma 16 nov en nog 1.",
+  "nl": "€ 435,59 uitgegeven op 13 dagen deze maand (zo 1 nov t/m di 17 nov): ma 2 nov, di 3 nov, do 5 nov, za 7 nov, zo 8 nov, ma 9 nov, di 10 nov, do 12 nov, vr 13 nov, za 14 nov, zo 15 nov, ma 16 nov en nog 1.",
   "facts": {
    "about": "spending",
    "ask": "done",
@@ -4128,7 +4128,7 @@
  },
  "spend-average-month": {
   "en": "€25.62 a day on average this month (Sun, Nov 1 to Tue, Nov 17) (€435.59 over 17 days).",
-  "nl": "Gemiddeld €25.62 per dag deze maand (zo 1 nov t/m di 17 nov) (€435.59 over 17 dagen).",
+  "nl": "Gemiddeld € 25,62 per dag deze maand (zo 1 nov t/m di 17 nov) (€ 435,59 over 17 dagen).",
   "facts": {
    "about": "spending",
    "ask": "average",
@@ -4181,7 +4181,7 @@
  },
  "income-month": {
   "en": "€2,550.00 came in this month (Sun, Nov 1 to Tue, Nov 17), in 2 entries.",
-  "nl": "€2,550.00 binnengekomen deze maand (zo 1 nov t/m di 17 nov), in 2 boekingen.",
+  "nl": "€ 2.550,00 binnengekomen deze maand (zo 1 nov t/m di 17 nov), in 2 boekingen.",
   "facts": {
    "about": "income",
    "ask": "done",
@@ -4240,7 +4240,7 @@
  },
  "budgets-status": {
   "en": "This month, from your own entries (per currency, never converted):\n• Groceries: 187.10 EUR of 250.00 EUR, 62.90 EUR left; target 300.00 EUR by 2026-12: 62.90 EUR set aside, 237.10 EUR a month from next month (on track)\n• Food & drink: 49.10 EUR of 120.00 EUR, 70.90 EUR left\n• Fun: 24.00 EUR of 60.00 EUR, 36.00 EUR left\nNone is over.",
-  "nl": "3 van 3 budgetten binnen plan deze maand: Groceries €187.10 van €250.00, Food & drink €49.10 van €120.00 en Fun €24.00 van €60.00.",
+  "nl": "3 van 3 budgetten binnen plan deze maand: Groceries € 187,10 van € 250,00, Food & drink € 49,10 van € 120,00 en Fun € 24,00 van € 60,00.",
   "facts": null,
   "widgets": [],
   "fresh": "No budget is set yet (Wealth → Spending → Budgets).",
@@ -4248,7 +4248,7 @@
  },
  "budget-fun-left": {
   "en": "This month, from your own entries (per currency, never converted):\n• Fun: 24.00 EUR of 60.00 EUR, 36.00 EUR left",
-  "nl": "Fun: €24.00 van €60.00 deze maand.",
+  "nl": "Fun: € 24,00 van € 60,00 deze maand, nog € 36,00 over.",
   "facts": null,
   "widgets": [],
   "fresh": "No budget is set yet (Wealth → Spending → Budgets).",
@@ -4256,7 +4256,7 @@
  },
  "bills-next": {
   "en": "Next bill: Rent €950.00, in 14 days (Tue, Dec 1); 3 more after it.",
-  "nl": "Volgende rekening: Rent €950.00, over 14 dagen (di 1 dec); daarna nog 3.",
+  "nl": "Volgende rekening: Rent € 950,00, over 14 dagen (di 1 dec); daarna nog 3.",
   "facts": {
    "about": "bills",
    "ask": "next",
@@ -4302,7 +4302,7 @@
  },
  "bills-overdue": {
   "en": "No bill is overdue. Next: Rent €950.00, in 14 days (Tue, Dec 1).",
-  "nl": "Geen rekening is te laat. De volgende: Rent €950.00, over 14 dagen (di 1 dec).",
+  "nl": "Geen rekening is te laat. De volgende: Rent € 950,00, over 14 dagen (di 1 dec).",
   "facts": {
    "about": "bills",
    "ask": "late",
@@ -4347,7 +4347,7 @@
  },
  "bills-week": {
   "en": "No bill falls due in the next 7 days. Next: Rent €950.00, in 14 days (Tue, Dec 1).",
-  "nl": "Geen rekening vervalt in de komende 7 dagen. De volgende: Rent €950.00, over 14 dagen (di 1 dec).",
+  "nl": "Geen rekening vervalt in de komende 7 dagen. De volgende: Rent € 950,00, over 14 dagen (di 1 dec).",
   "facts": {
    "about": "bills",
    "ask": "open",
@@ -4393,7 +4393,7 @@
  },
  "bills-list": {
   "en": "4 bill reminders; next due:\n• Rent · SHOWCASE DATA: 2026-12-01, 950.00 EUR (monthly)\n• Energy · SHOWCASE DATA: 2026-12-08, 120.00 EUR (monthly)\n• Music · SHOWCASE DATA: 2026-12-14, 9.99 EUR (monthly)\nReminders only; nothing is paid. Per currency, never converted.",
-  "nl": "3 rekeningen vervallen in de komende 30 dagen: Rent €950.00, over 14 dagen (di 1 dec), Energy €120.00, over 21 dagen (di 8 dec) en Music €9.99, over 27 dagen (ma 14 dec).",
+  "nl": "3 rekeningen vervallen in de komende 30 dagen: Rent € 950,00, over 14 dagen (di 1 dec), Energy € 120,00, over 21 dagen (di 8 dec) en Music € 9,99, over 27 dagen (ma 14 dec).",
   "facts": null,
   "widgets": [],
   "fresh": "No bill reminder is kept. Wealth → Bills adds one (a reminder only; nothing is paid).\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"wealth\"}\n```",
@@ -4401,7 +4401,7 @@
  },
  "bills-total": {
   "en": "Your bills come to about €1,094.99 in a typical month (an estimate); €1,079.99 in 3 bills fall due in the next 30 days.",
-  "nl": "Je rekeningen komen op ongeveer €1,094.99 in een gewone maand (een schatting); €1,079.99 in 3 rekeningen in de komende 30 dagen.",
+  "nl": "Je rekeningen komen op ongeveer € 1.094,99 in een gewone maand (een schatting); € 1.079,99 in 3 rekeningen in de komende 30 dagen.",
   "facts": {
    "about": "bills",
    "ask": "total",
@@ -4459,7 +4459,7 @@
  },
  "networth-now": {
   "en": "Your tracked wealth, one total per currency (never converted): 501,800.00 USD and 8,000.00 EUR.\n- 2 holdings without a price are not counted\n- Values from Manual value, observed Tue, Nov 17, 12:00 AM UTC\n- With your accounts and debts, your net worth is 8,000.00 EUR (holdings with a value 8,000.00 EUR) and 531,029.00 USD (accounts 36,780.00 USD, holdings with a value 501,800.00 USD, debts 7,551.00 USD), never converted between currencies",
-  "nl": "Nettovermogen: $531,029.00, na $7,551.00 aan schulden; en €8,000.00, elke valuta apart. 2 bezittingen hebben geen bekende waarde en zitten er niet in.",
+  "nl": "Nettovermogen: US$ 531.029,00, na US$ 7.551,00 aan schulden; en € 8.000,00, elke valuta apart. 2 bezittingen hebben geen bekende waarde en zitten er niet in.",
   "facts": null,
   "widgets": [],
   "fresh": "No holdings are tracked in Wealth yet.",
@@ -4467,7 +4467,7 @@
  },
  "coin-btc": {
   "en": "You hold 0.45 BTC in Wealth (1 holding), with no price, so no value.\n- Portfolio (separate from Wealth): no BTC in a Real portfolio",
-  "nl": "Je hebt 0.45 BTC in Wealth (1 positie), zonder prijs, dus zonder waarde.\n- Portfolio (los van Wealth): geen BTC in een Real-portfolio",
+  "nl": "Je hebt 0,45 BTC in Wealth (1 positie), zonder prijs, dus zonder waarde.\n- Portfolio (los van Wealth): geen BTC in een Real-portfolio",
   "facts": null,
   "widgets": [],
   "fresh": "You have no BTC recorded in Wealth, so there is no amount to show.\n- To track it: Wealth → + Add asset → Crypto, then BTC and the amount you hold",
@@ -4483,7 +4483,7 @@
  },
  "goals-status": {
   "en": "7 active goals, from your own records:\n• Emergency fund: 45% — $9,000 of $20,000, $11,000 to go; next planned Fri, Nov 20\n• First home deposit: 65% — $52,000 of $80,000, $28,000 to go; next planned Fri, Nov 20\n• Japan adventure: 41.66% — $2,500 of $6,000, $3,500 to go; next planned Fri, Nov 20\n• Launch my creative studio: 50% — 2 milestones of 4 milestones, 2 milestones to go\n• Reward income reserve: 50% — 10,000 ZIG of 20,000 ZIG, 10,000 ZIG to go; next planned Fri, Nov 20\n• Create 2 hours a day: 94.64% — 1.9 h a day of at least 2 h a day\n• Sleep 8 hours a night: 86.77% — 6.9 h a night of at least 8 h a night\n3 goals completed.\nAsk about one goal by its name for its plan and pace. Your own figures; not financial advice.",
-  "nl": "7 actieve doelen, uit je eigen gegevens:\n• Emergency fund: 45% — $9,000 van $20,000, nog $11,000 te gaan; volgende geplande stap vr 20 nov\n• First home deposit: 65% — $52,000 van $80,000, nog $28,000 te gaan; volgende geplande stap vr 20 nov\n• Japan adventure: 41.66% — $2,500 van $6,000, nog $3,500 te gaan; volgende geplande stap vr 20 nov\n• Launch my creative studio: 50% — 2 milestones van 4 milestones, nog 2 milestones te gaan\n• Reward income reserve: 50% — 10,000 ZIG van 20,000 ZIG, nog 10,000 ZIG te gaan; volgende geplande stap vr 20 nov\n• Create 2 hours a day: 94.64% — 1.9 h a day van at least 2 h a day\n• Sleep 8 hours a night: 86.77% — 6.9 h a night van at least 8 h a night\n3 doelen afgerond.\nVraag naar één doel bij naam voor het plan en het tempo. Je eigen cijfers; geen financieel advies.",
+  "nl": "7 actieve doelen, uit je eigen gegevens:\n• Emergency fund: 45% — US$ 9.000 van US$ 20.000, nog US$ 11.000 te gaan; volgende geplande stap vr 20 nov\n• First home deposit: 65% — US$ 52.000 van US$ 80.000, nog US$ 28.000 te gaan; volgende geplande stap vr 20 nov\n• Japan adventure: 41,66% — US$ 2.500 van US$ 6.000, nog US$ 3.500 te gaan; volgende geplande stap vr 20 nov\n• Launch my creative studio: 50% — 2 milestones van 4 milestones, nog 2 milestones te gaan\n• Reward income reserve: 50% — 10.000 ZIG van 20.000 ZIG, nog 10.000 ZIG te gaan; volgende geplande stap vr 20 nov\n• Create 2 hours a day: 94,64% — 1,9 h a day van at least 2 h a day\n• Sleep 8 hours a night: 86,77% — 6,9 h a night van at least 8 h a night\n3 doelen afgerond.\nVraag naar één doel bij naam voor het plan en het tempo. Je eigen cijfers; geen financieel advies.",
   "facts": null,
   "widgets": [],
   "fresh": "You have no active goals yet. Open Goals to create one, or tell me the goal and I will draft it as a card.",
@@ -4566,7 +4566,7 @@
  },
  "goals-closest": {
   "en": "Closest to done: First home deposit 65% (on track), $28,000.00 to go.",
-  "nl": "Het dichtst bij klaar: First home deposit 65% (op schema), nog $28,000.00 te gaan.",
+  "nl": "Het dichtst bij klaar: First home deposit 65% (op schema), nog US$ 28.000,00 te gaan.",
   "facts": {
    "about": "goals",
    "ask": "best",
@@ -4639,7 +4639,7 @@
  },
  "goals-furthest": {
   "en": "Furthest from done: Japan adventure 42% (behind plan), $3,500.00 to go.",
-  "nl": "Het verst van klaar: Japan adventure 42% (achter op schema), nog $3,500.00 te gaan.",
+  "nl": "Het verst van klaar: Japan adventure 42% (achter op schema), nog US$ 3.500,00 te gaan.",
   "facts": {
    "about": "goals",
    "ask": "worst",
@@ -4892,7 +4892,7 @@
  },
  "goal-japan": {
   "en": "Japan adventure: 41.66% of the target — $2,500 of $6,000.\n- $3,500 to go\n- Target date: Fri, Apr 16, 2027\n- Next planned contribution: Fri, Nov 20\n- Contributed so far: $100; planned through today: $500",
-  "nl": "Japan adventure: $2,500.00 van $6,000.00 (42%), achter op schema; nog $3,500.00 te gaan; streefdatum vr 16 apr 2027.",
+  "nl": "Japan adventure: US$ 2.500,00 van US$ 6.000,00 (42%), achter op schema; nog US$ 3.500,00 te gaan; streefdatum vr 16 apr 2027.",
   "facts": null,
   "widgets": [],
   "fresh": "You have no goals yet. Open Goals to create one, or tell me the goal and I will draft it as a card.",
@@ -4900,7 +4900,7 @@
  },
  "networth-year": {
   "en": "Net worth: $531,029.00, after $7,551.00 of debts; and €8,000.00, each currency on its own. 2 holdings have no known value and are not in it. That is today's figure; how it moved this year is on the net worth river beside this answer.",
-  "nl": "Dat kan ik niet precies uit je gegevens halen. Wat er wel staat: Nettovermogen: $531,029.00, na $7,551.00 aan schulden; en €8,000.00, elke valuta apart. 2 bezittingen hebben geen bekende waarde en zitten er niet in.",
+  "nl": "Dat kan ik niet precies uit je gegevens halen. Wat er wel staat: Nettovermogen: US$ 531.029,00, na US$ 7.551,00 aan schulden; en € 8.000,00, elke valuta apart. 2 bezittingen hebben geen bekende waarde en zitten er niet in.",
   "facts": {
    "about": "networth",
    "ask": "status",
@@ -4933,15 +4933,15 @@
  },
  "goal-emergency": {
   "en": "Emergency fund: 45% of the target — $9,000 of $20,000.\n- $11,000 to go\n- Target date: Thu, Nov 16, 2028\n- Next planned contribution: Fri, Nov 20\n- Contributed so far: $750; planned through today: $500",
-  "nl": "Emergency fund: $9,000.00 van $20,000.00 (45%), voor op schema; nog $11,000.00 te gaan; streefdatum do 16 nov 2028.",
+  "nl": "Emergency fund: US$ 9.000,00 van US$ 20.000,00 (45%), voor op schema; nog US$ 11.000,00 te gaan; streefdatum do 16 nov 2028.",
   "facts": null,
   "widgets": [],
   "fresh": "No goal is called “emergency fund”. You have no goals yet; Goals → Create a goal starts one.",
-  "freshNl": "Tot je me een brein geeft, beantwoord ik vragen uit je eigen gegevens op dit apparaat, voorlopig in het Engels. Tik op een voorbeeld:"
+  "freshNl": "Tot je me een brein geeft, beantwoord ik vragen uit je eigen gegevens op dit apparaat. Tik op een voorbeeld:"
  },
  "goal-emergency-eta": {
   "en": "At your current pace, you reach Emergency fund about Jan 31, 2028 — an estimate from your pace so far, not a promise. Target date Thu, Nov 16, 2028; $11,000.00 still to go.",
-  "nl": "In je huidige tempo haal je Emergency fund rond 31 jan 2028 — een schatting op basis van je tempo tot nu toe, geen belofte. Streefdatum do 16 nov 2028; nog $11,000.00 te gaan.",
+  "nl": "In je huidige tempo haal je Emergency fund rond 31 jan 2028 — een schatting op basis van je tempo tot nu toe, geen belofte. Streefdatum do 16 nov 2028; nog US$ 11.000,00 te gaan.",
   "facts": {
    "about": "goals",
    "ask": "done",
@@ -4960,7 +4960,7 @@
  },
  "goal-japan-eta": {
   "en": "No pace yet for Japan adventure: there is not enough recorded progress yet (a pace needs at least 3 recorded steps over 14 days or more). Target date Fri, Apr 16, 2027; $3,500.00 still to go.",
-  "nl": "Nog geen tempo voor Japan adventure: er is nog te weinig vastgelegde voortgang (een tempo vraagt minstens 3 vastgelegde stappen over 14 dagen of meer). Streefdatum vr 16 apr 2027; nog $3,500.00 te gaan.",
+  "nl": "Nog geen tempo voor Japan adventure: er is nog te weinig vastgelegde voortgang (een tempo vraagt minstens 3 vastgelegde stappen over 14 dagen of meer). Streefdatum vr 16 apr 2027; nog US$ 3.500,00 te gaan.",
   "facts": {
    "about": "goals",
    "ask": "done",
@@ -4978,8 +4978,8 @@
   "freshNl": "Je hebt nog geen doelen."
  },
  "au-r6-bill-price": {
-  "en": "Streaming went up from €12.99 to €13.99 since Jul 2026. From their payments in your money log, as Bills → Price changes shows them.",
-  "nl": "Streaming ging omhoog van €12.99 naar €13.99 sinds juli 2026. Uit de betalingen in je geldlog, zoals Bills → Price changes ze toont.",
+  "en": "Streaming went up from €12.99 to €13.99 since Aug 2026. From their payments in your money log, as Bills → Price changes shows them.",
+  "nl": "Streaming ging omhoog van € 12,99 naar € 13,99 sinds augustus 2026. Uit de betalingen in je geldlog, zoals Bills → Price changes ze toont.",
   "facts": {
    "about": "bills",
    "ask": "done",
@@ -5004,7 +5004,7 @@
  },
  "au-r7-coin-price": {
   "en": "Wealth: no price for BTC on this device yet (the Wealth page shows the same).\nPortfolio “Fictional long-term coins”: 65,000 USD (Showcase example price).\nPrices as these pages show them; facts only, not advice.",
-  "nl": "Vermogen: nog geen prijs voor BTC op dit apparaat (de Vermogen-pagina toont hetzelfde).\nPortfolio “Fictional long-term coins”: 65,000 USD (Showcase example price).\nPrijzen zoals deze pagina’s ze tonen; alleen feiten, geen advies.",
+  "nl": "Vermogen: nog geen prijs voor BTC op dit apparaat (de Vermogen-pagina toont hetzelfde).\nPortfolio “Fictional long-term coins”: 65.000 USD (Showcase example price).\nPrijzen zoals deze pagina’s ze tonen; alleen feiten, geen advies.",
   "facts": null,
   "widgets": [],
   "fresh": "BTC is not tracked in Wealth or Portfolio and no BTC price has reached Markets on this device, so I give none: I read prices only where the app already has them. Markets shows the price with its source and time.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"markets\"}\n```",
@@ -5028,7 +5028,7 @@
  },
  "au-r11-next-bill": {
   "en": "Next bill: Rent €950.00, in 14 days (Tue, Dec 1); 3 more after it.",
-  "nl": "Volgende rekening: Rent €950.00, over 14 dagen (di 1 dec); daarna nog 3.",
+  "nl": "Volgende rekening: Rent € 950,00, over 14 dagen (di 1 dec); daarna nog 3.",
   "facts": {
    "about": "bills",
    "ask": "next",
@@ -5074,7 +5074,7 @@
  },
  "av-debt-free": {
   "en": "From your own figures (Wealth → What you owe → Plan paying off your debts):\n• USD (2 debts, $100.00 extra a month): debt-free in Apr 2028 (in 1 year and 5 months, $316.87 interest) with avalanche; Apr 2028 (in 1 year and 5 months, $316.87 interest) with snowball; minimums only: Oct 2029 (in 2 years and 11 months, $672.30 interest). Both orders come out the same here: debt-free after 17 months, with the same interest.\nA model, not advice: it assumes the rates and payments stay the same and nothing new is borrowed. Nothing is paid or moved.",
-  "nl": "USD: schuldenvrij in april 2028 (over 1 jaar en 5 maanden, $316.87 rente) met lawine, april 2028 (over 1 jaar en 5 maanden, $316.87 rente) met sneeuwbal; alleen de minimumbedragen: oktober 2029 (over 2 jaar en 11 maanden, $672.30 rente). Uit je eigen bedragen in Vermogen → Wat je schuldig bent → Plan je aflossing (Wealth → What you owe → Plan paying off your debts); een model, geen advies: er wordt niets betaald of verplaatst.",
+  "nl": "USD: schuldenvrij in april 2028 (over 1 jaar en 5 maanden, US$ 316,87 rente) met lawine, april 2028 (over 1 jaar en 5 maanden, US$ 316,87 rente) met sneeuwbal; alleen de minimumbedragen: oktober 2029 (over 2 jaar en 11 maanden, US$ 672,30 rente). Uit je eigen bedragen in Vermogen → Wat je schuldig bent → Plan je aflossing (Wealth → What you owe → Plan paying off your debts); een model, geen advies: er wordt niets betaald of verplaatst.",
   "facts": null,
   "widgets": [],
   "fresh": "No debt with a balance is recorded on this device, so there is no debt-free month to work out. A loan, mortgage or credit card goes under Wealth → Accounts, debts & net worth, with what you owe and your yearly rate.",
@@ -6001,7 +6001,7 @@
  },
  "life-doing": {
   "en": "Your day so far (Tue, Nov 17): habits 4 of 7 done, 3 still open; 5 open tasks, 2 overdue; steps 8,800 steps; water 1,000 mL; sleep 7 h 17 min.",
-  "nl": "Je dag tot nu toe (di 17 nov): gewoontes 4 van 7 gedaan, 3 nog open; 5 open taken, 2 te laat; stappen 8,800 stappen; water 1,000 mL; slaap 7 h 17 min.",
+  "nl": "Je dag tot nu toe (di 17 nov): gewoontes 4 van 7 gedaan, 3 nog open; 5 open taken, 2 te laat; stappen 8.800 stappen; water 1.000 mL; slaap 7 h 17 min.",
   "facts": {
    "about": "life",
    "ask": "status",
@@ -6048,7 +6048,7 @@
  },
  "life-week": {
   "en": "The last 7 days (2026-11-11 to 2026-11-17), from your Habits journal:\n• Read: 6 of 7 planned days (100%)\n• Exercise: 5 of 7 planned days (83%)\n• Walk: 6 of 7 planned days (100%)\n• Meditate: 5 of 7 planned days (83%)\n• Contribute: 6 of 7 planned days (100%)\n• Drink water: 6 of 7 planned days (86%)\n• Late-night snacks (Showcase): 5 of 7 planned days (83%)",
-  "nl": "Je gegevens deze week: gewoontes 11 van 14 gedaan, 3 nog open (12 van 12 de periode ervoor); 5 open taken, 2 te laat; stappen 8,450 stappen per dag; water 1,550 mL per dag; slaap 6 h 57 min per dag.",
+  "nl": "Je gegevens deze week: gewoontes 11 van 14 gedaan, 3 nog open (12 van 12 de periode ervoor); 5 open taken, 2 te laat; stappen 8.450 stappen per dag; water 1.550 mL per dag; slaap 6 h 57 min per dag.",
   "facts": null,
   "widgets": [],
   "fresh": "No habit is kept yet, so there is no consistency to show.",
@@ -6243,7 +6243,7 @@
  },
  "journey-level": {
   "en": "Showcase example (fictional records): You are level 8, Nebula, with 3,577 XP: 377 of 850 XP to level 9 (Pulsar). This week 258 XP, last week 665 XP, today 96 XP. Counted on this device from your check-ins, logs, goal steps and reviews, as Journey counts them.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"journey\"}\n```",
-  "nl": "Showcase-voorbeeld (fictieve gegevens): Je bent level 8, Nebula, met 3,577 XP: 377 van 850 XP tot level 9 (Pulsar). Deze week 258 XP, vorige week 665 XP, vandaag 96 XP. Op dit apparaat geteld uit je check-ins, logs, doelstappen en reviews, zoals Journey ze telt.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"journey\"}\n```",
+  "nl": "Showcase-voorbeeld (fictieve gegevens): Je bent level 8, Nebula, met 3.577 XP: 377 van 850 XP tot level 9 (Pulsar). Deze week 258 XP, vorige week 665 XP, vandaag 96 XP. Op dit apparaat geteld uit je check-ins, logs, doelstappen en reviews, zoals Journey ze telt.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"journey\"}\n```",
   "facts": null,
   "widgets": [],
   "fresh": "The game layer is off on this device, so there is no level or XP: Journey counts them only while it is on (turn it on on Journey).\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"journey\"}\n```",
@@ -6251,7 +6251,7 @@
  },
  "unknown-spending": {
   "en": "You spent 435.59 EUR this month. Biggest: Groceries 187.10 EUR, Bills 120.00 EUR, Food & drink 49.10 EUR. Room to spend this week: 144.40 EUR of 200.00 EUR. From your own entries in Wealth → Spending, never converted.",
-  "nl": "Je gaf deze maand 435.59 EUR uit. Grootste: Groceries 187.10 EUR, Bills 120.00 EUR, Food & drink 49.10 EUR. Ruimte deze week: 144.40 EUR van 200.00 EUR. Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.",
+  "nl": "Je gaf deze maand € 435,59 uit. Grootste: Groceries € 187,10, Bills € 120,00, Food & drink € 49,10. Ruimte deze week: € 144,40 van € 200,00. Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is logged in Wealth → Spending yet.",
@@ -6307,7 +6307,7 @@
  },
  "av-bills-year": {
   "en": "Your bills come to about €13,139.88 a year (an estimate from each bill’s own cadence: weekly ×52, monthly ×12, every 3 months ×4, yearly ×1; never converted); about €1,094.99 in a typical month.",
-  "nl": "Je rekeningen komen op ongeveer €13,139.88 per jaar (een schatting uit het ritme van elke rekening: wekelijks ×52, maandelijks ×12, elke 3 maanden ×4, jaarlijks ×1; nooit omgerekend); ongeveer €1,094.99 in een gewone maand.",
+  "nl": "Je rekeningen komen op ongeveer € 13.139,88 per jaar (een schatting uit het ritme van elke rekening: wekelijks ×52, maandelijks ×12, elke 3 maanden ×4, jaarlijks ×1; nooit omgerekend); ongeveer € 1.094,99 in een gewone maand.",
   "facts": null,
   "widgets": [],
   "fresh": "No bill reminders yet.",
@@ -6315,7 +6315,7 @@
  },
  "av-bills-paid": {
   "en": "Bills in Nov 2026: 2 seen in your money log: Energy €120.00 (Sun, Nov 8) and Music €9.99 (Sat, Nov 14); 1 passed with no matching entry in your log: Rent €950.00 (Sun, Nov 1). ZIGoals pays nothing: “seen” means your money log has a matching expense.",
-  "nl": "Rekeningen in november 2026: 2 gezien in je geldlog: Energy €120.00 (zo 8 nov) en Music €9.99 (za 14 nov); 1 voorbij zonder passende uitgave in je log: Rent €950.00 (zo 1 nov). ZIGoals betaalt niets: “gezien” betekent dat je geldlog een passende uitgave heeft.",
+  "nl": "Rekeningen in november 2026: 2 gezien in je geldlog: Energy € 120,00 (zo 8 nov) en Music € 9,99 (za 14 nov); 1 voorbij zonder passende uitgave in je log: Rent € 950,00 (zo 1 nov). ZIGoals betaalt niets: “gezien” betekent dat je geldlog een passende uitgave heeft.",
   "facts": null,
   "widgets": [],
   "fresh": "No bill reminders yet.",
@@ -6331,7 +6331,7 @@
  },
  "av-budget-targets": {
   "en": "Groceries: target €300.00 by Dec 2026: €62.90 set aside, €237.10 a month from next month, on track.",
-  "nl": "Groceries: doel €300.00 uiterlijk december 2026: €62.90 opzij, €237.10 per maand vanaf volgende maand, op schema. Food & drink en Fun hebben geen doel.",
+  "nl": "Groceries: doel € 300,00 uiterlijk december 2026: € 62,90 opzij, € 237,10 per maand vanaf volgende maand, op schema. Food & drink en Fun hebben geen doel.",
   "facts": null,
   "widgets": [],
   "fresh": "You have no goals yet.",
@@ -6347,7 +6347,7 @@
  },
  "av-spend-vs-last": {
   "en": "This month so far (to Tue, Nov 17) you spent €435.59; last month by the same day (to Sat, Oct 17) €0.00, €435.59 more. All of last month: €190.39. Most this month: Groceries €187.10 (then €0.00), Bills €120.00 (then €0.00) and Food & drink €49.10 (then €0.00). In EUR, never converted.",
-  "nl": "Deze maand tot nu toe (t/m di 17 nov) gaf je €435.59 uit; vorige maand op dezelfde dag (t/m za 17 okt) €0.00, €435.59 meer. Heel vorige maand: €190.39. Het meest deze maand: Groceries €187.10 (toen €0.00), Bills €120.00 (toen €0.00) en Food & drink €49.10 (toen €0.00). In EUR, nooit omgerekend.",
+  "nl": "Deze maand tot nu toe (t/m di 17 nov) gaf je € 435,59 uit; vorige maand op dezelfde dag (t/m za 17 okt) € 0,00, € 435,59 meer. Heel vorige maand: € 190,39. Het meest deze maand: Groceries € 187,10 (toen € 0,00), Bills € 120,00 (toen € 0,00) en Food & drink € 49,10 (toen € 0,00). In EUR, nooit omgerekend.",
   "facts": null,
   "widgets": [],
   "fresh": "No spending logged this month or last, so there is nothing to compare.",
@@ -6355,7 +6355,7 @@
  },
  "av-income-went": {
   "en": "€2,550.00 came in in Nov 2026; €435.59 of it went to spending: Groceries €187.10, Bills €120.00, Food & drink €49.10, Shopping €35.00 and other categories €44.39; €2,114.41 is left (income minus the spending recorded, not a savings figure). In EUR, never converted.",
-  "nl": "€2,550.00 kwam binnen in november 2026; €435.59 ging naar uitgaven: Groceries €187.10, Bills €120.00, Food & drink €49.10, Shopping €35.00 en andere categorieën €44.39; €2,114.41 blijft over (inkomen min de gelogde uitgaven, geen spaarbedrag). In EUR, nooit omgerekend.",
+  "nl": "€ 2.550,00 kwam binnen in november 2026; € 435,59 ging naar uitgaven: Groceries € 187,10, Bills € 120,00, Food & drink € 49,10, Shopping € 35,00 en andere categorieën € 44,39; € 2.114,41 blijft over (inkomen min de gelogde uitgaven, geen spaarbedrag). In EUR, nooit omgerekend.",
   "facts": null,
   "widgets": [],
   "fresh": "No income is logged in Nov 2026, so there is nothing to follow.",
@@ -6363,7 +6363,7 @@
  },
  "av-debt-schedule": {
   "en": "Your payoff schedule, from your own figures:\n• USD (avalanche, $100.00 extra a month): paid off Credit card in Feb 2027 and Car loan in Apr 2028; debt-free in Apr 2028. Still owed after 3 months $5,402.81, after 6 months $4,201.61 and after 12 months $1,745.54.\nThe month-by-month table is in Wealth → What you owe → Plan paying off your debts. A model, not advice: it assumes the rates and payments stay the same and nothing new is borrowed. Nothing is paid or moved.",
-  "nl": "Je aflosschema, uit je eigen bedragen:\n• USD (lawine, $100.00 extra per maand): afgelost Credit card in februari 2027 en Car loan in april 2028; schuldenvrij in april 2028. Nog te betalen na 3 maanden $5,402.81, na 6 maanden $4,201.61 en na 12 maanden $1,745.54.\nDe tabel per maand staat in Vermogen → Wat je schuldig bent → Plan je aflossing (Wealth → What you owe → Plan paying off your debts). Een model, geen advies: het gaat ervan uit dat rentes en betalingen gelijk blijven en dat je niets bijleent. Er wordt niets betaald of verplaatst.",
+  "nl": "Je aflosschema, uit je eigen bedragen:\n• USD (lawine, US$ 100,00 extra per maand): afgelost Credit card in februari 2027 en Car loan in april 2028; schuldenvrij in april 2028. Nog te betalen na 3 maanden US$ 5.402,81, na 6 maanden US$ 4.201,61 en na 12 maanden US$ 1.745,54.\nDe tabel per maand staat in Vermogen → Wat je schuldig bent → Plan je aflossing (Wealth → What you owe → Plan paying off your debts). Een model, geen advies: het gaat ervan uit dat rentes en betalingen gelijk blijven en dat je niets bijleent. Er wordt niets betaald of verplaatst.",
   "facts": null,
   "widgets": [],
   "fresh": "No debt with a balance is recorded on this device, so there is no payoff schedule. A loan, mortgage or credit card goes under Wealth → Accounts, debts & net worth.",
@@ -6379,7 +6379,7 @@
  },
  "av-payee": {
   "en": "€61.30 spent at “Market” in your whole money log: 1 entry: Thu, Nov 12. Per currency, never converted.",
-  "nl": "€61.30 uitgegeven bij “Market” in je hele geldlog: 1 invoer: do 12 nov. Per valuta, nooit omgerekend.",
+  "nl": "€ 61,30 uitgegeven bij “Market” in je hele geldlog: 1 invoer: do 12 nov. Per valuta, nooit omgerekend.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing in your whole money log matches “Market” (its notes and categories were searched).",
@@ -6395,7 +6395,7 @@
  },
  "av-watched": {
   "en": "You watch 1 category this month: Transport €10.40 (last month by the same day €0.00).",
-  "nl": "Je volgt 1 categorie deze maand: Transport €10.40 (vorige maand op dezelfde dag €0.00).",
+  "nl": "Je volgt 1 categorie deze maand: Transport € 10,40 (vorige maand op dezelfde dag € 0,00).",
   "facts": null,
   "widgets": [],
   "fresh": "You don’t watch a category yet. In Wealth → Budgets, “Watch a category” follows one without a budget, this month against last month by the same day.",
@@ -6403,7 +6403,7 @@
  },
  "av-price-alerts": {
   "en": "2 alerts:\n• BTC (example) above 250,000 USD (waiting)\n• ETH (example) below 2,500 USD (went off on Sun, Nov 15)\nChecked against the last price the app read; nothing is bought or sold.",
-  "nl": "2 alarmen:\n• BTC (example) boven 250,000 USD (wacht)\n• ETH (example) onder 2,500 USD (afgegaan op zo 15 nov)\nGetoetst aan de laatste koers die de app las; er wordt niets gekocht of verkocht.",
+  "nl": "2 alarmen:\n• BTC (example) boven 250.000 USD (wacht)\n• ETH (example) onder 2.500 USD (afgegaan op zo 15 nov)\nGetoetst aan de laatste koers die de app las; er wordt niets gekocht of verkocht.",
   "facts": null,
   "widgets": [],
   "fresh": "No price alert is set yet. A coin’s page on Markets, or Portfolio, sets one (in the app only; nothing is bought or sold).",
@@ -6411,7 +6411,7 @@
  },
  "av-month-recap": {
   "en": "Oct 2026: €190.39 spent and €0.00 came in; €176.40 more spent than in Sep 2026. Most on Groceries €80.90, Gifts €58.00 and Food & drink €22.50. The largest single expense: Birthday present €58.00 (Thu, Oct 22). In EUR, never converted.",
-  "nl": "oktober 2026: €190.39 uitgegeven en €0.00 binnengekomen; €176.40 meer uitgegeven dan in september 2026. Het meest aan Groceries €80.90, Gifts €58.00 en Food & drink €22.50. De grootste uitgave: Birthday present €58.00 (do 22 okt). In EUR, nooit omgerekend.",
+  "nl": "oktober 2026: € 190,39 uitgegeven en € 0,00 binnengekomen; € 176,40 meer uitgegeven dan in september 2026. Het meest aan Groceries € 80,90, Gifts € 58,00 en Food & drink € 22,50. De grootste uitgave: Birthday present € 58,00 (do 22 okt). In EUR, nooit omgerekend.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is logged in Oct 2026.",
@@ -6443,7 +6443,7 @@
  },
  "av-lifted": {
   "en": "You lifted 2,643 kg this week (Mon, Nov 16 to Tue, Nov 17): working sets, weight × reps, warm-ups left out, in 1 workout (Push day). Your body weight is another question.",
-  "nl": "Je tilde deze week 2,643 kg (ma 16 nov t/m di 17 nov): werksets, gewicht × herhalingen, zonder warming-up, in 1 workout (Push day). Je lichaamsgewicht is een andere vraag.",
+  "nl": "Je tilde deze week 2.643 kg (ma 16 nov t/m di 17 nov): werksets, gewicht × herhalingen, zonder warming-up, in 1 workout (Push day). Je lichaamsgewicht is een andere vraag.",
   "facts": null,
   "widgets": [],
   "fresh": "No workout is logged yet.",
@@ -6515,7 +6515,7 @@
  },
  "av-bench-best": {
   "en": "Bench press: your heaviest set is 62.5 kg × 8 (an estimated one-rep max of 79 kg), from 3 sessions; the last on Mon, Nov 16. Warm-up sets are left out.",
-  "nl": "Bench press: je zwaarste set is 62.5 kg × 8 (een geschatte 1RM van 79 kg), uit 3 trainingen; de laatste op ma 16 nov. Warming-upsets tellen niet mee.",
+  "nl": "Bench press: je zwaarste set is 62,5 kg × 8 (een geschatte 1RM van 79 kg), uit 3 trainingen; de laatste op ma 16 nov. Warming-upsets tellen niet mee.",
   "facts": null,
   "widgets": [],
   "fresh": "No bench press is logged in Workouts yet, so there is no best.",
@@ -7155,7 +7155,7 @@
  },
  "av2-food-weekday-targets": {
   "en": "No weekday has its own targets, so every day uses your Targets: 2,200 kcal, protein 120 g, carbs 260 g and fat 73 g. Health → Targets → “Targets by weekday” sets them; a blank field keeps your Targets.",
-  "nl": "Geen weekdag heeft eigen doelen, dus elke dag gebruikt je gewone doelen: 2,200 kcal, eiwit 120 g, koolhydraten 260 g en vet 73 g. Health → Targets → “Targets by weekday” stelt ze in; een leeg veld houdt je gewone doelen.",
+  "nl": "Geen weekdag heeft eigen doelen, dus elke dag gebruikt je gewone doelen: 2.200 kcal, eiwit 120 g, koolhydraten 260 g en vet 73 g. Health → Targets → “Targets by weekday” stelt ze in; een leeg veld houdt je gewone doelen.",
   "facts": null,
   "widgets": [],
   "fresh": "No weekday has its own targets, so every day uses your Targets: no target. Health → Targets → “Targets by weekday” sets them; a blank field keeps your Targets.",
@@ -7171,7 +7171,7 @@
  },
  "av2-food-timing": {
   "en": "In the morning you ate 22.2 g of protein a day on average (17 % of the timed protein), over the 6 days with times in the last 7. By part of the day: afternoon (14:00–17:00) 36 %, late (21:00–24:00) 25 %, morning (5:00–11:00) 17 %, evening (17:00–21:00) 12 % and midday (11:00–14:00) 10 %. 6 entries without a time are left out. Health → Insights → “When you eat”.",
-  "nl": "In de ochtend at je gemiddeld 22.2 g eiwit per dag (17 % van de eiwit met een tijd), over de 6 dagen met tijden in de afgelopen 7. Per deel van de dag: namiddag (14:00–17:00) 36 %, laat (21:00–24:00) 25 %, ochtend (5:00–11:00) 17 %, avond (17:00–21:00) 12 % en middag (11:00–14:00) 10 %. 6 items zonder tijd tellen niet mee. Health → Insights → “When you eat”.",
+  "nl": "In de ochtend at je gemiddeld 22,2 g eiwit per dag (17 % van de eiwit met een tijd), over de 6 dagen met tijden in de afgelopen 7. Per deel van de dag: namiddag (14:00–17:00) 36 %, laat (21:00–24:00) 25 %, ochtend (5:00–11:00) 17 %, avond (17:00–21:00) 12 % en middag (11:00–14:00) 10 %. 6 items zonder tijd tellen niet mee. Health → Insights → “When you eat”.",
   "facts": null,
   "widgets": [],
   "fresh": "No entry with a time in the last 7 days carries protein, so I can’t say when you eat it. Health → Insights → “When you eat” fills in as you log.",
@@ -7211,7 +7211,7 @@
  },
  "av2-food-goal-date": {
   "en": "Goal 72 kg: at your trend (−0.28 kg/week) about Sat, Dec 26. A date from the trend so far, not a promise; Health → Weight → Your coach.",
-  "nl": "Doel 72 kg: bij je trend (−0.28 kg/week) rond za 26 dec. Een datum uit de trend tot nu, geen belofte; Health → Weight → Your coach.",
+  "nl": "Doel 72 kg: bij je trend (−0,28 kg/week) rond za 26 dec. Een datum uit de trend tot nu, geen belofte; Health → Weight → Your coach.",
   "facts": null,
   "widgets": [],
   "fresh": "No goal weight is set, or there is no trend weight yet, so there is no goal date. Health → Targets sets a weight goal; a few weigh-ins give the trend.",
@@ -7307,7 +7307,7 @@
  },
  "av2-next-target": {
   "en": "Next session, from your progression rule and your last sets:\n• Push day (6–10 reps, then +2.5 kg), Bench press: 62.5 kg × 9/9/8: one more rep than on Mon, Nov 16",
-  "nl": "Volgende training, volgens je opbouwregel en je laatste sets:\n• Push day (6–10 herhalingen, dan +2.5 kg), Bench press: 62.5 kg × 9/9/8: één herhaling meer dan op ma 16 nov",
+  "nl": "Volgende training, volgens je opbouwregel en je laatste sets:\n• Push day (6–10 herhalingen, dan +2,5 kg), Bench press: 62,5 kg × 9/9/8: één herhaling meer dan op ma 16 nov",
   "facts": null,
   "widgets": [],
   "fresh": "No routine has a progression rule yet. In Health → Workouts, Edit a routine and choose one: a rep range (add weight when every set reaches the top) or a step every session.",
@@ -7315,7 +7315,7 @@
  },
  "av2-month-report": {
   "en": "Nov 2026 so far, beside the month before: 9 workouts on 9 days (+9), 7 h (+7 h), 49 working sets, 19,890 kg lifted (+19,890 kg), 11 km, 19 new personal bests. Most trained: legs; most sets: Bench press. Health → Workouts → Progress shows it.",
-  "nl": "november 2026 tot nu toe, naast de maand ervoor: 9 workouts op 9 dagen (+9), 7 uur (+7 uur), 49 werksets, 19,890 kg getild (+19,890 kg), 11 km, 19 nieuwe persoonlijke records. Meest getraind: benen; meeste sets: Bench press. Health → Workouts → Progress toont het.",
+  "nl": "november 2026 tot nu toe, naast de maand ervoor: 9 workouts op 9 dagen (+9), 7 uur (+7 uur), 49 werksets, 19.890 kg getild (+19.890 kg), 11 km, 19 nieuwe persoonlijke records. Meest getraind: benen; meeste sets: Bench press. Health → Workouts → Progress toont het.",
   "facts": null,
   "widgets": [],
   "fresh": "No finished workout in Nov 2026.",
@@ -7347,7 +7347,7 @@
  },
  "av2-distance-goal": {
   "en": "Your distance goals, from your own log:\n• running this month: 11 of 30 km, 19 km to go (about 1.5 km a day), behind pace for now",
-  "nl": "Je afstandsdoelen, uit je eigen log:\n• hardlopen deze maand: 11 van 30 km, nog 19 km (ongeveer 1.5 km per dag), nu achter op schema",
+  "nl": "Je afstandsdoelen, uit je eigen log:\n• hardlopen deze maand: 11 van 30 km, nog 19 km (ongeveer 1,5 km per dag), nu achter op schema",
   "facts": null,
   "widgets": [],
   "fresh": "No distance goal is set yet. In Health → Workouts → Distance goals and training load, set one for a week, a month or a year.",
@@ -7379,7 +7379,7 @@
  },
  "av2-sleep-usual": {
   "en": "The last 7 days (6 nights) beside your usual (the middle of your own 50 nights before this week): asleep 6 h 44 min (usual 7 h 34 min), to bed at 11:35 PM (usual 11:05 PM), 22 min to fall asleep (usual 12), quality 3.5 of 5 (usual 4). No outside figures: only your own nights.",
-  "nl": "De afgelopen 7 dagen (6 nachten) naast je gewone (het midden van je eigen 50 nachten vóór deze week): geslapen 6 h 44 min (gewoonlijk 7 h 34 min), naar bed om 23:35 (gewoonlijk 23:05), 22 min om in slaap te vallen (gewoonlijk 12), kwaliteit 3.5 van 5 (gewoonlijk 4). Geen cijfers van buiten: alleen je eigen nachten.",
+  "nl": "De afgelopen 7 dagen (6 nachten) naast je gewone (het midden van je eigen 50 nachten vóór deze week): geslapen 6 h 44 min (gewoonlijk 7 h 34 min), naar bed om 23:35 (gewoonlijk 23:05), 22 min om in slaap te vallen (gewoonlijk 12), kwaliteit 3,5 van 5 (gewoonlijk 4). Geen cijfers van buiten: alleen je eigen nachten.",
   "facts": null,
   "widgets": [],
   "fresh": "There is no usual yet: it is the middle value of your own nights in the 90 days before this week, and it needs at least 7 of them.",
@@ -7731,7 +7731,7 @@
  },
  "av2r2-today-workout": {
   "en": "A suggestion for about 45 minutes, for your freshest groups (core, back, shoulders), from your own last sets:\n• Plank: 3 × 30 s (new to your log)\n• Deadlift: 3 × 105 kg × 6\n• Overhead press: 3 × 37.5 kg × 9\n• Side plank: 3 × 30 s (new to your log)\n• Barbell row: 3 × 55 kg × 9\nChange it or start it in Health → Workouts → Suggest a workout for today. A suggestion, not a programme.",
-  "nl": "Een voorstel voor ongeveer 45 minuten, voor je frisste spiergroepen (romp, rug, schouders), op basis van je eigen laatste sets:\n• Plank: 3 × 30 s (nieuw in je logboek)\n• Deadlift: 3 × 105 kg × 6\n• Overhead press: 3 × 37.5 kg × 9\n• Side plank: 3 × 30 s (nieuw in je logboek)\n• Barbell row: 3 × 55 kg × 9\nPas het aan of start het in Health → Workouts → Suggest a workout for today. Een voorstel, geen programma.",
+  "nl": "Een voorstel voor ongeveer 45 minuten, voor je frisste spiergroepen (romp, rug, schouders), op basis van je eigen laatste sets:\n• Plank: 3 × 30 s (nieuw in je logboek)\n• Deadlift: 3 × 105 kg × 6\n• Overhead press: 3 × 37,5 kg × 9\n• Side plank: 3 × 30 s (nieuw in je logboek)\n• Barbell row: 3 × 55 kg × 9\nPas het aan of start het in Health → Workouts → Suggest a workout for today. Een voorstel, geen programma.",
   "facts": null,
   "widgets": [],
   "fresh": "A suggestion for about 45 minutes, for your freshest groups (chest, back, legs), from your own last sets:\n• Bench press: 3 × 10 reps (new to your log)\n• Deadlift: 3 × 10 reps (new to your log)\n• Squat: 3 × 10 reps (new to your log)\n• Incline dumbbell press: 3 × 10 reps (new to your log)\n• Barbell row: 3 × 10 reps (new to your log)\nChange it or start it in Health → Workouts → Suggest a workout for today. A suggestion, not a programme.",
@@ -8027,7 +8027,7 @@
  },
  "av2r3-more-goals": {
   "en": "Protein: 133.8 g a day on average over 7 of the last 7 full days. Your goal: at least 90 g. Met.",
-  "nl": "Protein at least 90 g (Showcase): gemiddeld 133.8 g over 7 dagen, gehaald.",
+  "nl": "Protein at least 90 g (Showcase): gemiddeld 133,8 g over 7 dagen, gehaald.",
   "facts": null,
   "widgets": [],
   "fresh": "I can’t read your goals on nutrients and measurements here yet, so I can’t say. It is in Health on this device.",
@@ -8570,12 +8570,12 @@
   "freshNl": "Geen taak staat op Doing. In de editor van een taak zet “Doing now” hem bovenaan in Tasks → Today, met de dag waarop je begon."
  },
  "av2r5-cancelled": {
-  "en": "No task is cancelled in the last 30 days. “Cancel the task” in a task’s editor closes it without counting it as done: it stays out of your done chart, your daily goal and its streak.",
-  "nl": "Geen taak is geannuleerd in de laatste 30 dagen. “Cancel the task” in de editor sluit een taak zonder dat hij als gedaan telt: niet in je grafiek, je dagdoel of je reeks.",
+  "en": "No task is cancelled in the last 30 days. “Won’t do this task” in a task’s editor closes it without counting it as done: it stays out of your done chart, your daily goal and its streak.",
+  "nl": "Geen taak is geannuleerd in de laatste 30 dagen. “Won’t do this task” in de editor sluit een taak zonder dat hij als gedaan telt: niet in je grafiek, je dagdoel of je reeks.",
   "facts": null,
   "widgets": [],
-  "fresh": "No task is cancelled in the last 30 days. “Cancel the task” in a task’s editor closes it without counting it as done: it stays out of your done chart, your daily goal and its streak.",
-  "freshNl": "Geen taak is geannuleerd in de laatste 30 dagen. “Cancel the task” in de editor sluit een taak zonder dat hij als gedaan telt: niet in je grafiek, je dagdoel of je reeks."
+  "fresh": "No task is cancelled in the last 30 days. “Won’t do this task” in a task’s editor closes it without counting it as done: it stays out of your done chart, your daily goal and its streak.",
+  "freshNl": "Geen taak is geannuleerd in de laatste 30 dagen. “Won’t do this task” in de editor sluit een taak zonder dat hij als gedaan telt: niet in je grafiek, je dagdoel of je reeks."
  },
  "av2r5-bucket": {
   "en": "No task is planned for a week or a month without a day. In a task’s editor, “Plan for” puts a task with no day in this week or this month; it shows in Upcoming until it is done or gets a day.",
@@ -8843,7 +8843,7 @@
  },
  "av2r6-prop-sums": {
   "en": "Budget: 2,400 in all, 2,400 on average over 1 note. Notes → Notes → Table shows these under each Number column for the notes shown (after its filters), and how many are ticked under a Tick column.",
-  "nl": "Budget: 2,400 samen, gemiddeld 2,400 over 1 notitie. Notes → Notes → Table toont dit onder elke Number-kolom voor de getoonde notities (na de filters), en hoeveel er aangevinkt zijn onder een Tick-kolom.",
+  "nl": "Budget: 2.400 samen, gemiddeld 2.400 over 1 notitie. Notes → Notes → Table toont dit onder elke Number-kolom voor de getoonde notities (na de filters), en hoeveel er aangevinkt zijn onder een Tick-kolom.",
   "facts": null,
   "widgets": [],
   "fresh": "None of your notes has a Number property yet. Open a note, then Properties, and add one with the type Number (for example Budget); Notes → Notes → Table then shows its sum and average under its column, for the notes shown.",
@@ -8914,12 +8914,12 @@
   "freshNl": "Er is nog geen dagboekstuk geïmporteerd. Journal → Import and export leest een Day One-export, Markdown- of tekstbestanden, of een Apple Journal-export, en toont eerst wat erin staat."
  },
  "av2r6-money-refunds": {
-  "en": "No refunds logged in Nov 2026. A refund lowers its category’s spending and its budget; it is never counted as money received. Log one in Wealth → Spending → Log spending → Refund.",
-  "nl": "Geen terugbetalingen gelogd in november 2026. Een terugbetaling verlaagt de uitgaven en het budget van zijn categorie; hij telt nooit als inkomsten. Log er een via Vermogen → Uitgaven → Log spending → Refund.",
+  "en": "No refunds logged in Nov 2026. A refund lowers its category’s spending and its budget; it is never counted as money received. Log one in Wealth → Spending → Log spending → Money back.",
+  "nl": "Geen terugbetalingen gelogd in november 2026. Een terugbetaling verlaagt de uitgaven en het budget van zijn categorie; hij telt nooit als inkomsten. Log er een via Vermogen → Uitgaven → Log spending → Money back.",
   "facts": null,
   "widgets": [],
-  "fresh": "No refunds logged in Nov 2026. A refund lowers its category’s spending and its budget; it is never counted as money received. Log one in Wealth → Spending → Log spending → Refund.",
-  "freshNl": "Geen terugbetalingen gelogd in november 2026. Een terugbetaling verlaagt de uitgaven en het budget van zijn categorie; hij telt nooit als inkomsten. Log er een via Vermogen → Uitgaven → Log spending → Refund."
+  "fresh": "No refunds logged in Nov 2026. A refund lowers its category’s spending and its budget; it is never counted as money received. Log one in Wealth → Spending → Log spending → Money back.",
+  "freshNl": "Geen terugbetalingen gelogd in november 2026. Een terugbetaling verlaagt de uitgaven en het budget van zijn categorie; hij telt nooit als inkomsten. Log er een via Vermogen → Uitgaven → Log spending → Money back."
  },
  "av2r6-money-paychecks": {
   "en": "No paychecks are set up yet. In Wealth → Budgets → Paychecks and next month, add each paycheck with what it brings in, then set each budget and bill against the one that pays it.",

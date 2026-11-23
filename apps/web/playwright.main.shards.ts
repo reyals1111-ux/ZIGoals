@@ -249,6 +249,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-money-spreadsheet.spec.ts',
     'av2-planned-day.spec.ts',
     'av2-money-refund.spec.ts',
+    'fr-answers-yesterday.spec.ts',
   ],
   // Shard 6, 64.7 worker-min: about 32.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -289,6 +290,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-money-try-a-change.spec.ts',
     'av2-r5-everyday.spec.ts',
     'av2-money-streak.spec.ts',
+    'fr-data-checklist.spec.ts',
   ],
   // Shard 7, 65.5 worker-min: about 33.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -331,6 +333,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av2-money-year-budgets.spec.ts',
     'av2-r5-feel.spec.ts',
     'av2-notes-tidy.spec.ts',
+    'fr-data-restore.spec.ts',
   ],
   // Shard 8, 66.2 worker-min: about 33.4 min of tests at two workers in file order, 36.1 in any order.
   [
@@ -604,7 +607,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
 ];
 
 /** Measured worker-minutes per list (the comments above); a new spec goes to the smallest. */
-export const MAIN_SHARD_MINUTES: readonly number[] = [85, 84.2, 85, 84.7, 84, 84, 84, 84.7, 84, 84, 84, 84.7, 84.8, 84];
+export const MAIN_SHARD_MINUTES: readonly number[] = [85, 84.2, 85, 84.7, 85, 85, 85, 84.7, 84, 84, 84, 84.7, 84.8, 84];
 
 /** Every spec under `testsDir` that the main suite selects (all but the accessibility sweep), relative, sorted. */
 export function mainSpecFiles(testsDir: string): string[] {
