@@ -3,7 +3,7 @@ import {minutesWords, minutesWordsNl} from '../../../tasks/minutes';
 import {FORECAST} from '../../../goal-forecast';
 import {addLocalDays} from '../../../local-date';
 import {recentNotes} from '../../../nova/holo/lists';
-import {calendarDay, formatClock, formatCurrencyAmount, formatDate, formatNumber, isMoneyCurrency} from '../../../visual-format';
+import {calendarDay, formatClock, formatCurrencyAmount, formatDate, formatNumber, formatPlainDecimal, isMoneyCurrency} from '../../../visual-format';
 import type {ToolEnv} from '../../tools/env';
 import {text as clean} from '../../tools/format';
 import {runTool} from '../../tools/registry';
@@ -179,6 +179,15 @@ export function checklistWeek(env: ToolEnv, lang: Lang, read: string, now: {tota
   return {text: `${span}, ${rule}: ${parts.join('; ')}.${tail}`, facts: {from, to, dayGoal: need, done: counted, notDone: not, unknown, everyDot: kept.filter(all), today: now ? {...now, counts: todayCounts} : null}};
 }
 
+/**
+ * Session AV lane 2 (fr-money, FR-L-12, the friend-readiness walk's Lina): the goals tool writes progress in the display
+ * locale ("6,67%" in Dutch, lib/goal-summary.ts progressText); `parseFloat` stopped at the comma and said 6 % where Goals
+ * says 7 %. The display locale's digits and decimal sign are read back first, so every answer rounds the same 6.67.
+ */
+export function progressNumber(text: string): number {
+  const digits = [...formatPlainDecimal('0123456789')], decimal = [...formatPlainDecimal('0.5')][1];
+  return Number.parseFloat([...text].map(ch => { const d = digits.indexOf(ch); return d >= 0 ? String(d) : ch === decimal ? '.' : ch; }).join(''));
+}
 type GoalRow = {handle: string; name: string; status: string; progress: string; now?: string; target?: string; remaining?: string; funding?: string; targetDate?: string; nextPlannedDate?: string; type?: string};
 const amountOf = (text: string | undefined) => { if (!text) return ''; const i = text.lastIndexOf(' '), value = text.slice(0, i), unit = text.slice(i + 1); return i > 0 && isMoneyCurrency(unit) ? formatCurrencyAmount(value, unit) : text; };
 const FUNDING_NL: Record<string, string> = {ahead: 'voor op schema', 'on track': 'op schema', behind: 'achter op schema', completed: 'gehaald', 'no plan': 'geen plan'};
@@ -187,15 +196,15 @@ export function goalsAnswer(q: Query, env: ToolEnv): Exact | null {
   if (!r.ok) return null;
   const all = ((r.data.goals as GoalRow[] | undefined) ?? []).map(g => ({...g, name: plain(g.name)})), active = all.filter(g => g.status === 'active'), widgets: ExactWidget[] = [{id: 'goal-orbits', fallback: 'goals-hud'}];
   if (!all.length) return out(t(lang, 'You have no goals yet.', 'Je hebt nog geen doelen.'), {goals: 0}, [{id: 'goals-hud'}]);
-  const pct = (g: GoalRow) => `${formatNumber(Math.round(Number.parseFloat(g.progress)))}%`, pace = (g: GoalRow) => g.funding ? (lang === 'nl' ? FUNDING_NL[g.funding] ?? g.funding : g.funding === 'ahead' ? 'ahead of plan' : g.funding === 'behind' ? 'behind plan' : g.funding) : '';
+  const pct = (g: GoalRow) => `${formatNumber(Math.round(progressNumber(g.progress)))}%`, pace = (g: GoalRow) => g.funding ? (lang === 'nl' ? FUNDING_NL[g.funding] ?? g.funding : g.funding === 'ahead' ? 'ahead of plan' : g.funding === 'behind' ? 'behind plan' : g.funding) : '';
   const line = (g: GoalRow) => `${g.name} ${pct(g)}${g.funding && g.funding !== 'completed' ? ` (${pace(g)})` : ''}`;
-  const rows = all.map(g => ({goal: g.name, status: g.status, percent: Math.round(Number.parseFloat(g.progress)), funding: g.funding ?? null, targetDate: g.targetDate && g.targetDate !== 'none' ? g.targetDate : null})), facts = {active: active.length, goals: rows};
+  const rows = all.map(g => ({goal: g.name, status: g.status, percent: Math.round(progressNumber(g.progress)), funding: g.funding ?? null, targetDate: g.targetDate && g.targetDate !== 'none' ? g.targetDate : null})), facts = {active: active.length, goals: rows};
   const one = q.subject?.kind === 'goal' ? all.find(g => g.name === plain(q.subject!.name)) : null;
   if (MILESTONE_WORDS.test(q.read)) return milestonesOf(q, env, active, one, out);
   if (one && GOAL_ETA.test(q.read)) return goalEta(q, env, one, out);
   if (one) {
     const date = one.targetDate && one.targetDate !== 'none' ? t(lang, `; target date ${dayWords(one.targetDate, today)}`, `; streefdatum ${nlDay(one.targetDate, today)}`) : '';
-    return out(t(lang, `${one.name}: ${amountOf(one.now)} of ${amountOf(one.target)} (${pct(one)})${one.funding ? `, ${pace(one)}` : ''}; ${amountOf(one.remaining)} to go${date}.`, `${one.name}: ${amountOf(one.now)} van ${amountOf(one.target)} (${pct(one)})${one.funding ? `, ${pace(one)}` : ''}; nog ${amountOf(one.remaining)} te gaan${date}.`), {...facts, goal: one.name, percent: Math.round(Number.parseFloat(one.progress)), funding: one.funding ?? null}, [{id: 'goal-gauge', ref: q.subject!.id, fallback: 'goal-focus'}]);
+    return out(t(lang, `${one.name}: ${amountOf(one.now)} of ${amountOf(one.target)} (${pct(one)})${one.funding ? `, ${pace(one)}` : ''}; ${amountOf(one.remaining)} to go${date}.`, `${one.name}: ${amountOf(one.now)} van ${amountOf(one.target)} (${pct(one)})${one.funding ? `, ${pace(one)}` : ''}; nog ${amountOf(one.remaining)} te gaan${date}.`), {...facts, goal: one.name, percent: Math.round(progressNumber(one.progress)), funding: one.funding ?? null}, [{id: 'goal-gauge', ref: q.subject!.id, fallback: 'goal-focus'}]);
   }
   if (q.ask === 'late' || q.ask === 'missed' || q.ask === 'worst' && /\b(?:behind|achter)\b/.test(q.read)) {
     const behind = active.filter(g => g.funding === 'behind');
@@ -205,7 +214,7 @@ export function goalsAnswer(q: Query, env: ToolEnv): Exact | null {
   if ((q.ask === 'best' || q.ask === 'worst') && /\b(?:closest|nearest|furthest|farthest|progress|done|dichtst|verst|voortgang|klaar|best|worst|beste|slechtste)\b/.test(q.read)) {
     // A goal that keeps an average over a window is never "done" and has no amount left: closest and furthest rank the
     // goals that finish (ADR-042 D20, once the corpus held the average goals as the app does).
-    const ranked = active.filter(g => g.type !== 'Keep an average' && Number.isFinite(Number.parseFloat(g.progress))).sort((a, b) => Number.parseFloat(b.progress) - Number.parseFloat(a.progress)), hit = q.ask === 'best' ? ranked[0] : ranked.at(-1);
+    const ranked = active.filter(g => g.type !== 'Keep an average' && Number.isFinite(progressNumber(g.progress))).sort((a, b) => progressNumber(b.progress) - progressNumber(a.progress)), hit = q.ask === 'best' ? ranked[0] : ranked.at(-1);
     if (!hit) return out(t(lang, 'No active goal.', 'Geen actief doel.'), facts, widgets);
     return out(q.ask === 'best' ? t(lang, `Closest to done: ${line(hit)}, ${amountOf(hit.remaining)} to go.`, `Het dichtst bij klaar: ${line(hit)}, nog ${amountOf(hit.remaining)} te gaan.`) : t(lang, `Furthest from done: ${line(hit)}, ${amountOf(hit.remaining)} to go.`, `Het verst van klaar: ${line(hit)}, nog ${amountOf(hit.remaining)} te gaan.`), {...facts, goal: hit.name}, widgets);
   }

@@ -3,7 +3,7 @@ import {useId, useMemo, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {JOURNAL, MAX_TEXT, type JournalEntry} from '../../lib/journal/schema';
 import {possibleTraps, THOUGHT_CHECK_ID, thoughtEntryText, TRAPS, trapById} from '../../lib/journal/thinking-traps';
-import {localDate} from '../../lib/local-date';
+import {journalDay} from '../../lib/journal/journal-day';
 import {useQuestionLang} from './question-lang';
 import './thought-check.css';
 
@@ -24,7 +24,7 @@ export default function ThoughtCheck() {
   const save = () => {
     let text = '';
     try { text = thoughtEntryText({situation, thought, traps, other}, lang); } catch (e) { setProblem(e instanceof Error ? e.message : ''); document.getElementById(`${id}-thought`)?.focus(); return; }
-    const entry: JournalEntry = {id: crypto.randomUUID(), date: localDate(), text: text.slice(0, MAX_TEXT), createdAt: new Date().toISOString(), template: THOUGHT_CHECK_ID};
+    const entry: JournalEntry = {id: crypto.randomUUID(), date: journalDay(), text: text.slice(0, MAX_TEXT), createdAt: new Date().toISOString(), template: THOUGHT_CHECK_ID};
     try { journal.update(c => ({...c, entries: [...c.entries, entry].slice(-5000)})); setSituation(''); setThought(''); setTraps([]); setOther(''); setProblem(''); setSaid(nl ? 'Bewaard als dagboekstuk van vandaag. Goed dat je er even bij stilstond.' : 'Saved as today’s journal entry. Well done for stopping to look at it.'); document.getElementById(`${id}-situation`)?.focus(); }
     catch { setProblem(nl ? 'Dit kon niet op dit apparaat worden bewaard. Je woorden staan er nog.' : 'This could not be kept on this device. Your words are still here.'); }
   };

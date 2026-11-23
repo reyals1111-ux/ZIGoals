@@ -18,12 +18,16 @@ async function newHabit(page: Page, title: string) {
   await page.getByRole('button', {name: 'Create habit', exact: true}).click();
   await expect(page.getByRole('article', {name: title, exact: true})).toBeVisible();
 }
-async function chooseEnd(page: Page, label: string) {
+// (fr-data; deliberate, FR-MAX-8): a choice made while the day in progress keeps its start (01:00, 01:30, 02:00 here) now
+// says when it takes effect; each call names its exact status line.
+const FROM_TONIGHT = 'Your day now ends at 3:00, from tonight on: today already started at midnight, so it keeps that start.';
+const ONCE_ENDED = 'Your day ends at midnight once the day in progress ends, at 3:00.';
+async function chooseEnd(page: Page, label: string, status: string) {
   await page.goto('/app/settings#day-ends'); await hydrated(page);
   const section = page.locator('#day-ends');
   await expect(section).toContainText('Changing it never moves or recounts past days');
   await section.getByLabel('My day ends at').selectOption({label});
-  await expect(section.getByRole('status')).toHaveText(label.startsWith('Midnight') ? 'Your day ends at midnight.' : `Your day now ends at ${label}.`);
+  await expect(section.getByRole('status')).toHaveText(status);
   // Settings' jump to #day-ends keeps the target in place for a moment; the next page opens once nothing is loading.
   await quietPage(page);
 }
@@ -38,14 +42,14 @@ for (const {zone, offset} of ZONES) test.describe(`in ${zone}`, () => {
     await offlineApi(page); await freshDevice(page);
     await newHabit(page, 'AO before any change');            // 23:30 on the 13th, midnight rule
     await page.clock.setSystemTime(utc('2026-11-14T01:00:00', offset));
-    await chooseEnd(page, '3:00');                            // the change at 01:00 on the 14th
+    await chooseEnd(page, '3:00', FROM_TONIGHT);              // the change at 01:00 on the 14th
     await newHabit(page, 'AO right after choosing 3:00');     // today was the 14th: it stays the 14th (no step back)
     await page.clock.setSystemTime(utc('2026-11-15T02:30:00', offset));
     await newHabit(page, 'AO at 02:30 the next night');       // the new rule: still the 14th until 03:00
     await page.clock.setSystemTime(utc('2026-11-15T03:05:00', offset));
     await newHabit(page, 'AO at 03:05');
     await page.clock.setSystemTime(utc('2026-11-16T02:00:00', offset));
-    await chooseEnd(page, 'Midnight (default)');              // 03:00 → midnight at 02:00: the 15th keeps its 03:00 end
+    await chooseEnd(page, 'Midnight (default)', ONCE_ENDED);  // 03:00 → midnight at 02:00: the 15th keeps its 03:00 end
     await newHabit(page, 'AO right after midnight again');
     await page.clock.setSystemTime(utc('2026-11-16T03:01:00', offset));
     await newHabit(page, 'AO after 03:00');
@@ -63,7 +67,7 @@ test.describe('over a daylight-saving night (Brussels, 25 Oct 2026: 03:00 CEST f
     test.skip(info.project.name !== 'desktop', 'one project is enough for the clock walk');
     await page.clock.install({time: new Date('2026-10-24T23:30:00Z')}); // 01:30 CEST on the 25th
     await offlineApi(page); await freshDevice(page);
-    await chooseEnd(page, '3:00');
+    await chooseEnd(page, '3:00', FROM_TONIGHT);
     await page.clock.setSystemTime(new Date('2026-10-25T01:30:00Z')); // 02:30 CET, the repeated hour
     await newHabit(page, 'AO in the repeated hour');
     await page.clock.setSystemTime(new Date('2026-10-26T01:30:00Z')); // 02:30 CET on the 26th: still the 25th

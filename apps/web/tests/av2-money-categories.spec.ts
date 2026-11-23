@@ -27,7 +27,9 @@ for (const theme of THEMES) test(`${theme}: archive a category and add a starter
   // "Category"; as strict.
   await more.getByRole('combobox', {name: 'Category', exact: true}).selectOption('Gifts');
   await more.getByRole('button', {name: 'Archive', exact: true}).click();
-  await expect(more.getByRole('status').first()).toHaveText('Gifts archived: it is no longer offered for spending. Its 1 entry keeps it, and reports and search still show it.');
+  // (fix2011; deliberate) the fold's parts speak through Spending's one status line under the form (since CI run 2007 the
+  // form's other parts do; the fold had three status lines of its own), so that line is read, with the same exact words.
+  await expect(box.locator('p.spending-status')).toHaveText('Gifts archived: it is no longer offered for spending. Its 1 entry keeps it, and reports and search still show it.');
   await expect(form.getByRole('radio', {name: 'Gifts'})).toHaveCount(0);
   expect((await readRecord<MoneyLog>(page, MONEY_LOG_KEY)).archived).toEqual({expense: ['Gifts']});
   expect((await readRecord<MoneyLog>(page, MONEY_LOG_KEY)).entries[0]!.category).toBe('Gifts');
@@ -45,7 +47,7 @@ for (const theme of THEMES) test(`${theme}: archive a category and add a starter
   await expect(preview).toContainText('Opvang');
   const add = more.getByRole('button', {name: /^Add \d+ new from this set$/});
   await add.click();
-  await expect(more.getByRole('status').last()).toContainText('Added from Een huishouden: 4 categories and');
+  await expect(box.locator('p.spending-status')).toContainText('Added from Een huishouden: 4 categories and'); // fix2011; deliberate (above)
   const log = await readRecord<MoneyLog>(page, MONEY_LOG_KEY);
   expect(log.own?.expense).toEqual(['Kinderen', 'Huisdieren', 'Auto']);
   expect(log.subs?.Bills).toContain('Energie');

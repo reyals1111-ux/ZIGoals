@@ -14,8 +14,8 @@ import './body-r6.css';
  * on this device. Their own words only: nothing is suggested from them, and they never go in a notification. With
  * `lowDay`, a calm link to the person's own "On a low day" page (LEDGER #416). Its own chunk, loaded with the choices.
  */
-export default function Lifts({lowDay = false}: {lowDay?: boolean}) {
-  const energy = useDeviceRecord(ENERGY), id = useId(), [draft, setDraft] = useState(''), [status, setStatus] = useState(''), [editing, setEditing] = useState(false), [adding, setAdding] = useState(false), list = liftsOf(energy.data);
+export default function Lifts({lowDay = false, say}: {lowDay?: boolean; /** Session AV lane 2 (fix2011): the section's one status line, where there is one (the feeling words'), so it has no second of its own. */ say?: (text: string) => void}) {
+  const energy = useDeviceRecord(ENERGY), id = useId(), [draft, setDraft] = useState(''), [ownStatus, setOwnStatus] = useState(''), setStatus = say ?? setOwnStatus, [editing, setEditing] = useState(false), [adding, setAdding] = useState(false), list = liftsOf(energy.data);
   const input = useRef<HTMLInputElement>(null), box = useRef<HTMLDivElement>(null);
   if (!energy.loaded || energy.unreadable) return null;
   const save = (change: Parameters<typeof energy.update>[0], said: string) => { try { energy.update(change); setStatus(said); return true; } catch (cause) { setStatus(cause instanceof Error ? cause.message : 'This could not be saved on this device.'); return false; } };
@@ -53,6 +53,6 @@ export default function Lifts({lowDay = false}: {lowDay?: boolean}) {
     </div>}
     {list.length > 0 && <p><button type="button" className="text-link" aria-expanded={editing} onClick={() => { setAdding(false); setEditing(v => !v); }}>{editing ? 'Done editing' : 'Edit what lifts you'}</button></p>}
     {lowDay && <p className="fine"><Link className="text-link" href="/app/health?view=meditation#low-day">Open your “On a low day” page</Link>: the small things you wrote down for a harder day.</p>}
-    <p className="fine" role="status" aria-live="polite">{status}</p>
+    {!say && <p className="fine" role="status" aria-live="polite">{ownStatus}</p>}
   </div>;
 }

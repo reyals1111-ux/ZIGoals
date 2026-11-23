@@ -79,7 +79,8 @@ describe('Session AU (D8, deliberate): the Showcase has labelled example mood ta
     expect(log.entries.slice(0, -4)).toEqual(showcaseMoneyLog(DAY).entries);
     const bills = parse(BILLS_KEY, billsSchema), open = openCandidates(detectBills(log.entries, DAY), bills);
     expect(open.map(c => [c.title, c.amount, c.cadence, c.occurrences, c.lastDate, c.nextDue, c.confidenceLabel])).toEqual([['Streaming', '13.99', 'monthly', 3, '2026-10-08', '2026-11-08', 'medium']]);
-    expect(candidatePriceChange(open[0]!, log.entries, DAY)).toEqual({direction: 'up', cents: 100, currency: 'EUR', previous: 1299, latest: 1399, previousDate: '2026-07-09', latestDate: '2026-10-08', sinceMonth: '2026-07'});
+    // (fr-money; deliberate) FR-L-18: "since" is the month of the first payment at the new price (€13.99 from 8 Aug).
+    expect(candidatePriceChange(open[0]!, log.entries, DAY)).toEqual({direction: 'up', cents: 100, currency: 'EUR', previous: 1299, latest: 1399, previousDate: '2026-07-09', latestDate: '2026-10-08', sinceMonth: '2026-08'});
     // The confirmed bills are the four hand-made ones, as before: none is linked to the money log.
     expect(bills.bills.map(b => [b.title, b.origin])).toEqual([['Rent · SHOWCASE DATA', 'manual'], ['Music · SHOWCASE DATA', 'manual'], ['Energy · SHOWCASE DATA', 'manual'], ['Home insurance · SHOWCASE DATA', 'manual']]);
   });

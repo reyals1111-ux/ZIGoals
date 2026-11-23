@@ -80,7 +80,7 @@ describe('starter sets (#347)', () => {
     expect(r.full).toBeGreaterThan(0);
   });
   test('the settings render: archive picker, archived list, set preview', () => {
-    const html = renderToStaticMarkup(createElement(CategoryMore, {log: archiveCategory(log(), 'expense', 'Gifts'), update: () => undefined, kind: 'expense'}));
+    const html = renderToStaticMarkup(createElement(CategoryMore, {log: archiveCategory(log(), 'expense', 'Gifts'), update: () => undefined, kind: 'expense', say: () => undefined, refuse: () => undefined}));
     expect(html).toContain('Archive a category');
     expect(html).toContain('aria-label="Bring back Gifts"');
     expect(html).toContain('Start from a set');

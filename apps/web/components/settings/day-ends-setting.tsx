@@ -1,7 +1,7 @@
 'use client';
 import {useId, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
-import {DAY_END_CHOICES, DAY_ENDS_RECORD, chooseDayEnd, dayEndLabel} from '../../lib/day-boundary';
+import {DAY_END_CHOICES, DAY_ENDS_RECORD, chooseDayEnd, dayEndLabel, dayEndStatus} from '../../lib/day-boundary';
 
 /**
  * Session AO (C-DVG-22, C-NB-28, N-NB-11): "My day ends at" in Settings → Your app, beside the time zone. Habits, the
@@ -13,12 +13,13 @@ export function DayEndsSetting() {
   return <section className="panel" id="day-ends" aria-labelledby={`${id}-title`}>
     <p className="eyebrow">YOUR DAY</p>
     <h2 id={`${id}-title`}>My day ends at</h2>
-    <p className="fine">For night owls: habits, the Checklist, streaks and Tasks count for the day until this time (3:00 is the next morning), on this device.</p>
+    <p className="fine">For night owls: habits, the Checklist, streaks, Tasks and the Journal count for the day until this time (3:00 is the next morning), on this device.</p>
     <label className="field" htmlFor={`${id}-select`}>
       <span>My day ends at</span>
       <select id={`${id}-select`} value={value} disabled={!record.loaded} aria-describedby={`${id}-rule`} onChange={event => {
         const next = Number(event.target.value);
-        try { record.update(current => chooseDayEnd(current, next)); setStatus(next === 0 ? 'Your day ends at midnight.' : `Your day now ends at ${dayEndLabel(next)}.`); }
+        // FR-MAX-8: the status says when the choice takes effect (owner rule 1 keeps the day in progress as it started).
+        try { const previous = record.data, now = new Date(); record.update(current => chooseDayEnd(current, next, now)); setStatus(dayEndStatus(previous, next, now)); }
         catch { setStatus('Could not save this choice on this device.'); }
       }}>
         {DAY_END_CHOICES.map(m => <option key={m} value={m}>{dayEndLabel(m)}{m === 0 ? ' (default)' : ''}</option>)}

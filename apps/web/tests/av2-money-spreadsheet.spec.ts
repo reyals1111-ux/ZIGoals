@@ -1,5 +1,6 @@
 import {readFile} from 'node:fs/promises';
 import {expect, test} from '@playwright/test';
+import {openPhoneRow} from './phone-length-folds';
 import {applyTheme, axe, THEMES} from './p6-helpers';
 import {entry, moneyLog, noSideScroll, seedDevice, spending} from './ap/ap-money-fixtures';
 import {hydrated} from './ah-helpers';
@@ -16,6 +17,9 @@ for (const theme of THEMES) test(`${theme}: money as a spreadsheet`, async ({pag
   if (!isMobile) await page.setViewportSize({width: 1440, height: 900});
   await seedDevice(page, {[MONEY_LOG_KEY]: moneyLog([entry('2026-11-03', '42.10', 'Groceries', 'expense', 'Market'), {...entry('2026-11-05', '90.00', 'Food & drink', 'expense', '=SUM(A1)'), share: '30.00'}, {...entry('2026-11-06', '50.00', 'Other'), excluded: true}, entry('2026-10-02', '12.00', 'Fun')])});
   await page.goto('/app/wealth'); await hydrated(page);
+  // Session AV lane 2 (fix2011; deliberate): on a phone Spending's later parts are one row, "More about your money"
+  // (tests/phone-length-folds.ts: there and closed on a phone, absent at 1440); it is opened, then checked as before.
+  await openPhoneRow(page, 'More about your money', spending(page));
   const fold = spending(page).locator('.money-sheet-fold');
   await fold.locator('summary').click();
   const sheet = fold.locator('.money-sheet');

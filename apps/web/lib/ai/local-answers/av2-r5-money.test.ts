@@ -153,6 +153,19 @@ describe('try a change on the forecast (#388)', () => {
     expect(text(zigi('welke wijzigingen heb ik op mijn prognose geprobeerd', s))).toContain('"A trip" (1 wijziging): het laagst ongeveer € 3.000,00');
     expect(text(zigi('show my what if scenarios', freshAll()))).toMatch(/^No changes are kept\./);
   });
+  // Session AV lane 2 (CI run 2011, journey 8): a hypothetical "what if …" is a request for the person's AI and its what-if
+  // card, not the kept sets; only the feature's own name ("my what if scenarios", "mijn wat als scenario's") is answered here.
+  test('a hypothetical what-if is not answered here, EN and NL', () => {
+    for (const env of [freshAll(), s, showcaseAll()]) {
+      expect(zigi('What if I add 50 a month, scan this barcode, and some focus sound', env)).toBeNull();
+      expect(zigi('What if I add 50 a month', env)).toBeNull();
+      expect(zigi('what if I put 100 extra into my bike fund each month, how does my forecast look', env)).toBeNull();
+      expect(zigi('Wat als ik 50 per maand extra inleg, scan deze barcode en wat focusgeluid', env)).toBeNull();
+      expect(zigi('wat als ik elke maand 50 euro meer spaar voor mijn prognose', env)).toBeNull();
+    }
+    expect(text(zigi('toon mijn wat als scenario\'s', freshAll()))).toMatch(/^Er zijn geen wijzigingen bewaard\./);
+    expect(text(zigi('what ifs have I kept', freshAll()))).toMatch(/^No changes are kept\./);
+  });
 });
 
 describe('your money as a spreadsheet (#389)', () => {

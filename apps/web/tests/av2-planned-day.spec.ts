@@ -97,7 +97,8 @@ for (const theme of THEMES) test(`${theme}: a time block, Doing and Cancelled, a
 
   // Cancelled (LEDGER #350): closed, in Completed as cancelled, never "Done".
   form = await openEditor(page, 'Fictional tickets');
-  await form.getByRole('button', {name: 'Cancel the task'}).click();
+  // (fix2011; deliberate) the action reads "Won’t do this task", so the editor's one Cancel closes it without saving.
+  await form.getByRole('button', {name: 'Won’t do this task'}).click();
   await expect.poll(async () => storedTask(page, 'task_fictional-tickets')).toMatchObject({state: {kind: 'cancelled'}});
   expect((await storedTask(page, 'task_fictional-tickets'))?.doneAt).toBeTruthy();
   await expect(page.locator('body')).not.toBeFocused();
@@ -151,12 +152,22 @@ test('an earlier finish taken back; the steps of a task played with Next', async
   // Play the steps (LEDGER #351): the current step with its countdown, Next ticks it.
   await page.goto('/app/tasks?view=today'); await settle(page);
   const form = await openEditor(page, 'Fictional move');
+  // (fix2011; deliberate) the page's clock is held while the step starts, so its countdown reads its full 10:00 however long
+  // a slow machine takes to look (CI read "9:55 left of 10 min"). The steps' code is loaded first (opened, then closed: React
+  // needs the clock to show a part that loaded late), then the clock is held and the steps opened again; the same exact
+  // checks follow, then a minute is run and the clock goes on.
   await form.getByRole('button', {name: 'Play the steps (2)'}).click();
   const play = form.locator('.task-play');
+  await expect(play).toContainText('Now: Fictional boxes');
+  await form.getByRole('button', {name: 'Close the steps'}).click();
+  await expect(play).toHaveCount(0);
+  await page.clock.pauseAt(await page.evaluate(() => Date.now()) + 1_000);
+  await form.getByRole('button', {name: 'Play the steps (2)'}).click();
   await expect(play).toContainText('Now: Fictional boxes');
   await expect(play.getByRole('timer')).toContainText('10:00');
   await expect(play.getByRole('button', {name: 'Next'})).toBeFocused();
   await page.clock.runFor(60_000);
+  await page.clock.resume();
   await play.getByRole('button', {name: 'Next'}).click();
   await expect.poll(async () => (await storedTask(page, 'task_fictional-boxes'))?.doneAt).toBeTruthy();
   await expect(play).toContainText('Now: Fictional labels');

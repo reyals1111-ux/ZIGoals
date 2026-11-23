@@ -12074,6 +12074,16 @@
     .csv-templates li:not(#\-):not(#\-) {
         border-bottom-color: color-mix(in srgb, var(--line,#8ca0dc) 40%, #fff)
     }
+    @media (max-width:560px) {
+        .bankfile-table tr:not(#\-):not(#\-) {
+            border-bottom-color: color-mix(in srgb, var(--line,#8ca0dc) 40%, #fff)
+        }
+    }
+    @media (max-width:560px) {
+        .bankfile-table td:not(#\-):not(#\-) {
+            border-bottom-color: currentcolor
+        }
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .import-step-heading:not(#\-):not(#\-) {
@@ -26951,6 +26961,9 @@
         color: color-mix(in srgb, var(--accent, inherit) 25%, #fff)
     }
     .tasks-nav-area h4:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .task-editor-paused small:not(#\-):not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
 }

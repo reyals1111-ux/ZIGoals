@@ -42,7 +42,9 @@ for (const theme of THEMES) test(`${theme}: categories and rules saved to and re
   const findings = await axe(page, part);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   await part.getByRole('button', {name: 'Add 3 new items'}).click();
-  await expect(part.getByRole('status')).toHaveText('Added from friend.json: 1 category, 1 subcategory and 1 rule. Nothing you had was changed.');
+  // (fix2011; deliberate) the fold's parts speak through Spending's one status line under the form (since CI run 2007 the
+  // form's other parts do; the fold had three status lines of its own), so that line is read, with the same exact words.
+  await expect(box.locator('p.spending-status')).toHaveText('Added from friend.json: 1 category, 1 subcategory and 1 rule. Nothing you had was changed.');
   await expect(part.getByRole('heading', {name: 'Categories and rules in a file'})).toBeFocused();
   expect((await readRecord<MoneyLog>(page, MONEY_LOG_KEY)).own).toEqual({expense: ['Pets', 'Hobbies']});
   expect((await readRecord<MoneyRules>(page, MONEY_RULES_KEY)).rules.map(r => r.text)).toEqual(['Albert Heijn', 'Brush shop']);

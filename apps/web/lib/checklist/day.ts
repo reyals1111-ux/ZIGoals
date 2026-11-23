@@ -23,8 +23,13 @@ export const todayOf = (days: ChecklistDays, date: string): ChecklistToday => da
  * read. The history keeps the latest 400 days.
  *
  * `summarise(today, {receipts})` derives a past day's summary; `receipts: false` for a day no receipts exist for.
+ *
+ * Friend-readiness (FR-MAX-1): with no day held at all (nothing was ever ticked on the path: the person ticks on Habits or
+ * Today's habits card), the days since the path began (`since`, its first item's day; at most two weeks back) are sealed
+ * from the records alone, and only those with something done are kept, so a day done elsewhere counts exactly as a day
+ * done on the path while a path nobody used still stores nothing. From then on a day is held and the rule above applies.
  */
-export function sealDay(days: ChecklistDays, date: string, summarise: (day: ChecklistToday, options: {receipts: boolean}) => ChecklistDaySummary | null): ChecklistDays {
+export function sealDay(days: ChecklistDays, date: string, summarise: (day: ChecklistToday, options: {receipts: boolean}) => ChecklistDaySummary | null, {since}: {since?: string | null} = {}): ChecklistDays {
   const held = days.today;
   if (held?.date === date) return days;
   const sealed: Record<string, ChecklistDaySummary> = {...days.days};
@@ -32,9 +37,19 @@ export function sealDay(days: ChecklistDays, date: string, summarise: (day: Chec
   if (held && held.date < date) {
     put(held.date, summarise(held, {receipts: true}));
     for (let d = addDays(held.date, 1), n = 0; d < date && n < BACKFILL_DAYS; d = addDays(d, 1), n++) put(d, summarise(emptyToday(d), {receipts: false}));
+  } else if (!held && since && since < date) {
+    const from = addDays(date, -BACKFILL_DAYS);
+    for (let d = since > from ? since : from; d < date; d = addDays(d, 1)) { const summary = summarise(emptyToday(d), {receipts: false}); if (summary && summary.done > 0) put(d, summary); }
   }
   const kept = Object.keys(sealed).sort().slice(-MAX_SEALED_DAYS);
   return checklistDaysSchema.parse({...days, days: Object.fromEntries(kept.map(d => [d, sealed[d]!])), today: emptyToday(date)});
+}
+
+/** The day the path began: its earliest item's day in the Checklist's zone (null for an empty path or no readable date). */
+export function pathSince(record: {items: {addedAt: string}[]; healthItems: {addedAt: string}[]}, zone: string | null = checklistZone()): string | null {
+  const stamps = [...record.items, ...record.healthItems].map(i => Date.parse(i.addedAt)).filter(Number.isFinite);
+  if (!stamps.length) return null;
+  try { return checklistDay(new Date(Math.min(...stamps)), zone ?? checklistZone()); } catch { return null; }
 }
 
 /** A receipt for a tick made on the path (P7.10; Perfect orbit and Undo). The newest receipt per item wins. */

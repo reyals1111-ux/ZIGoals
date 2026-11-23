@@ -9,7 +9,7 @@ import type {Bill} from './schema';
  * Session AP (owner-approved): a price-change notice on Upcoming bills, pure. For a bill confirmed from the money log (or
  * a candidate still offered), the latest payment of the same series (same currency, category and payee, read as the
  * detector reads them) is compared with the payment before it, on an earlier date. When the two differ: "went up by X
- * since <month of the earlier payment>" or "went down by X". Every payment of the series counts here, also one outside
+ * since <month of the first payment at the new price>" or "went down by X". Every payment of the series counts here, also one outside
  * the ±5 % the detector uses to find a bill, so a real price rise is not hidden. Exact cents; the bill's own currency.
  */
 export type PriceChange = {direction: 'up' | 'down'; cents: number; currency: string; previous: number; latest: number; previousDate: string; latestDate: string; sinceMonth: string};
@@ -27,11 +27,14 @@ function compare(list: readonly MoneyEntry[]): PriceChange | null {
   // agree. The latest payment is compared with the most recent payment at another price, when that one is recent (within
   // about three months of the latest), so a rise stays visible for a few cycles and an old one does not come back.
   const latest = list[list.length - 1]!, b = minorUnits(latest.amount);
-  let previous = list[list.length - 2]!;
-  for (let i = list.length - 2; i >= 0; i--) { if (minorUnits(list[i]!.amount) !== b) { previous = list[i]!; break; } }
-  const a = minorUnits(previous.amount);
+  let at = list.length - 2;
+  for (let i = list.length - 2; i >= 0; i--) { if (minorUnits(list[i]!.amount) !== b) { at = i; break; } }
+  const previous = list[at]!, a = minorUnits(previous.amount);
   if (a === b || (Date.parse(latest.date) - Date.parse(previous.date)) / 86_400_000 > 100) return null;
-  return {direction: b > a ? 'up' : 'down', cents: Math.abs(b - a), currency: latest.currency, previous: a, latest: b, previousDate: previous.date, latestDate: latest.date, sinceMonth: monthKey(previous.date)};
+  // Session AV lane 2 (fr-money, FR-L-18, the friend-readiness walk's Lina): "since" is the month of the first payment at
+  // the new price (€15.00 on 4 Sept, €17.50 on 4 Oct: "since Oct 2026"); the earlier payment's month read as if the price
+  // had changed then.
+  return {direction: b > a ? 'up' : 'down', cents: Math.abs(b - a), currency: latest.currency, previous: a, latest: b, previousDate: previous.date, latestDate: latest.date, sinceMonth: monthKey(list[at + 1]!.date)};
 }
 /** A confirmed bill's change, when it came from the money log (a bill added by hand has no payments to compare). */
 export function billPriceChange(bill: Bill, entries: readonly MoneyEntry[], today: string): PriceChange | null {

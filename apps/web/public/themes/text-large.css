@@ -4056,6 +4056,7 @@
 :where(:root[data-text=large]) .task-version-words:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .tasks-nav-area h4:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .task-editor-paused:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .task-editor-paused small:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .tasks-print-line button:not(#\-) { font-size: calc(16px * 1.125); }
 /*  components/tasks/today-tasks-due.css  */
 :where(:root[data-text=large]) .today-budgets-left:not(#\-) { font-size: calc(14px * 1.125); }

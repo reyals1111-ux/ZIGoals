@@ -3834,6 +3834,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .csv-saved:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .csv-saved-row:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .bankfile-changed:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 0; }
+@media (max-width:560px) { :where(:root[data-density=compact]) .bankfile-table tr:not(#\-) { padding-top: 3px; padding-bottom: 3px; } }
+@media (max-width:560px) { :where(:root[data-density=compact]) .bankfile-table td:not(#\-) { padding-top: 2px; padding-bottom: 2px; } }
 /*  components/import/import.css  */
 :where(:root[data-density=compact]) .import-panel:not(#\-) { row-gap: 10.5px; }
 :where(:root[data-density=compact]) .import-panel h2:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -8092,6 +8094,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .task-versions-actions:not(#\-) { row-gap: 8px; margin-top: 8px; margin-bottom: 8px; }
 :where(:root[data-density=compact]) .tasks-nav-area h4:not(#\-) { margin-top: 8px; margin-bottom: 2px; }
 :where(:root[data-density=compact]) .task-editor-paused:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .task-editor-paused:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .task-editor-paused p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .tasks-print-line:not(#\-) { margin-top: 8px; margin-bottom: 0; }
 /*  components/tasks/today-tasks-due.css  */
 :where(:root[data-density=compact]) .today-tasks-due:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 12px; }
@@ -8742,6 +8746,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .spending-unusual:not(#\-) { margin-top: 0; margin-bottom: 8px; padding-top: 10px; padding-bottom: 10px; row-gap: 6px; }
 :where(:root[data-density=compact]) .spending-unusual li:not(#\-) { row-gap: 3px; }
 :where(:root[data-density=compact]) .spending-unusual-actions:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .spending-more:not(#\-) { row-gap: 16px; }
 /*  components/wealth/store-cards/store-cards.css  */
 :where(:root[data-density=compact]) .store-cards:not(#\-) { row-gap: 8px; margin-top: 16px; margin-bottom: 16px; padding-top: 12px; padding-bottom: 12px; }
 :where(:root[data-density=compact]) .store-cards h3:not(#\-), :where(:root[data-density=compact]) .store-cards p:not(#\-) { margin-top: 0; margin-bottom: 0; }

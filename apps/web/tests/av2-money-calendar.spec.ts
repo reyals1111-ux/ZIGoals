@@ -1,6 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {applyTheme, axe, THEMES} from './p6-helpers';
-import {entry, moneyLog, noSideScroll, openInsight, seedDevice, spending} from './ap/ap-money-fixtures';
+import {entry, moneyLog, noSideScroll, openInsight, reopenInsight, seedDevice, spending} from './ap/ap-money-fixtures';
 import {MONEY_LOG_KEY} from '../lib/money-log/schema';
 
 /**
@@ -41,6 +41,7 @@ for (const theme of THEMES) test(`${theme}: a calendar of the month opens a day 
   findings = await axe(page, panel);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   await page.setViewportSize({width: 320, height: 720});
+  await reopenInsight(page, 'A calendar of the month'); // fix2011; deliberate (tests/ap/ap-money-fixtures.ts)
   await expect(panel.locator('.money-cal-list')).toBeVisible();
   expect(await noSideScroll(page)).toBe(true);
 });

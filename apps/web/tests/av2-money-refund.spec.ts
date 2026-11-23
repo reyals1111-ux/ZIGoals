@@ -25,7 +25,8 @@ for (const theme of THEMES) test(`${theme}: a refund lowers its category and its
   const form = section.getByRole('form', {name: 'Log spending or income'});
   // (fixb6; deliberate) the chips' radios sit over their words (a click there still chooses), so a click on the word's
   // span is caught by the radio; choose the radio by its role and name, as the other money specs do, and check it took.
-  const refund = form.getByRole('radiogroup', {name: 'Kind'}).getByRole('radio', {name: 'Refund', exact: true});
+  // (fix2011; deliberate) the Kind chip reads "Money back": "Refund" held the category name "Fun" (tests/av-category-suggest.spec.ts).
+  const refund = form.getByRole('radiogroup', {name: 'Kind'}).getByRole('radio', {name: 'Money back', exact: true});
   await refund.check(); await expect(refund).toBeChecked();
   await form.getByLabel('Amount').fill('30');
   const groceries = form.locator('fieldset.spending-cats').getByRole('radio', {name: 'Groceries', exact: true});

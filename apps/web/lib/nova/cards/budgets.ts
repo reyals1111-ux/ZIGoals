@@ -19,6 +19,8 @@ export type BudgetLine = {
   spent: string; available: string;
   /** "€180.00 left", "all used" or "over by €40.00". */
   words: string;
+  /** Session AV lane 2 (fr-money, FR-L-3): what is left, in cents (below zero when over), for an answer's own words. */
+  leftCents: number;
   /** Session AV (F-BUDGET-TARGETS): the budget's target in words, English and Dutch, when it has one. */
   target?: {en: string; nl: string};
 };
@@ -56,7 +58,7 @@ export function targetWords(r: Pick<BudgetRow, 'currency' | 'budgeted'> & {targe
 export function budgetsCard(record: BudgetsRecord, entries: readonly MoneyEntry[], today: string, nlMonth?: (month: string) => string): BudgetsCard {
   const month = monthKey(today), view = monthView(entries, record, month, today);
   const lines = view.rows.map(r => ({id: r.id, category: r.category, currency: r.currency, over: r.over, share: r.available > 0 ? r.spent / r.available : r.spent > 0 ? 2 : 0,
-    spent: money(r.spent, r.currency), available: money(r.available, r.currency), words: budgetWords(r), ...(r.target ? {target: targetWords(r, nlMonth)} : {})}))
+    spent: money(r.spent, r.currency), available: money(r.available, r.currency), words: budgetWords(r), leftCents: r.left, ...(r.target ? {target: targetWords(r, nlMonth)} : {})}))
     .sort((a, b) => Number(b.over) - Number(a.over) || b.share - a.share || a.category.localeCompare(b.category));
   const within = lines.filter(l => !l.over).length;
   const loose = new Map<string, {cents: number; categories: number}>();

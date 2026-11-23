@@ -1,4 +1,5 @@
 import {expect, test} from '@playwright/test';
+import {openPhoneRow} from './phone-length-folds';
 import {applyTheme, axe, THEMES} from './p6-helpers';
 import {entry, moneyLog, noSideScroll, readRecord, seedDevice, spending} from './ap/ap-money-fixtures';
 import {hydrated} from './ah-helpers';
@@ -19,6 +20,9 @@ for (const theme of THEMES) test(`${theme}: a calm money streak, off until chose
   await page.goto('/app/wealth'); await hydrated(page);
   const section = spending(page);
   await expect(section.locator('.money-streak')).toHaveCount(0);
+  // Session AV lane 2 (fix2011; deliberate): on a phone Spending's later parts are one row, "More about your money"
+  // (tests/phone-length-folds.ts: there and closed on a phone, absent at 1440); it is opened, then checked as before.
+  await openPhoneRow(page, 'More about your money', spending(page));
   const fold = section.locator('.money-yesterday-fold');
   await fold.locator('summary').click();
   const choice = fold.getByRole('checkbox', {name: /Days in a row you looked at your money, on Spending/});

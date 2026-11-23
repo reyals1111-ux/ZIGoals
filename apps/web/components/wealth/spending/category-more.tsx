@@ -20,28 +20,31 @@ const CategoryFile = lazy(() => import('./category-file'));
  *   is changed.
  */
 type Update = (fn: (log: MoneyLog) => MoneyLog) => unknown;
-export default function CategoryMore({log, update, kind, onArchived}: {log: MoneyLog; update: Update; kind: MoneyEntry['kind']; onArchived?: (name: string) => void}) {
-  const id = useId(), [pick, setPick] = useState(''), [note, setNote] = useState('');
-  const [setId, setSetId] = useState<string>(STARTER_SETS[0]!.id), [lang, setLang] = useState<StarterLang>('en'), [setNote2, setSetNote] = useState('');
+// Session AV lane 2 (fix2011): what it says goes to Spending's one status line (`say`), and a refusal to the form's alert
+// (`refuse`), as the form's other parts do since CI run 2007; the fold held three status lines of its own.
+export default function CategoryMore({log, update, kind, onArchived, say, refuse}: {log: MoneyLog; update: Update; kind: MoneyEntry['kind']; onArchived?: (name: string) => void; say: (text: string) => void; refuse: (text: string) => void}) {
+  const id = useId(), [pick, setPick] = useState('');
+  const setNote = (text: string) => { refuse(''); say(text); }, setFailure = (text: string) => { say(''); refuse(text); };
+  const [setId, setSetId] = useState<string>(STARTER_SETS[0]!.id), [lang, setLang] = useState<StarterLang>('en'), setSetNote = setNote;
   const visible = allCategories(log, kind).filter(c => !isArchived(log, kind, c)), archived = archivedOf(log, kind);
   const chosen = visible.includes(pick) ? pick : '';
   const words = kind === 'expense' ? 'spending' : 'money received';
   const archive = () => {
-    if (!chosen) { setNote('Choose a category to archive.'); return; }
+    if (!chosen) { setFailure('Choose a category to archive.'); return; }
     try {
       update(l => archiveCategory(l, kind, chosen));
       const n = entriesIn(log.entries, kind, chosen);
       setNote(`${chosen} archived: it is no longer offered for ${words}. ${n ? `Its ${formatNumber(n)} ${n === 1 ? 'entry keeps' : 'entries keep'} it, and` : 'Your'} reports and search still show it.`);
       setPick(''); onArchived?.(chosen);
-    } catch (e) { setNote(e instanceof Error ? e.message : 'This could not be saved on this device.'); }
+    } catch (e) { setFailure(e instanceof Error ? e.message : 'This could not be saved on this device.'); }
   };
-  const bringBack = (name: string) => { try { update(l => unarchiveCategory(l, kind, name)); setNote(`${name} is offered again.`); } catch { setNote('This could not be saved on this device.'); } };
+  const bringBack = (name: string) => { try { update(l => unarchiveCategory(l, kind, name)); setNote(`${name} is offered again.`); } catch { setFailure('This could not be saved on this device.'); } };
   const set = STARTER_SETS.find(s => s.id === setId)!;
   const preview = useMemo(() => previewStarterSet(log, set, lang), [log, set, lang]);
   const fresh = preview.filter(c => c.isNew).length + preview.reduce((n, c) => n + c.subs.filter(s => s.isNew).length, 0);
   const addSet = () => {
     let out: ReturnType<typeof applyStarterSet> | null = null;
-    try { update(l => { out = applyStarterSet(l, set, lang); return out.log; }); } catch { setSetNote('This could not be saved on this device. Nothing was changed.'); return; }
+    try { update(l => { out = applyStarterSet(l, set, lang); return out.log; }); } catch { setFailure('This could not be saved on this device. Nothing was changed.'); return; }
     const r = out as ReturnType<typeof applyStarterSet> | null;
     if (!r) return;
     const said = r.categories || r.subs
@@ -56,7 +59,6 @@ export default function CategoryMore({log, update, kind, onArchived}: {log: Mone
       <p className="fine">An archived category is no longer offered for {words}, in budgets or in To review. Your entries keep it, and reports and search still show it.</p>
       <div className="spending-own-row"><label className="field"><span>Category</span><select value={chosen} onChange={e => setPick(e.target.value)}><option value="">Choose…</option>{visible.map(c => <option key={c} value={c}>{c}</option>)}</select></label><button type="button" className="secondary" onClick={archive}>Archive</button></div>
       {archived.length > 0 && <><p className="fine category-more-sub">Archived categories ({formatNumber(archived.length)})</p><ul className="spending-own-list" aria-label="Archived categories">{archived.map(c => <li key={c}><span>{c}</span><button type="button" className="text-link" aria-label={`Bring back ${c}`} onClick={() => bringBack(c)}>Bring back</button></li>)}</ul></>}
-      <p className="fine" role="status">{note}</p>
     </section>
     <section aria-labelledby={`${id}-sets`} className="category-more-part">
       <h4 id={`${id}-sets`}>Start from a set</h4>
@@ -71,8 +73,7 @@ export default function CategoryMore({log, update, kind, onArchived}: {log: Mone
         {c.subs.length > 0 && <span className="fine category-more-subs">{c.subs.map(s => `${s.name}${s.isNew ? '' : ' (already there)'}`).join(', ')}</span>}
       </li>)}</ul>
       <button type="button" className="secondary" aria-disabled={!fresh || undefined} onClick={() => { if (fresh) addSet(); }}>{fresh ? `Add ${formatNumber(fresh)} new from this set` : 'All of it is already there'}</button>
-      <p className="fine" role="status">{setNote2}</p>
     </section>
-    <Suspense fallback={null}><CategoryFile log={log} update={update}/></Suspense>
+    <Suspense fallback={null}><CategoryFile log={log} update={update} say={say}/></Suspense>
   </div>;
 }

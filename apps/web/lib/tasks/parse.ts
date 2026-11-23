@@ -380,9 +380,18 @@ export function parseTaskLine(input: string, today: string, {keep = []}: {keep?:
     return null;
   };
   const seen = new Set<SpanKind>();
+  // Friend-readiness (FR-MAX-13, known M-11): a day right after "about" or "regarding" (Dutch "over het/de") is what the task
+  // is about, not when it is due: "Email Sam about the weekend" keeps its words and gets no day.
+  const topic = (i: number) => {
+    const raw = (k: number) => toks[k]?.text.toLowerCase();
+    let from = i;
+    while (from > 0 && !used[from - 1] && LEADS.has(toks[from - 1]!.low)) { if (raw(from - 1) === 'over' && (raw(from) === 'het' || raw(from) === 'de')) return true; from--; }
+    return from > 0 && (raw(from - 1) === 'about' || raw(from - 1) === 'regarding');
+  };
   for (let i = 0; i < toks.length; i++) {
     if (used[i]) continue;
     const found = tryAt(i);
+    if (found?.kind === 'date' && topic(i)) { i += found.len - 1; continue; }
     // One of each: a second day or a second repeat stays text (the first one wins).
     if (!found || (seen.has(found.kind) && (found.kind === 'date' || found.kind === 'time' || found.kind === 'recur' || found.kind === 'priority' || found.kind === 'project' || found.kind === 'deadline' || found.kind === 'minutes'))) continue;
     // A date token that a span starting with it would only half cover ("the" alone) is not taken.

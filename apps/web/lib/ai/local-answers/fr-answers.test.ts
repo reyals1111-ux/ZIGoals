@@ -237,7 +237,7 @@ describe('FR-TJ-1: NOVA\'s Health-off reply names the one button, Allow Health',
     expect(ask('How did I sleep?', off).text).toBe('Health is off for NOVA, so nothing from Health is read here. Tap Allow Health in NOVA → Permissions: one tap opens Health (the button is there once Health is on your Today page).');
     expect(ask('Hoe heb ik geslapen?', off).text).toBe('Health staat uit voor NOVA, dus er wordt niets uit Health gelezen. Tik op Allow Health in NOVA → Permissions: één tik opent Health (de knop staat er zodra Health op je Today-pagina staat).');
     const gate = novaEnv(sanneAll(), undefined, false);
-    expect(ask('How did I sleep?', gate).text).toBe('Health is on for NOVA, but Health sharing is off on this device, so nothing from Health is read here. Tap Allow Health in NOVA → Permissions: one tap opens it (the button is there once Health is on your Today page).');
+    expect(ask('How did I sleep?', gate).text).toBe('Health answers are off on this device, so nothing from Health is read here; turn them on with Allow Health in NOVA → Permissions.');
     for (const t of [ask('How did I sleep?', off).text, ask('How did I sleep?', gate).text]) expect(t).not.toMatch(/Health page data|Include Health/);
   });
 });

@@ -101,7 +101,9 @@ export function budgetsAnswer(q: Query, env: ToolEnv): Exact | null {
   const nlWords = (r: typeof rows[number]) => r.over ? `over het budget (${r.spent} van ${r.available})` : `${r.spent} van ${r.available}`;
   const one = q.subject?.kind === 'category' ? rows.find(r => r.category.toLowerCase() === plain(q.subject!.name).toLowerCase()) : null;
   // Session AV (F-BUDGET-TARGETS): a budget with a target says it after the month's figures.
-  if (one) return out(t(lang, `${one.category}: ${one.spent} of ${one.available} this month, ${one.words}${one.target ? `; ${one.target.en}` : ''}.`, `${one.category}: ${nlWords(one)} deze maand${one.target ? `; ${one.target.nl}` : ''}.`), {...facts, budget: one});
+  // Session AV lane 2 (fr-money, FR-L-3): the Dutch answer says what is left too, as the English one does ("nog € 54,65 over").
+  const nlLeft = (r: typeof rows[number]) => { const l = card.lines[rows.indexOf(r)]!; return l.over ? '' : l.leftCents === 0 ? ', helemaal op' : `, nog ${money(l.leftCents, l.currency)} over`; };
+  if (one) return out(t(lang, `${one.category}: ${one.spent} of ${one.available} this month, ${one.words}${one.target ? `; ${one.target.en}` : ''}.`, `${one.category}: ${nlWords(one)} deze maand${nlLeft(one)}${one.target ? `; ${one.target.nl}` : ''}.`), {...facts, budget: one});
   if (q.ask === 'late' || q.ask === 'missed' || q.ask === 'worst' || /\b(?:over|exceeded|blown|overschreden)\b/.test(q.read)) return out(over.length
     ? t(lang, `${over.length} of ${card.count} budgets ${over.length === 1 ? 'is' : 'are'} over this month: ${listWords(over.map(r => `${r.category} (${r.spent} of ${r.available})`), 'en')}.`, `${over.length} van je ${card.count} budgetten ${over.length === 1 ? 'is' : 'zijn'} deze maand overschreden: ${listWords(over.map(r => `${r.category} (${r.spent} van ${r.available})`), 'nl')}.`)
     : t(lang, `No budget is over this month: all ${card.count} are within plan.`, `Geen budget is deze maand overschreden: alle ${card.count} zitten binnen plan.`), facts);

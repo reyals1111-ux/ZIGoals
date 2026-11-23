@@ -12643,6 +12643,16 @@
     .csv-templates li:not(#\-) {
         border-bottom-color: var(--line,rgba(140,160,220,.18))
     }
+    @media (max-width:560px) {
+        .bankfile-table tr:not(#\-) {
+            border-bottom-color: var(--line,rgba(140,160,220,.18))
+        }
+    }
+    @media (max-width:560px) {
+        .bankfile-table td:not(#\-) {
+            border-bottom-color: currentcolor
+        }
+    }
 }
 /*  components/import/import.css  */
 @scope (:root[data-theme=dark]) {
@@ -28935,6 +28945,9 @@
         color: var(--accent, inherit)
     }
     .tasks-nav-area h4:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .task-editor-paused small:not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
 }

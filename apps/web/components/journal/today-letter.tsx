@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {JOURNAL} from '../../lib/journal/schema';
 import {lettersOpen} from '../../lib/journal/letters';
-import {localDate} from '../../lib/local-date';
+import {journalDay} from '../../lib/journal/journal-day';
 import {formatDate} from '../../lib/visual-format';
 import './today-affirmation.css';
 
@@ -15,7 +15,7 @@ import './today-affirmation.css';
 export default function TodayLetter() {
   const journal = useDeviceRecord(JOURNAL);
   if (!journal.loaded) return null;
-  const today = localDate(), open = lettersOpen(journal.data.entries, today);
+  const today = journalDay(), open = lettersOpen(journal.data.entries, today);
   if (!open.length) return null;
   const first = open[0]!;
   return <p className="today-letter" role="group" aria-label="A letter to you">
