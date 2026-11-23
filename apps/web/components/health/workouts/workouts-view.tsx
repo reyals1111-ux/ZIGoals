@@ -347,29 +347,29 @@ export default function WorkoutsView() {
     {past.some(x => x.exercises.length) && <Suspense fallback={<section className="panel"><p className="fine">Opening muscle groups…</p></section>}><WorkoutsMuscles w={w} unit={unit} library={library} today={today}/></Suspense>}
     {/* Session AV lane 2 (body; LEDGER #203): shoes and their distance, a note near the limit. */}
     <section className="panel workouts-shoes" aria-labelledby="workouts-shoes-title">
-      <h2 id="workouts-shoes-title">Shoes</h2>
+      <h2 id="workouts-shoes-title"><NebulaFlow identity="workouts-shoes-title">Shoes</NebulaFlow></h2>
       {(w.shoes ?? []).filter(s => !s.retiredAt).length > 0 && <p className="fine workouts-shoes-line">{(w.shoes ?? []).filter(s => !s.retiredAt).length} {(w.shoes ?? []).filter(s => !s.retiredAt).length === 1 ? 'pair' : 'pairs'} in use.</p>}
       <Fold className="av2-fold workouts-shoes-fold" summary={(w.shoes ?? []).length ? 'Your shoes and their distance' : 'Add your running shoes and count their distance'} loading="Opening your shoes…"><Shoes w={w} change={change}/></Fold>
     </section>
     {/* Session AV lane 2, round 4 (health; Runna, LEDGER #337): races ahead, the weeks between, the result beside the goal. */}
     <section className="panel workouts-races" aria-labelledby="workouts-races-title">
-      <h2 id="workouts-races-title">Races ahead</h2>
+      <h2 id="workouts-races-title"><NebulaFlow identity="workouts-races-title">Races ahead</NebulaFlow></h2>
       <Fold className="av2-fold workouts-races-fold" summary="Your races this year, the weeks between them, and results" loading="Opening your races…"><RacesAhead w={w} today={today}/></Fold>
     </section>
     {/* Session AV lane 2 (body; LEDGER #111): distance goals (their line on the fold's face) and the training load. */}
     <section className="panel workouts-goals" aria-labelledby="workouts-goals-title">
-      <h2 id="workouts-goals-title">Distance goals and training load</h2>
+      <h2 id="workouts-goals-title"><NebulaFlow identity="workouts-goals-title">Distance goals and training load</NebulaFlow></h2>
       {(w.distanceGoals ?? []).slice(0, 2).map(g => { const p = goalProgress(w, g, today); return <p key={g.id} className="fine workouts-goal-line">{`${({run: 'Running', ride: 'Cycling', swim: 'Swimming', walk: 'Walking', any: 'All sports'} as const)[g.sport]} ${g.period === 'week' ? 'this week' : g.period === 'month' ? 'this month' : 'this year'}: ${formatNumber(p.km, {maximumFractionDigits: 1})} of ${formatNumber(g.km, {maximumFractionDigits: 1})} km${p.done ? ', reached' : p.onPace ? ', on pace' : ''}.`}</p>; })}
       <Fold className="av2-fold workouts-goals-fold" summary={(w.distanceGoals ?? []).length ? 'Your goals and the last 7 days beside your usual week' : 'Set a distance goal; see the last 7 days beside your usual week'} loading="Opening goals and load…"><DistanceGoals w={w} today={today} change={change} pauses={pauses}/></Fold>
       <Fold className="av2-fold workouts-band-fold" summary="Your movement band: this week beside your usual range" loading="Opening your movement band…"><MovementBand w={w} activity={health.data.activity} today={today} pauses={pauses}/></Fold>
     </section>
     {past.some(x => x.exercises.length) && <section className="panel workouts-progress-report" aria-labelledby="workouts-report-title">
-      <h2 id="workouts-report-title">Progress</h2>
+      <h2 id="workouts-report-title"><NebulaFlow identity="workouts-report-title">Progress</NebulaFlow></h2>
       <Fold className="av2-fold workouts-report-fold" summary="This month beside the last, and sets per muscle group" loading="Opening your progress…"><WorkoutsProgress w={w} unit={unit} library={library} today={today}/></Fold>
     </section>}
     {/* Session AV lane 2 (body; LEDGER #116, #119; Hevy's exercise library): every exercise's written how-to, its muscles, your best and a pinned note. */}
     <section className="panel workouts-library" aria-labelledby="workouts-library-title">
-      <h2 id="workouts-library-title">Exercises and how-tos</h2>
+      <h2 id="workouts-library-title"><NebulaFlow identity="workouts-library-title">Exercises and how-tos</NebulaFlow></h2>
       <Fold className="av2-fold workouts-library-fold" summary="Open the exercise library" loading="Opening the exercise library…"><ExerciseLibrary w={w} unit={unit} library={library} change={change} place={place} today={today}/></Fold>
     </section>
 

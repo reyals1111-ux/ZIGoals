@@ -1,5 +1,6 @@
 'use client';
 import {useRef, useState} from 'react';
+import {NebulaFlow} from '../nebula-flow';
 import {startAgain, type GameRecord} from '../../lib/game/schema';
 import {formatDate, formatNumber} from '../../lib/visual-format';
 import {storageMessageOr} from '../../lib/storage-error-copy';
@@ -22,7 +23,7 @@ export default function StartAgain({game, today, level}: {game: DeviceRecordStat
     // The button leaves with level 1; focus moves to the panel's heading, never to the page.
     requestAnimationFrame(() => (opener.current ?? heading.current)?.focus());
   };
-  return <section className="panel journey-rebirth" aria-labelledby="journey-rebirth-title"><p className="eyebrow">A fresh start</p><h2 id="journey-rebirth-title" ref={heading} tabIndex={-1}>Start again at level 1</h2>
+  return <section className="panel journey-rebirth" aria-labelledby="journey-rebirth-title"><p className="eyebrow">A fresh start</p><h2 id="journey-rebirth-title" ref={heading} tabIndex={-1}><NebulaFlow identity="journey-rebirth">Start again at level 1</NebulaFlow></h2>
     <p>{rebirth ? `Counting from ${formatDate(rebirth.from)}${rebirth.times > 1 ? ` · started again ${formatNumber(rebirth.times)} times` : ''}. ` : ''}Starting again counts your level from today. Badges, freezes, streaks and every record stay as they are; only the level starts over.</p>
     {level > 1 && <button ref={opener} type="button" className="secondary" aria-expanded={asking} onClick={() => { setSaid(''); setAsking(true); }}>Start again at level 1…</button>}
     {level <= 1 && <p className="fine">You are at level 1 now, so there is nothing to start over yet.</p>}

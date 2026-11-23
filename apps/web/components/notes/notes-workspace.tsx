@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import {NebulaFlow} from '../nebula-flow';
 import {usePathname, useRouter, useSearchParams} from 'next/navigation';
 import {Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {hideToast, lastToastId} from '../ui/undo-toast';
@@ -244,7 +245,7 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
     </section>}
 
     {!noteId && view === 'canvas' && <section className="panel" aria-labelledby="note-canvas-title">
-      <h2 id="note-canvas-title">Canvas</h2>
+      <h2 id="note-canvas-title"><NebulaFlow identity="note-canvas-title">Canvas</NebulaFlow></h2>
       <LoadBoundary label="The canvas"><Suspense fallback={<p className="fine">Opening your boards…</p>}><NotesCanvas record={record} change={change}/></Suspense></LoadBoundary>
     </section>}
 

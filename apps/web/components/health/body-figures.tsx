@@ -1,5 +1,6 @@
 'use client';
 import {useId, useMemo, useState} from 'react';
+import {NebulaFlow} from '../nebula-flow';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {bmiOf, markCelebrated, milestoneView, reachMilestones, setHeight, toCelebrate, turnOffMilestones, turnOnMilestones} from '../../lib/body-extras/body';
 import {BODY_EXTRAS, type Milestones} from '../../lib/body-extras/schema';
@@ -26,7 +27,7 @@ export default function BodyFigures({latestGrams, latestDate, goalGrams, unit}: 
   if (!record.loaded) return null;
   const h = record.data.heightCm, bmi = h && latestGrams !== null ? bmiOf(h, latestGrams) : null, view = milestoneView(preview), cheer = toCelebrate(preview);
   return <section className="panel body-figures" aria-labelledby={`${id}-title`}>
-    <h2 id={`${id}-title`}>BMI and milestones</h2>
+    <h2 id={`${id}-title`}><NebulaFlow identity="body-figures-title">BMI and milestones</NebulaFlow></h2>
     {note && <p className="fine" role="status">{note}</p>}
     {record.unreadable && <p className="notice" role="alert">The height and milestones on this device could not be read. Their bytes are kept; saving writes a new record.</p>}
     <div className="body-figures-bmi">

@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import {NebulaFlow} from '../nebula-flow';
 import {Suspense, lazy, useEffect, useMemo, useState} from 'react';
 import {formatDate, formatNumber, formatWeekday} from '../../lib/visual-format';
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -243,7 +244,7 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
     <OnDemandFold className="year-pixels-fold" summary="Year: one square a day" label="Your year"><YearPixels today={today}/></OnDemandFold>
     {found.length > 0 && <section className="panel" aria-labelledby="journal-patterns"><h2 id="journal-patterns">Patterns</h2><ul>{found.slice(0, 4).map(p => <li key={p.theme}>{patternLine(p, 'en')}</li>)}</ul><p className="fine">Counts from your own entries, never a diagnosis.</p></section>}
     {/* Session AV lane 2 (journal; LEDGER #44, Day One's imports): bring entries in, or take the whole journal out with its photos. */}
-    <section className="panel" aria-labelledby="journal-files-title"><h2 id="journal-files-title">Import and export</h2>
+    <section className="panel" aria-labelledby="journal-files-title"><h2 id="journal-files-title"><NebulaFlow identity="journal-files-title">Import and export</NebulaFlow></h2>
       <JournalFold className="journal-files-fold" label="import and export" summary={<>Day One, Journey, Markdown, text, CSV or Apple Journal <span className="fine">· or your journal as a ZIP</span></>}><JournalFiles/></JournalFold>
     </section>
     <section className="panel" aria-labelledby="journal-privacy"><h2 id="journal-privacy">Privacy</h2>
