@@ -89,3 +89,5 @@
 .spending-unusual li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;overflow-wrap:anywhere}
 .spending-unusual-actions{display:inline-flex;gap:8px}
 .spending-unusual-actions button{min-height:44px}
+/* Session AV lane 2 (fix2011): the parts inside Spending's phone row "More about your money", as far apart as on the page. */
+.spending-more{display:grid;gap:16px;min-width:0}

@@ -104,7 +104,7 @@ export default function MoodWordsGrid({day, onClose}: {day: string; onClose: () 
       : <p className="fine mood-words-chosen-meaning"><strong>{current}</strong>{mine[current] ? <>: {mine[current]}. </> : '. '}<button type="button" className="text-link" onClick={() => setMeaningDraft(mine[current] ?? '')}>{mine[current] ? 'Change what it means to you' : 'Add what it means to you'}</button></p>)}
     <p className="fine" role="status" aria-live="polite">{status}</p>
     {/* Session AV lane 2 (r4-mind; LEDGER #325, #326): choices that may help (the one small step first), and where you feel it. */}
-    {current && <Suspense fallback={step ? <NextStepLink step={step}/> : null}><FeelingChoices word={current} day={day} quadrant={(quadrantOfWord(current)?.id ?? (Object.keys(ownWords) as QuadrantKey[]).find(k => ownWords[k].includes(current)) ?? null) as QuadrantId | null}/></Suspense>}
+    {current && <Suspense fallback={step ? <NextStepLink step={step}/> : null}><FeelingChoices say={setStatus} word={current} day={day} quadrant={(quadrantOfWord(current)?.id ?? (Object.keys(ownWords) as QuadrantKey[]).find(k => ownWords[k].includes(current)) ?? null) as QuadrantId | null}/></Suspense>}
     {current && <details className="mood-words-body-fold"><summary>Where do you feel it? <span className="fine">· optional</span></summary><Suspense fallback={<p className="fine">Opening…</p>}><MoodBody day={day}/></Suspense></details>}
     <p className="mood-words-actions">{current && <button type="button" className="text-link" onClick={remove}>Remove the word</button>}<button type="button" className="text-link" onClick={onClose}>Done</button></p>
   </section>;

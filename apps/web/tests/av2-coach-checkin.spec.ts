@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openPhoneRow} from './phone-length-folds';
 import {hydrated, loadShowcase, offlineApi} from './ah-helpers';
 import {axe, THEMES, applyTheme} from './p6-helpers';
 import {HEALTH_STORAGE_KEY} from '../lib/health';
@@ -43,6 +44,9 @@ for (const theme of THEMES) test(`${theme}: check-in day, chosen pace, goal date
   await page.reload(); await hydrated(page);
   await expect(page.locator('#health-coach').getByLabel('Check-in day')).toHaveValue('5');
   await page.goto('/app/health?view=diary'); await hydrated(page);
+  // Session AV lane 2 (fix2011; deliberate): on a phone "only partly logged" is in one row with the portion counters
+  // (tests/phone-length-folds.ts: there and closed on a phone, absent at 1440); it is opened, then checked as before.
+  await openPhoneRow(page, 'Portions, and a partly logged day');
   const partial = page.getByLabel('This day is only partly logged (leave it out of the maintenance estimate)');
   await partial.check();
   await expect(page.locator('.food-plus-partial [role="status"]')).toContainText('is left out of the maintenance estimate.');

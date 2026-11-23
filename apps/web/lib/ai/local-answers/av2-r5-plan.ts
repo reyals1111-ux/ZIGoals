@@ -65,7 +65,7 @@ function cancelledAnswer(a: Ask): LocalReply | null {
   if (!(en || nl)) return null;
   const got = tasksOf(a); if (!got) return null; if ('reply' in got) return got.reply;
   const gone = got.record.tasks.filter(isCancelled).sort((x, y) => y.doneAt!.localeCompare(x.doneAt!));
-  if (!gone.length) return answer(say(a.lang, 'No task is cancelled in the last 30 days. “Cancel the task” in a task’s editor closes it without counting it as done: it stays out of your done chart, your daily goal and its streak.', 'Geen taak is geannuleerd in de laatste 30 dagen. “Cancel the task” in de editor sluit een taak zonder dat hij als gedaan telt: niet in je grafiek, je dagdoel of je reeks.'), TASK_CALLS);
+  if (!gone.length) return answer(say(a.lang, 'No task is cancelled in the last 30 days. “Won’t do this task” in a task’s editor closes it without counting it as done: it stays out of your done chart, your daily goal and its streak.', 'Geen taak is geannuleerd in de laatste 30 dagen. “Won’t do this task” in de editor sluit een taak zonder dat hij als gedaan telt: niet in je grafiek, je dagdoel of je reeks.'), TASK_CALLS);
   const lines = gone.slice(0, 8).map(t => `• ${clean(t.title, 60)} (${dayIn(a.lang, calendarDay(t.doneAt!, a.env.habitZone) /* review B5L-10 */, a.today)})`);
   return answer([say(a.lang, `${count(gone.length, 'en', ['task is', 'tasks are'], ['', ''])} cancelled (not counted as done):`, `${count(gone.length, 'nl', ['', ''], ['taak is', 'taken zijn'])} geannuleerd (niet als gedaan geteld):`), ...lines].join('\n'), TASK_CALLS);
 }

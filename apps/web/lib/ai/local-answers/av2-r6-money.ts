@@ -52,7 +52,7 @@ function refunds(a: Asked): LocalReply | null {
   if (!(en || nl)) return null;
   const shut = closed(a.env, 'wealth'); if (shut) return shut;
   const month = a.today.slice(0, 7), {start} = monthOf(a.today), list_ = refundsIn(entriesOf(a.env), start, a.today), calls = call('money_log', {refunds: true}, 'Spending · refunds');
-  const how = (lang: Lang) => say(lang, ` A refund lowers its category’s spending and its budget; it is never counted as money received. Log one in ${SPENDING.en} → Log spending → Refund.`, ` Een terugbetaling verlaagt de uitgaven en het budget van zijn categorie; hij telt nooit als inkomsten. Log er een via ${SPENDING.nl} → Log spending → Refund.`);
+  const how = (lang: Lang) => say(lang, ` A refund lowers its category’s spending and its budget; it is never counted as money received. Log one in ${SPENDING.en} → Log spending → Money back.`, ` Een terugbetaling verlaagt de uitgaven en het budget van zijn categorie; hij telt nooit als inkomsten. Log er een via ${SPENDING.nl} → Log spending → Money back.`);
   if (!list_.length) return answer(say(a.lang, `No refunds logged in ${monthIn('en', month)}.${how('en')}`, `Geen terugbetalingen gelogd in ${monthIn('nl', month)}.${how('nl')}`), calls);
   const by = new Map<string, number>();
   for (const e of list_) by.set(`${e.currency}|${e.category}`, (by.get(`${e.currency}|${e.category}`) ?? 0) + minorUnits(e.amount));

@@ -1,12 +1,13 @@
 'use client';
 import {DEADLINE_REPEAT_MESSAGE, pausedDue, PAUSE_PAST_MESSAGE} from '../../lib/tasks/engine';
-import {addLocalDays} from '../../lib/local-date';
+import {addLocalDays, localDate} from '../../lib/local-date';
 import {minutesWords} from '../../lib/tasks/minutes';
 import {Suspense, lazy, useId, useRef, useState, type FormEvent} from 'react';
 import {HEALTH_LINKS, LEVEL_WORDS, TASK_NOTES_MAX, taskLevel, type HealthLink, type Recur, type Task, type TaskLevel, type Tasks} from '../../lib/tasks/schema';
 import {describeRecur, flexRule, windowEnd} from '../../lib/tasks/recurrence';
 import type {PlanFields} from './task-plan-fields';
 import {pausedRepeat} from '../../lib/tasks/paused';
+import {recordWords, repeatRecord} from '../../lib/tasks/repeat-record';
 import {parseTaskLine} from '../../lib/tasks/parse';
 import {REMINDER_CHOICES} from '../../lib/tasks/reminders';
 import {formatClock, formatDate} from '../../lib/visual-format';
@@ -127,6 +128,13 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
       <button type="button" className="quiet" onClick={() => setAsk(null)}>Back to the edit</button>
     </span>
   </div>;
+  // Session AV lane 2 (fix2011): one note per editor about the repeat — paused until (q1 #43, with Resume) and the repeat's
+  // record (r6, LEDGER #396; it was a second note lower down, in task-r6-parts.tsx), so a screen reader meets one note.
+  const paused = pausedRepeat(task, today), repeatFacts = task.recur ? repeatRecord(task, today, iso => localDate(new Date(iso))) : null;
+  const repeatNote = paused || repeatFacts ? <div className="task-editor-paused" role="note">
+    {paused && <p>Paused until {formatDate(paused.until, {weekday: true, year: paused.until.slice(0, 4) !== today.slice(0, 4)})}. <button type="button" className="text-link" onClick={() => onSave({due: paused.resume}, 'all')}>Resume from {formatDate(paused.resume, {weekday: true, year: false})}</button></p>}
+    {repeatFacts && <p><strong>This repeat’s record</strong> <small>(since {formatDate(repeatFacts.from, {year: false})})</small>: {recordWords(repeatFacts)}</p>}
+  </div> : null;
   return <form className="task-editor tasks-add" aria-label={`Edit “${task.title}”`} onSubmit={save} noValidate onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); onCancel(); } }}>
     <Suspense fallback={null}><TaskR5Actions task={task} onWrote={at => { if (at) base.current = at; }} onClosed={onCancel} /></Suspense>
     {stale && <p className="notice task-editor-stale" role="status">This task was changed in another tab or by an assistant while you edited it. Save to keep your version, or Cancel and open it again to see theirs.</p>}
@@ -147,7 +155,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
     {task.recur && !task.doneAt && <div className="task-editor-pause" role="group" aria-labelledby={`${id}-pause`}>
       <span id={`${id}-pause`} className="task-editor-pause-title">Pause the repeat</span>
       {/* Session AV lane 2 (q1 #43 Minor): a paused repeat says so, with Resume (its next day from today). */}
-      {/* Session AV lane 2 (minors, q1 #43): read by lib/tasks/paused.ts, so a daily task due tomorrow is never called paused. */}{(() => { const paused = pausedRepeat(task, today); return paused ? <p className="task-editor-paused" role="note">Paused until {formatDate(paused.until, {weekday: true, year: paused.until.slice(0, 4) !== today.slice(0, 4)})}. <button type="button" className="text-link" onClick={() => onSave({due: paused.resume}, 'all')}>Resume from {formatDate(paused.resume, {weekday: true, year: false})}</button></p> : null; })()}
+      {/* Session AV lane 2 (minors, q1 #43): read by lib/tasks/paused.ts, so a daily task due tomorrow is never called paused. */}{repeatNote}
       <label className="field"><span>Until</span><input type="date" min={addLocalDays(today, 1)} value={pauseUntil} aria-invalid={pauseError ? true : undefined} aria-describedby={pauseError ? `${id}-pause-error` : `${id}-pause-note`} onChange={e => { setPauseUntil(e.target.value); setPauseError(''); }} /></label>
       <button type="button" className="secondary" disabled={!pauseUntil} onClick={pause}>Pause until then</button>
       {pauseError ? <small id={`${id}-pause-error`} className="tasks-field-error" role="alert">{pauseError}</small> : <small id={`${id}-pause-note`} className="tasks-field-note">The times before that day are skipped, not marked done; it comes back on its first day from then.</small>}
@@ -167,6 +175,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
       <small id={`${id}-energy`} className="tasks-field-note">{energy ? `${ENERGY_WORDS[energy]}: ${ENERGY_HINTS[energy]}. Tasks → Today adds up the day’s energy against your amount.` : 'How much it asks of you. Tasks → Today adds up the day’s energy, in calm words.'}</small></label>
     <Suspense fallback={null}><TaskR5Fields task={task} today={today} due={due} time={time} value={r5} onChange={setR5} /></Suspense>
     <Suspense fallback={null}><TaskPlanFields task={task} record={record} minutes={typeof minutesValue === 'number' ? minutesValue : null} value={planFields} onChange={setPlanFields} /></Suspense>
+    {!(task.recur && !task.doneAt) && repeatNote}
     <Suspense fallback={null}><TaskR6Parts task={task} today={today} onWrote={at => { if (at) base.current = at; }} /></Suspense>
     <Suspense fallback={null}><TaskTimer task={task} onNote={n => setNotes(v => v.trim() ? `${v.trimEnd()}\n\n${n}` : n)} onStopped={(m, at) => { if (at) base.current = at; setSpent(s => String((/^\d{1,5}$/.test(s.trim()) ? Number(s) : task.spent ?? 0) + m)); }} /></Suspense>
     {objectives.length > 0 && <label className="field"><span>Week objective</span><select value={objective} onChange={e => setObjective(e.target.value)}><option value="">None</option>{objectives.map(o => <option key={o.id} value={o.id}>{o.title}{o.week !== weekNow ? ` (week of ${formatDate(o.week, {year: false})})` : ''}</option>)}</select></label>}

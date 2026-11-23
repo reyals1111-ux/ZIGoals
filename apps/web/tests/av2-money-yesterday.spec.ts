@@ -1,4 +1,5 @@
 import {expect, test} from '@playwright/test';
+import {openPhoneRow} from './phone-length-folds';
 import {applyTheme, axe, THEMES} from './p6-helpers';
 import {entry, moneyLog, noSideScroll, readRecord, seedDevice, spending} from './ap/ap-money-fixtures';
 import {hydrated} from './ah-helpers';
@@ -23,6 +24,9 @@ for (const theme of THEMES) test(`${theme}: yesterday's money, with a morning no
     [MONEY_LOG_KEY]: moneyLog([entry('2026-11-13', '42.10', 'Groceries', 'expense', 'Market'), shared, left, entry('2026-11-14', '3.00', 'Fun')]),
   });
   await page.goto('/app/wealth'); await hydrated(page);
+  // Session AV lane 2 (fix2011; deliberate): on a phone Spending's later parts are one row, "More about your money"
+  // (tests/phone-length-folds.ts: there and closed on a phone, absent at 1440); it is opened, then checked as before.
+  await openPhoneRow(page, 'More about your money', spending(page));
   const fold = spending(page).locator('.money-yesterday-fold');
   await fold.locator('summary').click();
   const panel = fold.locator('.money-yesterday');
