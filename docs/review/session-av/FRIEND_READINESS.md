@@ -19,7 +19,92 @@ FR-S-10); Dutch water and words-meals answers (FR-S-1/2, FR-TJ-2/3). Sandbox not
 shell crashes when ZIGi opens; full Chromium works.
 
 ## Fixes
-(to follow)
+
+Counts before duplicates: 1 Blocker, 33 Majors, 41 Minors. Every Blocker and Major has a fix commit; the fresh re-check (a fifth helper, read only, on `63798740`) found **30 Fixed, 4 Partly, 0 Not fixed, no new Blocker or Major**. "Re-check" is that helper's verdict; "—" means it was not re-checked (unit tests or a spec cover it).
+
+| Id | Sev | Commits | Re-check | Note |
+|---|---|---|---|---|
+| FR-S-1 | Major | `f68b7791` | Fixed |  |
+| FR-S-2 | Major | `aeb0ae7a` | Fixed |  |
+| FR-S-3 | Major | `bb0f40ce` | Fixed |  |
+| FR-S-4 | Major | `bcd2ac8c` | Fixed |  |
+| FR-S-5 | Major | `8e748281`, `cc1f99cd` | Fixed |  |
+| FR-S-6 | Major | `afefc212` | Fixed |  |
+| FR-S-7 | Major | `75959bb8` | Fixed |  |
+| FR-S-8 | Major | `baf96c7a` | Fixed |  |
+| FR-S-9 | Major | `7bf23ce3` | Fixed |  |
+| FR-S-10 | Major | `4a12169d` | Fixed |  |
+| FR-S-11 | Minor | `e65501ba` | — |  |
+| FR-S-12 | Minor | `01858ef3`, `307b8122` | — | 307b8122 put the name in `?name=`; CI run 2012's Alpha gate caught it reaching the server; 01858ef3 hands it over in memory. |
+| FR-S-13 | Minor | — | Still open | Carried: the goal-progress line is shared with the English goal cards ("7.9 h a night"); a Dutch duration and percent is a wording pass with a corpus re-record. Re-check: still open. |
+| FR-S-14 | Minor | — | — | Carried: choosing Health's example counters, the coach and NOVA's tiles from the chosen pillars changes three first screens, one of them NOVA's protected composition. |
+| FR-S-15 | Minor | — | — | Carried with FR-TJ-12: the first five's Log a meal opens the sheet directly; the hero's Log food still scrolls to the card (the sheet would have to load with Health's first screen, on its route weight). |
+| FR-S-16 | Minor | — | — | NOVA's reply is FR-TJ-1 (e2f33a4d, re-check Fixed). ZIGi's reply still names its own Privacy switches: Carried (ZIGi's gate is a separate record, `zigoals:ai:v1`). |
+| FR-S-17 | Minor | `4a12169d` | Fixed |  |
+| FR-S-18 | Minor | `3d4a3d4a`, `88ee25e3` | Fixed |  |
+| FR-S-19 | Minor | — | — | Carried: every route is within its weight budget; a time-to-usable pass on Help is its own work. |
+| FR-S-20 | Minor | `d8e44ce2`, `24e656da` | — |  |
+| FR-TJ-1 | Major | `de08b409`, `e2f33a4d` | Fixed |  |
+| FR-TJ-2 | Major | `f68b7791` | Fixed |  |
+| FR-TJ-3 | Major | `aeb0ae7a` | Fixed |  |
+| FR-TJ-4 | Major | `ba53955e`, `8e748281`, `d8e44ce2`, `24e656da` | Partly | Second pass on lane2/fr-recheck (see below). |
+| FR-TJ-5 | Major | `93fa0909` | Partly | Second pass on lane2/fr-recheck (see below). |
+| FR-TJ-6 | Major | `a656417d`, `85a13ca7` | Fixed |  |
+| FR-TJ-7 | Major | `f30ec1ee` | Partly | Carried on the phone and in the Showcase: Complete sits under the accepted Habits baseline's hero and cards; moving it is a redesign of a protected baseline (owner approval). |
+| FR-TJ-8 | Major | `75959bb8` | Fixed |  |
+| FR-TJ-9 | Major | `baf96c7a` | Fixed |  |
+| FR-TJ-10 | Major | `8d2002a6`, `299896e4` | Fixed |  |
+| FR-TJ-11 | Major | `4a12169d`, `3de11b8e` | Fixed |  |
+| FR-TJ-12 | Minor | — | — | Carried, as FR-S-15. |
+| FR-TJ-13 | Minor | — | Fixed | Fixed with FR-S-6 (afefc212). |
+| FR-TJ-14 | Minor | `4a12169d` | — |  |
+| FR-TJ-15 | Minor | `88ee25e3` | — |  |
+| FR-TJ-16 | Minor | — | Still open | Carried: the Dutch screen names are in about 40 answer lines and 114 recorded corpus answers; a wording pass with a corpus re-record. Re-check: still open. |
+| FR-TJ-17 | Minor | `306b7241` | — | "1 weeks" fixed (306b7241). Carried: a habit named Gym before workout weeks changes which intent answers (router and corpus). |
+| FR-TJ-18 | Minor | `f30ec1ee` | — |  |
+| FR-TJ-19 | Minor | — | — | Carried: the top-bar logo belongs to the protected shell navigation and the locked look (owner decision). |
+| FR-TJ-20 | Minor | — | — | Carried: Health Diary's card layout; a polish item for the next session. |
+| FR-TJ-21 | Minor | `4a12169d` | Fixed |  |
+| FR-TJ-22 | Minor | — | — | Carried, as FR-S-19 (Showcase Wealth and Today). |
+| FR-TJ-23 | Minor | — | — | Carried with FR-L-16: an "Add money" control on a goal's hero is a new control (follow-up 6: nothing new). Quick add → Contribution does it today. |
+| FR-TJ-24 | Minor | — | — | Carried: the first five sit under the protected Today hero (owner decision). |
+| FR-L-1 | Blocker | `44eb4aeb` | Fixed |  |
+| FR-L-2 | Major | `44eb4aeb` | Fixed |  |
+| FR-L-3 | Major | `fe764ca6` | Fixed |  |
+| FR-L-4 | Major | `63798740`, `8d2002a6`, `fd7eba80` | Partly | Second pass on lane2/fr-recheck (see below). |
+| FR-L-5 | Major | `75959bb8` | Fixed | Carried in the Showcase at 390 (949 px): the hero, two link rows, the explainer, the Showcase note and three rows of view chips sit above New task; re-check confirmed the cause. |
+| FR-L-6 | Major | `baf96c7a` | Fixed |  |
+| FR-L-7 | Major | `3d4a3d4a`, `88ee25e3` | Fixed |  |
+| FR-L-8 | Major | `4a12169d` | Fixed |  |
+| FR-L-9 | Minor | `fd7eba80` | Fixed |  |
+| FR-L-10 | Minor | — | Fixed | Fixed with FR-MAX-10 (cb28ae50). |
+| FR-L-11 | Minor | `fe764ca6` | Fixed |  |
+| FR-L-12 | Minor | `f2121eea` | — |  |
+| FR-L-13 | Minor | `f2121eea` | — |  |
+| FR-L-14 | Minor | — | — | Carried: suggesting Bills for a confirmed bill's payee changes the import's category rules; re-check confirmed. |
+| FR-L-15 | Minor | `552162b1` | — |  |
+| FR-L-16 | Minor | — | — | Carried, as FR-TJ-23. |
+| FR-L-17 | Minor | — | — | Carried: the guide and Help agree ("Settings → Backup & restore ends with …"); the walker found Erase after "Bring your history with you" and no phone row. A page check and one wording change for the guide and Help, next session. |
+| FR-L-18 | Minor | `a5d4213c` | Fixed |  |
+| FR-MAX-1 | Major | `999f6f37` | Fixed |  |
+| FR-MAX-2 | Major | `75959bb8` | Fixed |  |
+| FR-MAX-3 | Major | `baf96c7a` | Fixed |  |
+| FR-MAX-4 | Major | `cc1f99cd` | Fixed |  |
+| FR-MAX-5 | Major | `8e748281`, `f96b671c` | Fixed |  |
+| FR-MAX-6 | Minor | `c2df5398` | — | English fixed. Carried in Dutch: "Welke gewoonte sla ik … het vaakst over?" reaches the open-habits intent ("mis ik het vaakst" is right); a router change and a corpus re-record. |
+| FR-MAX-7 | Minor | `36aa70f8` | — |  |
+| FR-MAX-8 | Minor | `36aa70f8` | — |  |
+| FR-MAX-9 | Minor | `4a12169d` | — |  |
+| FR-MAX-10 | Minor | `88ee25e3`, `cb28ae50` | Fixed |  |
+| FR-MAX-11 | Minor | — | — | Carried: NOVA's answer widget body (its size is part of NOVA's protected composition). |
+| FR-MAX-12 | Minor | `cc1f99cd` | Fixed |  |
+| FR-MAX-13 | Minor | `a41b29ec` | — |  |
+
+Minors (41): 23 fixed (two of them with the Major they repeat), 3 partly (FR-MAX-6, FR-S-16, FR-TJ-17) and 15 Carried, each with its cause above. The Carried rows are listed in ADR-045's closing table.
+
+### Second pass (the re-check's Partly rows)
+
+(to follow: lane2/fr-recheck, on FR-L-4, FR-TJ-4 and FR-TJ-5)
 
 
 ## Walk: sanne
