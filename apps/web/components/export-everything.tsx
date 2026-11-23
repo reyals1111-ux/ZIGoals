@@ -1,9 +1,9 @@
 'use client';
 import {useState} from 'react';
 import {getAppStorage, isShowcase, showcaseDay} from '../lib/showcase-storage';
+// A static import, as before: Settings has the portfolio record's schema anyway, and a dynamic one kept every export of it on
+// every page that loads it (Wealth, Portfolio: +0.1 to 0.2 kB).
 import {PORTFOLIO_KEY} from '../lib/portfolio/schema';
-import {showcasePortfolios} from '../lib/portfolio/showcase';
-import {deletedAccountRecords} from '../lib/deleted-account-records';
 import {localDate} from '../lib/local-date';
 import {FieldError} from './primitives/field-error';
 import './export-everything.css';
@@ -13,9 +13,9 @@ import {useHideFigures} from './hide-figures';
  * T4 (Session P, PR 3): "Export everything (optional)". One tap makes one readable ZIP on this device with a JSON file
  * of every stored record and a CSV per area. Nothing is uploaded, nothing is written to storage, and nobody needs it:
  * sync and the encrypted backup keep records safe. Settings → Your data → Restore from a backup reads it back (Session AB-Cloud).
+ * Session AV lane 2 (trim-settings; Settings' weight): the export's own code (lib/export/make-everything.ts, with the deleted
+ * account's records and the Showcase portfolio) loads with the tap, as its comment says, not with Settings.
  */
-import {DELETED_EXPORT_NOTE, makeEverythingExport} from '../lib/export/make-everything';
-export {DELETED_EXPORT_NOTE};
 export function ExportEverything() {
   const [agreed, setAgreed] = useState(false), [busy, setBusy] = useState(false), [status, setStatus] = useState(''), [notes, setNotes] = useState<string[]>([]), [error, setError] = useState('');
   // Session AL (GAP-175, C-BN-27): an optional date range; both days set makes a CSV-only export of that range.
@@ -27,15 +27,16 @@ export function ExportEverything() {
     try {
       // Session AV Part 3 (D-KEEP): the whole export lives in lib/export/make-everything.ts (Today's "Export a backup" makes
       // the same file), unchanged.
+      const {DELETED_EXPORT_NOTE, makeEverythingExport} = await import('../lib/export/make-everything');
       if (!ranged) { const made = await makeEverythingExport(); setNotes(made.notes); setStatus('Your export is ready and downloading. Keep it private.'); return; }
       // The export code (every module's reader and the ZIP writer) loads with this tap, not with Settings (Session X Part 5).
       const {buildRangeZip, collectEverything, readDateRange, readEverything} = await import('../lib/export/everything');
       // Session Z-Cloud Part 5 (A7): an account whose cloud copy was deleted is locked, and its records stay here; the
       // export still copies them, read-only, and says so.
       let storage: Storage, kept = false; const now = new Date();
-      try { storage = getAppStorage(); } catch (locked) { const records = deletedAccountRecords(); if (!records) throw locked; storage = records; kept = true; }
+      try { storage = getAppStorage(); } catch (locked) { const records = (await import('../lib/deleted-account-records')).deletedAccountRecords(); if (!records) throw locked; storage = records; kept = true; }
       const {texts, localSimulation} = await readEverything(storage);
-      if (!kept && isShowcase() && texts[PORTFOLIO_KEY] == null) texts[PORTFOLIO_KEY] = JSON.stringify(showcasePortfolios(showcaseDay() ?? localDate(now)));
+      if (!kept && isShowcase() && texts[PORTFOLIO_KEY] == null) { const {showcasePortfolios} = await import('../lib/portfolio/showcase'); texts[PORTFOLIO_KEY] = JSON.stringify(showcasePortfolios(showcaseDay() ?? localDate(now))); }
       const aiChats = kept ? undefined : await import('../lib/ai/scope').then(({currentChatStore, exportChats}) => exportChats(currentChatStore())).catch(() => undefined);
       const collected = collectEverything(texts, {now, version: process.env.NEXT_PUBLIC_APP_VERSION ?? '', commit: process.env.NEXT_PUBLIC_APP_COMMIT ?? '', localSimulation, aiChats});
       // Session AL (GAP-175): a range export holds only that range's tables (no everything.json, no photos).
