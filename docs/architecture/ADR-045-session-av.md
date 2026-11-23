@@ -899,6 +899,55 @@ UNCHANGED: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudf
  Main shards 14 → 20, each list at most 70 worker-min by the largest
   measured minutes per file (runs 2013, 2014, 2016): **1,393 worker-min per run**. Lists measure 69.6–69.7.
 
+## Lane 2 closing table (owner follow-up 6, step 5; 23 Nov 2026)
+
+### Ledger, per round (`docs/review/session-av/LEDGER.md`)
+
+| round | rows | built (commit) | Carried (cause) | unwired |
+|---|---|---|---|---|
+| 1, #1–#175 | 175 | 161: 24 before lane 2, 136 whole, 1 in part (#124, the rest needs content made for ZIGoals) | 14 (13 needs content made for ZIGoals, 1 needs an outside service) | 0 |
+| ten more, #176–#222 | 47 | 44 | 3 (needs content made for ZIGoals) | 0 |
+| 2, #223–#255 | 33 | 32 | 1 (needs content made for ZIGoals) | 0 |
+| 3, #256–#299 | 44 | 41 | 3 (2 needs content made for ZIGoals, 1 a new dependency) | 0 |
+| 4, #300–#347 | 48 | 47 | 1 (a new dependency) | 0 |
+| 5, #348–#390 | 43 | 42 | 1 (a new dependency) | 0 |
+| 6, #391–#431 | 41 | 41 | 0 | 0 |
+| 7, #432–#464 | 33 | 0: "to build — next session" (31; follow-up 5) | 2 | 0 |
+| **all** | **464** | **408** (31 more to build next session) | **25** | **0** |
+
+Parts Carried inside built rows keep their causes in the ledger (needs an outside service, needs a model, native-only, against a named rule, a protected area).
+
+### Reviews
+- **QUALITY.md:** the first check (q1–q4): 2 Blockers, 63 Majors, 74 Minors, all Blockers and Majors fixed. The per-batch checks, batches 1–6: 24 Blockers, 69 Majors, 146 Minors, all Blockers and Majors fixed; Minors fixed but the three batch 1 left with a cause.
+- **FRIEND_READINESS.md:** 1 Blocker, 33 Majors, 41 Minors from four persona walks. Every Blocker and Major fixed. The fresh re-check found 30 Fixed and 4 Partly; three Partly rows then fixed (`ed454d25`), FR-TJ-7 Carried on the phone (a protected area: the accepted Habits baseline). Minors 23 fixed, 3 partly, 15 Carried.
+
+### CI history (PR #109)
+| run | head | result | cause → fix |
+|---|---|---|---|
+| 2006 | `303c02f8` | all red | type check out of memory at 4 GB → `73e75d67` (TIER 3 CI) |
+| 2007–2009 | `5ae130ca`, `e8f4b9f9`, `a0769942` | red | older specs meeting lane 2's screens → `0f85a830` |
+| 2010 | `0f85a830` | 24 of 25 | slow-path specs → `9e089bdf` |
+| 2011 | `9db304c9` | 7 main shards red | batches 5 and 6 meeting older specs → `1ef1abb5`, `a6570b4b` |
+| 2012 | `63798740` | red | a goal name in a link's URL (Alpha gate) → `01858ef3`; five specs after friend-readiness wording; a link in the header art's corner → `8f8b3341`; shard 14 over 60 min → `5fe077e2` (TIER 3 CI) |
+| 2013 | `ddc4fdff` | checks red | theme sheets not regenerated → `9af2bcbd`; shards 3, 4 at 58–59 min |
+| 2014 | `9af2bcbd` | red | shards 12, 3 cancelled (slow runners); WebKit `zigi-voice-z:199`; the mic-hint bug → `f5f172e9` |
+| 2016 | `f5f172e9` | red | shard 10 cancelled; `j04-offline` (D-CI2016-J04, Carried) |
+| 2017 | `d98f5437` | red | 14 shards: 12, 5 cancelled; WebKit `zigi-alive:54` |
+| 2018 | `5194b92e` | red | first with 20 shards (owner follow-up 7); route walk → `51b05c43`; shards 5, 6 on slow runners |
+| 2019 | `7fc6f563` | red | checks: one Vitest teardown error (first sighting); `j04-offline` |
+| 2020 | `5c1ca33c` | 30 of 31 | shard 6's list too heavy → `3d491fef` |
+| 2021 | `8e8c8eaa` | 30 of 31 | shard 17's three NOVA specs → `1e41ab6b` |
+| 2022 | `386bbc1b` | 30 of 31 | `j04-offline`, `zigi-browser-agents:126` |
+| 2023 | `a63a3309` | 29 of 31 | `ui-evidence:91` → `0efdc7fa`; `j04-offline` → owner follow-up 8: `1116646f`, `6132b166` |
+| **2024** | **`12b04b94`** | **32 of 32 green on the first attempt, no re-run** | main shards 26.7–43.3 min, WebKit 21.0–40.1, a11y 12.6–28.6; `j04-offline` green |
+
+### Suite size (input for the next session)
+- **Main browser suite: 1,393 worker-minutes per run** (each of 1,005 spec files at its largest measured minutes, runs 2013, 2014 and 2016), over 20 lists of two workers; a runner's speed varied up to 1.6× between runs. The a11y suite (3 shards) takes 13–30 min a job, WebKit (4 shards) 25–43.
+- `j04-offline`'s update stall: fixed at its measured cause under follow-up 8 (the router's prefetch held during the takeover; 45 local takeovers, 0 stuck; green in run 2024), with the 5-s "Almost there" note for friends. Not registered as a known intermittent (green after the fix); `zigi-browser-agents:126` did not fail again.
+- Still recorded (not registered, each seen without failing the final run): WebKit's slow Settings hydration (`zigi-voice-z:199`, `zigi-alive:54`); one Vitest teardown error (run 2019).
+
+**Safe to merge now: yes (CI run 2024 on `12b04b94`, every job green on the first attempt; re-runs: none).** Later commits are docs only.
+
 ## Follow-ups 2 and 3 — decisions and measurements
 
 - **D-FU2-1a (food Worker, TIER 3 Workers, `0dc926b5`).** Cause measured: a slot was reserved on time but its request
