@@ -141,7 +141,7 @@ export function TodayFocus({reminders, nextGoal, step, financial, showHabits, sh
           <div className="focus-actions"><Link prefetch={false} className="text-link" href="/app/health?view=sleep">Open sleep →</Link></div>
         </> : <>
           <strong>No night logged</strong>
-          <div className="focus-actions">{sleepStore.loaded && !sleepStore.error && [7, 8].map(h => <button key={h} type="button" className="secondary" aria-label={`Log ${h} hours of sleep last night`} onClick={() => void logNight(h)}>{h} h</button>)}<Link prefetch={false} className="text-link" href="/app/health?view=sleep">Enter the times →</Link></div>
+          <div className="focus-actions">{sleepStore.loaded && !sleepStore.error && [7, 8].map(h => <button key={h} type="button" className="secondary" aria-label={`Log ${h} hours of sleep last night`} onClick={() => void logNight(h)}>{h} h</button>)}{/* Session AV lane 2 (fr-layout, FR-S-9): to last night's form, not to Sleep's top ("Tonight · I'm going to bed", the form 2,300 px down) */}<Link prefetch={false} className="text-link" href="/app/health?view=sleep#log-night">Enter the times →</Link></div>
         </>}
       </article>}
     </div>

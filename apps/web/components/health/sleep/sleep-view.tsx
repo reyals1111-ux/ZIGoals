@@ -22,6 +22,7 @@ import {WindDownSetting, WindDownSounds} from './wind-down';
 import {FocusWindowSetting} from './focus-window-card';
 import {SleepScoreCard} from '../sleep-score-card';
 import './sleep.css';
+import {useHashArrival} from '../../jump/use-arrival';
 // Session AK (lane S, item 9): the estimated energy curve, its code loaded when its fold is opened.
 import {OnDemandFold} from '../../insights/compare/on-demand-fold';
 import {sourceName} from '../../../lib/health-sources';
@@ -81,6 +82,9 @@ const nightLine = (n: SleepNight) => {
  * night is never counted as zero. (Session AV lane 2: this line said "No score" after the score card came; corrected.)
  */
 export default function SleepView() {
+  // Session AV lane 2 (fr-layout, FR-S-9): Today's "Enter the times →" (#log-night) lands on the night form once Tonight's lazy
+  // parts above it have drawn, with the cursor in its first field.
+  useHashArrival(id => id === 'log-night' ? {ready: el => el.querySelector<HTMLElement>('input, select')?.focus({preventScroll: true})} : null);
   const store = useSleep(), [note, setNote] = useState(''), [saves, setSaves] = useState(0), [range, setRange] = useState<7 | 30 | 90 | 365>(7), [editing, setEditing] = useState<string | null>(null), [confirm, setConfirm] = useState<string | null>(null), [allNights, setAllNights] = useState(false);
   if (!store.loaded) return <section className="panel"><h1>Sleep</h1><p>Opening your sleep log…</p></section>;
   if (store.error) return <section className="panel"><h1>Sleep</h1><p role="alert">Sleep lives in your Health journal, which could not be read. Nothing was changed.</p><Link className="text-link" href="/app/health">Back to Health</Link></section>;
@@ -109,7 +113,7 @@ export default function SleepView() {
     {note && <p className="sleep-note">{note}</p>}
     <section className="panel sleep-tonight-panel" aria-labelledby="sleep-tonight-title"><h2 id="sleep-tonight-title">Tonight</h2><SleepTonight store={store} onDone={setNote}/><LoadBoundary quiet><Suspense fallback={null}><SleepR6 part="bedtime" sleep={store.sleep} today={store.today} zone={store.zone}/></Suspense></LoadBoundary><LoadBoundary quiet><Suspense fallback={null}><EveningPlan zone={store.zone} now={store.now}/></Suspense></LoadBoundary><LoadBoundary quiet><Suspense fallback={null}><MorningSteps sleep={store.sleep} today={store.today}/></Suspense></LoadBoundary><WindDownSounds/><WindDownSetting/><FocusWindowSetting/></section>
     {/* Session AH (HE3, D-199): the log form sits near the top, full width, not squeezed beside the goal at the bottom. */}
-    <section className="panel sleep-log" aria-labelledby="sleep-log-title"><h2 id="sleep-log-title">Log a night or a nap</h2><LoadBoundary quiet><Suspense fallback={null}><HealthR4 part="nap-timer" store={store}/></Suspense></LoadBoundary><NightForm key={`new-${saves}`} store={store} onDone={done}/>{/* Session AL third pass (GAP-071, GAP-072): nights from a Sleep Cycle, Oura or start/end CSV. */}<SleepCsvImport store={store}/></section>
+    <section className="panel sleep-log" id="log-night" aria-labelledby="sleep-log-title"><h2 id="sleep-log-title">Log a night or a nap</h2><LoadBoundary quiet><Suspense fallback={null}><HealthR4 part="nap-timer" store={store}/></Suspense></LoadBoundary><NightForm key={`new-${saves}`} store={store} onDone={done}/>{/* Session AL third pass (GAP-071, GAP-072): nights from a Sleep Cycle, Oura or start/end CSV. */}<SleepCsvImport store={store}/></section>
     {shortNights(sleep, today) && <section className="panel sleep-gentle" aria-label="A gentle word"><p>Your recent nights have been short. That happens, and small steps count. If sleeping stays hard for a while, a doctor or another health professional can help.</p></section>}
     <section className="panel sleep-week" aria-labelledby="sleep-week-title">
       <h2 id="sleep-week-title">Your last 7 days</h2>
