@@ -829,6 +829,12 @@ UNCHANGED: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudf
   elsewhere) and `hydration-zone` (7.3 against 4.2) both visit every main page and slowed each other on the job's two
   workers; with `l7-fifth-answers` (13.2 against 6.2) they move to the three lightest lists of run 2019 (`3d491fef`,
   TIER 3 CI; still twenty lists).
+- **Run 2021 (`8e8c8eaa`, shard 6 split).** 30 of 31 jobs green on the first attempt (`j04-offline` and checks
+  included); shard 6 now 32.9 min; main shards 25.9–39.5 but shard 5 (51.9, a slow runner). Red: main shard 17,
+  `nova-dashboard:210` on both attempts ("Online" in Behind the intelligence still hidden at 5 s), with `nova-workflows`
+  and `p3-nova-polish` passing on their retries — three NOVA specs in one list, and D36's measured cause is NOVA's
+  opening slowing under concurrent heavy work (8 of 8 locally). `p3-nova-polish` and `nova-workflows` move to shards 19
+  and 20, which hold no NOVA spec (`1e41ab6b`, TIER 3 CI; the first attempt at this).
 - **D-CI2016-J04, the cause measured (run 2019 red on it again; no third fix, by the two-attempt rule).** A probe with
   Chromium's own service-worker reporting (DevTools protocol, `ServiceWorker.workerVersionUpdated`; 12 runs, 3 stuck):
   after the tap the old worker is stopped for the takeover; in the runs that work it becomes `redundant` and the new one
