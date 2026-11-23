@@ -35,6 +35,7 @@ import {av2JournalAnswer} from './av2-journal';
 import {av2RoadmapAnswer} from './av2-roadmap';
 import {av2MoneyAnswer} from './av2-money';
 import {av2FoodAnswer, readFoodSources} from './av2-food';
+import {mealWordsAnswer} from './fr-meal-words';
 import {av2BodyAnswer} from './av2-body';
 import {av2RestAnswer} from './av2-rest';
 import {av2MoneyR2Answer} from './av2-money-r2';
@@ -266,6 +267,9 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   if (!subject) { const own = av2RestAnswer(question, env, {templates: env.nova?.taskTemplates, plan: env.nova?.taskPlan, nutrientExtras: (env.ak as {nutrientExtras?: never} | null | undefined)?.nutrientExtras}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, batch 2 (sync choices, the look, the scheduled copy): read from this device where there is one.
   if (!subject) { const extra: Av2SyncExtra = (() => { try { if (typeof window === 'undefined') return {}; const storage = getAppStorage(); return {sections: readExtrasSectionsChoice(storage), extrasOn: readExtrasChoice(storage).enabled, look: {theme: readTheme(), darkStyle: readDarkStyle(), font: readLook().font}, backup: readDeviceRecord(storage, BACKUP_REMINDER).data}; } catch { return {}; } })(); const own = av2SyncAnswer(question, env, extra); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
+  // Session AV lane 2 (fr-answers; FR-S-2, FR-TJ-3): a meal logged in words is never answered as "nothing logged"
+  // (fr-meal-words.ts reads this device's `zigoals:meal-words:v1` under Health's gate; without one, the diary's answers stand).
+  if (!subject) { const own = mealWordsAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, batch 2 (Money; Food, reading its device records; Body after AV's, as its builder asked).
   if (!subject) { const food = (() => { try { return typeof window === 'undefined' ? {} : readFoodSources(getAppStorage()); } catch { return {}; } })(); const own = av2R6MoneyAnswer(question, env) ?? av2R5MoneyAnswer(question, env) ?? av2R4MoneyAnswer(question, env) ?? av2R3MoneyAnswer(question, env) ?? av2MoneyR2Answer(question, env) ?? av2MoneyAnswer(question, env) ?? av2FoodAnswer(question, env, food); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2 (Journal and notes; task attachments, ZIGi's hello, chess): their own answers, before AV's.
