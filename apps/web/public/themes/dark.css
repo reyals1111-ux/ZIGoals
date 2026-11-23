@@ -8773,8 +8773,11 @@
 }
 /*  components/habits/habit-longer-history.css  */
 @scope (:root[data-theme=dark]) {
-    .habit-longer-chart text:not(#\-) {
-        fill: currentColor
+    .habit-longer-y:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .habit-longer .habit-longer-x:not(#\-) {
+        color: var(--text-secondary, var(--muted))
     }
     .habit-longer-grid:not(#\-) {
         stroke: var(--line)
@@ -27292,8 +27295,11 @@
         background-image: none;
         background-color: var(--cyan)
     }
-    .scale-stats-chart text:not(#\-) {
-        fill: currentColor
+    .scale-stats-y:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .scale-stats .scale-stats-x:not(#\-) {
+        color: var(--text-secondary, var(--muted))
     }
     .scale-stats-grid:not(#\-) {
         stroke: var(--line)

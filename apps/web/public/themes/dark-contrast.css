@@ -8414,8 +8414,11 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
-    .habit-longer-chart text:not(#\-):not(#\-) {
-        fill: currentColor
+    .habit-longer-y:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .habit-longer .habit-longer-x:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
     }
     .habit-longer-grid:not(#\-):not(#\-) {
         stroke: color-mix(in srgb, var(--line) 40%, #fff)
@@ -25386,8 +25389,11 @@
         background-image: none;
         background-color: color-mix(in srgb, var(--cyan) 30%, #000)
     }
-    .scale-stats-chart text:not(#\-):not(#\-) {
-        fill: currentColor
+    .scale-stats-y:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .scale-stats .scale-stats-x:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
     }
     .scale-stats-grid:not(#\-):not(#\-) {
         stroke: color-mix(in srgb, var(--line) 40%, #fff)

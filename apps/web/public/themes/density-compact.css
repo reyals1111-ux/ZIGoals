@@ -2440,6 +2440,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .habit-longer:not(#\-) { row-gap: 10px; padding-top: 6px; }
 :where(:root[data-density=compact]) .habit-longer h4:not(#\-) { margin-top: 6px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .habit-longer p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .habit-longer .habit-longer-x:not(#\-) { row-gap: 8px; margin-top: 2px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .habit-longer th:not(#\-), :where(:root[data-density=compact]) .habit-longer td:not(#\-) { padding-top: 4px; padding-bottom: 4px; }
 :where(:root[data-density=compact]) .habit-longer-units:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4px; }
 :where(:root[data-density=compact]) .habit-longer-units label:not(#\-) { row-gap: 6px; }
@@ -3867,6 +3868,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .import-entry:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .import-entry p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .switch-import:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .switch-more label.check:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .switch-import h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .switch-import h4:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .switch-choose:not(#\-) { row-gap: 12px; }
@@ -7484,6 +7486,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .scale-stats-spans label:not(#\-) { row-gap: 6px; }
 :where(:root[data-density=compact]) .scale-stats-levels:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
 :where(:root[data-density=compact]) .scale-stats-levels li:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .scale-stats .scale-stats-x:not(#\-) { row-gap: 8px; margin-top: 2px; margin-bottom: 0; }
 /*  components/search/search.css  */
 :root:where([data-density=compact]) .search-palette:not(#\-) { margin-top: 10vh; margin-bottom: auto; padding-top: 0; padding-bottom: 0; }
 :root:where([data-density=compact]) .search-field:not(#\-) { row-gap: 10px; padding-top: 12px; padding-bottom: 12px; }
