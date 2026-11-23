@@ -29,12 +29,13 @@ export function examplesFor(env: ToolEnv | null, max = 6, lang: 'en' | 'nl' = 'e
     // One per area first (habits, goals, Health when it is shared, wealth), then more of each.
     // The minutes of a timed habit only in English: the Dutch form is answered by the no-model layer, not by the device's own lookups a tapped example must reach.
     if (timed && !nl) out.push(`How many minutes of ${clean(timed.title, 40)} this month?`);
-    if (goal) out.push(say(`How far am I on my ${clean(goal.name, 40)} goal?`, `Hoe ver ben ik met mijn doel ${clean(goal.name, 40)}?`));
+    // A named goal's progress only in English, for the same reason (owner follow-up 6: the tapped-example check stays strict).
+    if (goal && !nl) out.push(`How far am I on my ${clean(goal.name, 40)} goal?`);
     if (env.health) out.push(say('How much water did I drink yesterday?', 'Hoeveel water heb ik gisteren gedronken?'));
     if (asset) out.push(say(`Total ${clean(asset, 12)} I hold?`, `Hoeveel ${clean(asset, 12)} heb ik?`));
     if (streak) out.push(say(`What's my longest ${clean(streak.title, 40)} streak?`, `Wat is mijn langste reeks voor ${clean(streak.title, 40)}?`));
-    if (env.health) out.push(...(nl ? ['Hoe heb ik deze week geslapen?', 'Wat heb ik gisteren gegeten?'] : ['Average steps last week?', 'Did I hit my protein target this week?', 'What did I eat yesterday?']));
-    if (habits.length) out.push(say(`How many times did I check in ${clean(habits[0]!.title, 40)} last week?`, `Hoe vaak heb ik ${clean(habits[0]!.title, 40)} vorige week gedaan?`));
+    if (env.health) out.push(...(nl ? ['Hoeveel heb ik gemiddeld geslapen deze week?', 'Wat heb ik gisteren gegeten?'] : ['Average steps last week?', 'Did I hit my protein target this week?', 'What did I eat yesterday?']));
+    if (habits.length) out.push(say(`How many times did I check in ${clean(habits[0]!.title, 40)} last week?`, `Hoeveel dagen heb ik ${clean(habits[0]!.title, 40)} vorige week gedaan?`));
   }
   // With records but no active goal, the goals question is not offered: asked, it answered with this very list (X-Cloud's H10, ADR-017 S71).
   const goalsExist = !env || summaries(env).some(g => g.status === 'active');

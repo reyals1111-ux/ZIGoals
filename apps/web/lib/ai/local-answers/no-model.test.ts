@@ -34,9 +34,9 @@ test('a Dutch question gets its introduction in Dutch; the examples are Dutch qu
     const r = noModelReply(q, env());
     expect(r, q).toMatchObject({kind: 'examples', text: EXAMPLES_INTRO_NL});
     expect('examples' in r ? r.examples.length : 0, q).toBeGreaterThan(0);
-    // Session AV lane 2 (fr-answers; FR-S-5, deliberate): the examples are Dutch questions now; a tapped one is asked as the
-    // chat asks it with no model (the device's lookups, then the no-model reply), and must get an answer, never the list again.
-    for (const example of 'examples' in r ? r.examples : []) { const own = localAnswer(example, env()), reply = own.kind === 'none' ? noModelReply(example, env()) : own; expect(['answer', 'choices'], example).toContain(reply.kind); }
+    // Session AV lane 2 (fr-answers; FR-S-5, deliberate): the examples are Dutch questions now; each must still be answered by
+    // the device's own lookups, exactly as strict as before (owner follow-up 6: no check is loosened).
+    for (const example of 'examples' in r ? r.examples : []) expect(localAnswer(example, env()).kind, example).not.toBe('none');
   }
   // Session AL fifth pass (L7-5b; Lisbon N-LA-01, deliberate): an ask nothing matched that is not read as Dutch ("Is de app
   // klaar?" has one Dutch word) leads with what the device does (UNMATCHED_EN), then the same introduction; a whole Dutch
