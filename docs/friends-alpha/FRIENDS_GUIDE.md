@@ -162,13 +162,8 @@ All optional. Help explains each one, and **Take the 1-minute tour** (in the Wha
 All optional, all on your device. Help explains each one.
 
 - **Your first five.** After the short setup, Today shows five small steps: Today itself, a goal, a habit, a meal and a money record. Each one ticks itself once you add it. Tap **Not now, hide this** whenever you like.
-<<<<<<< HEAD
 - **My day ends at** (Settings → Your app). For night owls: habits, the Checklist, streaks, Tasks and the Journal count for the day until the time you choose, from midnight to 6:00.
-- **A day counts as done at N** (Settings → Your app → Checklist). Off means every dot, as before. At 4, a six-dot day counts once four dots are lit ("4 of 6"). It applies from today on; past days keep their rule.
-=======
-- **My day ends at** (Settings → Your app). For night owls: habits, the Checklist and streaks count for the day until the time you choose, from midnight to 6:00.
 - **A day counts as done at N** (Settings → Your app, under the Checklist button switch; on a phone: Settings → **Pages & start page**, just below Your pages & buttons). Off means every dot, as before. At 4, a six-dot day counts once four dots are lit ("4 of 6"). It applies from today on; past days keep their rule.
->>>>>>> lane2/fr-layout
 - **Perfect days** in Habits: the days every habit due was done, month by month, in words.
 - **Net worth by source**, day by day, in Wealth's "Your wealth over time". A day ZIGoals wasn't opened stays a gap; nothing is filled in.
 - **252 templates:** 130 goals and 122 habits, searchable from the goal creator and the habit form.
@@ -226,16 +221,10 @@ Before you got the Alpha, five made-up people used it for a week each, on a phon
 is fixed:
 
 - **A meal in words:** Log a meal → **Just describe it**. Calories stay unknown, never zero. "Your first five" ticks it.
-<<<<<<< HEAD
-- **Health in NOVA and ZIGi:** one button, **NOVA → Permissions → Allow Health**, instead of three switches. Their
-  "Health is off" replies have a button that takes you there, and ZIGi answers Dutch questions in Dutch.
-- **Night owls:** with "My day ends at" set, Today, Habits, the Checklist, streaks, Tasks and the Journal all agree on which day it is
-=======
 - **Health in NOVA and ZIGi:** one button, **NOVA → Permissions → Allow Health**, instead of three switches; it is the
   first thing in Permissions. Their "Health is off" replies have a button that takes you there (on a phone, Settings →
   **NOVA, the command center** → **What NOVA can see** opens it too), and ZIGi answers Dutch questions in Dutch.
-- **Night owls:** with "My day ends at" set, Today, Habits, the Checklist, streaks and Tasks all agree on which day it is
->>>>>>> lane2/fr-layout
+- **Night owls:** with "My day ends at" set, Today, Habits, the Checklist, streaks, Tasks and the Journal all agree on which day it is
   after midnight. NOVA answers "what day is it?" by your day.
 - **Goals:** a sleep, steps or reading goal is pointed to the right kind, not saved as an amount of money.
 - **Money:** a bill whose price went up is found, and Bills shows the change. A bakery, butcher or grocer in a bank file
