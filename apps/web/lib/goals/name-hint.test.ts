@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {averageHref, goalNameHint} from './name-hint';
+import {AVERAGE_NEW, clearHandedName, goalNameHint, handOffName, peekHandedName} from './name-hint';
 
 // Session AU (ADR-044 F-6): the rehearsal's goal names.
 describe('goalNameHint', () => {
@@ -14,11 +14,13 @@ describe('goalNameHint', () => {
   });
 });
 
-// FR-S-12: the name typed in the wizard goes along to Keep an average.
-describe('averageHref', () => {
-  it('carries the typed name, and none when nothing is typed', () => {
-    expect(averageHref('Elke nacht 8 uur slapen')).toBe('/app/goals/average/new?name=Elke%20nacht%208%20uur%20slapen');
-    expect(averageHref('  Sleep   8 h & more ')).toBe('/app/goals/average/new?name=Sleep%208%20h%20%26%20more');
-    expect(averageHref('   ')).toBe('/app/goals/average/new');
+// FR-S-12: the name typed in the wizard goes along to Keep an average in memory, never in the address (CI run 2012's
+// Alpha gate caught the first version, ?name=, sending a private goal name to the server).
+describe('the average form\'s name hand-off', () => {
+  it('never puts the name in the address', () => { expect(AVERAGE_NEW).toBe('/app/goals/average/new'); expect(AVERAGE_NEW).not.toMatch(/[?#]/); });
+  it('hands the typed name over trimmed, until the form clears it; nothing when nothing is typed', () => {
+    handOffName('  Sleep   8 h & more '); expect(peekHandedName()).toBe('Sleep 8 h & more'); expect(peekHandedName()).toBe('Sleep 8 h & more');
+    clearHandedName(); expect(peekHandedName()).toBeUndefined();
+    handOffName('Elke nacht 8 uur slapen'); handOffName('   '); expect(peekHandedName()).toBeUndefined();
   });
 });
