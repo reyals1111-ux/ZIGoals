@@ -77,7 +77,8 @@ function parse(folded: string, records: Records): Query | null {
     if (now) { period = now; against = token; ask = 'compare'; }
   }
   // Session AU (D-ETA): a goal named in English is named in Dutch too ("noodfonds" for an Emergency fund).
-  const goalWords = plainWords.flatMap(word => [word, ...(GOAL_SYNONYMS[word] ?? [])]);
+  // Session AV lane 2 (fr-money, FR-L-13): and the other way round — "emergency fund" names a goal called "Noodfonds".
+  const goalWords = [...plainWords.flatMap(word => [word, ...(GOAL_SYNONYMS[word] ?? [])]), ...Object.entries(GOAL_SYNONYMS).flatMap(([nl, en]) => en.every(word => plainWords.includes(word)) ? [nl] : [])];
   const goals = bestNamed(records.goals, g => g.name, goalWords), wholeGoal = goals.one && nameWords(goals.one.name).length >= 2 && nameScore(goals.one.name, goalWords) === 1 ? goals.one : null;
   // A category by its own name, else by the words people use for it in either language ("boodschappen", "supermarket" are
   // Groceries: the money log's own word list, lib/money-log/category.ts), when the person keeps that category.

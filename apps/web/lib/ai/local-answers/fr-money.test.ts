@@ -1,7 +1,10 @@
-import {describe, expect, test} from 'vitest';
+import {afterEach, describe, expect, test} from 'vitest';
+import {progressText} from '../../goal-summary';
+import {DEFAULT_DISPLAY_LOCALE, setDisplayLocale} from '../../visual-format';
+import {progressNumber} from './exact/day';
 import {ask, novaEnv, showcaseAll, zigiEnv} from '../evals/as/harness';
 import {toldIn} from './ai-session';
-import {splitBudgetCompounds} from './exact/understand';
+import {splitBudgetCompounds, understand} from './exact/understand';
 
 // Session AV lane 2 (fr-money): the friend-readiness walk's Lina (FR-L-3, FR-L-11).
 describe('FR-L-3: a Dutch budget compound is read as the English words are', () => {
@@ -32,5 +35,25 @@ describe('FR-L-11: Dutch spending answers write Dutch money', () => {
     expect(r.text).toMatch(/^Je gaf deze maand €\s435,59 uit\. Grootste: Groceries €\s187,10, Bills €\s120,00, Food & drink €\s49,10\. Ruimte deze week: €\s144,40 van €\s200,00\./);
     expect(r.text).not.toMatch(/\d EUR\b/);
     expect(ask('how much did I spend this month?', zigiEnv(showcaseAll())).text).toMatch(/^You spent 435\.59 EUR this month\. Biggest: Groceries 187\.10 EUR/);
+  });
+});
+
+describe('FR-L-12: a goal\'s percent is read in the display locale, so NOVA and ZIGi round as Goals does', () => {
+  afterEach(() => setDisplayLocale(DEFAULT_DISPLAY_LOCALE));
+  test('"6,67%" on a Dutch display is 6.67 (it was read as 6), so 7 %; English as before', () => {
+    expect(progressNumber('6.67%')).toBe(6.67);
+    setDisplayLocale('nl-NL');
+    expect(progressNumber(progressText('6.67'))).toBe(6.67);
+    expect(Math.round(progressNumber(progressText('6.67')))).toBe(7);
+    expect(progressNumber(progressText('100'))).toBe(100);
+  });
+});
+
+describe('FR-L-13: "emergency fund" names a goal called "Noodfonds"', () => {
+  const records = {today: '2026-11-24', habits: [], goals: [{id: 'g1', name: 'Noodfonds'}], categories: [], bills: []};
+  test('as "noodfonds" names an "Emergency fund"', () => {
+    expect(understand('How much have I saved for my emergency fund?', records)).toMatchObject({domain: 'goals', subject: {kind: 'goal', id: 'g1', name: 'Noodfonds'}});
+    expect(understand('Hoeveel heb ik gespaard voor mijn noodfonds?', {...records, goals: [{id: 'g2', name: 'Emergency fund'}]})).toMatchObject({domain: 'goals', subject: {kind: 'goal', id: 'g2'}});
+    expect(understand('How much have I saved for my holiday fund?', records)?.subject ?? null).toBeNull();
   });
 });
