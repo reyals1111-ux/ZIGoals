@@ -737,6 +737,28 @@ UNCHANGED: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudf
 - `d98f5437` was already pushed (12:24 UTC). Run 2016 had just started on `f5f172e9` (the same code), so `d98f5437` waits as pending run 2017; the shard commit's push replaces that pending run, so only one run starts.
 - "At most 40 min per shard on the slowest measured runner": each spec file's worker-minutes are the largest measured in runs 2013–2016 (the slowest runner that ran it), and each list holds at most (40 − the job's measured setup) × 2 workers of them.
 
+## Owner follow-up 8 (23 Nov 2026, 23:15 Brussels, verbatim)
+
+> OWNER FOLLOW-UP 8 TO SESSION AV: FINISH TODAY (23 Nov 2026, 23:15 Brussels; pre-approved by the owner; no reply needed; continue in auto mode; no questions). Record this verbatim in ADR-045 under "Owner follow-up 8". Where it differs from follow-ups 6–7, it wins.
+>
+> 1. j04-offline (D-CI2016-J04): the owner allows up to 2 more attempts (TIER 3 PWA), in this order:
+>  a. Find what wakes the old worker during the takeover: read the probe's network log at the tap, and check Next's router prefetch, the update check, any price, sync or keep-notes polling, fonts and images. While a takeover is under way (from "Reload" until `controllerchange`), pause those requests, then post the takeover message.
+>  b. Ship an honest fallback for friends in any case: if the new version has not taken over within 5 s of "Reload", show "Almost there: close ZIGoals and open it again to finish the update". Never reload in a loop, never lose an open form, sheet, import, restore or confirm card (follow-up 2's rules), Motion Off and reduced motion still. It needs its own spec using Playwright route interception, like Part 2's proof.
+>  Prove a on the production build with the probe: 0 stuck in at least 30 local runs. Never weaken j04's assertions or raise its 20 s.
+>
+> 2. If j04 is still red in CI after those attempts, it becomes a registered known intermittent: D-CI2016-J04 in `docs/review/session-al/CI_INTERMITTENTS.md` and STATUS "Known CI intermittents", with the measured cause and the friend-facing fallback. Register `zigi-browser-agents:126` the same way if it fails again (seen in runs 2012 and 2022; 24 of 24 locally).
+>
+> 3. FINISH, by this rule (the owner moves follow-up 2's fallback in now): the PR is "Safe to merge now: yes" when the last full run on its final head is green on the first attempt, except jobs that failed only on a registered known intermittent and passed on their one allowed re-run, each named exactly. One such run is enough; two consecutive clean runs remain the aim but no longer hold up the END.
+>  Push the held `0efdc7fa` (the `ui-evidence` split) with the j04 work in one push so one run starts. Fix every other red at its cause as before.
+>
+> 4. END as follow-up 6, step 5:
+>  - ADR-045's closing table, with the suite's worker-minutes per run;
+>  - "Safe to merge now: yes (CI run N; re-runs: …)" in AV_RESUME and PR #109's description, with the owner steps lane 2 added;
+>  - the STATUS final entry;
+>  - the ≤ 12-line report with preview steps.
+>
+> UNCHANGED: all earlier rules (never merge, enable auto-merge, dispatch, deploy, or log in to Cloudflare; no new dependencies; no wallet, signing or key changes; protected areas untouched; stored data additive with frozen readers #37–#58; route budgets never raised; push only when no run is in progress on #109; merge commits only).
+
 ## D-CI2006 — PR #109's first run (2006, `303c02f8`): every job red, one cause
 - All 25 jobs failed at the type check: `pnpm typecheck` in the checks job and `next build`'s "Running TypeScript" in every
   build job ran out of memory at Node's default 4 GB heap ("Ineffective mark-compacts near heap limit").
