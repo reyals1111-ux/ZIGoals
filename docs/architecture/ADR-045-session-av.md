@@ -816,6 +816,16 @@ UNCHANGED: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudf
   `public/sw.js` (no timer, no long `waitUntil`); the journey's update step was seen failing before (run 1701). Next
   session: read the old worker's in-flight events with the DevTools protocol (ServiceWorker domain) while it is stuck.
   For a friend: the "Reload" tap can do nothing for a while; closing the tab and opening it again lets the update in.
+- **D-CI2016-J04, the cause measured (run 2019 red on it again; no third fix, by the two-attempt rule).** A probe with
+  Chromium's own service-worker reporting (DevTools protocol, `ServiceWorker.workerVersionUpdated`; 12 runs, 3 stuck):
+  after the tap the old worker is stopped for the takeover; in the runs that work it becomes `redundant` and the new one
+  activates within about 1 s; in the stuck runs it is started again within 0.1 s of stopping (an event for the page it
+  still controls reaches it in that window) and stays `activated/running` with its page, while the new worker stays
+  `installed` for good. Posting the takeover message again every 2 s (tried locally only, not committed) changed
+  nothing (5 of 16 stuck). So Chromium abandons the takeover when the old worker is woken mid-way, and asking again
+  does not resume it. What wakes it is not yet named (the page's own requests at that moment are the candidates).
+  For the next session or the owner: find that request in the probe's network log and keep it off the old worker
+  during the takeover, or let the page reload only after the old worker is `redundant`.
 - **Run 2017 (`d98f5437`, docs only, still 14 shards: it started before the 20-shard push could replace it).** Main
   shards 12 and 5 cancelled at 60 min; WebKit shard 2 red on `zigi-alive:54` (desktop, both attempts: ZIGi's launcher not
   on the page within 5 s — the WebKit late-launcher class, D-CI1932) and `zigi-voice-z:199` on its retry (D-CI1991).
