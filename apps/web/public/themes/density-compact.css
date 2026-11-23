@@ -7573,6 +7573,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (min-width: 768px) { :root:where([data-density=compact]) .settings-page .settings-sections > .settings-sections-links:not(#\-) { row-gap: inherit; } }
 @media (min-width: 768px) { :root:where([data-density=compact]) .settings-page .settings-sections > .settings-sections-links > a:not(#\-) { padding-top: 0; padding-bottom: 0; } }
 :where(:root[data-density=compact]) .settings-page .settings-fold-quick:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .settings-head-links:not(#\-) { row-gap: 0; }
 /*  components/settings/settings-forms.css  */
 :where(:root[data-density=compact]) .settings-page .platform-form label.checkbox input[type="checkbox"]:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .settings-page .settings-try-it:not(#\-) { margin-top: 8px; }
@@ -8016,6 +8017,9 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (max-width: 900px) { :where(:root[data-density=compact]) .tasks-layout > .tasks-nav .tasks-nav-item:not(#\-) { padding-top: 4.5px; padding-bottom: 4.5px; } }
 @media (max-width: 900px) { :where(:root[data-density=compact]) .tasks-layout > .tasks-nav h3:not(#\-) { margin-top: 6px; margin-bottom: 2px; } }
 @media (max-width: 900px) { :where(:root[data-density=compact]) .tasks-layout > .tasks-nav .tasks-nav-area h4:not(#\-) { margin-top: 4px; margin-bottom: 2px; } }
+:where(:root[data-density=compact]) .tasks-nav-more:not(#\-) { row-gap: 4px; }
+@media (max-width: 700px) { :where(:root[data-density=compact]) .tasks-layout > .tasks-nav .tasks-nav-more:not(#\-) { row-gap: 0; } }
+@media (max-width: 700px) { :where(:root[data-density=compact]) .tasks-page:not(#\-), :where(:root[data-density=compact]) .tasks-page > .tasks-layout:not(#\-) { row-gap: 10px; } }
 @media (min-width: 701px) and (max-width: 900px) { :where(:root[data-density=compact]) .tasks-layout .tasks-smart-add > .tasks-smart-help:not(#\-) { margin-bottom: 12px; } }
 :where(:root[data-density=compact]) .tasks-nav h3:not(#\-) { margin-top: 12px; margin-bottom: 2px; }
 :where(:root[data-density=compact]) .tasks-nav-item:not(#\-) { row-gap: 6px; padding-top: 4.5px; padding-bottom: 4.5px; }

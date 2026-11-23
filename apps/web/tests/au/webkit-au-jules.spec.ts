@@ -29,10 +29,11 @@ test('Jules on the phone: Search finds the view-only Bitcoin address by "watch",
   await page.getByRole('dialog', {name: 'Search'}).getByRole('combobox').fill('watch');
   await page.getByRole('dialog', {name: 'Search'}).getByRole('option', {name: /^Watch a Bitcoin address/}).click();
   await page.waitForURL(/\/app\/wealth/); await hydrated(page);
-  const lookup = page.getByRole('button', {name: 'Look up an address', exact: true});
-  await lookup.scrollIntoViewIfNeeded();
-  await lookup.click();
-  await expect(page.getByRole('form', {name: 'Look up an address'}).getByLabel('Public address')).toBeVisible();
+  // Friend-readiness FR-TJ-6 (deliberate): the search result now goes to /app/wealth#watch-address, which opens the
+  // lookup by itself with the cursor in its field; the same form is checked, visible and now also focused (stricter).
+  const address = page.getByRole('form', {name: 'Look up an address'}).getByLabel('Public address');
+  await expect(address).toBeVisible();
+  await expect(address).toBeFocused();
   expect(signing).toEqual([]);
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
 });
