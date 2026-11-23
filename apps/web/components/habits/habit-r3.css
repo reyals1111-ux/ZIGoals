@@ -17,6 +17,11 @@
 }
 .habit-trend-list h2 { margin: 0; }
 .habit-trend-list h3 { margin: 6px 0 4px; font-size: 1rem; }
-.habit-trend-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+/* Session AV lane 2 (fixslow, CI run 2009 "recompose at 1440"): beside the month and the week (two columns, habits.css) the
+   card took the left cell of a second row alone, its habits one under another, so the section ran about 1 500 px tall with
+   an empty cell beside it. It spans the row under the two, and its habits sit side by side as far as the card allows (one
+   column in a phone's swipe card, where the row is flex and the span does nothing). */
+.habit-consistency > .habit-trend-list { grid-column: 1 / -1; }
+.habit-trend-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); }
 .habit-trend-items li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; padding: 8px 10px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); font-size: 15px; overflow-wrap: anywhere; min-width: 0; }
 .habit-trend-line { margin: 6px 0; }
