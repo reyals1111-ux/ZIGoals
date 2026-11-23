@@ -1,7 +1,7 @@
 'use client';
 import {firstSeries, firstStat, seriesSummary, type Series, type Stat} from '../../lib/ai/viz';
 import type {ToolResult} from '../../lib/ai/tools/types';
-import {formatDate} from '../../lib/visual-format';
+import {formatDate, formatNumber} from '../../lib/visual-format';
 import {ChartLookDefs, useChartLook} from '../charts/chart-defs';
 import './chat-polish.css';
 
@@ -12,7 +12,7 @@ import './chat-polish.css';
  * so a small change is not made to look large. A caption says the same in words; the exact figures are in a table.
  */
 const W = 240, H = 64, GAP = 2;
-const fmt = (n: number) => Number(n.toFixed(1)).toLocaleString('en-US');
+const fmt = (n: number) => formatNumber(Number(n.toFixed(1)), {maximumFractionDigits: 1}); // fr-recheck (FR-TJ-4): the display locale, as the caption (lib/ai/viz.ts)
 function Bars({series}: {series: Series}) {
   const max = Math.max(...series.points.map(p => p.value), 1), width = (W - GAP * (series.points.length - 1)) / series.points.length;
   return <>{series.points.map((p, i) => { const h = Math.max(p.value > 0 ? 2 : 0, Math.round((p.value / max) * (H - 4))); return <rect key={p.date} x={Math.round(i * (width + GAP) * 10) / 10} y={H - h} width={Math.max(1, Math.round(width * 10) / 10)} height={h} rx={1.5} className="ai-viz-bar"/>; })}</>;
@@ -39,7 +39,7 @@ export function MiniChart({series}: {series: Series}) {
       {series.shape === 'line' ? <Line series={series} look={look}/> : <Bars series={series}/>}
     </svg>
     <figcaption className="ai-note">{summary}</figcaption>
-    <details className="ai-viz-table"><summary>Show the figures</summary><table><thead><tr><th scope="col">Day</th><th scope="col">{series.unit || 'Value'}</th></tr></thead><tbody>{series.points.map(p => <tr key={p.date}><td>{formatDate(p.date)}</td><td>{p.value.toLocaleString('en-US')}</td></tr>)}</tbody></table></details>
+    <details className="ai-viz-table"><summary>Show the figures</summary><table><thead><tr><th scope="col">Day</th><th scope="col">{series.unit || 'Value'}</th></tr></thead><tbody>{series.points.map(p => <tr key={p.date}><td>{formatDate(p.date)}</td><td>{formatNumber(p.value)}</td></tr>)}</tbody></table></details>
   </figure>;
 }
 /** A figure from the records, as a small card: the number, what it counts, and where it comes from. */
