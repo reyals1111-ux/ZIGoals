@@ -859,6 +859,21 @@ UNCHANGED: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudf
   and 20, which hold no NOVA spec (`1e41ab6b`, TIER 3 CI; the first attempt at this).
 - **Run 2022 (`386bbc1b`, the NOVA spread).** Shard 17 green (24.8 min); main shards 24.8–41.7. Red: main shard 13,
   `j04-offline` (D-CI2016-J04) and `zigi-browser-agents:126` (desktop, both attempts; seen in run 2012; 24 of 24 locally).
+- **Run 2023 (`a63a3309`, docs only).** Red on two jobs: main shard 11, `ui-evidence:91` (the ten-page unlocked-layouts
+  walk past its 45 s on a slow runner, both attempts; seen in run 1994) → two parts with their own budget (`0efdc7fa`,
+  3 pages then 7, every page and check kept; 11–14 s and 19–20 s locally), and main shard 13, `j04-offline`.
+- **D-CI2016-J04 under owner follow-up 8 — attempt a, the waking request found and held (`1116646f`, TIER 3 PWA).** The
+  probe's request log at the tap (15 runs, 2 stuck): in both stuck takeovers the Next router prefetched
+  `/app/settings?_rsc=…` (twice) through the old worker 116–188 ms after the tap, while Chromium was stopping it; in the
+  takeovers that worked no request reached the old worker in that window. Next's router calls `window.fetch` at call
+  time (`segment-cache/fetch.js`), so from the tap until `controllerchange` every `window.fetch` call of the page waits
+  (the prefetches, the update check, the app's polling), and only then is the takeover message posted
+  (`lib/sw/takeover.ts`). Proof on the production build: the probe 29 of 29 takeovers done, 0 stuck (3 further runs
+  failed earlier in the journey's offline steps under local load, before the takeover), and `j04-offline` itself 16 of
+  16 — 45 takeovers, 0 stuck (before: 2–3 stuck in every 6–12). **Attempt b, the friend-facing fallback:** if the new
+  version has not taken over within 5 s, the bar says "Almost there: close ZIGoals and open it again to finish the
+  update." (no reload by itself, no loop, nothing open touched, no motion); `tests/av-update-takeover.spec.ts` proves the
+  hold and the fallback with request interception (10 of 10), `lib/sw/takeover.test.ts` the hold, its release and the 5 s.
 - **D-CI2016-J04, the cause measured (run 2019 red on it again; no third fix, by the two-attempt rule).** A probe with
   Chromium's own service-worker reporting (DevTools protocol, `ServiceWorker.workerVersionUpdated`; 12 runs, 3 stuck):
   after the tap the old worker is stopped for the takeover; in the runs that work it becomes `redundant` and the new one
