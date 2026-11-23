@@ -726,6 +726,29 @@ UNCHANGED: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudf
   build script) and local builds all get it. No workflow file changed; no check, budget or timeout changed. Proof:
   `pnpm typecheck` exit 0 and `pnpm build` (production, `PUBLIC_ALPHA_UNDEPLOYED`) exit 0 on `73e75d67`.
 
+## D-CI2007–2012 — PR #109's runs after the heap fix (each red job read at its cause; no assertion, timeout or budget loosened)
+- **2007 (`5ae130ca`), 2008 (`e8f4b9f9`), 2009 (`a0769942`).** Red specs written before lane 2's changes (Dutch dates
+  and money, moved buttons, new folds). Fixed at the cause in `0f85a830` (fix2007: 11 app fixes, 5 spec updates each as
+  strict or stricter, marked deliberate). 2009 also carried follow-up 6's undo of the `av2-todays-practice` narrowing
+  (whole-page axe again).
+- **2010 (`0f85a830`).** 24 of 25 jobs green. The red: slow-path specs — fixed in `9e089bdf` (fixslow: the NOVA Tasks
+  widget's length counter lost typed words, the habits trend card, CSS-scaled screenshots).
+- **2011 (`9db304c9`, batches 5 and 6).** 7 main shards red. Fixed in `1ef1abb5` (fix2011, 8 items: Health folded to
+  8.14 and Wealth to 9.84 phone screens under their ceilings, "Won't do this task", "Money back", one status region per
+  section, a focus effect, a deterministic timer) and `a6570b4b` (fixj08: the kept what-ifs answer).
+- **2012 (`63798740`).** The Alpha gate failed on a **privacy leak of mine**: `public-alpha.spec.ts:201` (both projects)
+  found `PRIVATE_SENTINEL_7cc2a9` in a request URL, `/app/goals/average/new?name=…&_rsc=…`. Cause: friend-readiness fix
+  FR-S-12 (`307b8122`) put the typed goal name into the "Keep an average instead →" link, and Next's prefetch and RSC
+  fetch send a Link's URL to the server. Fix `01858ef3`: the name is handed over in the page's memory on the click; the
+  link and the page carry no name parameter. The tests became stricter (the href is checked plain, then the form is
+  checked holding the name). Proof: `public-alpha.spec.ts:201` 2 of 2 and `webkit-au-sanne` green locally on the
+  production build of `01858ef3`. Lesson kept for the next session: **no person's words in any URL**, a Link's included.
+
+## D-BUDGETS-STATUS — the Budgets page's per-panel status lines stay
+- Review O asked whether Budgets' several status lines (one per panel) should become one. They stay: each line belongs
+  to the panel whose action it reports ("one live status region per section"), and folding them into one would move a
+  message away from the control that caused it. Recorded, not changed.
+
 ## Follow-ups 2 and 3 — decisions and measurements
 
 - **D-FU2-1a (food Worker, TIER 3 Workers, `0dc926b5`).** Cause measured: a slot was reserved on time but its request
