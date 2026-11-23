@@ -9,6 +9,7 @@ import {readPushRecord} from '../../lib/push/client';
 import {showToast} from '../ui/undo-toast';
 import {RELOAD_MARK, UPDATE_WAITING} from '../../lib/sw/stale-code';
 import {swVersion} from '../../lib/sw/register';
+import {startTakeover, TAKEOVER_NOTE} from '../../lib/sw/takeover';
 
 const REMINDERS_CHANGE = 'zigoals:reminders-change', PRIVATE_CHANGE = 'zigoals:private-change';
 /** The device lock's event (components/device-lock.tsx LOCK_EVENT): locking hides names from notifications at once (F5). */
@@ -41,6 +42,8 @@ export function NotifySync() {
   // Session AV Part 2 ([TIER 3] (PWA), ADR-045 D-PWA): the same note when a newer version is known without a waiting worker
   // (this tab's server answers another build, or code of this version could not be loaded while the person was busy).
   const [newer, setNewer] = useState(false);
+  // Session AV lane 2 ([TIER 3] (PWA), owner follow-up 8): "Reload" tapped and the new version has not taken over in 5 s.
+  const [late, setLate] = useState(false);
   useEffect(() => {
     // After the one automatic reload into a newer version: say so, once (lib/sw/update-recovery.ts).
     // The recovery's own code loads only when this tab reloaded itself (its mark is there) or asks its server (below).
@@ -136,8 +139,12 @@ export function NotifySync() {
   if (!waiting && !newer) return null;
   const reload = () => {
     if (!waiting) { window.location.reload(); return; }
-    navigator.serviceWorker?.addEventListener('controllerchange', () => window.location.reload(), {once: true});
-    waiting.postMessage({type: 'zigoals:sw-reload'});
+    // Session AV lane 2 ([TIER 3] (PWA), owner follow-up 8, ADR-045 D-CI2016-J04): the page's requests wait while the new
+    // worker takes over (a request reaching the old worker in that moment stalled the takeover for good); if it has not
+    // taken over in 5 s, the bar says how to finish by hand. Nothing reloads by itself and no open form is touched.
+    if (!navigator.serviceWorker) { window.location.reload(); return; }
+    setLate(false);
+    startTakeover(waiting, {done: () => window.location.reload(), late: () => setLate(true)});
   };
-  return <div className="sw-update" role="status"><span>A new version of ZIGoals is ready. Your records are saved on this device.</span><button type="button" className="primary" onClick={reload}>Reload</button><button type="button" className="quiet" onClick={() => { setWaiting(null); setNewer(false); }}>Later</button></div>;
+  return <div className="sw-update" role="status"><span>{late ? TAKEOVER_NOTE : 'A new version of ZIGoals is ready. Your records are saved on this device.'}</span>{!late && <button type="button" className="primary" onClick={reload}>Reload</button>}<button type="button" className="quiet" onClick={() => { setWaiting(null); setNewer(false); setLate(false); }}>{late ? 'OK' : 'Later'}</button></div>;
 }
