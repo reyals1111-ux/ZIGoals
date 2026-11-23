@@ -1,6 +1,6 @@
 import {afterEach, describe, expect, test} from 'vitest';
 import {setJournalTimeZone} from '../journal-zone';
-import {addReceipt, checklistDay, dropReceipt, markNudged, mendDay, sealDay, setCustomDone, todayOf, zonedDay} from './day';
+import {addReceipt, checklistDay, dropReceipt, markNudged, mendDay, pathSince, sealDay, setCustomDone, todayOf, zonedDay} from './day';
 import {emptyChecklistDays, type ChecklistDays} from './schema';
 
 afterEach(() => { setJournalTimeZone(null, false); });
@@ -50,6 +50,34 @@ describe('sealing a day', () => {
     expect(Object.keys(sealed.days)).toEqual(['2026-10-17', '2026-10-18', '2026-10-20']);
     const far = sealDay(held, '2026-12-01', () => ({total: 1, done: 1}));
     expect(Object.keys(far.days)).toHaveLength(15);
+  });
+  // FR-MAX-1: habits ticked on Habits or Today's card, never on the path, so no day is held.
+  test('no day held: the days since the path began are kept from the records, only those with something done', () => {
+    const calls: string[] = [];
+    const none = emptyChecklistDays();
+    const sealed = sealDay(none, '2026-11-24', (day, o) => { calls.push(`${day.date}:${o.receipts}`); return day.date === '2026-11-23' ? {total: 4, done: 3} : {total: 4, done: 0}; }, {since: '2026-11-21'});
+    expect(calls).toEqual(['2026-11-21:false', '2026-11-22:false', '2026-11-23:false']);
+    expect(sealed.days).toEqual({'2026-11-23': {total: 4, done: 3}});
+    expect(sealed.today).toEqual({date: '2026-11-24', ticks: [], custom: [], nudged: []});
+    // A path nobody used keeps nothing (so the first read writes no record), and nothing before the path began is read.
+    expect(sealDay(none, '2026-11-24', () => ({total: 4, done: 0}), {since: '2026-11-21'}).days).toEqual({});
+    expect(sealDay(none, '2026-11-24', () => ({total: 4, done: 4}), {since: '2026-11-24'}).days).toEqual({});
+    expect(sealDay(none, '2026-11-24', () => ({total: 4, done: 4})).days).toEqual({});
+    // At most two weeks back, and a day already in the history is never overwritten.
+    const far = sealDay(none, '2026-12-31', () => ({total: 2, done: 1}), {since: '2026-01-01'});
+    expect(Object.keys(far.days)).toHaveLength(14);
+    expect(Object.keys(far.days)[0]).toBe('2026-12-17');
+    const kept = sealDay({version: 1, days: {'2026-11-23': {total: 4, done: 4, perfect: true}}}, '2026-11-24', () => ({total: 4, done: 1}), {since: '2026-11-20'});
+    expect(kept.days['2026-11-23']).toEqual({total: 4, done: 4, perfect: true});
+    // Once a day is held, the held rule applies as before (the gap days are sealed, done or not).
+    const next = sealDay(sealed, '2026-11-26', (day, o) => o.receipts ? {total: 4, done: 4} : {total: 4, done: 0}, {since: '2026-11-21'});
+    expect(next.days).toEqual({'2026-11-23': {total: 4, done: 3}, '2026-11-24': {total: 4, done: 4}, '2026-11-25': {total: 4, done: 0}});
+  });
+  test('the path began on its earliest item\'s day in the Checklist zone', () => {
+    expect(pathSince({items: [{addedAt: '2026-11-23T19:00:00.000Z'}], healthItems: [{addedAt: '2026-11-22T23:30:00.000Z'}]}, 'Europe/Brussels')).toBe('2026-11-23');
+    expect(pathSince({items: [{addedAt: '2026-11-23T19:00:00.000Z'}], healthItems: [{addedAt: '2026-11-22T22:30:00.000Z'}]}, 'America/Los_Angeles')).toBe('2026-11-22');
+    expect(pathSince({items: [], healthItems: []}, 'Europe/Brussels')).toBeNull();
+    expect(pathSince({items: [{addedAt: 'not a date'}], healthItems: []}, 'Europe/Brussels')).toBeNull();
   });
   test('the history keeps the latest 400 days', () => {
     const days: ChecklistDays = {version: 1, days: Object.fromEntries(Array.from({length: 405}, (_, i) => [new Date(Date.UTC(2025, 0, 1 + i)).toISOString().slice(0, 10), {total: 1, done: 1}])), today: {date: '2026-03-01', ticks: [], custom: [], nudged: []}};

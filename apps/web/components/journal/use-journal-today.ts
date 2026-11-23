@@ -3,7 +3,7 @@ import {useMemo} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {JOURNAL} from '../../lib/journal/schema';
 import {JOURNAL_DISPLAY, onThisDayShown} from '../../lib/on-this-day/store';
-import {localDate} from '../../lib/local-date';
+import {journalDay} from '../../lib/journal/journal-day';
 import {journalToday, type JournalToday} from '../../lib/journal/today';
 
 /**
@@ -11,7 +11,7 @@ import {journalToday, type JournalToday} from '../../lib/journal/today';
  * journal card's place among the For you cards (raised on a day that has one). Null until both records are read.
  */
 export function useJournalToday(): (JournalToday & {lines: boolean}) | null {
-  const journal = useDeviceRecord(JOURNAL), display = useDeviceRecord(JOURNAL_DISPLAY), today = localDate();
+  const journal = useDeviceRecord(JOURNAL), display = useDeviceRecord(JOURNAL_DISPLAY), today = journalDay();
   return useMemo(() => !journal.loaded || journal.unreadable || !display.loaded ? null
     : {...journalToday(journal.data, today, {shown: onThisDayShown(display.data), hidden: display.data.hidden}), lines: journal.data.todayLines === true},
   [journal.loaded, journal.unreadable, journal.data, display.loaded, display.data, today]);

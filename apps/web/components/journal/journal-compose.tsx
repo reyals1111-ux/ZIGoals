@@ -2,7 +2,8 @@
 import Link from 'next/link';
 import {Suspense, lazy, useEffect, useId, useMemo, useRef, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
-import {addLocalDays, localDate} from '../../lib/local-date';
+import {addLocalDays} from '../../lib/local-date';
+import {journalDay} from '../../lib/journal/journal-day';
 import {ENERGY, ENERGY_WORDS, rateEnergy} from '../../lib/energy/schema';
 import {JOURNAL, MAX_TEXT, type JournalEntry} from '../../lib/journal/schema';
 import {followUpFor, patternLine, patterns} from '../../lib/journal/reflect';
@@ -50,7 +51,7 @@ const NO_MEDIA: PendingMedia = {photos: [], audio: null};
  * answer it. Private by default; nothing here is sent anywhere. Used on Today (a For you card) and on the Journal page.
  */
 export function JournalCompose({compact = false, book = null}: {compact?: boolean; /** Session AV lane 2 (LEDGER #43): the journal a new entry goes in (the one the list shows). */ book?: string | null}) {
-  const journal = useDeviceRecord(JOURNAL), energy = useDeviceRecord(ENERGY), today = localDate(), id = useId();
+  const journal = useDeviceRecord(JOURNAL), energy = useDeviceRecord(ENERGY), today = journalDay(), id = useId();
   const [prompt, setPrompt] = useState<{id: string; lang: PromptLang} | null>(null), [prompts, setPrompts] = useState(false);
   // Session AV Part 7 (F-PROMPT): today's question, and how many times "Another question" was pressed.
   const [step, setStep] = useState(0), qLang = useQuestionLang(), [hidden, setHidden] = useState(0), [hiddenSaid, setHiddenSaid] = useState(''), [mutedQ, setMutedQ] = useState<ReadonlySet<number> | undefined>(undefined);

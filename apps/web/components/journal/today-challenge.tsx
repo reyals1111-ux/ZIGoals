@@ -3,7 +3,7 @@ import {useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {JOURNAL} from '../../lib/journal/schema';
 import {challengeDoneToday, challengeOfTheDay} from '../../lib/journal/challenges';
-import {localDate} from '../../lib/local-date';
+import {journalDay} from '../../lib/journal/journal-day';
 import {useQuestionLang} from './question-lang';
 import './today-affirmation.css';
 
@@ -16,7 +16,7 @@ import './today-affirmation.css';
 export default function TodayChallenge() {
   const journal = useDeviceRecord(JOURNAL), lang = useQuestionLang(), [step, setStep] = useState(0), [said, setSaid] = useState('');
   if (!journal.loaded || journal.data.challenges !== true) return null;
-  const today = localDate(), done = challengeDoneToday(journal.data, today), nl = lang === 'nl';
+  const today = journalDay(), done = challengeDoneToday(journal.data, today), nl = lang === 'nl';
   const mark = (on: boolean) => {
     try { journal.update(c => { const next = {...c}; if (on) next.challengeDone = today; else delete next.challengeDone; return next; }); setSaid(on ? (nl ? 'Gedaan. Mooi zo.' : 'Done. Nicely done.') : (nl ? 'Niet meer als gedaan gemarkeerd.' : 'No longer marked done.')); }
     catch { setSaid(nl ? 'Dit kon niet op dit apparaat worden bewaard.' : 'This could not be kept on this device.'); }

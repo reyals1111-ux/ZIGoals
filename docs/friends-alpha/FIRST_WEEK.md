@@ -31,8 +31,9 @@ Rather not see calorie or weight numbers? Health → Targets → **Hide calories
 
 ## If you stay up late
 
-Settings → **My day ends at** (for example 3:00). Habits, the Checklist, streaks and Tasks then count until that time,
-so ticking things off at 1:30 still counts for "today".
+Settings → **My day ends at** (for example 3:00). Habits, the Checklist, streaks, Tasks and the Journal then count until
+that time, so ticking things off or writing at 1:30 still counts for "today". A change you make after midnight starts
+from the next night (the status line says so).
 
 ## Money
 

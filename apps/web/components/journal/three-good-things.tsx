@@ -1,7 +1,7 @@
 'use client';
 import {useEffect, useId, useMemo, useRef, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
-import {localDate} from '../../lib/local-date';
+import {journalDay} from '../../lib/journal/journal-day';
 import {JOURNAL, type JournalEntry} from '../../lib/journal/schema';
 import {GOOD_THING_MAX, GOOD_THINGS_ID, goodThingsInMonth, goodThingsText} from '../../lib/journal/good-things';
 import {lineLanguage} from '../../lib/quick-log/multi';
@@ -17,7 +17,7 @@ import {SecretGuard} from '../secret-guard/secret-guard';
  */
 const LABELS = ['A good thing today', 'Another good thing', 'One more'] as const;
 export default function ThreeGoodThings() {
-  const journal = useDeviceRecord(JOURNAL), today = localDate(), id = useId();
+  const journal = useDeviceRecord(JOURNAL), today = journalDay(), id = useId();
   const [items, setItems] = useState<string[]>(['', '', '']), [status, setStatus] = useState(''), [problem, setProblem] = useState('');
   const first = useRef<HTMLInputElement>(null);
   useEffect(() => { if (journal.loaded && typeof location !== 'undefined' && location.hash === '#good-things') requestAnimationFrame(() => { first.current?.scrollIntoView({block: 'center'}); first.current?.focus(); }); }, [journal.loaded]);

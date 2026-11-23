@@ -30,7 +30,8 @@ test('Max after midnight on the phone: Today\'s habit count and Tasks follow his
   // His day ends at 03:00 (Settings → Your day).
   await page.goto('/app/settings#day-ends'); await hydrated(page);
   const section = page.locator('#day-ends');
-  await expect(section).toContainText('habits, the Checklist, streaks and Tasks count for the day until this time (3:00 is the next morning)');
+  // (fr-data; deliberate, FR-MAX-7): the Journal follows the day end too, and the line says so.
+  await expect(section).toContainText('habits, the Checklist, streaks, Tasks and the Journal count for the day until this time (3:00 is the next morning)');
   await section.getByLabel('My day ends at').selectOption({label: '3:00'});
   await expect(section.getByRole('status')).toHaveText('Your day now ends at 3:00.');
   await quietPage(page);

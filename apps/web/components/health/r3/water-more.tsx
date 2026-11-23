@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useId, useRef, useState, type FormEvent} from 'react';
+import {useId, useState, type FormEvent} from 'react';
 import {newHealthId, type HealthData} from '../../../lib/health';
 import {addWater, dailyData, undoWaterLog, waterSummary} from '../../../lib/health-daily';
 import {DRINK_TYPES, drinkWord, healthExtrasSchema, OWN_DRINKS_MAX, setDrink, type HealthExtras, type OwnDrink} from '../../../lib/health-extras';
@@ -16,6 +16,7 @@ import {plural} from '../../../lib/plural';
 import {deviceSettingFailureMessage} from '../../../lib/storage-error-copy';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {showUndo} from '../../ui/undo-toast';
+import {useOneTap} from '../one-tap';
 import {zigiSignals} from '../../zigi/bus';
 import {useHealth} from '../use-health';
 import {useHealthExtras} from '../meal-names';
@@ -35,15 +36,15 @@ export const facts = (d: OwnDrink) => <>{[`${formatNumber(d.sizeMl)} mL`, d.caff
  */
 export default function WaterMore({data, date, perform, only}: {data: HealthData; date: string; perform: Perform; only?: 'taps' | 'settings'}) {
   const {extras, update, unreadable} = useHealthExtras(), store = useHealth(), [said, setSaid] = useState('');
-  const drinks = ownDrinks(extras), lastTap = useRef(Number.NEGATIVE_INFINITY), energy = drinkEnergyDay(extras, dailyData(data).water, date);
+  const drinks = ownDrinks(extras), sameTap = useOneTap() /* FR-S-11 */, energy = drinkEnergyDay(extras, dailyData(data).water, date);
   const [tipStep, setTipStep] = useState(0), [tipLang, setTipLang] = useState<'en' | 'nl'>('en'), tip = waterTipOf(date, tipStep);
   function tap(d: OwnDrink, at: number) {
-    if (at - lastTap.current < 350) return; lastTap.current = at;
+    if (!sameTap.tap(at)) return;
     const id = newHealthId(), note = tapNote(d);
     void perform(latest => addWater(latest, {id, date, amountMilli: d.sizeMl * 1000, unit: 'ml'}, now()), `${d.name} recorded.`, () => {
       try { update(r => setDrink(r, id, note.type, note.caffeineMg, note.more)); } catch { /* the entry is saved; only the drink note could not be kept */ }
       zigiSignals.emitValidated('health_log_recorded');
-      showUndo({message: `${d.name} logged: ${formatNumber(d.sizeMl)} mL.`, undone: 'Water entry removed.', restore: () => store.update(undoWaterLog(id))});
+      sameTap.shown(showUndo({message: `${d.name} logged: ${formatNumber(d.sizeMl)} mL.`, undone: 'Water entry removed.', restore: () => store.update(undoWaterLog(id))}));
     });
   }
   const setTips = (on: boolean) => { try { update(r => healthExtrasSchema.parse({...r, waterTips: on || undefined})); setSaid(on ? 'A water tip shows here each day.' : 'Water tips are off.'); } catch (e) { setSaid(`Not kept on this device. ${deviceSettingFailureMessage(e)}`); } };

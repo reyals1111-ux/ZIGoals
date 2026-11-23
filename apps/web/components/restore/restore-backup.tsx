@@ -26,7 +26,7 @@ import type {EraseArea, EraseRow} from '../../lib/restore/erase-area';
 type Row = PlannedPart & {current: PartSummary | null; currentUnreadable: boolean; replaceBlocked: string | null};
 /** `never` (Session AK, J6-2): lib/restore/plan.ts NEVER_RESTORED, shown as it is instead of a shorter hand-made list. */
 /** `media` (review b1 #18): what of the file's task, journal, note, receipt, meal, food and account files a record names. */
-type Preview = {opened: OpenedBackup; rows: Row[]; groups: RestoreGroup[]; visionCount: number; progressCount: number; never: string; media: MediaPlan | null};
+type Preview = {opened: OpenedBackup; rows: Row[]; groups: RestoreGroup[]; visionCount: number; progressCount: number; never: string; media: MediaPlan | null; /** FR-MAX-10: nothing of it on this device; `emptyPhotos`: its photos were ticked too. */ empty?: boolean; emptyPhotos?: boolean};
 /** `note`: for a restore made before this page loaded (another visit or a reload), when it ran and until when it can be undone. */
 type UndoInfo = {afterReload: boolean; note: string | null; kind?: 'restore' | 'erase'};
 /**
@@ -65,6 +65,16 @@ export function mediaOutcomeText(m: MediaOutcome): string {
   return `Photos, voice notes and documents put back: ${m.added}.${not.length ? ` Not added: ${not.join('; ')}.` : ''}`;
 }
 export const oversizedPhotosNote = (n: number) => `${n} ${n === 1 ? 'photo in this file is' : 'photos in this file are'} larger than ZIGoals restores, so ${n === 1 ? 'it is' : 'they are'} left out.`;
+/**
+ * Friend-readiness (FR-MAX-10): on a device that holds none of the backup's parts (just erased, or new), every part starts
+ * as Merge, which there adds the whole backup and changes nothing (this device holds nothing to change), and the preview
+ * says so; the person still ticks the confirmation. A device that holds any of them keeps the safe start: Leave as it is.
+ */
+export const emptyDeviceNote = (photos: boolean) => `This device holds none of these records yet, so every part is set to come back (Merge)${photos ? ' and the photos are ticked' : ''}. Change any part before you restore.`;
+export function startingModes(rows: readonly {id: string; problem?: string | null; current: unknown; currentUnreadable: boolean}[]): {modes: Record<string, RestoreMode>; empty: boolean} {
+  const empty = rows.length > 0 && rows.every(r => r.current === null && !r.currentUnreadable);
+  return {modes: Object.fromEntries(rows.map(r => [r.id, empty && !r.problem ? 'merge' as RestoreMode : 'leave' as RestoreMode])), empty};
+}
 const lib = () => Promise.all([import('../../lib/restore/read-backup'), import('../../lib/restore/plan'), import('../../lib/restore/apply')]);
 
 export function RestoreBackup({showcase}: {showcase: boolean}) {
@@ -102,9 +112,11 @@ export function RestoreBackup({showcase}: {showcase: boolean}) {
     const progressCount = Array.isArray((opened.json.device.progressPhotos as {photos?: unknown[]} | undefined)?.photos) ? opened.photos.length : 0;
     // Review b1 #18: read from the file's records and this device's; nothing is opened or written for the preview.
     const media = opened.media?.length ? await mediaPreview(opened, storage).catch(() => null) : null;
-    setPreview({opened, rows, groups: RESTORE_GROUPS.filter(g => g !== 'Photos' && rows.some(r => r.group === g)), visionCount: opened.vision.length, progressCount, never: NEVER_RESTORED, media});
-    setModes(Object.fromEntries(rows.map(r => [r.id, 'leave' as RestoreMode])));
-    setPhotos({vision: false, progress: false, media: false});
+    const start = startingModes(rows);
+    const startPhotos = {vision: start.empty && opened.vision.length > 0, progress: start.empty && progressCount > 0, media: start.empty && !!media?.canKeep && media.total > 0};
+    setPreview({opened, rows, groups: RESTORE_GROUPS.filter(g => g !== 'Photos' && rows.some(r => r.group === g)), visionCount: opened.vision.length, progressCount, never: NEVER_RESTORED, media, empty: start.empty, emptyPhotos: startPhotos.vision || startPhotos.progress || startPhotos.media});
+    setModes(start.modes);
+    setPhotos(startPhotos);
   });
   const chosen = preview ? preview.rows.filter(r => !r.problem && modes[r.id] && modes[r.id] !== 'leave') : [];
   const anything = chosen.length > 0 || photos.vision || photos.progress || photos.media;
@@ -157,6 +169,7 @@ export function RestoreBackup({showcase}: {showcase: boolean}) {
       <p>Exported {formatDate(preview.opened.json.exportedAt)}{preview.opened.json.app?.version ? ` by ZIGoals ${preview.opened.json.app.version}` : ''}. Choose what to do with each part; anything left as it is stays untouched.</p>
       {preview.opened.demo && <p className="alert" role="alert">This file holds the Showcase&rsquo;s fictional examples. Restoring them puts made-up records among your own.</p>}
       {!preview.rows.length && !preview.visionCount && !preview.progressCount && !preview.media?.total && <p>This export holds nothing this version can restore.</p>}
+      {preview.empty && <p className="fine rb-empty-device" role="note">{emptyDeviceNote(!!preview.emptyPhotos)}</p>}
       {preview.rows.length > 0 && <div className="dh-actions"><button type="button" className="secondary" onClick={mergeAll}>Merge every part</button></div>}
       {preview.groups.map(group => <fieldset key={group} className="rb-group"><legend>{group}</legend>
         <ul className="rb-rows">{preview.rows.filter(r => r.group === group).map(r => <li key={r.id}>

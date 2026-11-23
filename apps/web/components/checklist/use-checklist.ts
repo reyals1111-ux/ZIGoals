@@ -15,7 +15,7 @@ import {GAME} from '../../lib/game/schema';
 import {REMINDERS_PLAN, quietHours} from '../../lib/reminders-plan/schema';
 import {dailyData, healthDay} from '../../lib/health-daily';
 import {latestHabitRule} from '../../lib/habits';
-import {sealDay, todayOf} from '../../lib/checklist/day';
+import {pathSince, sealDay, todayOf} from '../../lib/checklist/day';
 import {deriveDots, summarise, type DerivedDot, type DeriveSources} from '../../lib/checklist/derive';
 import type {TickContext, TickPlan, Write} from '../../lib/checklist/adapters';
 import {checklistStreak} from '../../lib/checklist/streak';
@@ -84,14 +84,16 @@ export function useChecklist({commands = false}: {commands?: boolean} = {}) {
     // Viewing writes nothing (the project's rule; help-page and guide specs): seal only when it changes the history or the
     // held day carries ticks, custom items or nudges to clear. An empty path's first read stores no record at all, and the
     // tick writers start today's entry themselves (todayOf).
-    const held = days.data.today, next = sealDay(days.data, date, summariser);
+    // FR-MAX-1: with no day held (nothing ever ticked on the path), the days since the path began are kept from the records.
+    const since = {since: pathSince(record.data, dayZone)};
+    const held = days.data.today, next = sealDay(days.data, date, summariser, since);
     const historyChanged = JSON.stringify(next.days ?? {}) !== JSON.stringify(days.data.days ?? {});
     const heldHasContent = !!held && (held.ticks.length > 0 || held.custom.length > 0 || held.nudged.length > 0);
     if (!historyChanged && !heldHasContent) return;
     try {
-      days.update(d => sealDay(d, date, summariser));
+      days.update(d => sealDay(d, date, summariser, since));
     } catch { /* sealing waits for the next read; the path still shows today */ }
-  }, [loaded, date, days, record.data, record.unreadable, sourcesFor]);
+  }, [loaded, date, dayZone, days, record.data, record.unreadable, sourcesFor]);
 
   const writers = useMemo(() => ({
     habits: habits.update, health: health.update, sleep: sleep.update, meditation: meditation.update,
