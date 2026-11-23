@@ -18,8 +18,9 @@ import './money-r5.css';
  */
 type Update = (fn: (log: MoneyLog) => MoneyLog) => unknown;
 const n = (count: number, one: string, many: string) => `${formatNumber(count)} ${count === 1 ? one : many}`;
-export default function CategoryFile({log, update}: {log: MoneyLog; update: Update}) {
-  const id = useId(), rules = useDeviceRecord(MONEY_RULES), [file, setFile] = useState<{name: string; data: FileData} | null>(null), [said, setSaid] = useState(''), [problem, setProblem] = useState(''), input = useRef<HTMLInputElement>(null), heading = useRef<HTMLHeadingElement>(null);
+// Session AV lane 2 (fix2011): what it says goes to Spending's one status line (`say`); its refusals stay its own alert.
+export default function CategoryFile({log, update, say: setSaid}: {log: MoneyLog; update: Update; say: (text: string) => void}) {
+  const id = useId(), rules = useDeviceRecord(MONEY_RULES), [file, setFile] = useState<{name: string; data: FileData} | null>(null), [problem, setProblem] = useState(''), input = useRef<HTMLInputElement>(null), heading = useRef<HTMLHeadingElement>(null);
   const plan = file && rules.loaded ? planCategoryFile(log, rules.unreadable ? null : rules.data, file.data) : null;
   const save = () => {
     const ruleCount = rules.loaded && !rules.unreadable ? rules.data.rules.length : 0, own = (log.own?.expense?.length ?? 0) + (log.own?.income?.length ?? 0), subs = Object.values(log.subs ?? {}).reduce((s, l) => s + l.length, 0);
@@ -65,6 +66,5 @@ export default function CategoryFile({log, update}: {log: MoneyLog; update: Upda
       </ul>
       <button type="button" className="secondary" aria-disabled={!plan.fresh || undefined} onClick={add}>{plan.fresh ? `Add ${n(plan.fresh, 'new item', 'new items')}` : 'All of it is already there'}</button>
     </div>}
-    <p className="fine" role="status" aria-live="polite">{said}</p>
   </section>;
 }
