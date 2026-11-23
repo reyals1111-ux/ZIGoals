@@ -816,7 +816,19 @@ UNCHANGED: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudf
   `public/sw.js` (no timer, no long `waitUntil`); the journey's update step was seen failing before (run 1701). Next
   session: read the old worker's in-flight events with the DevTools protocol (ServiceWorker domain) while it is stuck.
   For a friend: the "Reload" tap can do nothing for a while; closing the tab and opening it again lets the update in.
-- **D-CI-SHARDS20 (TIER 3 CI, the owner's decision).** Main shards 14 → 20, each list at most 70 worker-min by the largest
+- **Run 2017 (`d98f5437`, docs only, still 14 shards: it started before the 20-shard push could replace it).** Main
+  shards 12 and 5 cancelled at 60 min; WebKit shard 2 red on `zigi-alive:54` (desktop, both attempts: ZIGi's launcher not
+  on the page within 5 s — the WebKit late-launcher class, D-CI1932) and `zigi-voice-z:199` on its retry (D-CI1991).
+- **Run 2018 (`5194b92e`, the first with 20 main shards; 31 jobs in two waves).** Checks, Alpha gate, integration, the
+  a11y and WebKit shards (WebKit 24.9–43.2 min, `zigi-alive` and `zigi-voice-z` green) and 17 main shards green; the
+  first-wave main shards took 24.3–40.4 min. Red: main shard 4, `run11-route-mobile-acceptance:31` (desktop, both
+  attempts, its 45-s test budget: the 13 fixed routes take 16.5 s locally; seen before in runs 1701 and 1994) → the 13
+  routes in two parts with their own budget, the same visits and checks (`51b05c43`, 10 of 10 locally, as Session X split
+  the detail links). Main shards 5 and 6 (second wave) took 52.6 min (green) and 60 (cancelled): their runners were 1.4
+  and 1.6 times slower than the slowest of runs 2013–2016 over all their files (shard 6: 111 worker-min against the 69.7
+  packed; `nova-stage-am2:301` on its retry, D36). Lists packed to 40 min on the slowest measured runner still reach 60 on
+  a runner that much slower: about 28–32 lists would keep 40 min there, or a longer job limit; both are the owner's call.
+ Main shards 14 → 20, each list at most 70 worker-min by the largest
   measured minutes per file (runs 2013, 2014, 2016): **1,393 worker-min per run**. Lists measure 69.6–69.7.
 
 ## Follow-ups 2 and 3 — decisions and measurements
