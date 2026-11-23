@@ -26,11 +26,17 @@ export function LengthCounterHost() {
     let field: HTMLInputElement | HTMLTextAreaElement | null = null;
     const place = () => { if (!field || !countShown(field.value.length, field.dataset.countFrom)) return setShown(null); const r = field.getBoundingClientRect(); setShown({used: field.value.length, max: field.maxLength, top: r.bottom + 4, left: Math.max(8, r.right - 96)}); };
     const focus = (e: FocusEvent) => { field = counted(e.target) ? e.target : null; place(); };
-    const input = (e: Event) => { if (e.target === field) place(); };
+    // Session AV lane 2 (fixslow, CI run 2009, exploratory-round3 "NOVA Tasks widget"): the count is read once the typing
+    // has been handled. This listener runs in the capture phase, before React's own listener sees the same `input`; a state
+    // change made here rendered at once (in the microtask after this listener) together with any other work waiting, and a
+    // controlled field drawn in that render was given back its old value, so React then saw no change and the words just
+    // typed were gone ("Water the plants" → "", then "Type a task first."). One task later React has taken them.
+    let queued = 0;
+    const input = (e: Event) => { if (e.target === field && !queued) queued = window.setTimeout(() => { queued = 0; place(); }, 0); };
     const blur = (e: FocusEvent) => { if (e.target === field) { field = null; setShown(null); } };
     document.addEventListener('focusin', focus); document.addEventListener('input', input, true); document.addEventListener('focusout', blur);
     window.addEventListener('scroll', place, true); window.addEventListener('resize', place);
-    return () => { document.removeEventListener('focusin', focus); document.removeEventListener('input', input, true); document.removeEventListener('focusout', blur); window.removeEventListener('scroll', place, true); window.removeEventListener('resize', place); };
+    return () => { window.clearTimeout(queued); document.removeEventListener('focusin', focus); document.removeEventListener('input', input, true); document.removeEventListener('focusout', blur); window.removeEventListener('scroll', place, true); window.removeEventListener('resize', place); };
   }, []);
   if (!shown) return null;
   const left = shown.max - shown.used, near = left <= Math.max(5, Math.ceil(shown.max * 0.1));
