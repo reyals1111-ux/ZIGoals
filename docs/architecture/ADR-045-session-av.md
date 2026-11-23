@@ -835,6 +835,8 @@ UNCHANGED: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudf
   and `p3-nova-polish` passing on their retries — three NOVA specs in one list, and D36's measured cause is NOVA's
   opening slowing under concurrent heavy work (8 of 8 locally). `p3-nova-polish` and `nova-workflows` move to shards 19
   and 20, which hold no NOVA spec (`1e41ab6b`, TIER 3 CI; the first attempt at this).
+- **Run 2022 (`386bbc1b`, the NOVA spread).** Shard 17 green (24.8 min); main shards 24.8–41.7. Red: main shard 13,
+  `j04-offline` (D-CI2016-J04) and `zigi-browser-agents:126` (desktop, both attempts; seen in run 2012; 24 of 24 locally).
 - **D-CI2016-J04, the cause measured (run 2019 red on it again; no third fix, by the two-attempt rule).** A probe with
   Chromium's own service-worker reporting (DevTools protocol, `ServiceWorker.workerVersionUpdated`; 12 runs, 3 stuck):
   after the tap the old worker is stopped for the takeover; in the runs that work it becomes `redundant` and the new one

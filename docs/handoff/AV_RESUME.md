@@ -21,14 +21,14 @@ Lane 2's own state is kept in this file's "Lane 2 — state" section on that bra
 
 ## Lane 2 — state (owner follow-up 4; keep current at every batch)
 - **Owner follow-up 6 (finish) rules now** (ADR-045). Alpha #58 = run 61 from `main` `1c1b5953`: version `f2729d28-e9db-436f-a66a-67922cf5d924`, rollback `e0bc17f3-27c0-4900-aa55-416f20ece6f6` (#57), VERIFIED (3 reads), live prices VERIFIED, market policy ends 2026-11-30T16:00Z, archive SHA-256 `ef1aee3b…0a18e578`. Frozen readers #37–#58.
-- **Now (23 Nov, 09:45 UTC).** PR #109 runs 2006–2011 red, each fixed at the cause (ADR-045 D-CI2006, D-CI2007–2012).
-  Run 2012 (`63798740`) failed the Alpha gate on FR-S-12's goal name in a link's URL; fixed in `01858ef3` (in memory, not
-  the URL), proven locally. Friend-readiness: 4 walks, a fresh re-check (30 Fixed, 4 Partly, no new Blocker or Major),
-  FRIEND_READINESS.md "Fixes" filled; the Partly rows FR-L-4, FR-TJ-4, FR-TJ-5 on `lane2/fr-recheck`
-  (/home/user/zg-frrecheck), FR-TJ-7 Carried (protected Habits baseline). Next: merge fr-recheck, re-record the corpus if its
-  intents changed, one build, the touched specs, push when no run is in progress; then two green first-attempt runs,
-  ADR-045 closing table, "Safe to merge now: yes (CI runs N, M)" here and in the PR, STATUS final entry, report.
-  **Safe to merge now: no (CI run 2012).**
+- **Now (23 Nov, 20:45 UTC).** Friend-readiness done (FRIEND_READINESS.md). Owner follow-up 7: 20 main shards
+  (`60b65190`, then `3d491fef` and `1e41ab6b` moved files that slow each other); every main shard now takes 25–42 min but
+  a slow runner's. The CI blocker is `j04-offline`'s update stall (ADR-045 D-CI2016-J04, Carried after two attempts, the
+  cause measured: the old worker is woken mid-takeover and Chromium never finishes it), red in runs 2016, 2019 and 2022.
+  The next step needs the owner: a third attempt (find the request that wakes the old worker and keep it off the
+  takeover), or the owner's own call on this test. Also seen in shard 13: `zigi-browser-agents:126` (runs 2012, 2022; 24
+  of 24 locally). The END (closing table drafted in the scratchpad's adr-close.md, STATUS final entry, report) waits for
+  two first-attempt green runs. **Safe to merge now: no (CI run 2022).**
 - Branch `feature/session-av-2` from #108's frozen head `807f247e`; LEDGER.md first (`fbeb3e54`). No PR until #108 merges.
   A push here starts no CI (`ci.yml`: push to main, pull_request): push after every integrated batch, local checks first.
 - Done (lead): A45-1 (the account-sync engine out of every page's first scripts, TIER 3 sync `a88abeb8`…`2d270bd9`:
