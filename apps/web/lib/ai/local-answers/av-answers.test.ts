@@ -61,7 +61,7 @@ describe('Today', () => {
 describe('Wealth', () => {
   test('bills a year: the yearly estimate, not the typical month alone (q1 F-YEAR)', () => {
     expect(text(zigi('how much are my bills a year'))).toMatch(/about €[\d,.]+ a year/);
-    expect(text(zigi('hoeveel kosten mijn rekeningen per jaar'))).toMatch(/ongeveer €[\d,.]+ per jaar/);
+    expect(text(zigi('hoeveel kosten mijn rekeningen per jaar'))).toMatch(/ongeveer €\s?[\d.]+,\d{2} per jaar/); // Session AV lane 2 (fr-answers; FR-TJ-4, deliberate): a Dutch answer writes its figures the Dutch way ("€ 950,00", "73,48 kg"); the same figures, as strictly
   });
   test('payday: the next one from the regular income, and the bills before it (q2 #42)', () => {
     const s = showcaseAll(), log = s.moneyLog!, salary = log.entries.find(e => e.kind === 'income' && e.date.startsWith(DAY.slice(0, 7)))!;
@@ -74,7 +74,7 @@ describe('Wealth', () => {
   test('a payee is searched in the notes; a name the notes do not hold is never the month or a whole category (q2 #21)', () => {
     expect(text(zigi('how much did I spend at Café Noël'))).toContain('Nothing in your whole money log matches “Café Noël”');
     expect(text(zigi('how much did I spend at Café Noël'))).not.toContain('435.59');
-    expect(text(zigi('hoeveel heb ik bij Market uitgegeven'))).toContain('€61.30 uitgegeven bij “Market”');
+    expect(text(zigi('hoeveel heb ik bij Market uitgegeven'))).toContain('€\u00a061,30 uitgegeven bij “Market”'); // Session AV lane 2 (fr-answers; FR-TJ-4, deliberate): a Dutch answer writes its figures the Dutch way ("€ 950,00", "73,48 kg"); the same figures, as strictly
     // A total with no period named is this month's in Dutch too (it was today's).
     expect(text(zigi('hoeveel heb ik uitgegeven aan boodschappen'))).toContain('deze maand');
   });
@@ -82,7 +82,7 @@ describe('Wealth', () => {
     const r = text(zigi('Am I on track for my groceries target?'));
     expect(r).toContain('target €300.00');
     expect(r).not.toContain('could not find a goal');
-    expect(text(zigi('Wat zijn mijn budgetdoelen?'))).toContain('doel €300.00');
+    expect(text(zigi('Wat zijn mijn budgetdoelen?'))).toContain('doel €\u00a0300,00'); // Session AV lane 2 (fr-answers; FR-TJ-4, deliberate): a Dutch answer writes its figures the Dutch way ("€ 950,00", "73,48 kg"); the same figures, as strictly
   });
   test('the debt planner is named in Dutch in a Dutch answer (q2 #16)', () => {
     expect(text(zigi('wanneer ben ik schuldenvrij'))).toContain('Vermogen → Wat je schuldig bent');

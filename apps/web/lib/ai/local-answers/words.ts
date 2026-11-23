@@ -1,7 +1,7 @@
 import {isUnitWord, unitAmount} from '../../goals/goal-units';
 import {formatGoalAmount} from '../../goals/goal-amount-text';
 import type {DayRange} from '../tools/range';
-import {formatDate, formatTime} from '../../visual-format';
+import {formatDate, formatExactNumber, formatTime} from '../../visual-format';
 import {nlDay} from './exact/period';
 
 /**
@@ -30,6 +30,23 @@ export function span(range: DayRange, today: string): string {
   const prefix = /^[A-Z][a-z]+ \d{4}$/.test(label) ? 'in ' : '';
   return range.from === range.to ? `${prefix}${label} (${short(range.from)})` : `${prefix}${label} (${short(range.from)} to ${short(range.to)})`;
 }
+/**
+ * Session AV lane 2 (fr-answers; FR-S-1): `span` for a Dutch answer: "vandaag (zo 29 nov)", "deze week (ma 23 nov t/m
+ * zo 29 nov)", "op wo 25 nov", "de afgelopen 7 dagen (…)". A label it does not know is written with its dates only.
+ */
+const NL_LABELS: Record<string, string> = {today: 'vandaag', yesterday: 'gisteren', 'this week': 'deze week', 'last week': 'vorige week', 'this month': 'deze maand', 'last month': 'vorige maand', 'this year': 'dit jaar', 'last year': 'vorig jaar',
+  'the same days last week': 'dezelfde dagen vorige week', 'the same days last month': 'dezelfde dagen vorige maand', 'the same days last year': 'dezelfde dagen vorig jaar', 'the day before': 'de dag ervoor', 'the week before': 'de week ervoor', 'the month before': 'de maand ervoor'};
+const NL_MONTHS = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+export function nlSpan(range: DayRange, today: string): string {
+  const short = (iso: string) => nlDay(iso, today), label = range.label, dates = range.from === range.to ? short(range.from) : `${short(range.from)} t/m ${short(range.to)}`;
+  if (/^since \d{4}-\d{2}-\d{2}$/.test(label)) return `sinds ${short(range.from)}`;
+  const last = /^the (last|next) (\d+) (day|week|month)s?$/.exec(label);
+  if (last) { const k = Number(last[2]), unit = ({day: ['dag', 'dagen'], week: ['week', 'weken'], month: ['maand', 'maanden']} as Record<string, [string, string]>)[last[3]!]!; return `${last[1] === 'last' ? 'de afgelopen' : 'de komende'} ${k === 1 ? unit[0] : `${k} ${unit[1]}`} (${dates})`; }
+  const month = /^([A-Z][a-z]+) (\d{4})$/.exec(label), mi = month ? ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].indexOf(month[1]!) : -1;
+  if (month && mi >= 0) return `in ${NL_MONTHS[mi]} ${month[2]} (${dates})`;
+  const word = NL_LABELS[label];
+  return word ? `${word} (${dates})` : range.from === range.to ? `op ${dates}` : `van ${dates}`;
+}
 /** "Mon, Oct 5, 6:55 PM UTC" for an instant (the time in the locale's hour cycle, in UTC as the records say it). */
 export function instantText(iso: string, today: string): string {
   const d = new Date(iso);
@@ -37,7 +54,7 @@ export function instantText(iso: string, today: string): string {
 }
 /** Numbers of 1,000 and more that stand before a unit are grouped; dates, years and times are left alone. */
 export function groupUnits(text: string): string {
-  return text.replace(/(?<![\d.,:-])(\d{4,})((?:\.\d+)? (?:kcal|g|mg|mL|steps|minutes|active minutes|glasses|times|reps|check-ins|lb|kg|US fl oz|[A-Z]{3,10}\b))/g, (_m, whole: string, rest: string) => `${grouped(whole)}${rest}`);
+  return text.replace(/(?<![\d.,:-])(\d{4,})(\.\d+)?( (?:kcal|g|mg|mL|steps|minutes|active minutes|glasses|times|reps|check-ins|lb|kg|US fl oz|[A-Z]{3,10}\b))/g, (_m, whole: string, fraction: string | undefined, rest: string) => `${grouped(`${whole}${fraction ?? ''}`)}${rest}`);
 }
 /** Groups the whole part of a plain decimal text with commas, exactly (no float rounding): "12345.5" → "12,345.5". */
 export function grouped(text: string, minFraction = 0, maxFraction = 20): string {
@@ -47,7 +64,19 @@ export function grouped(text: string, minFraction = 0, maxFraction = 20): string
   if (m[3] && m[3].length > maxFraction) { const rounded = Number(`0.${m[3]}`).toFixed(maxFraction); fraction = rounded.slice(2); }
   fraction = fraction.replace(/0+$/, '');
   while (fraction.length < minFraction) fraction += '0';
-  return `${m[1]}${m[2]!.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}${fraction ? `.${fraction}` : ''}`;
+  // Session AV lane 2 (fr-answers; FR-TJ-4): in the answer's number locale (lib/visual-format.ts numberLocale: the display
+  // locale, nl-NL in a Dutch answer), "1,234.5" in en-US and "1.234,5" in nl-NL or en-NL.
+  return formatExactNumber(`${m[1]}${m[2]}${fraction ? `.${fraction}` : ''}`);
+}
+/**
+ * Session AV lane 2 (fr-answers; FR-TJ-4): a tool's figure as a sentence writes it. The tools keep their figures exact
+ * and plain for a model ("435.59 EUR", "73.5 kg", "120.00 EUR"); an answer writes the same figure in its number locale
+ * ("435,59 EUR" in a Dutch answer), every decimal kept. Anything that is not "<number>" or "<number> <unit>" is unchanged.
+ */
+export function localQty(value: unknown): string {
+  const text = String(value ?? ''), m = /^([+-]?)(\d+(?:\.(\d+))?)((?:\s.*)?)$/s.exec(text.trim());
+  if (!m) return text;
+  return `${m[1] === '+' ? '+' : ''}${grouped(`${m[1] === '-' ? '-' : ''}${m[2]}`, m[3]?.length ?? 0)}${m[4]}`;
 }
 /** A number for a sentence: whole numbers grouped, at most `digits` decimals. */
 export function n(value: number, digits = 1): string {
@@ -68,8 +97,8 @@ export function amount(value: string, unit: string): string {
  */
 export function goalMoney(text: unknown): string {
   const m = /^(-?\d+(?:\.\d+)?) (\S+)$/.exec(String(text ?? '').trim());
-  if (!m) return String(text ?? '');
-  return m[2] === 'USD' || m[2] === 'EUR' ? formatGoalAmount(m[1]!, m[2]).replace(/\.00(?!\d)/, '') : amount(m[1]!, m[2]!);
+  if (!m) return localQty(text); // fr-answers (FR-TJ-4): "1.9 h a day" in the display locale too
+  return m[2] === 'USD' || m[2] === 'EUR' ? formatGoalAmount(m[1]!, m[2]).replace(/[.,]00(?!\d)/, '') /* fr-answers (FR-TJ-4): ",00" too, in a Dutch answer */ : amount(m[1]!, m[2]!);
 }
 /**
  * Session AL third pass (NB-114: "van 30 minutes"): a habit target's English unit in a Dutch answer ("30 minuten", "1 keer").

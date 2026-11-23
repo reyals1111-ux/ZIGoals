@@ -1,3 +1,4 @@
+import {formatNumber} from '../../visual-format';
 import {balanceWords, sleepBalance} from '../../sleep/engine';
 import {balanceWithNaps, napsOn, sleepNeed} from '../../sleep/naps-need';
 import {asleep} from '../../sleep/night';
@@ -156,7 +157,7 @@ function todayWorkoutAnswer(a: Asked): LocalReply | null {
   const s = suggestWorkout({w, library: EXERCISES, now: new Date(a.env.now), today: a.env.healthDay, place, minutes: 45});
   if (!s.exercises.length) return answer(say(lang, 'Nothing in the library fits the equipment of your place for now. Add equipment under Health → Workouts → Places and equipment, or choose Any place.', 'Niets in de bibliotheek past bij het materiaal van je huidige plek. Voeg materiaal toe onder Health → Workouts → Places and equipment, of kies Any place.'), WORKOUT_CALLS);
   const groups = s.groups.map(g => lang === 'nl' ? MUSCLE_NL[g.muscle] ?? g.muscle : g.muscle.toLowerCase()).join(', ');
-  const list = s.exercises.map(x => `• ${x.name}: ${x.sets.length} × ${x.sets[0]?.weightKg !== undefined ? `${x.sets[0].weightKg} kg × ${x.sets[0].reps}` : x.sets[0]?.reps !== undefined ? `${x.sets[0].reps} ${say(lang, 'reps', 'herhalingen')}` : x.sets[0]?.seconds !== undefined ? `${x.sets[0].seconds} s` : '—'}${x.from === 'new' ? say(lang, ' (new to your log)', ' (nieuw in je logboek)') : ''}`);
+  const list = s.exercises.map(x => `• ${x.name}: ${x.sets.length} × ${x.sets[0]?.weightKg !== undefined ? `${formatNumber(x.sets[0].weightKg)} kg × ${x.sets[0].reps}` : x.sets[0]?.reps !== undefined ? `${x.sets[0].reps} ${say(lang, 'reps', 'herhalingen')}` : x.sets[0]?.seconds !== undefined ? `${x.sets[0].seconds} s` : '—'}${x.from === 'new' ? say(lang, ' (new to your log)', ' (nieuw in je logboek)') : ''}`);
   const head = say(lang, `A suggestion for about 45 minutes, for your freshest groups (${groups})${s.place ? ` at ${s.place}` : ''}, from your own last sets:`, `Een voorstel voor ongeveer 45 minuten, voor je frisste spiergroepen (${groups})${s.place ? ` in ${s.place}` : ''}, op basis van je eigen laatste sets:`);
   const tail = say(lang, `${s.tired ? 'Everything is still recovering, so keep it light. ' : ''}Change it or start it in Health → Workouts → Suggest a workout for today. A suggestion, not a programme.`, `${s.tired ? 'Alles is nog aan het herstellen, dus houd het licht. ' : ''}Pas het aan of start het in Health → Workouts → Suggest a workout for today. Een voorstel, geen programma.`);
   return answer([head, ...list, tail].join('\n'), WORKOUT_CALLS);

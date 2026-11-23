@@ -1,4 +1,4 @@
-import {habitDay, habitRuleOn, type HabitData} from './habits';
+import {habitDay, habitRuleOn, type Habit, type HabitData, type HabitRule} from './habits';
 import {addLocalDays} from './local-date';
 import {isDeletedHabit} from './habit-delete';
 
@@ -12,8 +12,15 @@ import {isDeletedHabit} from './habit-delete';
  * "not done" for yesterday with what got in the way (`whatGotInTheWay`) leaves the list; the reason is the day's note.
  * Pure.
  */
-export type OpenYesterday = {id: string; title: string; count: number; target: number; missing: number};
-export function yesterdaysOpen(data: HabitData, today: string): {day: string; open: OpenYesterday[]; loggedToday: boolean} {
+/**
+ * Session AV lane 2 (fr-answers; FR-S-3): `shown` is the progress the records hold for the day: a habit linked to a
+ * Health measure counts what Health holds so far (`soFar`, the Habits card's own reading, components/habits/auto-value.ts),
+ * so 250 mL of a 2-liter water habit reads 0.25 of 2, never 0. `count` and `missing` stay the habit's own entry, as
+ * "Done" fills that entry up to the target.
+ */
+export type OpenYesterday = {id: string; title: string; count: number; target: number; missing: number; shown: number};
+export type SoFar = (habit: Habit, rule: HabitRule, day: string) => number | null;
+export function yesterdaysOpen(data: HabitData, today: string, soFar?: SoFar): {day: string; open: OpenYesterday[]; loggedToday: boolean} {
   const day = addLocalDays(today, -1), open: OpenYesterday[] = [];
   let loggedToday = false;
   for (const h of data.habits) {
@@ -26,7 +33,9 @@ export function yesterdaysOpen(data: HabitData, today: string): {day: string; op
     const d = habitDay(h, day, today);
     if (d.status !== 'failed' && d.status !== 'partial' && d.status !== 'due') continue;
     const missing = Math.max(0, d.target - d.count);
-    if (missing > 0) open.push({id: h.id, title: h.title, count: d.count, target: d.target, missing});
+    let health: number | null = null;
+    try { health = soFar ? soFar(h, rule, day) : null; } catch { health = null; }
+    if (missing > 0) open.push({id: h.id, title: h.title, count: d.count, target: d.target, missing, shown: health !== null && health > d.count ? health : d.count});
   }
   return {day, open, loggedToday};
 }

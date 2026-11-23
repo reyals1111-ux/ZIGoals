@@ -1,3 +1,5 @@
+import {watchedHoldings, watchedWords} from './fr-wallets';
+import {localQty} from './words';
 import {novaAreaClosed, novaEnvInfo} from './nova-env';
 import Decimal from 'decimal.js';
 import {briefChatText} from '../proactive/brief';
@@ -130,6 +132,9 @@ export function priceAnswer(lang: Lang, asset: string, env: ToolEnv, q = ''): Lo
     if (coin && coin.price !== 'no price') lines.push(say(lang, `Portfolio “${pf.portfolio}”: ${coin.price}.`, `Portfolio “${pf.portfolio}”: ${coin.price}.`));
   }
   // Session AU (REHEARSAL R-7): with no price on this device, said plainly, with Markets to open; never a price of its own.
+  // Session AV lane 2 (fr-answers; FR-TJ-5): a linked (watched) wallet holding the coin is named, view only; its value stays unknown without a price.
+  const watched = watchedHoldings(env, symbol);
+  if (!lines.length && watched.length) return {kind: 'answer', text: say(lang, `${symbol}: your linked wallets hold ${watchedWords(watched, 'en', env.habitDay)}. No ${symbol} price has reached Markets on this device, so its value is unknown here: I read prices only where the app already has them. Markets shows the price with its source and time.`, `${symbol}: je gekoppelde wallets bevatten ${watchedWords(watched, 'nl', env.habitDay)}. Er is nog geen ${symbol}-prijs in Markten op dit apparaat, dus de waarde is hier onbekend: ik lees prijzen alleen waar de app ze al heeft. Markten toont de prijs met bron en tijd.`), calls};
   if (!lines.length) return {kind: 'answer', text: say(lang, `${symbol} is not tracked in Wealth or Portfolio and no ${symbol} price has reached Markets on this device, so I give none: I read prices only where the app already has them. Markets shows the price with its source and time.`, `${symbol} staat niet in Vermogen of Portfolio en er is op dit apparaat geen ${symbol}-prijs bij Markten binnengekomen, dus ik noem er geen: ik lees prijzen alleen waar de app ze al heeft. Markten toont de prijs met de bron en het tijdstip.`) + `\n\n\`\`\`zigoals-action\n${JSON.stringify({kind: 'open-page', page: 'markets'})}\n\`\`\``, calls};
   if (code && !lines.some(l => new RegExp(`\\b${code}\\b`).test(l))) lines.push(say(lang, `No ${code} price for ${symbol} on this device: each figure stays in the currency its page holds, never converted.`, `Geen ${code}-prijs voor ${symbol} op dit apparaat: elk bedrag blijft in de munt van zijn pagina, nooit omgerekend.`));
   return {kind: 'answer', text: `${lines.join('\n')}\n${say(lang, 'Prices as these pages show them; facts only, not advice.', 'Prijzen zoals deze pagina’s ze tonen; alleen feiten, geen advies.')}`, calls};
@@ -249,8 +254,10 @@ function spendAnswer(lang: Lang, q: string, env: ToolEnv): LocalReply {
   if (!s.result.ok) return refusalOf(s.result, [s.record]);
   const d = dataOf(s.result) as {note?: string; totals?: {currency: string; spent: string; received: string}[]; byCategory?: {category: string; spent: string}[]; roomToSpendThisWeek?: {left: string; budget: string; daysLeft: number}; matched?: string};
   if (d.note) return {kind: 'answer', text: say(lang, d.note, 'Er is nog niets gelogd in Vermogen → Uitgaven.'), calls: [s.record]};
-  const tot = (d.totals ?? []).map(t => toldIn(lang, t.spent)).join(say(lang, ' and ', ' en ')), top = (d.byCategory ?? []).slice(0, 3).map(c => `${c.category} ${toldIn(lang, c.spent)}`).join(', ');
-  const room = d.roomToSpendThisWeek ? say(lang, ` Room to spend this week: ${d.roomToSpendThisWeek.left} of ${d.roomToSpendThisWeek.budget}.`, ` Ruimte deze week: ${toldIn(lang, d.roomToSpendThisWeek.left)} van ${toldIn(lang, d.roomToSpendThisWeek.budget)}.`) : '';
+  // fr-answers (FR-TJ-4) beside fr-money (FR-L-11): Dutch money the Dutch way (toldIn), English in the display locale (localQty).
+  const told = (amount: string) => lang === 'nl' ? toldIn(lang, amount) : localQty(amount);
+  const tot = (d.totals ?? []).map(t => told(t.spent)).join(say(lang, ' and ', ' en ')), top = (d.byCategory ?? []).slice(0, 3).map(c => `${c.category} ${told(c.spent)}`).join(', ');
+  const room = d.roomToSpendThisWeek ? say(lang, ` Room to spend this week: ${told(d.roomToSpendThisWeek.left)} of ${told(d.roomToSpendThisWeek.budget)}.`, ` Ruimte deze week: ${told(d.roomToSpendThisWeek.left)} van ${told(d.roomToSpendThisWeek.budget)}.`) : '';
   const what = cat ? say(lang, ` on ${cat.trim()}`, ` aan ${cat.trim()}`) : '';
   return {kind: 'answer', text: say(lang, `You spent ${tot || 'nothing'}${what} ${period}.${top && !cat ? ` Biggest: ${top}.` : ''}${room} From your own entries in Wealth → Spending, never converted.`,
     `Je gaf ${period === 'this week' ? 'deze week' : period === 'last week' ? 'vorige week' : period === 'last month' ? 'vorige maand' : 'deze maand'} ${tot || 'niets'}${what} uit.${top && !cat ? ` Grootste: ${top}.` : ''}${room} Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.`), calls: [s.record]};

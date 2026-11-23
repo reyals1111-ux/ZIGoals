@@ -124,12 +124,12 @@ describe('R-2 and R-3 (Tom): what was lifted and how far was run, from the worko
     for (const env of Object.values(both(tom()))) {
       expect(text('What did I lift today?', env)).toBe('Lifted today (Tue, Nov 17): Push day — Bench press 3 sets, top 72.5 kg × 6; Overhead press 2 sets, top 42.5 kg × 6.');
       // Session AV lane 2 (Dutch dates, deliberate): "(di 17 nov)", was "(Tue, Nov 17)".
-      expect(text('Wat heb ik vandaag getild?', env)).toBe('Getild vandaag (di 17 nov): Push day — Bench press 3 sets, zwaarst 72.5 kg × 6; Overhead press 2 sets, zwaarst 42.5 kg × 6.');
+      expect(text('Wat heb ik vandaag getild?', env)).toBe('Getild vandaag (di 17 nov): Push day — Bench press 3 sets, zwaarst 72,5 kg × 6; Overhead press 2 sets, zwaarst 42,5 kg × 6.' /* Session AV lane 2 (fr-answers; FR-TJ-4, deliberate): a Dutch answer writes its figures the Dutch way ("€ 950,00", "73,48 kg"); the same figures, as strictly */);
       const week = ask('How far did I run this week?', env);
       expect(week.text).toBe('You ran 13.4 km this week (Mon, Nov 16 to Tue, Nov 17), in 2 runs: 5 km on Mon, Nov 16 and 8.4 km on Tue, Nov 17.');
       expect(week.facts).toMatchObject({km: 13.4, count: 2, workouts: [{day: '2026-11-16', km: 5, imported: false}, {day: '2026-11-17', km: 8.4, imported: true}]});
       // Session AV lane 2 (Dutch dates, deliberate): the Dutch answer writes its days the Dutch way (was "(Mon, Nov 16 t/m Tue, Nov 17) … op Mon, Nov 16 …").
-      expect(text('Hoe ver heb ik deze week hardgelopen?', env)).toBe('Je liep 13.4 km deze week (ma 16 nov t/m di 17 nov), in 2 loopjes: 5 km op ma 16 nov en 8.4 km op di 17 nov.');
+      expect(text('Hoe ver heb ik deze week hardgelopen?', env)).toBe('Je liep 13,4 km deze week (ma 16 nov t/m di 17 nov), in 2 loopjes: 5 km op ma 16 nov en 8,4 km op di 17 nov.' /* Session AV lane 2 (fr-answers; FR-TJ-4, deliberate): Dutch figures in a Dutch answer, the same figures, as strictly */);
       expect(text('how far did I run last week', env)).toBe('You ran 7.5 km last week (Mon, Nov 9 to Sun, Nov 15), in 1 run: 7.5 km on Sun, Nov 15.');
     }
   });
@@ -207,7 +207,7 @@ describe('R-6 (Lina): a bill\'s price change, from the Bills page\'s own notice'
       expect(a.text).toBe('Fictional Phone went up from €15.00 to €17.50 since Oct 2026. From their payments in your money log, as Bills → Price changes shows them.');
       expect(a.facts).toMatchObject({changes: [{bill: 'Fictional Phone', direction: 'up', previousCents: 1500, latestCents: 1750, currency: 'EUR', latestDate: '2026-10-15'}]});
       // Session AV lane 2 (Dutch dates, deliberate): "sinds september 2026", was "sinds Sep 2026".
-      expect(text('Is een rekening duurder geworden?', env)).toBe('Fictional Phone ging omhoog van €15.00 naar €17.50 sinds oktober 2026. Uit de betalingen in je geldlog, zoals Bills → Price changes ze toont.');
+      expect(text('Is een rekening duurder geworden?', env)).toBe('Fictional Phone ging omhoog van € 15,00 naar € 17,50 sinds oktober 2026. Uit de betalingen in je geldlog, zoals Bills → Price changes ze toont.' /* Session AV lane 2 (fr-answers; FR-TJ-4, deliberate): a Dutch answer writes its figures the Dutch way ("€ 950,00", "73,48 kg"); the same figures, as strictly */);
     }
   });
 });
@@ -238,7 +238,7 @@ describe('R-7 … R-10 (Jules): prices, staking and holdings, never invented, ne
     expect(est.text).toMatch(/^An estimate, not a promise: at the measured rate Earn read, 100 ZIG would earn about 9\.2 ZIG over a year if nothing changed\./);
     expect(est.text).toContain('9.20% (source: ZIGChain mainnet (fictional test node), as of 2026-11-17 18:40 UTC)');
     expect(est.tools).toEqual(['earn_rates']);
-    expect(text('Wat zou ik verdienen als ik 100 ZIG stake?', novaEnv(jules(EARN)))).toMatch(/^Een schatting, geen belofte: tegen het gemeten rendement dat Earn las, zou 100 ZIG in een jaar ongeveer 9\.2 ZIG opleveren/);
+    expect(text('Wat zou ik verdienen als ik 100 ZIG stake?', novaEnv(jules(EARN)))).toMatch(/^Een schatting, geen belofte: tegen het gemeten rendement dat Earn las, zou 100 ZIG in een jaar ongeveer 9,2 ZIG opleveren/ /* Session AV lane 2 (fr-answers; FR-TJ-4, deliberate): a Dutch answer writes its figures the Dutch way ("€ 950,00", "73,48 kg"); the same figures, as strictly */);
   });
   test('R-9 "How much BTC do I have?" with a goal named "First 0.01 BTC": the holdings first, the goal after, in EN and NL', () => {
     for (const env of Object.values(both(jules()))) {

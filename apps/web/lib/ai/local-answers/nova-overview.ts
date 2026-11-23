@@ -14,7 +14,7 @@ import type {LocalReply, ToolCallRecord} from './engine';
 import {f9LocalAnswer} from './f9';
 import {novaLocalAnswer} from './nova';
 import {novaAreaClosed, novaHealthClosed, type NovaEnvInfo} from './nova-env';
-import {dayText, goalMoney, nlDayText, nlUnits, plural} from './words';
+import {dayText, goalMoney, localQty, nlDayText, nlUnits, plural} from './words';
 
 /**
  * Release review 2 (R2-2): the natural questions people ask NOVA first, answered on this device from the person's own
@@ -119,7 +119,7 @@ function dueTodayAnswer(env: ToolEnv, lang: Lang, todayOpen: boolean): LocalRepl
   if (h.result.ok) {
     calls.push(h.record);
     const open = (dataOf(h.result).open ?? []) as Data[];
-    if (open.length) { anything = true; lines.push(say(lang, `Habits still open: ${open.map(x => `${clean(String(x.title), 50)} (${typeof x.logged === 'number' ? `${x.loggedText ?? x.logged} of ${x.target}` : `target ${x.target}`})`).join(', ')}`, `Gewoontes nog open: ${open.map(x => `${clean(String(x.title), 50)} (${typeof x.logged === 'number' ? `${x.loggedText ?? x.logged} van ${nlUnits(String(x.target))}` : `doel ${nlUnits(String(x.target))}`})`).join(', ')}`)); }
+    if (open.length) { anything = true; lines.push(say(lang, `Habits still open: ${open.map(x => `${clean(String(x.title), 50)} (${typeof x.logged === 'number' ? `${x.loggedText ?? localQty(x.logged)} of ${x.target}` : `target ${x.target}`})`).join(', ')}`, `Gewoontes nog open: ${open.map(x => `${clean(String(x.title), 50)} (${typeof x.logged === 'number' ? `${x.loggedText ?? localQty(x.logged)} van ${nlUnits(String(x.target))}` : `doel ${nlUnits(String(x.target))}`})`).join(', ')}`)); }
     else lines.push(env.habits.habits.length ? say(lang, 'Habits: every habit planned for today is done.', 'Gewoontes: alles wat voor vandaag gepland stond is gedaan.') : say(lang, 'Habits: none kept yet.', 'Gewoontes: nog geen.'));
   } else lines.push(say(lang, 'Habits: off for NOVA, so not read (NOVA → Permissions).', 'Gewoontes: staan uit voor NOVA, dus niet gelezen (NOVA → Permissions).'));
   // Tasks due today or overdue (unknown when the list was not read).
@@ -168,7 +168,7 @@ function sleepAnswer(env: ToolEnv, info: NovaEnvInfo, lang: Lang, lastNight: boo
   const goal = d.yourGoal && d.yourGoal !== 'none set' ? say(lang, `\nYour goal: ${d.yourGoal}.`, `\nJe doel: ${d.yourGoal}.`) : '';
   return {kind: 'answer', text: say(lang,
     `Over the last 7 days: ${plural(week.nightsLogged, 'night')} logged, ${week.averageAsleep} asleep on average, usually from ${week.usualBedtime} to ${week.usualWake}.${goal}\nFigures from your logged nights; not medical advice.`,
-    `De afgelopen 7 dagen: ${week.nightsLogged} ${week.nightsLogged === 1 ? 'nacht' : 'nachten'} gelogd, gemiddeld ${week.averageAsleep} geslapen, meestal van ${week.usualBedtime} tot ${week.usualWake}.${goal}\nCijfers uit je gelogde nachten; geen medisch advies.`), calls: [r.record]};
+    `De afgelopen 7 dagen: ${week.nightsLogged} ${week.nightsLogged === 1 ? 'nacht' : 'nachten'} gelogd, gemiddeld ${String(week.averageAsleep).replace(' (some nights estimated)', ' (sommige nachten geschat)')} geslapen, meestal van ${week.usualBedtime} tot ${week.usualWake}.${goal}\nCijfers uit je gelogde nachten; geen medisch advies.`), calls: [r.record]};
 }
 
 function habitsLeftAnswer(env: ToolEnv, lang: Lang): LocalReply {
@@ -177,7 +177,7 @@ function habitsLeftAnswer(env: ToolEnv, lang: Lang): LocalReply {
   const open = (dataOf(r.result).open ?? []) as Data[];
   if (!open.length && !env.habits.habits.length) return {kind: 'answer', text: say(lang, 'No habit is kept yet: Habits → New habit, or ask me to create one.', 'Er is nog geen gewoonte: Habits → New habit, of vraag mij er een te maken.'), calls: [r.record]};
   if (!open.length) return {kind: 'answer', text: say(lang, 'No habit is left today: every habit planned for today is done.', 'Er staat vandaag geen gewoonte meer open: alles wat gepland stond is gedaan.'), calls: [r.record]};
-  const row = (x: Data) => `• ${clean(String(x.title), 60)}: ${typeof x.logged === 'number' ? say(lang, `${x.loggedText ?? x.logged} of ${x.target}`, `${x.loggedText ?? x.logged} van ${nlUnits(String(x.target))}`) : x.status === 'partial' ? say(lang, `partly done, target ${x.target}`, `deels gedaan, doel ${nlUnits(String(x.target))}`) : say(lang, `not yet, target ${x.target}`, `nog niet, doel ${nlUnits(String(x.target))}`)}`;
+  const row = (x: Data) => `• ${clean(String(x.title), 60)}: ${typeof x.logged === 'number' ? say(lang, `${x.loggedText ?? localQty(x.logged)} of ${x.target}`, `${x.loggedText ?? localQty(x.logged)} van ${nlUnits(String(x.target))}`) : x.status === 'partial' ? say(lang, `partly done, target ${x.target}`, `deels gedaan, doel ${nlUnits(String(x.target))}`) : say(lang, `not yet, target ${x.target}`, `nog niet, doel ${nlUnits(String(x.target))}`)}`;
   return {kind: 'answer', text: [say(lang, `${plural(open.length, 'habit')} left today:`, `${open.length} ${open.length === 1 ? 'gewoonte' : 'gewoontes'} nog open vandaag:`), ...open.map(row)].join('\n'), calls: [r.record]};
 }
 
@@ -198,11 +198,12 @@ function waterAnswer(env: ToolEnv, info: NovaEnvInfo): LocalReply {
 }
 
 /** The questions NOVA's welcome offers, each answered by this layer or the engine on NOVA's environment (tested). */
-export function novaExampleQuestions(env: ToolEnv): string[] {
-  const out = ['What is due today?'];
-  if (env.areas.goals && summaries(env).some(g => g.status === 'active')) out.push('How far am I on my goals?');
-  if (env.areas.today) out.push('What\'s on my agenda this week?');
-  if (env.health && env.areas.health) out.push('How did I sleep this week?');
-  if (env.areas.habits && env.habits.habits.length) out.push('How many habits are left today?');
+export function novaExampleQuestions(env: ToolEnv, lang: Lang = 'en'): string[] {
+  // Session AV lane 2 (fr-answers; FR-S-5): a Dutch fallback offers the same questions in Dutch, each answered on the device.
+  const out = [say(lang, 'What is due today?', 'Wat staat er vandaag nog open?')];
+  if (env.areas.goals && summaries(env).some(g => g.status === 'active')) out.push(say(lang, 'How far am I on my goals?', 'Hoe gaat het met mijn doelen?'));
+  if (env.areas.today) out.push(say(lang, 'What\'s on my agenda this week?', 'Wat staat er deze week in mijn agenda?'));
+  if (env.health && env.areas.health) out.push(say(lang, 'How did I sleep this week?', 'Hoe heb ik deze week geslapen?'));
+  if (env.areas.habits && env.habits.habits.length) out.push(say(lang, 'How many habits are left today?', 'Hoeveel gewoontes staan er vandaag nog open?'));
   return out;
 }

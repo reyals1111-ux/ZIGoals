@@ -46,16 +46,17 @@ describe('the day and month writers', () => {
 const PILLARS: readonly {pillar: string; id: string; en: string; nl: string}[] = [
   {pillar: 'habits', id: 'read-done-dates-week', en: 'Read: done on 2 of 2 due days this week (Mon, Nov 16 to Tue, Nov 17): Mon, Nov 16 and Tue, Nov 17. 60 minutes in total.', nl: 'Read: gedaan op 2 van 2 geplande dagen deze week (ma 16 nov t/m di 17 nov): ma 16 nov en di 17 nov. 60 minutes in totaal.'},
   {pillar: 'sleep', id: 'sleep-best-month', en: 'Sleep: your best day this month (Sun, Nov 1 to Tue, Nov 17) was Sat, Nov 7 (8 h 5 min).', nl: 'Slaap: je beste dag deze maand (zo 1 nov t/m di 17 nov) was za 7 nov (8 h 5 min).'},
-  {pillar: 'weight', id: 'weight-now', en: 'Your latest weight is 73.5 kg, on Mon, Nov 16.\n- Change from Mon, Oct 19 to Mon, Nov 16: -1.1 kg\n- 8 readings the last 30 days (Mon, Oct 19 to Tue, Nov 17)', nl: 'Gewicht: 73.48 kg (ma 16 nov), 1.12 kg lager dan op 19 okt. Je doel is 72 kg.'},
+  // Session AV lane 2 (fr-answers; FR-TJ-4, deliberate): a Dutch answer writes its figures the Dutch way ("€ 950,00", "73,48 kg"); the same figures, as strictly.
+  {pillar: 'weight', id: 'weight-now', en: 'Your latest weight is 73.5 kg, on Mon, Nov 16.\n- Change from Mon, Oct 19 to Mon, Nov 16: -1.1 kg\n- 8 readings the last 30 days (Mon, Oct 19 to Tue, Nov 17)', nl: 'Gewicht: 73,48 kg (ma 16 nov), 1,12 kg lager dan op 19 okt. Je doel is 72 kg.'},
   {pillar: 'workouts', id: 'au-r3-run-lastweek', en: 'You ran 6 km last week (Mon, Nov 9 to Sun, Nov 15), in 1 run: 6 km on Sun, Nov 15.', nl: 'Je liep 6 km vorige week (ma 9 nov t/m zo 15 nov), in 1 loop: 6 km op zo 15 nov.'},
-  {pillar: 'money', id: 'spend-biggest-expense', en: 'Your largest expense this month (Sun, Nov 1 to Tue, Nov 17): €120.00 on Sun, Nov 8 (Energy).', nl: 'Je grootste uitgave deze maand (zo 1 nov t/m di 17 nov): €120.00 op zo 8 nov (Energy).'},
-  {pillar: 'bills', id: 'bills-next', en: 'Next bill: Rent €950.00, in 14 days (Tue, Dec 1); 3 more after it.', nl: 'Volgende rekening: Rent €950.00, over 14 dagen (di 1 dec); daarna nog 3.'},
+  {pillar: 'money', id: 'spend-biggest-expense', en: 'Your largest expense this month (Sun, Nov 1 to Tue, Nov 17): €120.00 on Sun, Nov 8 (Energy).', nl: 'Je grootste uitgave deze maand (zo 1 nov t/m di 17 nov): € 120,00 op zo 8 nov (Energy).'},
+  {pillar: 'bills', id: 'bills-next', en: 'Next bill: Rent €950.00, in 14 days (Tue, Dec 1); 3 more after it.', nl: 'Volgende rekening: Rent € 950,00, over 14 dagen (di 1 dec); daarna nog 3.'},
   // (fr-money; deliberate) FR-L-18: "since" is the month of the first payment at the new price (€13.99 from 8 Aug).
-  {pillar: 'bill prices', id: 'au-r6-bill-price', en: 'Streaming went up from €12.99 to €13.99 since Aug 2026. From their payments in your money log, as Bills → Price changes shows them.', nl: 'Streaming ging omhoog van €12.99 naar €13.99 sinds augustus 2026. Uit de betalingen in je geldlog, zoals Bills → Price changes ze toont.'},
-  {pillar: 'budget targets', id: 'av-budget-targets', en: 'Groceries: target €300.00 by Dec 2026: €62.90 set aside, €237.10 a month from next month, on track.', nl: 'Groceries: doel €300.00 uiterlijk december 2026: €62.90 opzij, €237.10 per maand vanaf volgende maand, op schema. Food & drink en Fun hebben geen doel.'},
+  {pillar: 'bill prices', id: 'au-r6-bill-price', en: 'Streaming went up from €12.99 to €13.99 since Aug 2026. From their payments in your money log, as Bills → Price changes shows them.', nl: 'Streaming ging omhoog van € 12,99 naar € 13,99 sinds augustus 2026. Uit de betalingen in je geldlog, zoals Bills → Price changes ze toont.'},
+  {pillar: 'budget targets', id: 'av-budget-targets', en: 'Groceries: target €300.00 by Dec 2026: €62.90 set aside, €237.10 a month from next month, on track.', nl: 'Groceries: doel € 300,00 uiterlijk december 2026: € 62,90 opzij, € 237,10 per maand vanaf volgende maand, op schema. Food & drink en Fun hebben geen doel.'},
   {pillar: 'focus', id: 'focus-best-month', en: 'Focus: your best day this month (Sun, Nov 1 to Tue, Nov 17) was Mon, Nov 16 (150 minutes).', nl: 'Focus: je beste dag deze maand (zo 1 nov t/m di 17 nov) was ma 16 nov (150 minuten).'},
   {pillar: 'journal', id: 'journal-last', en: 'Journal: last written on Tue, Nov 17 (today).', nl: 'Dagboek: voor het laatst geschreven op di 17 nov (vandaag).'},
-  {pillar: 'goals', id: 'goal-emergency-eta', en: 'At your current pace, you reach Emergency fund about Jan 31, 2028 — an estimate from your pace so far, not a promise. Target date Thu, Nov 16, 2028; $11,000.00 still to go.', nl: 'In je huidige tempo haal je Emergency fund rond 31 jan 2028 — een schatting op basis van je tempo tot nu toe, geen belofte. Streefdatum do 16 nov 2028; nog $11,000.00 te gaan.'},
+  {pillar: 'goals', id: 'goal-emergency-eta', en: 'At your current pace, you reach Emergency fund about Jan 31, 2028 — an estimate from your pace so far, not a promise. Target date Thu, Nov 16, 2028; $11,000.00 still to go.', nl: 'In je huidige tempo haal je Emergency fund rond 31 jan 2028 — een schatting op basis van je tempo tot nu toe, geen belofte. Streefdatum do 16 nov 2028; nog US$ 11.000,00 te gaan.'},
   {pillar: 'notes', id: 'notes-count', en: '8 notes in all; 2 wait in your inbox. The newest is from Tue, Nov 17.', nl: '8 notities in totaal; 2 wachten in je inbox. De nieuwste is van di 17 nov.'},
   {pillar: 'the date', id: 'au-r4-date', en: 'It\'s Tuesday, Nov 17.', nl: 'Het is dinsdag 17 nov.'},
 ];
@@ -67,10 +68,11 @@ describe('a Dutch answer with a date writes it the Dutch way; the English answer
     expect(ask(c.nl[0]!, env).text).toBe(p.nl);
   });
   test('the debt-free months (av-debt-free) and the goal list\'s next steps (goals-status)', () => {
-    expect(ask(byId('av-debt-free').nl[0]!, env).text).toMatch(/^USD: schuldenvrij in april 2028 \(over 1 jaar en 5 maanden, \$316\.87 rente\) met lawine, april 2028 .* alleen de minimumbedragen: oktober 2029 /);
+    expect(ask(byId('av-debt-free').nl[0]!, env).text).toMatch(/^USD: schuldenvrij in april 2028 \(over 1 jaar en 5 maanden, US\$\u00a0316,87 rente\) met lawine, april 2028 .* alleen de minimumbedragen: oktober 2029 /);
     expect(ask(byId('av-debt-free').en[0]!, env).text).toContain('debt-free in Apr 2028 (in 1 year and 5 months, $316.87 interest) with avalanche; Apr 2028');
     const nl = ask(byId('goals-status').nl[0]!, env).text;
-    expect(nl).toContain('• Emergency fund: 45% — $9,000 van $20,000, nog $11,000 te gaan; volgende geplande stap vr 20 nov');
+    // Session AV lane 2 (fr-answers; FR-TJ-4, deliberate): Dutch figures in a Dutch answer, the same figures, as strictly.
+    expect(nl).toContain('• Emergency fund: 45% — US$\u00a09.000 van US$\u00a020.000, nog US$\u00a011.000 te gaan; volgende geplande stap vr 20 nov');
     expect(ask(byId('goals-status').en[0]!, env).text).toContain('• Emergency fund: 45% — $9,000 of $20,000, $11,000 to go; next planned Fri, Nov 20');
     expect(ask(byId('agenda-today').nl[0]!, env).text).toContain('Vandaag (di 17 nov), uit je eigen gegevens:');
     expect(ask(byId('agenda-today').nl[0]!, env).text).toContain('(sinds ma 16 nov)');
@@ -99,11 +101,12 @@ describe('no Dutch answer in the corpus writes an English day or month name (eve
 });
 
 describe('the corpus\'s date facts, in Dutch', () => {
-  test('a date fact reads as the Dutch answer writes it; any other fact as it is', () => {
+  test('a date fact and a figure read as the Dutch answer writes them (fr-answers, deliberate); any other fact as it is', () => {
     expect(nlFact('Nov 3')).toBe('3 nov');
     expect(nlFact('Apr 16, 2027')).toBe('16 apr 2027');
     expect(nlFact('Apr 2028')).toBe('april 2028');
-    expect(nlFact('62.5 kg')).toBe('62.5 kg');
+    // Session AV lane 2 (fr-answers; FR-TJ-4, deliberate): a Dutch answer writes its figures the Dutch way ("€ 950,00", "73,48 kg"); the same figures, as strictly: a figure fact is checked as the Dutch answer writes it.
+    expect(nlFact('62.5 kg')).toBe('62,5 kg');
     expect(nlFact('Mondays')).toBe('Mondays');
     expect(saysIn('med-notdone-month', 'nl')).toEqual(['3 nov', '12 nov']);
     expect(saysIn('med-notdone-month', 'en')).toEqual(['Nov 3', 'Nov 12']);

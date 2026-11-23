@@ -5,6 +5,10 @@ import {MISS_REASONS, missNote, yesterdaysOpen, type OpenYesterday} from '../../
 import {showUndo} from '../ui/undo-toast';
 import {formatNumber} from '../../lib/visual-format';
 import {HabitLookMark} from './habit-look-mark';
+import {appliedCheckIn} from '../../lib/habit-health-links/store';
+import {useHabitHealthLinks} from './use-habit-health-links';
+import {useHealthLinkContext} from './health-link-context';
+import {healthSoFar} from './auto-value';
 import './yesterday-open.css';
 
 /**
@@ -25,7 +29,9 @@ export default function YesterdayOpen({data, today, update, extras = null, place
   const [hidden, setHidden] = useState(() => { try { return sessionStorage.getItem(HIDE) === today; } catch { return false; } });
   const [status, setStatus] = useState(''), [asking, setAsking] = useState<string | null>(null), [why, setWhy] = useState<Record<string, Why>>({});
   const [focusTo, setFocusTo] = useState<string | null>(null), statusRef = useRef<HTMLParagraphElement>(null);
-  const {day, open} = yesterdaysOpen(data, today);
+  // Session AV lane 2 (fr-answers; FR-S-3): a linked habit shows what Health holds so far, as its Habits card does.
+  const links = useHabitHealthLinks(), healthContext = useHealthLinkContext();
+  const {day, open} = yesterdaysOpen(data, today, (h, rule, on) => links.loaded ? healthSoFar(h, rule, on, appliedCheckIn(links.data, h.id, on), links.data.links[h.id], healthContext?.health) : null);
   // After a row leaves, its successor's "Done" (or, with none left, the status line) takes the focus.
   useEffect(() => {
     if (!focusTo) return;
@@ -62,7 +68,7 @@ export default function YesterdayOpen({data, today, update, extras = null, place
     <div className="habit-section-heading"><div><p className="eyebrow">Before today starts</p><h2 id={`${uid}-title`}>Yesterday, still open</h2>
       <p className="fine">Did any of these happen after all? Tick them here; leaving them is fine too.</p></div></div>
     <ul className="habit-yesterday-list" aria-label="Yesterday's open habits">
-      {open.map(o => { const w = why[o.id] ?? {reason: null, words: ''}; return <li key={o.id}><span dir="auto"><HabitLookMark extras={extras} habitId={o.id}/>{o.title}{o.target > 1 ? <small> · {formatNumber(o.count)} of {formatNumber(o.target)}</small> : null}</span>
+      {open.map(o => { const w = why[o.id] ?? {reason: null, words: ''}; return <li key={o.id}><span dir="auto"><HabitLookMark extras={extras} habitId={o.id}/>{o.title}{o.target > 1 ? <small> · {formatNumber(o.shown)} of {formatNumber(o.target)}</small> : null}</span>
         <span className="habit-yesterday-row-actions"><button id={doneId(o)} type="button" className="secondary" aria-label={`${o.title}: done yesterday`} onClick={() => void mark([o])}>Done</button>
           <button id={whyId(o)} type="button" className="quiet" aria-expanded={asking === o.id} aria-label={`${o.title}: what got in the way?`} onClick={() => setAsking(a => a === o.id ? null : o.id)}>What got in the way?</button></span>
         {asking === o.id && <form className="habit-yesterday-why" aria-label={`What got in the way of ${o.title}`} onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(o); } }} onSubmit={e => { e.preventDefault(); void markMissed(o); }}>

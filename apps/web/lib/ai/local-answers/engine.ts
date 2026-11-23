@@ -9,7 +9,7 @@ import {findRanges, previousRange, type DayRange} from '../tools/range';
 import {runTool} from '../tools/registry';
 import {normalise, stem, tokens} from '../tools/subjects';
 import type {ToolOk, ToolResult} from '../tools/types';
-import {amount, dayText, goalMoney, groupUnits, grouped, instantText, n, plural, span} from './words';
+import {amount, dayText, goalMoney, groupUnits, grouped, instantText, localQty, n, nlSpan, plural, span} from './words';
 import {EXAMPLES_INTRO, examplesFor} from './examples';
 import {normalizeSpoken} from '../spoken/normalize';
 import {afLocalAnswer} from './af';
@@ -24,6 +24,9 @@ import {isStreakBreak, streakBreakWords} from './p14b';
 import {isFoodEstimateAsk} from './al-third';
 import {safetyFirst} from '../safety-guard';
 import {unitFor} from '../../plural';
+import {displayLocale, withNumberLocale} from '../../visual-format';
+import {fold} from './exact/text';
+import {languageOf} from './av-words';
 import {averageKey} from '../../average-goals/store';
 import {joinReplies, messageLines, onePhrase, pastPeriodAsk} from './al-fifth';
 import {healthGoalAsk} from './al-final';
@@ -35,6 +38,9 @@ import {av2JournalAnswer} from './av2-journal';
 import {av2RoadmapAnswer} from './av2-roadmap';
 import {av2MoneyAnswer} from './av2-money';
 import {av2FoodAnswer, readFoodSources} from './av2-food';
+import {mealWordsAnswer} from './fr-meal-words';
+import {frAnswer} from './fr-answers';
+import {watchedHoldings, watchedWords} from './fr-wallets';
 import {av2BodyAnswer} from './av2-body';
 import {av2RestAnswer} from './av2-rest';
 import {av2MoneyR2Answer} from './av2-money-r2';
@@ -245,8 +251,14 @@ export function localAnswer(question: string, env: ToolEnv, subject?: Subject): 
   // Session AU (D-ALLOW-HEALTH): ZIGi's Health-closed refusal in the question's language, with its one button (nova-env.ts).
   const lang = questionLanguage(question) === 'nl' ? 'nl' : 'en';
   // Session AV lane 2 (LEDGER #69): with "Hide calories and weight" on, every answer shows a dash for those figures.
-  return withHiddenFigures(zigiHealthClosed(deviceAnswer(question, env, subject), env, lang), bodyFiguresHidden(), lang);
+  // Session AV lane 2 (fr-answers; FR-TJ-4, FR-S-20): a Dutch answer writes its figures the Dutch way, an English one in
+  // the app's display locale, so one answer never says "1,000 mL" beside "73,48 kg" (lib/visual-format.ts withNumberLocale).
+  return withNumberLocale(answerNumberLocale(figuresLanguage(question)), () => withHiddenFigures(zigiHealthClosed(deviceAnswer(question, env, subject), env, lang), bodyFiguresHidden(), lang));
 }
+/** The locale an answer writes its figures in: nl-NL for a Dutch answer, else the app's display locale. */
+export const answerNumberLocale = (lang: 'en' | 'nl'): string => lang === 'nl' ? 'nl-NL' : displayLocale();
+/** A question's language for its figures: Dutch as the engine reads it, or as the answers that write Dutch read it (av-words). */
+export const figuresLanguage = (question: string): 'en' | 'nl' => questionLanguage(question) === 'nl' || languageOf(fold(question)) === 'nl' ? 'nl' : 'en';
 function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   // Session AL fourth pass (L7-4a): the safety guard first. Its words are never read as a lookup or a card ("sleeping
   // pills" is not the sleep log); the guard's own reply comes from the chat (`guarded`) or no-model.ts.
@@ -266,6 +278,9 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   if (!subject) { const own = av2RestAnswer(question, env, {templates: env.nova?.taskTemplates, plan: env.nova?.taskPlan, nutrientExtras: (env.ak as {nutrientExtras?: never} | null | undefined)?.nutrientExtras}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, batch 2 (sync choices, the look, the scheduled copy): read from this device where there is one.
   if (!subject) { const extra: Av2SyncExtra = (() => { try { if (typeof window === 'undefined') return {}; const storage = getAppStorage(); return {sections: readExtrasSectionsChoice(storage), extrasOn: readExtrasChoice(storage).enabled, look: {theme: readTheme(), darkStyle: readDarkStyle(), font: readLook().font}, backup: readDeviceRecord(storage, BACKUP_REMINDER).data}; } catch { return {}; } })(); const own = av2SyncAnswer(question, env, extra); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
+  // Session AV lane 2 (fr-answers; FR-S-2, FR-TJ-3): a meal logged in words is never answered as "nothing logged"
+  // (fr-meal-words.ts reads this device's `zigoals:meal-words:v1` under Health's gate; without one, the diary's answers stand).
+  if (!subject) { const own = mealWordsAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, batch 2 (Money; Food, reading its device records; Body after AV's, as its builder asked).
   if (!subject) { const food = (() => { try { return typeof window === 'undefined' ? {} : readFoodSources(getAppStorage()); } catch { return {}; } })(); const own = av2R6MoneyAnswer(question, env) ?? av2R5MoneyAnswer(question, env) ?? av2R4MoneyAnswer(question, env) ?? av2R3MoneyAnswer(question, env) ?? av2MoneyR2Answer(question, env) ?? av2MoneyAnswer(question, env) ?? av2FoodAnswer(question, env, food); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2 (Journal and notes; task attachments, ZIGi's hello, chess): their own answers, before AV's.
@@ -290,6 +305,8 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   if (!subject) { const own = av2R5GymAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, round 6 (Body: calm, meditation days, sleep tonight, bests, a visit's list): after round 5's.
   if (!subject) { const own = av2R6BodyAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
+  // Session AV lane 2 (fr-answers; FR-S-5, FR-MAX-4, FR-MAX-12): the sleep goal, on time to bed, when a task is, what was finished.
+  if (!subject) { const own = frAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   const strict = exactLocal(question, env, subject, strictClaim);
   if (strict) return strict;
   // A misspelt question the exact layer reads once its slips are fixed is asked of the layers below in the fixed words.
@@ -665,7 +682,7 @@ function habitListAnswer(env: ToolEnv, q: string): LocalReply | null {
   if (HABITS_OPEN.test(q)) {
     const r = call(env, 'habits_due', {}), refused = refusalOf([r]); if (refused) return refused;
     const open = (dataOf(r.result).open ?? []) as {title: string; status: string; logged: unknown; loggedText?: string; target: string}[];
-    const text = open.length ? `${plural(open.length, 'habit')} still open today:\n${open.map(h => `- ${h.title}: ${typeof h.logged === 'number' ? `${h.loggedText ?? h.logged} of ${h.target}` : h.status === 'partial' ? `partly done, target ${h.target}` : `not yet, target ${h.target}`}`).join('\n')}` : 'Nothing is open today: every habit scheduled for today is done.';
+    const text = open.length ? `${plural(open.length, 'habit')} still open today:\n${open.map(h => `- ${h.title}: ${typeof h.logged === 'number' ? `${h.loggedText ?? localQty(h.logged)} of ${h.target}` : h.status === 'partial' ? `partly done, target ${h.target}` : `not yet, target ${h.target}`}`).join('\n')}` : 'Nothing is open today: every habit scheduled for today is done.';
     return {kind: 'answer', text, calls: [r.record]};
   }
   if (HABITS_COUNT.test(q) || HABITS_LIST.test(q) || HABITS_ARCHIVED.test(q)) {
@@ -805,21 +822,25 @@ function nutrientAnswer(env: ToolEnv, q: string, nutrient: NutrientName, found: 
 }
 const capital = (s: string) => `${s[0]!.toUpperCase()}${s.slice(1)}`;
 function waterAnswer(env: ToolEnv, q: string, found: DayRange[]): LocalReply {
-  const target = W.target.test(q), average = W.average.test(q);
+  const target = W.target.test(q) || /\b(?:doel|waterdoel|gehaald|halen|haal)\b/.test(q), average = W.average.test(q) || /\bgemiddeld\b/.test(q);
+  // Session AV lane 2 (fr-answers; FR-S-1, FR-TJ-2): a Dutch question gets the Dutch answer, with the same figures.
+  const nl = questionLanguage(q) === 'nl', say = (en: string, du: string) => nl ? du : en, spanIn = (r: DayRange) => nl ? nlSpan(r, env.healthDay) : span(r, env.healthDay);
+  const days_ = (k: number) => nl ? `${n(k, 0)} ${k === 1 ? 'dag' : 'dagen'}` : plural(k, 'day');
   const range = found[0] ?? defaultRange(env.healthDay, target || average ? 'the last 7 days' : 'today');
-  if (W.compare.test(q) || found.length > 1) {
+  if (W.compare.test(q) || /\b(?:dan|vergeleken|vergelijk\w*|verschil)\b/.test(q) || found.length > 1) {
     const other = found[1] ?? previousRange(range, env.healthDay);
     const a = call(env, 'water', {range: rangeArg(range)}), b = call(env, 'water', {range: rangeArg(other)}), refused = refusalOf([a, b]); if (refused) return refused;
-    const ma = Number(dataOf(a.result).totalMl), mb = Number(dataOf(b.result).totalMl);
-    return {kind: 'answer', text: lines(`Water: ${n(ma, 0)} mL ${span(range, env.healthDay)}, and ${n(mb, 0)} mL ${span(other, env.healthDay)}.`, [compareLine(ma, mb, 'mL', range, other)]), calls: [a.record, b.record]};
+    const ma = Number(dataOf(a.result).totalMl), mb = Number(dataOf(b.result).totalMl), diff = ma - mb;
+    const dutchLine = diff === 0 ? 'In beide periodes evenveel.' : `${n(Math.abs(diff), 2)} mL ${diff > 0 ? 'meer' : 'minder'} ${spanIn(range).replace(/ \(.*$/, '')} dan ${spanIn(other).replace(/ \(.*$/, '')}.`;
+    return {kind: 'answer', text: lines(say(`Water: ${n(ma, 0)} mL ${span(range, env.healthDay)}, and ${n(mb, 0)} mL ${span(other, env.healthDay)}.`, `Water: ${n(ma, 0)} mL ${spanIn(range)}, en ${n(mb, 0)} mL ${spanIn(other)}.`), [nl ? dutchLine : compareLine(ma, mb, 'mL', range, other)]), calls: [a.record, b.record]};
   }
   const r = call(env, 'water', {range: rangeArg(range)}), refused = refusalOf([r]); if (refused) return refused;
-  const d = dataOf(r.result), when = span(range, env.healthDay), total = Number(d.totalMl), days = d.daysInRange as number;
-  const flOz = d.totalFlOz ? ` (${d.totalFlOz} US fl oz)` : '';
-  if (target && typeof d.yourDailyTargetMl === 'number') return {kind: 'answer', text: lines(`Your daily water target is ${n(d.yourDailyTargetMl, 0)} mL. ${capital(when)}:`, [`Reached on ${plural(d.daysAtOrAboveTarget, 'day')}`, `${plural(d.daysWithWater - d.daysAtOrAboveTarget, 'day')} with less`, days - d.daysWithWater > 0 && `${plural(days - d.daysWithWater, 'day')} without water logged`]), calls: [r.record]};
-  if (target) return {kind: 'answer', text: `You haven't set a daily water target in Health. You logged ${n(total, 0)} mL ${when}${flOz}.`, calls: [r.record]};
-  if (average || days > 1) return {kind: 'answer', text: lines(`You logged ${n(total, 0)} mL of water ${when}${flOz}.`, [days > 1 && d.daysWithWater > 0 && `On average ${n(total / d.daysWithWater, 0)} mL on the ${plural(d.daysWithWater, 'day')} with water logged`, days > d.daysWithWater && `${plural(days - d.daysWithWater, 'day')} without water logged (not counted as 0)`]), calls: [r.record]};
-  return {kind: 'answer', text: d.daysWithWater ? `You logged ${n(total, 0)} mL of water ${when}${flOz}.` : `No water is logged ${when}.`, calls: [r.record]};
+  const d = dataOf(r.result), when = spanIn(range), total = Number(d.totalMl), days = d.daysInRange as number;
+  const flOz = d.totalFlOz ? ` (${grouped(String(d.totalFlOz))} US fl oz)` : '';
+  if (target && typeof d.yourDailyTargetMl === 'number') return {kind: 'answer', text: lines(say(`Your daily water target is ${n(d.yourDailyTargetMl, 0)} mL. ${capital(when)}:`, `Je dagelijkse waterdoel is ${n(d.yourDailyTargetMl, 0)} mL. ${capital(when)}:`), [say(`Reached on ${plural(d.daysAtOrAboveTarget, 'day')}`, `Gehaald op ${days_(d.daysAtOrAboveTarget)}`), say(`${plural(d.daysWithWater - d.daysAtOrAboveTarget, 'day')} with less`, `${days_(d.daysWithWater - d.daysAtOrAboveTarget)} met minder`), days - d.daysWithWater > 0 && say(`${plural(days - d.daysWithWater, 'day')} without water logged`, `${days_(days - d.daysWithWater)} zonder water gelogd`)]), calls: [r.record]};
+  if (target) return {kind: 'answer', text: say(`You haven't set a daily water target in Health. You logged ${n(total, 0)} mL ${when}${flOz}.`, `Je hebt geen dagelijks waterdoel ingesteld in Health. Je logde ${when} ${n(total, 0)} mL${flOz}.`), calls: [r.record]};
+  if (average || days > 1) return {kind: 'answer', text: lines(say(`You logged ${n(total, 0)} mL of water ${when}${flOz}.`, `Je logde ${when} ${n(total, 0)} mL water${flOz}.`), [days > 1 && d.daysWithWater > 0 && say(`On average ${n(total / d.daysWithWater, 0)} mL on the ${plural(d.daysWithWater, 'day')} with water logged`, `Gemiddeld ${n(total / d.daysWithWater, 0)} mL op de ${days_(d.daysWithWater)} met water gelogd`), days > d.daysWithWater && say(`${plural(days - d.daysWithWater, 'day')} without water logged (not counted as 0)`, `${days_(days - d.daysWithWater)} zonder water gelogd (niet als 0 geteld)`)]), calls: [r.record]};
+  return {kind: 'answer', text: d.daysWithWater ? say(`You logged ${n(total, 0)} mL of water ${when}${flOz}.`, `Je logde ${when} ${n(total, 0)} mL water${flOz}.`) : say(`No water is logged ${when}.`, `Er is ${when} geen water gelogd.`), calls: [r.record]};
 }
 function stepsAnswer(env: ToolEnv, q: string, found: DayRange[]): LocalReply {
   const active = HEALTH.active.test(q), average = W.average.test(q), target = W.target.test(q) && !active;
@@ -865,7 +886,7 @@ function weightAnswer(env: ToolEnv, found: DayRange[]): LocalReply {
   const d = dataOf(r.result), readings = d.readings as {date: string; weight: string}[], when = span(range, env.healthDay);
   if (!readings.length) return {kind: 'answer', text: `No weight is recorded ${when}.`, calls: [r.record]};
   const first = readings[0]!, last = readings.at(-1)!, year = env.healthDay.slice(0, 4), change = /^([+-][\d.]+ (?:kg|lb))/.exec(String(d.change))?.[1];
-  return {kind: 'answer', text: lines(`Your latest weight is ${last.weight}, on ${dayText(last.date, year)}.`, [readings.length > 1 && change && `Change from ${dayText(first.date, year)} to ${dayText(last.date, year)}: ${change}`, `${plural(d.count, 'reading')} ${when}`]), calls: [r.record]};
+  return {kind: 'answer', text: lines(`Your latest weight is ${localQty(last.weight)}, on ${dayText(last.date, year)}.`, [readings.length > 1 && change && `Change from ${dayText(first.date, year)} to ${dayText(last.date, year)}: ${localQty(change)}`, `${plural(d.count, 'reading')} ${when}`]), calls: [r.record]};
 }
 function measurementAnswer(env: ToolEnv, q: string, found: DayRange[]): LocalReply {
   const kind = (['waist', 'hips', 'chest', 'thigh', 'arm'] as const).find(k => new RegExp(`\\b${k}s?\\b`).test(q));
@@ -953,6 +974,10 @@ function holding(env: ToolEnv, asset: string, q = '', lang: 'en' | 'nl' = 'en'):
   // Session AU (REHEARSAL R-9): the holdings first; a goal named after the coin ("First 0.01 BTC") only after them, said to be a goal.
   const goal = rows.length || env.areas.goals === false ? null : goalsOnce(env).find(g => g.status !== 'closed' && new RegExp(`\\b${asset}\\b`, 'i').test(g.name));
   const goalLine = goal ? [say(`Your goal ${clean(goal.name, 60)} is a goal, not a holding: Goals shows its progress`, `Je doel ${clean(goal.name, 60)} is een doel, geen bezit: Goals toont de voortgang`)] : [];
+  // Session AV lane 2 (fr-answers; FR-TJ-5): a linked (watched) wallet's coins, as Wealth's linked wallets show them (view only).
+  const watched = watchedHoldings(env, asset), watchedLine = watched.length ? say(`Linked wallets: ${watchedWords(watched, 'en', env.habitDay)}`, `Gekoppelde wallets: ${watchedWords(watched, 'nl', env.habitDay)}`) : null;
+  if (!rows.length && watched.length) return {kind: 'answer', text: lines(say(`Your linked wallets hold ${watchedWords(watched, 'en', env.habitDay)}. Wealth has no ${asset} position you added yourself, and a linked wallet has no value here without a ${asset} price on this device.`, `Je gekoppelde wallets bevatten ${watchedWords(watched, 'nl', env.habitDay)}. Wealth heeft geen ${asset}-positie die je zelf toevoegde, en een gekoppelde wallet heeft hier geen waarde zonder ${asset}-prijs op dit apparaat.`), [...extra, ...goalLine]), calls};
+  if (watchedLine) extra.push(watchedLine);
   if (!rows.length) return {kind: 'answer', text: lines(say(`You have no ${asset} recorded in Wealth, so there is no amount to show.`, `Je hebt geen ${asset} vastgelegd in Wealth, dus er is geen hoeveelheid te tonen.`), [...extra, say(`To track it: Wealth → + Add asset → ${metal}, then ${asset} and the amount you hold`, `Om het bij te houden: Wealth → + Add asset → ${metal}, dan ${asset} en de hoeveelheid die je hebt`), ...goalLine]), calls};
   const quantity = rows.reduce((s, row) => s.plus(/^\d+(\.\d+)?$/.test(row.quantity) ? row.quantity : 0), new Decimal(0)).toFixed();
   const values = new Map<string, Decimal>();
@@ -981,7 +1006,9 @@ function netWorthLine(env: ToolEnv): {line: string | null; record: ToolCallRecor
 function wealthTotal(env: ToolEnv): LocalReply {
   const r = call(env, 'totals_per_currency', {}), refused = refusalOf([r]); if (refused) return refused;
   const d = dataOf(r.result), totals = d.totals as {currency: string; total: string}[], worth = netWorthLine(env), extra = worth.record ? [worth.record] : [];
-  if (!totals.length) return {kind: 'answer', text: lines(d.holdings ? 'None of your tracked holdings has a price, so there is no total.' : 'No holdings are tracked in Wealth yet.', [worth.line, worth.note]), calls: [r.record, ...extra]};
+  // Session AV lane 2 (fr-answers; FR-TJ-5): a linked wallet's coins are said (view only, no value without a price), never "no holdings".
+  const watched = watchedHoldings(env, null), watchedLine = watched.length ? `Your linked wallets hold ${watchedWords(watched, 'en', env.habitDay)}; with no price for ${watched.length === 1 ? 'it' : 'them'} on this device there is no value to add up` : null;
+  if (!totals.length) return {kind: 'answer', text: lines(d.holdings ? 'None of your tracked holdings has a price, so there is no total.' : watched.length ? 'No holding with a price is tracked in Wealth, so there is no total.' : 'No holdings are tracked in Wealth yet.', [watchedLine, worth.line, worth.note]), calls: [r.record, ...extra]};
   const observed = (text: string) => { const [a, b] = text.split(' to '); return !a || a === 'unknown' ? 'time unknown' : b && b !== a ? `observed from ${instantText(a, env.habitDay)} to ${instantText(b, env.habitDay)}` : `observed ${instantText(a, env.habitDay)}`; };
   return {kind: 'answer', text: lines(`Your tracked wealth, one total per currency (never converted): ${totals.map(t => amount(t.total, t.currency)).join(' and ')}.`, [d.withoutPrice > 0 && `${plural(d.withoutPrice, 'holding')} without a price ${d.withoutPrice === 1 ? 'is' : 'are'} not counted`, ...(d.prices as {source: string; observed: string}[]).map(p => `Values from ${p.source}, ${observed(p.observed)}`), worth.line, worth.note]), calls: [r.record, ...extra]};
 }

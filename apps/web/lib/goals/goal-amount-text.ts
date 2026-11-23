@@ -1,5 +1,5 @@
 import Decimal from 'decimal.js';
-import {displayLocale,formatExactNumber,formatMoney,isMoneyCurrency} from '../visual-format';
+import {numberLocale,formatExactNumber,formatMoney,isMoneyCurrency} from '../visual-format';
 import {isUnitWord,unitAmount,unitWord} from './goal-units';
 
 /**
@@ -15,7 +15,7 @@ function hugeAmount(d:Decimal,currency:string,locale:string){
  return `${text} ${isUnitWord(currency)?unitWord(currency):currency}`;
 }
 /** Money (an ISO currency) always shows its minor digits (Session I, Part 5); quantities (ZIG, BTC, milestones) are unchanged. */
-export function formatGoalAmount(value:string,currency:string,locale=displayLocale()){
+export function formatGoalAmount(value:string,currency:string,locale=numberLocale()){
  if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(value))return 'Unavailable';
  const decimal=new Decimal(value);if(!decimal.isFinite())return 'Unavailable';
  // Session AL (DV-054/DV-057d/DV-084b/DV-125, D-195): a value saved before the trillion cap (1e20, 1e28) reads short, never

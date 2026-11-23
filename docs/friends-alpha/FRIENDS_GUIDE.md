@@ -320,7 +320,8 @@ A two-minute start: [First week with ZIGoals](FIRST_WEEK.md).
 **Update, 20 Nov 2026 (Session AU):**
 
 - **Health stays closed to NOVA and ZIGi until you open it** (NOVA → Permissions → Allow Health).
-- **A meal in words has no calories;** ZIGi and NOVA don't read it.
+- **A meal in words has no calories;** ZIGi and NOVA name it when you ask what you ate ("Pasta pesto, in words, calories
+  unknown"), and never count it in a calorie total. (Session AV lane 2, friend-readiness.)
 - **"My day ends at"** moves habits, the Checklist, streaks, Tasks and the Journal; the Agenda's days and NOVA's clock keep the
   calendar date.
 - **A bank file's shop names** the app doesn't know land in "Other"; change them under To review.
