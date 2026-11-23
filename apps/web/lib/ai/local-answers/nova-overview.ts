@@ -168,7 +168,7 @@ function sleepAnswer(env: ToolEnv, info: NovaEnvInfo, lang: Lang, lastNight: boo
   const goal = d.yourGoal && d.yourGoal !== 'none set' ? say(lang, `\nYour goal: ${d.yourGoal}.`, `\nJe doel: ${d.yourGoal}.`) : '';
   return {kind: 'answer', text: say(lang,
     `Over the last 7 days: ${plural(week.nightsLogged, 'night')} logged, ${week.averageAsleep} asleep on average, usually from ${week.usualBedtime} to ${week.usualWake}.${goal}\nFigures from your logged nights; not medical advice.`,
-    `De afgelopen 7 dagen: ${week.nightsLogged} ${week.nightsLogged === 1 ? 'nacht' : 'nachten'} gelogd, gemiddeld ${week.averageAsleep} geslapen, meestal van ${week.usualBedtime} tot ${week.usualWake}.${goal}\nCijfers uit je gelogde nachten; geen medisch advies.`), calls: [r.record]};
+    `De afgelopen 7 dagen: ${week.nightsLogged} ${week.nightsLogged === 1 ? 'nacht' : 'nachten'} gelogd, gemiddeld ${String(week.averageAsleep).replace(' (some nights estimated)', ' (sommige nachten geschat)')} geslapen, meestal van ${week.usualBedtime} tot ${week.usualWake}.${goal}\nCijfers uit je gelogde nachten; geen medisch advies.`), calls: [r.record]};
 }
 
 function habitsLeftAnswer(env: ToolEnv, lang: Lang): LocalReply {
