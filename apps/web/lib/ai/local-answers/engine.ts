@@ -37,6 +37,7 @@ import {av2MoneyAnswer} from './av2-money';
 import {av2FoodAnswer, readFoodSources} from './av2-food';
 import {mealWordsAnswer} from './fr-meal-words';
 import {frAnswer} from './fr-answers';
+import {watchedHoldings, watchedWords} from './fr-wallets';
 import {av2BodyAnswer} from './av2-body';
 import {av2RestAnswer} from './av2-rest';
 import {av2MoneyR2Answer} from './av2-money-r2';
@@ -964,6 +965,10 @@ function holding(env: ToolEnv, asset: string, q = '', lang: 'en' | 'nl' = 'en'):
   // Session AU (REHEARSAL R-9): the holdings first; a goal named after the coin ("First 0.01 BTC") only after them, said to be a goal.
   const goal = rows.length || env.areas.goals === false ? null : goalsOnce(env).find(g => g.status !== 'closed' && new RegExp(`\\b${asset}\\b`, 'i').test(g.name));
   const goalLine = goal ? [say(`Your goal ${clean(goal.name, 60)} is a goal, not a holding: Goals shows its progress`, `Je doel ${clean(goal.name, 60)} is een doel, geen bezit: Goals toont de voortgang`)] : [];
+  // Session AV lane 2 (fr-answers; FR-TJ-5): a linked (watched) wallet's coins, as Wealth's linked wallets show them (view only).
+  const watched = watchedHoldings(env, asset), watchedLine = watched.length ? say(`Linked wallets: ${watchedWords(watched, 'en', env.habitDay)}`, `Gekoppelde wallets: ${watchedWords(watched, 'nl', env.habitDay)}`) : null;
+  if (!rows.length && watched.length) return {kind: 'answer', text: lines(say(`Your linked wallets hold ${watchedWords(watched, 'en', env.habitDay)}. Wealth has no ${asset} position you added yourself, and a linked wallet has no value here without a ${asset} price on this device.`, `Je gekoppelde wallets bevatten ${watchedWords(watched, 'nl', env.habitDay)}. Wealth heeft geen ${asset}-positie die je zelf toevoegde, en een gekoppelde wallet heeft hier geen waarde zonder ${asset}-prijs op dit apparaat.`), [...extra, ...goalLine]), calls};
+  if (watchedLine) extra.push(watchedLine);
   if (!rows.length) return {kind: 'answer', text: lines(say(`You have no ${asset} recorded in Wealth, so there is no amount to show.`, `Je hebt geen ${asset} vastgelegd in Wealth, dus er is geen hoeveelheid te tonen.`), [...extra, say(`To track it: Wealth → + Add asset → ${metal}, then ${asset} and the amount you hold`, `Om het bij te houden: Wealth → + Add asset → ${metal}, dan ${asset} en de hoeveelheid die je hebt`), ...goalLine]), calls};
   const quantity = rows.reduce((s, row) => s.plus(/^\d+(\.\d+)?$/.test(row.quantity) ? row.quantity : 0), new Decimal(0)).toFixed();
   const values = new Map<string, Decimal>();
@@ -992,7 +997,9 @@ function netWorthLine(env: ToolEnv): {line: string | null; record: ToolCallRecor
 function wealthTotal(env: ToolEnv): LocalReply {
   const r = call(env, 'totals_per_currency', {}), refused = refusalOf([r]); if (refused) return refused;
   const d = dataOf(r.result), totals = d.totals as {currency: string; total: string}[], worth = netWorthLine(env), extra = worth.record ? [worth.record] : [];
-  if (!totals.length) return {kind: 'answer', text: lines(d.holdings ? 'None of your tracked holdings has a price, so there is no total.' : 'No holdings are tracked in Wealth yet.', [worth.line, worth.note]), calls: [r.record, ...extra]};
+  // Session AV lane 2 (fr-answers; FR-TJ-5): a linked wallet's coins are said (view only, no value without a price), never "no holdings".
+  const watched = watchedHoldings(env, null), watchedLine = watched.length ? `Your linked wallets hold ${watchedWords(watched, 'en', env.habitDay)}; with no price for ${watched.length === 1 ? 'it' : 'them'} on this device there is no value to add up` : null;
+  if (!totals.length) return {kind: 'answer', text: lines(d.holdings ? 'None of your tracked holdings has a price, so there is no total.' : watched.length ? 'No holding with a price is tracked in Wealth, so there is no total.' : 'No holdings are tracked in Wealth yet.', [watchedLine, worth.line, worth.note]), calls: [r.record, ...extra]};
   const observed = (text: string) => { const [a, b] = text.split(' to '); return !a || a === 'unknown' ? 'time unknown' : b && b !== a ? `observed from ${instantText(a, env.habitDay)} to ${instantText(b, env.habitDay)}` : `observed ${instantText(a, env.habitDay)}`; };
   return {kind: 'answer', text: lines(`Your tracked wealth, one total per currency (never converted): ${totals.map(t => amount(t.total, t.currency)).join(' and ')}.`, [d.withoutPrice > 0 && `${plural(d.withoutPrice, 'holding')} without a price ${d.withoutPrice === 1 ? 'is' : 'are'} not counted`, ...(d.prices as {source: string; observed: string}[]).map(p => `Values from ${p.source}, ${observed(p.observed)}`), worth.line, worth.note]), calls: [r.record, ...extra]};
 }
