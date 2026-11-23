@@ -758,6 +758,22 @@ UNCHANGED: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudf
     6 took 59 and 58 min. Per-file worker-minutes from every shard's log (each test start's gap at two workers) put
     shards 14, 7, 6, 1, 9 and 4 at 93–112 and the others at 67–80. 22 files moved; every list now measures 83–89. No
     spec, test, assertion or timeout changed; `scripts/ci/main-shards.test.ts` 4 of 4.
+- **2013 (`ddc4fdff`, the repack).** Every browser, WebKit, a11y, Alpha gate and integration job green on the first
+  attempt; main shards 32–46 min but 3 and 4 (58 and 59, both green). Checks red on one cause of mine: the theme sheets
+  were not regenerated after Your data's new CSS rule (`build-themes.test`) → `9af2bcbd`. Shards 3 and 4 measured 107 and
+  110 worker-min (80 and 93 in 2012) → second attempt at the shard time, `4d83e524` (TIER 3 CI): twelve files, about 15
+  worker-min from each, to the five fastest lists of 2013.
+- **2014 (`9af2bcbd`, still the first layout).** Checks, Alpha gate, integration, a11y and 10 main shards green. Main
+  shards 12 and 3 were cancelled at 60 min and 13 and 9 took 58 and 56 — no test hung (the longest gap between test
+  starts is 34 s; 578 of 628 tests ran evenly). Runner speed varied about 30% from 2013 on the same code (shard 12:
+  41.8 → 60+). WebKit shard 2: `zigi-voice-z:199` on both attempts (Carried, D-CI1991: Settings' hydration in WebKit),
+  and `zigi-voice-z:316` on its retry — **an app bug**: "Tap the mic to talk" and "no speech recognition here" could
+  show together; the mic hint no longer shows where speech recognition is missing (`f5f172e9`; the voice and states
+  specs 44 of 44 locally).
+- **Shard time: two attempts used.** If the run on `f5f172e9` (both rebalances) still has a shard at its limit, the
+  cause is the suite's size, not its split: about 1,230 worker-min over 14 lists of two workers is about 49 min a list
+  on a normal runner and over 60 on a slow one. Then it is the owner's decision (more lists in `ci.yml`, or a longer
+  job limit, which the rules forbid this session); nothing more is changed here.
 
 ## D-BUDGETS-STATUS — the Budgets page's per-panel status lines stay
 - A lane 2 review asked whether Budgets' several status lines (one per panel) should become one. They stay: each line belongs
