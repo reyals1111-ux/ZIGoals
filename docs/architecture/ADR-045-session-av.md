@@ -716,6 +716,27 @@ UNCHANGED: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudf
 - `av2-todays-practice`: the scoped axe check (`446eb75f`) is undone; the page's axe check covers every Meditation fold again (the whole page), and what it finds is fixed in the app.
 - Round 7's drafts stay off this branch (follow-up 5); "nothing new" also stops polish part 3's new items: step 4's polish applies the existing design rules to lane 2's screens only.
 
+## Owner follow-up 7 (23 Nov 2026, 14:00 Brussels, verbatim)
+
+> OWNER FOLLOW-UP 7 TO SESSION AV (23 Nov 2026, 14:00 Brussels; pre-approved by the owner; no reply needed; continue in auto mode; no questions). Record this verbatim in ADR-045 under "Owner follow-up 7".
+>
+> OWNER DECISION ON THE SHARD TIME: more shards, not a longer limit.
+> - Let run 2016 finish first and read it.
+> - One TIER 3 (CI) commit:
+>   - main browser shards 14 → 20 in `.github/workflows/ci.yml` (matrix and MAIN_SHARD=<n>/20);
+>   - the explicit lists rebalanced by the measured minutes of runs 2013–2016, targeting at most 40 min per shard on the slowest measured runner;
+>   - `scripts/ci/main-shards.test.ts` updated so every spec is in exactly one of the 20 lists.
+> - Keep `timeout-minutes: 60`, `--workers=2`, the a11y and WebKit shard counts (unless a measured shard of theirs passes 45 min: then the same treatment, in the same commit), and every assertion and test timeout unchanged.
+> - No spec is deleted, skipped or merged to save time.
+> - A run now has about 31 jobs, more than GitHub runs at once, so it runs in two waves. That's expected: do not treat it as a stall.
+> - Push the held ADR-045 commit (`d98f5437`) together with this change, so only one run starts.
+>
+> Then carry on with follow-up 6 unchanged: every red at its cause; the goal is two consecutive full runs green on the first attempt; the friend-readiness fixes; then the END (ADR-045 closing table, "Safe to merge now: yes (CI runs N, M)", the STATUS final entry, the ≤ 12-line report). Write the suite's size (worker-minutes per run) in the closing table, as input for the next session.
+
+### Follow-up 7 — how it is read (recorded with it)
+- `d98f5437` was already pushed (12:24 UTC). Run 2016 had just started on `f5f172e9` (the same code), so `d98f5437` waits as pending run 2017; the shard commit's push replaces that pending run, so only one run starts.
+- "At most 40 min per shard on the slowest measured runner": each spec file's worker-minutes are the largest measured in runs 2013–2016 (the slowest runner that ran it), and each list holds at most (40 − the job's measured setup) × 2 workers of them.
+
 ## D-CI2006 — PR #109's first run (2006, `303c02f8`): every job red, one cause
 - All 25 jobs failed at the type check: `pnpm typecheck` in the checks job and `next build`'s "Running TypeScript" in every
   build job ran out of memory at Node's default 4 GB heap ("Ineffective mark-compacts near heap limit").
