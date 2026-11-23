@@ -69,9 +69,9 @@ for (const width of [1440, 1024, 390, 320]) test(`Life pages recompose at ${widt
       await page.getByRole('tablist', {name: 'Health views'}).getByRole('tab', { name: 'Insights', exact: true }).click();
       await expect(page.locator('.nutrition-dashboard')).toBeVisible();
       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-      await page.locator('.nutrition-dashboard').screenshot({ path: `/tmp/zigoals-run92-nutrition-module-${width}.png` });
+      await page.locator('.nutrition-dashboard').screenshot({ path: `/tmp/zigoals-run92-nutrition-module-${width}.png`, scale: 'css' });
     }
-    if (route === 'habits') { await expect(page.locator('.habit-consistency')).toBeVisible(); await page.locator('.habit-consistency').screenshot({ path: `/tmp/zigoals-run92-habit-module-${width}.png` }); }
+    if (route === 'habits') { await expect(page.locator('.habit-consistency')).toBeVisible(); await page.locator('.habit-consistency').screenshot({ path: `/tmp/zigoals-run92-habit-module-${width}.png` , scale: 'css' }); }
     await page.screenshot({ path: `/tmp/zigoals-run92-life-${route}-${width}.png`, fullPage: true, scale: "css" });
   }
 });
