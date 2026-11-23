@@ -231,6 +231,24 @@ describe('FR-TJ-5: a watched Bitcoin address is read (view only), never "no BTC"
   test('without a linked wallet the older answers stand', () => {
     store({});
     expect(ask('How much BTC do I have?', zigiEnv(freshAll())).text).toMatch(/^You have no BTC recorded in Wealth/);
+    // fr-recheck (FR-TJ-5): the Dutch net-worth answer too, unchanged without a linked wallet.
+    for (const [who, env] of both(freshAll)) expect(ask('Wat is mijn vermogen?', env).text, who).toBe('Er wordt nog niets gevolgd bij Wealth.');
+  });
+  // Session AV lane 2 (fr-recheck, FR-TJ-5): "Wat is mijn vermogen?" said "Er wordt nog niets gevolgd bij Wealth." beside a
+  // linked wallet that "What is my net worth?" names; the Dutch answer reads it the same way (view only, no value).
+  test('Dutch net worth names the linked wallet, view only, as the English one does (NOVA and ZIGi)', () => {
+    store(WALLETS);
+    for (const [who, env] of both(freshAll)) {
+      inDutch(() => {
+        const nl = ask('Wat is mijn vermogen?', env).text;
+        expect(nl, who).toBe('Er wordt bij Wealth geen bezitting met een prijs gevolgd, dus er is geen totaal. Je gekoppelde wallets bevatten 0,18234271 BTC in je gekoppelde wallet “Bitcoin address” (alleen bekijken, gelezen di 17 nov 11:30 UTC); zonder prijs ervan op dit apparaat is er geen waarde om op te tellen.');
+        expect(nl, who).not.toMatch(/niets gevolgd/);
+      });
+      expect(ask('Wat is mijn vermogen?', env).text, who).toContain('Je gekoppelde wallets bevatten 0,18234271 BTC');
+      expect(ask('What is my net worth?', env).text, who).toContain('Your linked wallets hold 0.18234271 BTC');
+    }
+    // The Showcase keeps its own answer: its record has no linked wallets (fr-wallets.ts), so nothing is added there.
+    expect(ask('Wat is mijn vermogen?', novaEnv(showcaseAll())).text).not.toMatch(/gekoppelde wallet/);
   });
 });
 
