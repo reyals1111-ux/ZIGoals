@@ -35,8 +35,9 @@ export default function TagRename({record, change}: {record: Notes; change: Chan
       setName(''); setFrom(to);
     }
   };
+  // Session AV lane 2 (fixb6): each select is named by its own word (aria-labelledby), not by its label's text with every option in it.
   return <div className="note-tag-rename">
-    <label className="field"><span>Tag</span><select value={tag} onChange={e => { setFrom(e.target.value); setSaid(''); }}>{tree.map(t => <option key={t.tag} value={t.tag}>#{t.tag} ({many(t.count)})</option>)}</select></label>
+    <label className="field"><span id={`${id}-tag`}>Tag</span><select aria-labelledby={`${id}-tag`} value={tag} onChange={e => { setFrom(e.target.value); setSaid(''); }}>{tree.map(t => <option key={t.tag} value={t.tag}>#{t.tag} ({many(t.count)})</option>)}</select></label>
     <form className="note-tag-rename-row" onSubmit={e => { e.preventDefault(); if (typed && preview && !preview.merge) run(typed, false); }} aria-label={`Rename #${tag}`}>
       <label className="field"><span>New name</span><input value={name} maxLength={40} onChange={e => setName(e.target.value)} placeholder="trips" aria-describedby={`${id}-rename`}/></label>
       <SecretGuard text={name} onRemove={() => setName('')}/>
@@ -44,7 +45,7 @@ export default function TagRename({record, change}: {record: Notes; change: Chan
       <button type="submit" className="secondary" disabled={!typed || !!long || !preview || preview.merge || typed.toLowerCase() === tag.toLowerCase() || !preview.notes}>Rename tag</button>
     </form>
     {others.length > 0 && <form className="note-tag-rename-row" onSubmit={e => { e.preventDefault(); if (target) run(target, true); }} aria-label={`Merge #${tag} into another tag`}>
-      <label className="field"><span>Merge into</span><select value={target} onChange={e => setInto(e.target.value)}>{others.map(t => <option key={t.tag} value={t.tag}>#{t.tag}</option>)}</select></label>
+      <label className="field"><span id={`${id}-into`}>Merge into</span><select aria-labelledby={`${id}-into`} value={target} onChange={e => setInto(e.target.value)}>{others.map(t => <option key={t.tag} value={t.tag}>#{t.tag}</option>)}</select></label>
       <p className="fine">The notes with #{tag} get #{target} instead; a note with both keeps one.</p>
       <button type="submit" className="secondary">Merge into #{target}</button>
     </form>}
