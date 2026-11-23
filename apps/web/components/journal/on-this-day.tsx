@@ -14,7 +14,7 @@ import './on-this-day.css';
 type Entry = {id: string; date: string; text: string; opensOn?: string};
 
 /**
- * Session AK (BUILD list 2 #3): "On this day" at the top of the Journal — what the person wrote on this date in earlier
+ * Session AK (BUILD list 2 #3): "On this day" on the Journal (under Write since fr-layout, FR-L-6) — what the person wrote on this date in earlier
  * years, the same day a month ago and a week ago (Session AV lane 2, r4-mind; LEDGER #309), with the day's energy and mood
  * words when they were rated. Collapsible; away when
  * nothing matches or when the person hid it. "Not this one" sets one memory aside for good; the entry itself stays.
