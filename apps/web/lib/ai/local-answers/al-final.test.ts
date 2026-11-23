@@ -111,7 +111,8 @@ describe('5. real places for settings (DV:N-007, DV:N-064, N-LA-08)', () => {
     expect(typed('how much water did i drink today', zigiEnv(lisbon('L1'))).text).toBe(HEALTH_CLOSED + ALLOW_HEALTH_CARD);
     expect(HEALTH_CLOSED).toContain('They are the same two switches NOVA → Permissions shows.');
     const nova = typed('how much water did i drink today', novaEnv(lisbon('L1'))).text;
-    expect(nova).toContain('NOVA → Permissions'); expect(nova).toContain('Health page data and Include Health');
+    // Session AV lane 2 (fr-answers; deliberate, FR-TJ-1): NOVA names the one button that opens all three, Allow Health, as strictly.
+    expect(nova).toContain('NOVA → Permissions'); expect(nova).toContain('Tap Allow Health in NOVA → Permissions');
   });
 });
 

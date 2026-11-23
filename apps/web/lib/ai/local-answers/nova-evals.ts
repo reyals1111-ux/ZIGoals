@@ -39,7 +39,7 @@ export const NOVA_EVALS: readonly NovaEvalCase[] = [
   c('sleep-nl-night', 'sleep', 'nl', 'Hoe heb ik vannacht geslapen?', {reply: 'answer', includes: ['Afgelopen nacht']}),
   c('sleep-scope-off', 'sleep', 'en', 'How did I sleep?', {reply: 'refusal', includes: ['Health is off for NOVA', 'NOVA → Permissions'], excludes: ['Settings → ZIGi', 'with ZIGi']}, 'scope-off'),
   c('sleep-scope-off-was', 'sleep', 'en', 'How was my sleep?', {reply: 'refusal', includes: ['NOVA → Permissions']}, 'scope-off'),
-  c('sleep-gate-off', 'sleep', 'en', 'How did I sleep last night?', {reply: 'refusal', includes: ['Health sharing is off on this device', 'Include Health', 'NOVA → Permissions'], excludes: ['Settings → ZIGi']}, 'gate-off'),
+  c('sleep-gate-off', 'sleep', 'en', 'How did I sleep last night?', {reply: 'refusal', includes: ['Health sharing is off on this device', 'Allow Health' /* fr-answers (FR-TJ-1; deliberate): the one button, not the three switches */, 'NOVA → Permissions'], excludes: ['Settings → ZIGi']}, 'gate-off'),
   c('sleep-nl-scope-off', 'sleep', 'nl', 'Hoe heb ik geslapen?', {reply: 'refusal', includes: ['Health staat uit voor NOVA', 'NOVA → Permissions']}, 'scope-off'),
   // ---- The week: the agenda ----
   c('week-agenda', 'week', 'en', 'What\'s on my agenda this week?', {reply: 'answer', includes: ['On your agenda this week']}),
