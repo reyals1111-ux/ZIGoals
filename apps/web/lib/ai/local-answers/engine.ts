@@ -24,6 +24,9 @@ import {isStreakBreak, streakBreakWords} from './p14b';
 import {isFoodEstimateAsk} from './al-third';
 import {safetyFirst} from '../safety-guard';
 import {unitFor} from '../../plural';
+import {displayLocale, withNumberLocale} from '../../visual-format';
+import {fold} from './exact/text';
+import {languageOf} from './av-words';
 import {averageKey} from '../../average-goals/store';
 import {joinReplies, messageLines, onePhrase, pastPeriodAsk} from './al-fifth';
 import {healthGoalAsk} from './al-final';
@@ -248,8 +251,14 @@ export function localAnswer(question: string, env: ToolEnv, subject?: Subject): 
   // Session AU (D-ALLOW-HEALTH): ZIGi's Health-closed refusal in the question's language, with its one button (nova-env.ts).
   const lang = questionLanguage(question) === 'nl' ? 'nl' : 'en';
   // Session AV lane 2 (LEDGER #69): with "Hide calories and weight" on, every answer shows a dash for those figures.
-  return withHiddenFigures(zigiHealthClosed(deviceAnswer(question, env, subject), env, lang), bodyFiguresHidden(), lang);
+  // Session AV lane 2 (fr-answers; FR-TJ-4, FR-S-20): a Dutch answer writes its figures the Dutch way, an English one in
+  // the app's display locale, so one answer never says "1,000 mL" beside "73,48 kg" (lib/visual-format.ts withNumberLocale).
+  return withNumberLocale(answerNumberLocale(figuresLanguage(question)), () => withHiddenFigures(zigiHealthClosed(deviceAnswer(question, env, subject), env, lang), bodyFiguresHidden(), lang));
 }
+/** The locale an answer writes its figures in: nl-NL for a Dutch answer, else the app's display locale. */
+export const answerNumberLocale = (lang: 'en' | 'nl'): string => lang === 'nl' ? 'nl-NL' : displayLocale();
+/** A question's language for its figures: Dutch as the engine reads it, or as the answers that write Dutch read it (av-words). */
+export const figuresLanguage = (question: string): 'en' | 'nl' => questionLanguage(question) === 'nl' || languageOf(fold(question)) === 'nl' ? 'nl' : 'en';
 function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   // Session AL fourth pass (L7-4a): the safety guard first. Its words are never read as a lookup or a card ("sleeping
   // pills" is not the sleep log); the guard's own reply comes from the chat (`guarded`) or no-model.ts.

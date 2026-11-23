@@ -77,6 +77,12 @@ export function nlFact(fact: string): string {
   const day = /^([A-Z][a-z]{2}) (\d{1,2})(?:, (\d{4}))?$/.exec(fact), month = /^([A-Z][a-z]{2}) (\d{4})$/.exec(fact);
   if (day && MON.includes(day[1]!)) return nlDate(`${day[3] ?? SHOWCASE_DAY.slice(0, 4)}-${pad(MON.indexOf(day[1]!) + 1)}-${pad(Number(day[2]))}`, SHOWCASE_DAY);
   if (month && MON.includes(month[1]!)) return monthIn('nl', `${month[2]}-${pad(MON.indexOf(month[1]!) + 1)}`);
+  // Session AV lane 2 (FR-TJ-4, deliberate): a Dutch answer writes money the Dutch way; a decimal figure is checked as the
+  // Dutch answer writes it — equally strict: the same figure ("435.59" → "435,59", "1,094.99" → "1.094,99").
+  // fr-answers (FR-TJ-4, deliberate): so are its other figures, in every fact that holds one ("8,800" → "8.800", "73." →
+  // "73,", "62.5 kg × 8" → "62,5 kg × 8", "$5,402.81" → "US$ 5.402,81", as nl-NL writes them) — the same figures.
+  if (/\d[.,]/.test(fact) && !/^[A-Za-z]/.test(fact) /* a record name ("My first 0.1 BTC") is words, written as typed */) return fact.replace(/(\d{1,3}(?:,\d{3})+(?:\.\d*)?|\d+\.\d*)/g, n => n.replace(/,/g, '\u0000').replace('.', ',').replace(/\u0000/g, '.'))
+    .replace(/\$(?=\d)/g, 'US$\u00a0').replace(/€(?=\d)/g, '€\u00a0');
   return fact;
 }
 /** The facts a phrasing in `lang` must state. */

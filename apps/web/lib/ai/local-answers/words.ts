@@ -64,8 +64,8 @@ export function grouped(text: string, minFraction = 0, maxFraction = 20): string
   if (m[3] && m[3].length > maxFraction) { const rounded = Number(`0.${m[3]}`).toFixed(maxFraction); fraction = rounded.slice(2); }
   fraction = fraction.replace(/0+$/, '');
   while (fraction.length < minFraction) fraction += '0';
-  // Session AV lane 2 (fr-answers; FR-TJ-4): in the app's display locale (lib/visual-format.ts, the one rule: numbers follow
-  // the browser's locale), "1,234.5" in en-US and "1.234,5" in nl-NL or en-NL, so an answer writes its figures as the page does.
+  // Session AV lane 2 (fr-answers; FR-TJ-4): in the answer's number locale (lib/visual-format.ts numberLocale: the display
+  // locale, nl-NL in a Dutch answer), "1,234.5" in en-US and "1.234,5" in nl-NL or en-NL.
   return formatExactNumber(`${m[1]}${m[2]}${fraction ? `.${fraction}` : ''}`);
 }
 /**
@@ -98,7 +98,7 @@ export function amount(value: string, unit: string): string {
 export function goalMoney(text: unknown): string {
   const m = /^(-?\d+(?:\.\d+)?) (\S+)$/.exec(String(text ?? '').trim());
   if (!m) return localQty(text); // fr-answers (FR-TJ-4): "1.9 h a day" in the display locale too
-  return m[2] === 'USD' || m[2] === 'EUR' ? formatGoalAmount(m[1]!, m[2]).replace(/\.00(?!\d)/, '') : amount(m[1]!, m[2]!);
+  return m[2] === 'USD' || m[2] === 'EUR' ? formatGoalAmount(m[1]!, m[2]).replace(/[.,]00(?!\d)/, '') /* fr-answers (FR-TJ-4): ",00" too, in a Dutch answer */ : amount(m[1]!, m[2]!);
 }
 /**
  * Session AL third pass (NB-114: "van 30 minutes"): a habit target's English unit in a Dutch answer ("30 minuten", "1 keer").

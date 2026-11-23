@@ -19,6 +19,14 @@ let active=DEFAULT_DISPLAY_LOCALE,words:string|undefined;
 export function displayLocale(){return active;}
 /** Only the Shell's hydration switch (and tests) set this. */
 export function setDisplayLocale(locale:string){active=locale;words=undefined;}
+/**
+ * Session AV lane 2 (fr-answers; FR-TJ-4, FR-S-20): the locale numbers and money are written in: the display locale,
+ * except while an on-device answer in Dutch is written (lib/ai/local-answers/engine.ts), whose figures are Dutch as its
+ * words are, so one answer never mixes "1,000 mL" with "73,48 kg". Dates and times keep the display locale (`active`).
+ */
+let numbersIn:string|null=null;
+export function numberLocale(){return numbersIn??active;}
+export function withNumberLocale<T>(locale:string,write:()=>T):T{const before=numbersIn;numbersIn=locale;try{return write();}finally{numbersIn=before;}}
 /** The first browser language this runtime supports, as resolved by Intl; a bare "en" counts as en-US. */
 export function resolveDisplayLocale(languages:readonly string[]|undefined):string{
  for(const tag of languages??[]){
@@ -42,7 +50,7 @@ function digitsFor(locale:string){let found=localeDigits.get(locale);if(!found){
 // Session M (QA2-08): Wealth formats a few thousand amounts while it loads. What depends only on the locale and the
 // currency (its minor digits; where the number, the sign and the symbol go) is worked out once; every output is unchanged.
 const groupers=new Map<string,Intl.NumberFormat>(),shapes=new Map<string,Intl.NumberFormatPart[]>();
-export function formatExactNumber(value:string,locale=displayLocale(),currency?:string){
+export function formatExactNumber(value:string,locale=numberLocale(),currency?:string){
  if(!/^-?\d+(?:\.\d+)?$/.test(value))return 'Unavailable';
  const negative=value.startsWith('-'),[integer,fraction]=value.replace(/^-/,'').split('.');
  let grouper=groupers.get(locale);if(!grouper){grouper=numberFormat(locale,{maximumFractionDigits:0});groupers.set(locale,grouper);}
@@ -78,7 +86,7 @@ const DECIMAL=/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
  * An amount of money with exactly its currency's minor digits: "$9,000.00", "9.000,00 €" (de-DE), "¥9,000". `code`
  * writes "9,000.00 GBP" instead of the symbol, as the app does for currencies other than USD and EUR.
  */
-export function formatMoney(value:string,currency:string,locale=displayLocale(),{display='symbol'}:{display?:'symbol'|'code'}={}){
+export function formatMoney(value:string,currency:string,locale=numberLocale(),{display='symbol'}:{display?:'symbol'|'code'}={}){
  const digits=currencyDigits(currency);
  if(digits===null||!DECIMAL.test(value))return 'Unavailable';
  const amount=new Decimal(value);if(!amount.isFinite())return 'Unavailable';
@@ -97,7 +105,7 @@ export function moneyMagnitude(value:string,currency:string){
  return amount.toDecimalPlaces(digits,Decimal.ROUND_FLOOR).abs().toFixed(digits);
 }
 /** A signed amount of money with its sign written first ("−$12.35", "+$8.00"), as Portfolio writes a result. */
-export function formatSignedMoney(value:string,currency:string,locale=displayLocale(),{plus='+',minus='−'}:{plus?:string;minus?:string}={}){
+export function formatSignedMoney(value:string,currency:string,locale=numberLocale(),{plus='+',minus='−'}:{plus?:string;minus?:string}={}){
  const negative=value.startsWith('-');
  return `${negative?minus:plus}${formatMoney(moneyMagnitude(value,currency),currency,locale)}`;
 }
@@ -105,7 +113,7 @@ export function formatSignedMoney(value:string,currency:string,locale=displayLoc
  * A market price: at least the currency's minor digits, and below one unit enough further digits for four significant
  * ones (up to 8 decimals), so "$0.0043" never reads as "$0.00". Cut, never rounded up.
  */
-export function formatPrice(value:string,currency:string,locale=displayLocale()){
+export function formatPrice(value:string,currency:string,locale=numberLocale()){
  const digits=currencyDigits(currency);
  if(digits===null||!DECIMAL.test(value))return 'Unavailable';
  const amount=new Decimal(value);if(!amount.isFinite())return 'Unavailable';
@@ -120,7 +128,7 @@ export function formatPrice(value:string,currency:string,locale=displayLocale())
  * card: at most `maxDecimals` decimals (8), cut toward zero, trailing zeros dropped, and "≈ " in front when digits were
  * cut, so a 23-digit amount never fills a row. Detail views keep formatExactNumber.
  */
-export function formatQuantity(value:string,maxDecimals=8,locale=displayLocale()){
+export function formatQuantity(value:string,maxDecimals=8,locale=numberLocale()){
  if(!/^-?\d+(?:\.\d+)?$/.test(value))return 'Unavailable';
  const [integer,fraction='']=value.split('.'),kept=fraction.slice(0,maxDecimals).replace(/0+$/,''),cut=/[1-9]/.test(fraction.slice(maxDecimals));
  const text=kept?`${integer}.${kept}`:integer!;
@@ -133,15 +141,15 @@ export function progressPresentation(value:number|string|null|undefined,complete
  return {exact:exact.toFixed(),arc,label:Decimal.min(exact.toDecimalPlaces(0,Decimal.ROUND_HALF_UP),attained?100:99).toFixed()};
 }
 /** A number, as Number#toLocaleString would write it in the display locale. */
-export function formatNumber(value:number|bigint,options?:Intl.NumberFormatOptions){return numberFormat(active,options).format(value);}
+export function formatNumber(value:number|bigint,options?:Intl.NumberFormatOptions){return numberFormat(numberLocale(),options).format(value);}
 /** A plain decimal text written without grouping today ("1234.5 ZIG"): the locale's decimal sign and digits, still ungrouped. */
 export function formatPlainDecimal(text:string){
- if(active===DEFAULT_DISPLAY_LOCALE||!/^-?\d+(?:\.\d+)?$/.test(text))return text;
- const {decimal,digits}=digitsFor(active);
+ if(numberLocale()===DEFAULT_DISPLAY_LOCALE||!/^-?\d+(?:\.\d+)?$/.test(text))return text;
+ const {decimal,digits}=digitsFor(numberLocale());
  return text.replace(/\d/g,d=>digits[Number(d)]!).replace('.',decimal);
 }
 /** True when the display locale groups thousands with a dot ("1.234" means one thousand there). */
-export function displayGroupsWithDot(){return numberFormat(active).formatToParts(1234567).some(part=>part.type==='group'&&part.value==='.');}
+export function displayGroupsWithDot(){return numberFormat(numberLocale()).formatToParts(1234567).some(part=>part.type==='group'&&part.value==='.');}
 
 /**
  * Dates and times (Session AD item 8, ADR-026): one style on every page. A date is the medium date, day + short month +
@@ -233,7 +241,7 @@ export function formatRelativeDay(date:DateInput,now:DateInput,options:DateOptio
  */
 export function formatProgressPercent(value:number|string|null|undefined,complete?:boolean){
  const whole=wholePercent(value,complete);
- return whole===null?'—':numberFormat(active,{style:'percent',maximumFractionDigits:0}).format(whole/100);
+ return whole===null?'—':numberFormat(numberLocale(),{style:'percent',maximumFractionDigits:0}).format(whole/100);
 }
 /**
  * Any other percentage (a share of a total, a change): half up to `decimals` (0 by default), the locale's percent sign,
@@ -243,12 +251,12 @@ export function formatProgressPercent(value:number|string|null|undefined,complet
 export function formatPercent(value:number|null|undefined,{decimals=0,signed=false,fixed=false}:{decimals?:number;signed?:boolean;fixed?:boolean}={}){
  if(value===null||value===undefined||!Number.isFinite(value))return '—';
  const rounded=roundHalfUp(value,decimals);
- return numberFormat(active,{style:'percent',minimumFractionDigits:fixed?decimals:0,maximumFractionDigits:decimals,...(signed?{signDisplay:'exceptZero' as const}:{})}).format(rounded/100);
+ return numberFormat(numberLocale(),{style:'percent',minimumFractionDigits:fixed?decimals:0,maximumFractionDigits:decimals,...(signed?{signDisplay:'exceptZero' as const}:{})}).format(rounded/100);
 }
 /** A measure or count half up to at most `decimals` (1 by default), grouped: the same rounding as every other figure. */
 export function formatRounded(value:number|null|undefined,decimals=1){
  if(value===null||value===undefined||!Number.isFinite(value))return '—';
- return numberFormat(active,{maximumFractionDigits:decimals}).format(roundHalfUp(value,decimals));
+ return numberFormat(numberLocale(),{maximumFractionDigits:decimals}).format(roundHalfUp(value,decimals));
 }
 
 /**
@@ -261,7 +269,7 @@ export function formatRounded(value:number|null|undefined,decimals=1){
 export const ALPHA_CURRENCIES=['USD','EUR'] as const;
 export type AlphaCurrency=typeof ALPHA_CURRENCIES[number];
 export function isAlphaCurrency(code:string|null|undefined):code is AlphaCurrency{return code==='USD'||code==='EUR';}
-export function formatCurrencyAmount(value:string|number|null|undefined,code:string|null|undefined,locale=displayLocale()){
+export function formatCurrencyAmount(value:string|number|null|undefined,code:string|null|undefined,locale=numberLocale()){
  const text=typeof value==='number'?(Number.isFinite(value)?new Decimal(value).toFixed():''):String(value??'').trim();
  if(!DECIMAL.test(text))return '—';
  const typed=String(code??'').replace(/\s+/g,' ').trim().slice(0,12);

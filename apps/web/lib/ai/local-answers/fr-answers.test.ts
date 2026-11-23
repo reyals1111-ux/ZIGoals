@@ -33,7 +33,8 @@ describe('FR-S-1 and FR-TJ-2: a Dutch water question gets the Dutch answer, with
         expect(ask('Hoeveel water heb ik gisteren gedronken?', env).text, who).toBe('Je logde gisteren (za 28 nov) 750 mL water.');
       });
       expect(ask('How much water did I drink today?', env).text, who).toBe('You logged 250 mL of water today (Sun, Nov 29).');
-      expect(ask('Hoeveel water heb ik deze week gedronken?', env).text, who).toMatch(/^Je logde deze week \(ma 23 nov t\/m zo 29 nov\) 5,750 mL water\./);
+      // A Dutch answer writes Dutch figures in any display locale (en-US here), as its words are Dutch.
+      expect(ask('Hoeveel water heb ik deze week gedronken?', env).text, who).toMatch(/^Je logde deze week \(ma 23 nov t\/m zo 29 nov\) 5\.750 mL water\./);
     }
   });
   test('the Showcase and a fresh profile, in Dutch', () => {
@@ -242,7 +243,7 @@ describe('FR-TJ-1: NOVA\'s Health-off reply names the one button, Allow Health',
   });
 });
 
-describe('FR-TJ-4 and FR-S-20: one number format per answer, the app\'s own (the display locale, as every page)', () => {
+describe('FR-TJ-4 and FR-S-20: one number format per answer: Dutch for a Dutch answer, the display locale\'s for an English one', () => {
   // A comma locale's answer must hold no en-US grouping or decimal ("1,000 mL", "73.5 kg"); record names are words, not figures.
   const NAMES = /My first 0\.1 BTC|8,000 steps a day/g;
   const EN_IN_COMMA = [/(?<![\d.,])\d{1,3}(?:,\d{3})+(?![\d])/, /(?<![\d.,\w])\d+\.\d{1,2}(?![\d.])/];
@@ -264,8 +265,16 @@ describe('FR-TJ-4 and FR-S-20: one number format per answer, the app\'s own (the
     expect(ask('How much water did I drink today?', env).text).toMatch(/1\.000 mL/);
     expect(ask('What is my weight?', env).text).toMatch(/73,5 kg/);
   });
-  test('nl-NL: a Dutch answer the Dutch way; en-US: as before', () => {
-    inDutch(() => expect(ask('Hoeveel water heb ik deze week gedronken?', zigiEnv(showcaseAll())).text).toContain('3.100 mL'));
-    expect(ask('How much water did I drink this week?', zigiEnv(showcaseAll())).text).toContain('3,100 mL');
+  test('en-US: a Dutch answer the Dutch way, money too; an English one as before', () => {
+    const env = zigiEnv(showcaseAll());
+    expect(ask('Hoeveel water heb ik deze week gedronken?', env).text).toContain('3.100 mL');
+    expect(ask('hoeveel weeg ik', env).text).toContain('73,48 kg');
+    expect(ask('hoeveel heb ik deze maand uitgegeven', env).text).toMatch(/€\s435,59/);
+    expect(ask('How much water did I drink this week?', env).text).toContain('3,100 mL');
   });
+  test('en-US: every Dutch answer of the corpus holds no en-US figure (record names aside)', () => {
+    const bad: string[] = [], env = novaEnv(showcaseAll());
+    for (const c of CORPUS) { const t = ask(c.nl[0]!, env).text.replace(/\d{4}-\d{2}-\d{2}/g, '').replace(NAMES, ''); for (const re of EN_IN_COMMA) { const m = re.exec(t); if (m) bad.push(`${c.id} “${c.nl[0]}”: ${m[0]}`); } }
+    expect(bad).toEqual([]);
+  }, 600_000);
 });
