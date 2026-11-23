@@ -56,3 +56,9 @@ describe('FR-L-2: weekly shopping at one shop is not a bill', () => {
     expect(detectBills(gym, TODAY)).toEqual([expect.objectContaining({cadence: 'weekly', amount: '5.00', variable: false})]);
   });
 });
+
+describe('FR-L-18: a price change says the month the new price began', () => {
+  test('€15.00 on 4 Sept, €17.50 on 4 Oct: since Oct 2026, never Sept', () => {
+    expect(candidatePriceChange(detectBills(phone, TODAY).find(c => c.payee === 'fictional phone')!, phone, TODAY)).toMatchObject({previousDate: '2026-09-04', sinceMonth: '2026-10'});
+  });
+});

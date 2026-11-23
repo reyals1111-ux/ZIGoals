@@ -15,7 +15,8 @@ describe('a price step', () => {
     const entries = [e('2026-08-04', '15.00'), e('2026-09-04', '15.00'), e('2026-10-04', '17.50'), e('2026-11-04', '17.50')];
     const [bill] = detectBills(entries, TODAY);
     expect(bill).toMatchObject({cadence: 'monthly', occurrences: 4, amount: '17.50', amountCents: 1750, variable: false, nextDue: '2026-12-04'});
-    expect(candidatePriceChange(bill!, entries, TODAY)).toMatchObject({direction: 'up', cents: 250, previousDate: '2026-09-04', latestDate: '2026-11-04', sinceMonth: '2026-09'});
+    // (fr-money; deliberate) FR-L-18: "since" is the month of the first payment at the new price (€17.50 from 4 Oct).
+    expect(candidatePriceChange(bill!, entries, TODAY)).toMatchObject({direction: 'up', cents: 250, previousDate: '2026-09-04', latestDate: '2026-11-04', sinceMonth: '2026-10'});
   });
   test('amounts further apart than ±25 % stay apart (a gym fee is not a phone bill)', () => {
     const entries = [e('2026-08-04', '15.00'), e('2026-09-04', '15.00'), e('2026-10-04', '30.00'), e('2026-11-04', '30.00')];

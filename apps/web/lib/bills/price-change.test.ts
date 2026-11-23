@@ -10,11 +10,12 @@ const e = (date: string, amount: string, note = 'Netflix', category = 'Subscript
 const TODAY = '2026-11-14';
 
 describe('a bill\'s price change (Session AP, feature 6)', () => {
-  test('the latest payment against the one before: went up, with the month of the earlier one', () => {
+  // (fr-money; deliberate) FR-L-18: "since" is the month of the first payment at the new price.
+  test('the latest payment against the one before: went up, since the month of the first payment at the new price', () => {
     const entries = [e('2026-08-03', '12.99'), e('2026-09-03', '12.99'), e('2026-10-03', '12.99'), e('2026-11-03', '13.49', 'NETFLIX.COM 4471*AB')];
     const [candidate] = detectBills(entries, TODAY);
     expect(candidate).toBeDefined();
-    expect(candidatePriceChange(candidate!, entries, TODAY)).toEqual({direction: 'up', cents: 50, currency: 'EUR', previous: 1299, latest: 1349, previousDate: '2026-10-03', latestDate: '2026-11-03', sinceMonth: '2026-10'});
+    expect(candidatePriceChange(candidate!, entries, TODAY)).toEqual({direction: 'up', cents: 50, currency: 'EUR', previous: 1299, latest: 1349, previousDate: '2026-10-03', latestDate: '2026-11-03', sinceMonth: '2026-11'});
     const record = confirmCandidate(emptyBills(), candidate!, 'b1', new Date('2026-11-14T10:00:00Z'));
     expect(billPriceChange(record.bills[0]!, entries, TODAY)).toMatchObject({direction: 'up', cents: 50});
   });
@@ -22,8 +23,8 @@ describe('a bill\'s price change (Session AP, feature 6)', () => {
     const base = [e('2026-07-03', '10.00'), e('2026-08-03', '10.00'), e('2026-09-03', '10.00')];
     const [candidate] = detectBills(base, '2026-09-10');
     const record = confirmCandidate(emptyBills(), candidate!, 'b1', new Date('2026-09-10T10:00:00Z'));
-    expect(billPriceChange(record.bills[0]!, [...base, e('2026-10-03', '15.00')], TODAY)).toMatchObject({direction: 'up', cents: 500, sinceMonth: '2026-09'});
-    expect(billPriceChange(record.bills[0]!, [...base, e('2026-10-03', '15.00'), e('2026-11-03', '9.00')], TODAY)).toMatchObject({direction: 'down', cents: 600, sinceMonth: '2026-10'});
+    expect(billPriceChange(record.bills[0]!, [...base, e('2026-10-03', '15.00')], TODAY)).toMatchObject({direction: 'up', cents: 500, sinceMonth: '2026-10'}); // (fr-money; deliberate) FR-L-18
+    expect(billPriceChange(record.bills[0]!, [...base, e('2026-10-03', '15.00'), e('2026-11-03', '9.00')], TODAY)).toMatchObject({direction: 'down', cents: 600, sinceMonth: '2026-11'}); // (fr-money; deliberate) FR-L-18
   });
   test('no change, a hand-made bill, another payee or currency, or a later date: no notice', () => {
     const entries = [e('2026-08-03', '12.99'), e('2026-09-03', '12.99'), e('2026-10-03', '12.99'), e('2026-11-20', '20.00'), e('2026-11-04', '99.00', 'Netflix', 'Subscriptions', 'USD'), e('2026-11-05', '1.00', 'Music')];
