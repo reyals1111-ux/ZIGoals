@@ -48,7 +48,7 @@
 .spending-remove{min-width:44px}
 .spending-editing{margin:0;font-size:15px}
 /* Session AV follow-up 1 (F-MONEY-SEARCH): search all your entries. */
-.money-search-fold summary, .money-yesterday-fold summary, .money-sheet-fold summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; } /* Session AV lane 2, round 5: yesterday's money, money as a spreadsheet */
+.money-search-fold summary, .money-yesterday-fold summary, .money-sheet-fold summary, .money-check-fold summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; } /* Session AV lane 2, round 5: yesterday's money, money as a spreadsheet */
 .money-search { display: grid; gap: 8px; min-width: 0; }
 .money-search-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: 8px 12px; align-items: end; }
 .money-search-text { grid-column: 1 / -1; }

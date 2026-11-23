@@ -24,7 +24,7 @@ import './money-r6.css';
 export default function MoneyHousekeeping({log, today, showcase = false}: {log: DeviceRecordState<MoneyLog>; today: string; showcase?: boolean}) {
   const [open, setOpen] = useState(false), box = useRef<HTMLDetailsElement>(null);
   useEffect(() => { try { if (window.location.hash === '#money-check' && box.current) { box.current.open = true; box.current.querySelector('summary')?.focus(); } } catch { /* no location: stays shut */ } }, []);
-  return <details ref={box} id="money-check" className="money-sheet-fold" onToggle={e => setOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Check and tidy your money records</summary>
+  return <details ref={box} id="money-check" className="money-check-fold" onToggle={e => setOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Check and tidy your money records</summary>
     {open && <div className="money-r6">{showcase && <p className="fine">In the Showcase, changes here last until the tab closes.</p>}<CheckPanel log={log}/><PutAwayPanel log={log} today={today}/></div>}
   </details>;
 }
