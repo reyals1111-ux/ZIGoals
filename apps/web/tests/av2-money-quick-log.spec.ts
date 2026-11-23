@@ -30,7 +30,9 @@ for (const theme of THEMES) test(`${theme}: subcategory, paid with, a saved entr
   await form.getByRole('button', {name: 'Keep as a saved entry'}).click();
   await form.getByLabel('Name of the saved entry').fill('Coffee');
   await form.getByRole('button', {name: 'Keep it'}).click();
-  await expect(form).toContainText('Kept as a saved entry: Coffee');
+  // Session AV lane 2 (CI run 2007; deliberate): the form's extras now speak through Spending's one status line, just under
+  // the form (Spending had a status line per tool at once); the same words, announced there (stricter than text anywhere).
+  await expect(box.getByRole('status').filter({hasText: 'Kept as a saved entry: Coffee'})).toHaveText('Kept as a saved entry: Coffee. It is one tap beside Log spending.');
   await form.getByRole('button', {name: 'Save', exact: true}).click();
   await expect.poll(async () => (await readRecord<MoneyLog>(page, MONEY_LOG_KEY)).entries.find(e => e.sub === 'Coffee')).toMatchObject({amount: '3.20', category: 'Food & drink', paidWith: 'debit'});
   expect((await readRecord<MoneyLog>(page, MONEY_LOG_KEY)).subs).toEqual({'Food & drink': ['Coffee']});

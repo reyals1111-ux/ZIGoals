@@ -5,6 +5,7 @@ import {getAppStorage, isShowcase} from '../showcase-storage';
 import {localDate} from '../local-date';
 import {couldNotWrite, scheduleDue, wroteCopy} from './schedule';
 import {folderOf, folderSupported, writable, writeInto, type FolderHandle} from './handle';
+import {ZIGI_STORE_EVENT} from '../ai/store/keys';
 
 /**
  * Session AV lane 2 (N6 #193, Loop Habit Tracker's automatic backups): makes the scheduled copy. The file is Export
@@ -20,6 +21,14 @@ import {folderOf, folderSupported, writable, writeInto, type FolderHandle} from 
 export type RunResult = {state: 'written'; name: string} | {state: 'ask' | 'remind' | 'not-due' | 'off'} | {state: 'failed'; message: string};
 export const scope = () => getAccountScope() ?? 'local';
 
+/**
+ * Session AV lane 2 (CI run 2007): the schedule's record written here, then every reader on the page told (as a
+ * component's own save does), so Settings → Your data says "Last copy written …, Next copy …" at once, not "No copy yet".
+ */
+function noteCopy(store: Parameters<typeof updateDeviceRecord>[0], change: (current: BackupReminder) => BackupReminder) {
+  updateDeviceRecord(store, BACKUP_REMINDER, change);
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: BACKUP_REMINDER.key}));
+}
 export async function runScheduledBackup({tap = false, force = false, storage, today = localDate(), handle}: {tap?: boolean; force?: boolean; storage?: Storage; today?: string; handle?: FolderHandle | null} = {}): Promise<RunResult> {
   if (isShowcase()) return {state: 'off'};
   const store = storage ?? getAppStorage(), r: BackupReminder = readDeviceRecord(store, BACKUP_REMINDER).data;
@@ -32,10 +41,10 @@ export async function runScheduledBackup({tap = false, force = false, storage, t
     const {buildEverythingExport} = await import('../export/make-everything');
     const {name, bytes} = await buildEverythingExport();
     await writeInto(folder, name, bytes);
-    updateDeviceRecord(store, BACKUP_REMINDER, current => wroteCopy(current, today));
+    noteCopy(store, current => wroteCopy(current, today));
     return {state: 'written', name};
   } catch (e) {
-    try { updateDeviceRecord(store, BACKUP_REMINDER, current => couldNotWrite(current, today)); } catch { /* storage refused */ }
+    try { noteCopy(store, current => couldNotWrite(current, today)); } catch { /* storage refused */ }
     return {state: 'failed', message: e instanceof DOMException && e.name === 'QuotaExceededError' ? 'The folder’s disk is full, so the copy was not written.' : e instanceof DOMException && e.name === 'NotFoundError' ? 'The folder is gone (moved or deleted). Choose it again.' : 'The copy could not be written into the folder. Your records on this device were not changed.'};
   }
 }

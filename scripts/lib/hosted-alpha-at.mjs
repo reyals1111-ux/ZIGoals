@@ -24,7 +24,9 @@ export const AT_QUESTIONS = Object.freeze({
 });
 /** The answer's first words, as the exact layer writes them (lib/ai/local-answers/exact/habits.ts), whatever the day. */
 export const AT_ANSWERS = Object.freeze({
-  missed: /^(You missed (no habit|\d+ of \d+ habits) this week|\d+ of \d+ habits were not done on some day this week|Every habit was done on every due day this week)/,
+  // CI run 2009 (a Monday, 00:09 UTC): on the week's first day nothing can be missed yet, and the exact layer says what is
+  // still open today instead (exact/habits.ts `notYet`, Session AS); those two shapes are its own too.
+  missed: /^(You missed (no habit|\d+ of \d+ habits) this week|\d+ of \d+ habits were not done on some day this week|Every habit was done on every due day this week|\d+ of \d+ habits (is|are) still open today: |Nothing is open: all \d+ habits due today are done\.)/,
   meditate: /^Meditate: .*this month/,
 });
 /** The widget each answer asks for (lib/nova/widgets/catalog.ts, Session AS). */

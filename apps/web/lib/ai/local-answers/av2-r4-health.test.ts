@@ -36,6 +36,9 @@ describe('every corpus phrasing is answered, in its own language', () => {
     expect(ask('does caffeine go with my sleep and log a coffee')).toBeNull();
     expect(ask('how much water did I drink today')).toBeNull();
     expect(ask('what is my weight')).toBeNull();
+    // Session AV lane 2 (CI run 2008): advice about sleep is not today's tip (it goes to the person's own AI).
+    expect(ask('Give me tips to sleep better this week')).toBeNull();
+    expect(ask('tips for better sleep')).toBeNull();
   });
 });
 

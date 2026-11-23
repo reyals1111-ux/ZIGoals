@@ -16,8 +16,9 @@ import './money-r4.css';
  * with Undo. Kept on this device in the money extras record; never on an entry.
  */
 export type KeepPayee = ((note: string) => void) | null;
-export default function PlacePicker({kind, entries, onPayee, keepRef}: {kind: MoneyEntry['kind']; entries: readonly MoneyEntry[]; onPayee: (payee: string, category: string | null) => void; keepRef: RefObject<KeepPayee>}) {
-  const id = useId(), more = useDeviceRecord(MONEY_MORE), [placeId, setPlaceId] = useState(''), [draft, setDraft] = useState(''), [note, setNote] = useState(''), field = useRef<HTMLInputElement>(null);
+// Session AV lane 2 (CI run 2007): what it says goes to Spending's one status line (`say`), not a second one in the form.
+export default function PlacePicker({kind, entries, onPayee, keepRef, say: setNote}: {kind: MoneyEntry['kind']; entries: readonly MoneyEntry[]; onPayee: (payee: string, category: string | null) => void; keepRef: RefObject<KeepPayee>; say: (text: string) => void}) {
+  const id = useId(), more = useDeviceRecord(MONEY_MORE), [placeId, setPlaceId] = useState(''), [draft, setDraft] = useState(''), field = useRef<HTMLInputElement>(null);
   const places = placesOf(more.data), place = places.find(p => p.id === placeId) ?? null;
   const payees = useMemo(() => payeesAt(more.data, placeId, entries, kind), [more.data, placeId, entries, kind]);
   useEffect(() => {
@@ -51,6 +52,5 @@ export default function PlacePicker({kind, entries, onPayee, keepRef}: {kind: Mo
       {places.length > 0 && <ul className="spending-own-list" aria-label="Your places">{places.map(p => <li key={p.id}><span>{p.name}{p.payees?.length ? <span className="fine"> · {p.payees.length} {p.payees.length === 1 ? 'payee' : 'payees'}</span> : null}</span><button type="button" className="text-link" aria-label={`Remove the place ${p.name}`} onClick={() => { const at = places.findIndex(x => x.id === p.id), kept = p, words = `${p.name} removed from your places.`; more.update(m => removePlace(m, p.id)); if (placeId === p.id) setPlaceId(''); setNote(words); showUndo({message: words, undoLabel: `Undo removing ${p.name}`, undone: `${p.name} is back with its payees.`, restore: () => { more.update(m => restorePlace(m, kept, Math.max(0, at))); }}); requestAnimationFrame(() => field.current?.focus()); }}>Remove</button></li>)}</ul>}
       {places.length > 0 && <button type="button" className="quiet" onClick={forget}>Forget places</button>}
     </details>
-    <p className="fine" role="status">{note}</p>
   </fieldset>;
 }

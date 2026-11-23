@@ -1,5 +1,5 @@
 'use client';
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useLayoutEffect, useMemo, useState} from 'react';
 import {useSharedHealth} from '../../use-shared-health';
 import {useJournalZone} from '../../use-journal-zone';
 import {useDeviceZone} from '../../use-device-zone';
@@ -21,6 +21,9 @@ export function useMeditation() {
   const meditation = useMemo<Meditation>(() => health.loaded && !health.error ? healthGroupIn(health.data, 'meditation') ?? emptyMeditation() : emptyMeditation(), [health]);
   const zone = dailyData(health.data).preferences.timezone ?? journal ?? device ?? 'UTC';
   const running = !!run.data.run, [now, setNow] = useState(() => Date.now());
+  // Session AV lane 2 (CI run 2007): read at once when a session starts, before it is drawn: between the minute ticks `now`
+  // can be up to a minute old, and a session just begun read as "settling in" (its start still ahead) until the next tick.
+  useLayoutEffect(() => { if (running) setNow(Date.now()); }, [running]);
   useEffect(() => {
     const tick = () => { if (document.visibilityState === 'visible') setNow(Date.now()); };
     const timer = window.setInterval(tick, running ? 1000 : 60_000);

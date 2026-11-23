@@ -50,7 +50,11 @@ test('2 Wealth: under three months with records no category line is drawn, and i
   await expect(panel.getByRole('table')).toContainText('No records');
   await seedDevice(page, {[MONEY_LOG_KEY]: moneyLog([entry('2026-09-03', '10.00'), entry('2026-10-03', '20.00'), entry('2026-11-02', '30.00')])});
   panel = await openInsight(page, 'Categories over a year');
-  await expect(panel.locator('.money-insights-spark')).toHaveCount(1);
+  // Session AV lane 2 (CI run 2008; deliberate): round 4 (7fe1ab19, LEDGER #343) draws a line for all spending too, above
+  // the one category's; both are counted, each in its own row (stricter than the total alone).
+  await expect(panel.locator('.money-insights-spark')).toHaveCount(2);
+  await expect(panel.locator('.money-avg-all').filter({hasText: 'All spending'}).locator('.money-insights-spark')).toHaveCount(1);
+  await expect(panel.locator('.money-insights-trend > li:not(.money-avg-all) .money-insights-spark')).toHaveCount(1);
   await expect(panel).not.toContainText('A line needs three months');
 });
 

@@ -45,14 +45,16 @@ export function SavedChips({update, today, onSaid, onManage}: {update: Update; t
 }
 
 /** Inside the form, under Category: its subcategories (and adding one), how it was paid, and "Keep as a saved entry". */
-export function FormExtras({log, update, category, sub, setSub, paidWith, setPaidWith, draft, editing, keepPlace, onPayee}: {
+export function FormExtras({log, update, category, sub, setSub, paidWith, setPaidWith, draft, editing, keepPlace, onPayee, say}: {
   log: MoneyLog; update: Update; category: string; sub: string; setSub: (s: string) => void; paidWith: PaidWith | ''; setPaidWith: (p: PaidWith | '') => void;
   draft: {kind: MoneyEntry['kind']; amount: string | null; currency: string; note: string}; editing: boolean;
   /** Session AV lane 2, round 4 (LEDGER #346): the form calls `keepPlace.current` on Save; a place's payee fills the note. */
   keepPlace?: RefObject<KeepPayee>; onPayee?: (payee: string, category: string | null) => void;
+  /** Session AV lane 2 (CI run 2007): what it says goes to Spending's one status line, not a second one of its own. */
+  say: (text: string) => void;
 }) {
   const id = useId(), more = useDeviceRecord(MONEY_MORE), subs = subsOf(log, category);
-  const [newSub, setNewSub] = useState(''), [note, setNote] = useState(''), [name, setName] = useState(''), [keeping, setKeeping] = useState(false);
+  const setNote = say, [newSub, setNewSub] = useState(''), [name, setName] = useState(''), [keeping, setKeeping] = useState(false);
   const add = () => { try { const clean = newSub.trim().replace(/\s+/g, ' '); update(l => addSub(l, category, clean)); setSub(clean); setNewSub(''); setNote(`${clean} added under ${category}.`); } catch (e) { setNote(e instanceof Error ? e.message : 'Not saved on this device.'); } };
   const keep = () => {
     if (!draft.amount) { setNote('Type an amount above zero first; a saved entry keeps it.'); return; }
@@ -73,11 +75,10 @@ export function FormExtras({log, update, category, sub, setSub, paidWith, setPai
         {subs.length > 0 && <ul className="spending-own-list">{subs.map(s => <li key={s}><span>{s}</span><button type="button" className="text-link" aria-label={`Remove ${s} from the subcategories of ${category}`} onClick={() => { update(l => removeSub(l, category, s)); if (sub === s) setSub(''); setNote(`${s} removed from the choices; entries that carry it keep it.`); }}>Remove</button></li>)}</ul>}
       </details>
     </fieldset>}
-    {!editing && keepPlace && onPayee && <PlacePicker kind={draft.kind} entries={log.entries} onPayee={onPayee} keepRef={keepPlace}/>}
+    {!editing && keepPlace && onPayee && <PlacePicker kind={draft.kind} entries={log.entries} onPayee={onPayee} keepRef={keepPlace} say={say}/>}
     <label className="field quick-paid"><span>Paid with — optional</span><select value={paidWith} onChange={e => setPaidWith(e.target.value as PaidWith | '')}><option value="">Not said</option>{PAID_WITH.map(p => <option key={p} value={p}>{PAID_WITH_WORDS[p].en}</option>)}</select></label>
     {!editing && more.loaded && !more.unreadable && (!keeping ? <button type="button" className="text-link quick-keep" aria-expanded={false} onClick={() => setKeeping(true)}>Keep as a saved entry</button>
       : <div className="spending-own-row quick-keep-row"><label className="field"><span>Name of the saved entry</span><input value={name} maxLength={40} autoComplete="off" placeholder={draft.note || 'Coffee'} onChange={e => setName(e.target.value)}/></label><button type="button" className="secondary" onClick={keep}>Keep it</button><button type="button" className="quiet" onClick={() => setKeeping(false)}>Cancel</button></div>)}
-    <p className="fine" role="status">{note}</p>
   </div>;
 }
 
