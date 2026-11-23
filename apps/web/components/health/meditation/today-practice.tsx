@@ -25,12 +25,13 @@ export default function TodayPractice({store, today, onStarted}: {store: Meditat
     <p className="eyebrow">{g.minutes} min · {step === 0 ? (lang === 'nl' ? 'vandaag' : 'today') : (lang === 'nl' ? 'een andere' : 'another one')}</p>
     <h3 className="meditation-today-title">{t.title}</h3>
     <ol className="meditation-today-steps">{t.steps.map(s => <li key={s}>{s}</li>)}</ol>
-    <p className="meditation-today-actions" lang="en">
-      <button type="button" className="primary" onClick={begin}>Begin · {g.minutes} min with the bell</button>
-      <button type="button" className="quiet" onClick={() => setStep(n => n + 1)}>Another one</button>
+    {/* Session AV lane 2 (polish4): in Dutch the buttons and the note under them are Dutch too, as the routine library's are. */}
+    <p className="meditation-today-actions">
+      <button type="button" className="primary" onClick={begin}>{lang === 'nl' ? `Begin · ${g.minutes} min met de bel` : `Begin · ${g.minutes} min with the bell`}</button>
+      <button type="button" className="quiet" onClick={() => setStep(n => n + 1)}>{lang === 'nl' ? 'Nog een' : 'Another one'}</button>
       <button type="button" className="quiet" lang={lang === 'en' ? 'nl' : 'en'} onClick={() => setLang(l => l === 'en' ? 'nl' : 'en')}>{lang === 'en' ? 'In het Nederlands' : 'In English'}</button>
     </p>
     {error && <p role="alert" className="fine" lang="en">{error}</p>}
-    <p className="fine" lang="en">A written practice to read before you begin, or to glance at while you sit. Relaxation, not treatment.</p>
+    <p className="fine">{lang === 'nl' ? 'Een geschreven oefening om te lezen voor je begint, of om naar te kijken terwijl je zit. Ontspanning, geen behandeling.' : 'A written practice to read before you begin, or to glance at while you sit. Relaxation, not treatment.'}</p>
   </div>;
 }

@@ -29,6 +29,7 @@ for (const theme of THEMES) test(`${theme}: today's written practice, another on
   await expect(page.locator('.meditation-today')).toHaveAttribute('lang', 'nl');
   await page.setViewportSize({width: 320, height: 720});
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
-  await page.getByRole('button', {name: `Begin · ${next.minutes} min with the bell`}).click();
+  // Session AV lane 2 (polish4, deliberate): in Dutch the button is Dutch too.
+  await page.getByRole('button', {name: `Begin · ${next.minutes} min met de bel`}).click();
   await expect(page.locator('.meditation-focus')).toBeVisible();
 });
