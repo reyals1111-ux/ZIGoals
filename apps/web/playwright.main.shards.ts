@@ -362,7 +362,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'grok53/shell/l10a-third-pass.spec.ts', 'grok53/tasks/ls-006-043-zigi-on-tasks.spec.ts',
     'grok53/today/sweep2-water-words.spec.ts', 'grok53/wealth/l1-pass5-wealth.spec.ts',
     'grok53/wealth/tk-portfolio-oversell.spec.ts', 'habits-routines-block.spec.ts', 'logo-fold.spec.ts',
-    'nova-dashboard.spec.ts', 'nova-workflows.spec.ts', 'p3-nova-polish.spec.ts', 'phone-folds.spec.ts',
+    'nova-dashboard.spec.ts', 'phone-folds.spec.ts',
     'quick-log-ai.spec.ts', 'run10-financial-evidence.spec.ts', 'run10-widget-overview.spec.ts',
     'run9-2-product.spec.ts', 'tasks-time.spec.ts', 'transactions.spec.ts', 'vitamins-ab.spec.ts',
     'zigi-earn-coach-af.spec.ts', 'zigi-proactive.spec.ts',
@@ -404,6 +404,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'run10-goal-creator.spec.ts', 'run11-goal-draft.spec.ts', 'run11-habit-integration.spec.ts',
     'sleep-balance-focus-aj.spec.ts', 'visual-v21.spec.ts', 'wallet-menu.spec.ts', 'workouts-import-aj.spec.ts',
     'xpub-watch-aj.spec.ts', 'zigi-chat-backdrop.spec.ts',
+    'p3-nova-polish.spec.ts', // moved from shard 17 (run 2021: three NOVA specs in one list slowed NOVA's opening, D36; 7.5 worker-min)
   ],
   // Shard 20, 69.6 worker-min (the larger measured per file).
   [
@@ -422,6 +423,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'run10-widgets.spec.ts', 'showcase-today-aa.spec.ts', 'sidebar-sky-af.spec.ts', 'sleep.spec.ts',
     'storage-errors.spec.ts', 'webkit-add-money.spec.ts', 'zigi-mini-window.spec.ts', 'zigi-on-device.spec.ts',
     'zigi-safety.spec.ts', 'zigi-v2-captures.spec.ts',
+    'nova-workflows.spec.ts', // moved from shard 17 (run 2021: three NOVA specs in one list slowed NOVA's opening, D36; 2.1 worker-min)
   ],
 ];
 
