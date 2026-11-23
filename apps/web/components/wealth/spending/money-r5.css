@@ -46,7 +46,7 @@
 .money-whatif-actions{display:inline-flex;gap:4px}
 .money-sheet{display:grid;gap:8px;min-width:0}
 .money-sheet-ranges,.money-sheet-files{display:flex;flex-wrap:wrap;gap:8px}
-.money-sheet-ranges button,.money-sheet-files button{min-height:44px}
+.money-sheet-ranges button,.money-sheet-files button{min-height:44px;max-width:100%;white-space:normal} /* fixb5: a long button name wraps at 320 instead of widening the page */
 .money-sheet-scroll{max-width:100%;overflow-x:auto;border-radius:8px}
 .money-sheet-scroll:focus-visible{outline:2px solid var(--focus,var(--cyan,#45d8ef));outline-offset:2px}
 .money-sheet-table{border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums;min-width:100%}
