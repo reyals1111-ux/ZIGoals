@@ -63,6 +63,7 @@ test('Lina on the phone: a bank CSV reaches her Groceries budget, and the phone 
   const confirm = page.getByRole('button', {name: 'Confirm Fictional Phone as a bill', exact: true});
   await expect(confirm).toBeVisible();
   await confirm.click();
-  await expect(page.locator('#bills, .bills').first()).toContainText(/Fictional Phone went up by €2\.50 since Sep 2026/);
+  // Friend-readiness FR-L-18 (deliberate, as strict): a rise names the month the new price began (Oct), not the last old one.
+  await expect(page.locator('#bills, .bills').first()).toContainText('Fictional Phone went up by €2.50 since Oct 2026 (€15.00 then, €17.50 now).');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
 });
