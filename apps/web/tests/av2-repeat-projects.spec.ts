@@ -1,5 +1,6 @@
 // Session AV lane 2 (review b2a #7: a repeating project is named with its day as the app writes days, "Nov 23, 2026", deliberate)
 import {expect, test} from '@playwright/test';
+import {moreViews} from './fr-layout-helpers';
 import {axe, THEMES, applyTheme, offline, settle} from './p6-helpers';
 import {addRepeat} from '../lib/tasks/repeat-projects';
 import {BUILT_IN_TEMPLATES, emptyTaskTemplates} from '../lib/tasks/templates';
@@ -36,6 +37,8 @@ for (const theme of THEMES) test(`${theme}: a repeating project comes round on o
   await page.reload(); await settle(page);
   expect((await tasks(page)).projects?.length).toBe(1);
 
+  // (fr-layout; deliberate) on a phone the view sits behind "More views" (FR-L-5): opened first, the same check after.
+  await moreViews(page);
   await page.getByRole('navigation', {name: 'Task views'}).getByRole('button', {name: /^Areas and templates/}).click(); await settle(page);
   const list = page.getByRole('list', {name: 'Repeating projects'});
   await expect(list).toContainText('Fictional reset');

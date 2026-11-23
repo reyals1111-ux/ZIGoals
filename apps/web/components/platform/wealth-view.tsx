@@ -78,6 +78,7 @@ export function showSection(anchor:string,tries=60){
  foldOf(el).scrollIntoView({block:'start'});document.getElementById(`${anchor}-title`)?.focus({preventScroll:true});
 }
 import {ActionIntent} from '../action-intent';
+import {useHashArrival} from '../jump/use-arrival';
 import {GlassBar} from '../progress/glass-progress';
 import {useMarketInsights} from './use-market-insights';
 import {marketRequestKey,uniqueMarketRequests} from '../../lib/market-assets';
@@ -129,6 +130,10 @@ export {wealthMoney};
 /** Session AL (TK-127, W5): a value saved earlier under an invented code ("XYZ") needs the person's attention; it is shown, never converted. */
 const unknownCurrency=(currency:string|undefined)=>!!currency&&!isMoneyCurrency(currency);
 export function WealthView(){
+ // Session AV lane 2 (fr-layout, FR-TJ-6): an address's #part lands on it once Wealth's lazy sections have drawn (Search's
+ // "Watch a Bitcoin address" ended at the footer on a phone; the first five's "Log an expense" 2,300 px past #spending).
+ // #log-spending (the first five) lands on Spending and opens its form; #watch-address opens "Look up an address".
+ useHashArrival(id=>id==='log-spending'?{at:'spending',reveal:foldOf,ready:el=>{const press=(n:number)=>{const b=el.querySelector<HTMLButtonElement>('.spending-actions button.primary');if(b)b.click();else if(n>0)requestAnimationFrame(()=>press(n-1));};press(120);}}:{reveal:foldOf,fallback:id==='watch-address'?'holdings':undefined});
  const accountsRecord=useDeviceRecord(ACCOUNTS);
  // Session AK X1 (RELEASE_REVIEW R22): Portfolio's link only while Portfolio shows, Earn's once the chain is chosen (the
  // pages view's money tools follow that choice, lib/chain-choice.ts).

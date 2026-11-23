@@ -61,12 +61,13 @@ export function viewTitle(view: TaskView, record: Tasks): string {
   }
 }
 const same = (a: TaskView, b: TaskView) => viewKey(a) === viewKey(b);
+const MORE_ID = 'tasks-nav-more';
 // Session AT (ADR-043 D7): This evening's and Someday's counts come from their own chunk, after the page shows.
 const WhenCount = lazy(() => import('./tasks-when-count'));
 export function TasksNav({record, today, view, board, counts, projects, onGo, onAddProject, dropOn, onRemoveFilter, scope, toReview = 0}: {record: Tasks; today: string; view: TaskView; board: boolean; counts: {open: number; overdue: number; today: number}; projects: Project[];
   /** Session AV lane 2 (r6-plan, LEDGER #394, #395): the focus applied to a view's count; how many projects wait for their review. */ scope?: (v: TaskView) => Tasks; toReview?: number;
   onGo: (v: TaskView, board?: boolean) => void; onAddProject: (name: string, colour: TaskColour) => boolean; dropOn: (projectId: string | null) => {onDragOver: (e: DragEvent<HTMLElement>) => void; onDrop: (e: DragEvent<HTMLElement>) => void}; onRemoveFilter: (id: string) => void}) {
-  const [adding, setAdding] = useState(false), [name, setName] = useState(''), [colour, setColour] = useState<TaskColour>('blue'), [archived, setArchived] = useState(false);
+  const [adding, setAdding] = useState(false), [name, setName] = useState(''), [colour, setColour] = useState<TaskColour>('blue'), [archived, setArchived] = useState(false), [more, setMore] = useState(false);
   const count = (v: TaskView) => viewTasks(scope ? scope(v) : record, v, today).length;
   const item = (v: TaskView, label: string, n?: number | ReactNode, extra?: object, colourName?: string) => <li key={viewKey(v)}><button type="button" className="tasks-nav-item" aria-current={same(v, view) ? 'page' : undefined} data-colour={colourName} onClick={() => onGo(v, v.kind === 'project' && same(v, view) ? board : false)} {...(extra ?? {})}>
     <span dir="auto">{label}</span>{typeof n === 'number' ? n ? <small>{formatNumber(n)}</small> : null : n}</button></li>;
@@ -82,7 +83,12 @@ export function TasksNav({record, today, view, board, counts, projects, onGo, on
       {item({kind: 'someday'}, 'Someday', <Suspense fallback={null}><WhenCount kind="someday" record={record} today={today}/></Suspense>)}
       {item({kind: 'matrix'}, 'Priority matrix')}
       {item({kind: 'completed'}, 'Completed')}
+      {/* Session AV lane 2 (fr-layout, FR-L-5, FR-MAX-2, FR-S-7, FR-TJ-8): on a phone the rows below fold behind this one
+          chip, so "New task" is on the first screen (it began at y 966–1,296 under them). Computers and tablets keep every
+          row open and never show the chip (tasks.css). The current view's name is in the list's heading either way. */}
+      <li className="tasks-nav-more-item"><button type="button" className="tasks-nav-item tasks-nav-more-toggle" aria-expanded={more} aria-controls={MORE_ID} onClick={() => setMore(v => !v)}><span>{more ? 'Fewer views' : 'More views'}</span><small aria-hidden="true">{more ? '▴' : '▾'}</small></button></li>
     </ul>
+    <div id={MORE_ID} className="tasks-nav-more" data-open={more ? 'true' : undefined}>
     {/* Session AV lane 2 (tasks): planning and layouts (Sunsama, Todoist, TickTick, Notion), drawn by their own chunk. */}
     <h3>Plan and views</h3>
     <ul>{([['week', 'This week'], ['table', 'Table'], ['days', 'Calendar'], ['timeline', 'Timeline'], ['insights', 'Insights'], ['organise', 'Areas and templates']] as const).map(([kind, label]) => item({kind}, label))}
@@ -104,5 +110,6 @@ export function TasksNav({record, today, view, board, counts, projects, onGo, on
     {(record.filters?.length ?? 0) > 0 && <><h3>Saved filters</h3><ul>{record.filters!.map(f => <li key={f.id} className="tasks-nav-filter">
       <button type="button" className="tasks-nav-item" aria-current={same({kind: 'filter', id: f.id}, view) ? 'page' : undefined} onClick={() => onGo({kind: 'filter', id: f.id})}><span dir="auto">{f.name}</span><small>{f.query}</small></button>
       <button type="button" className="text-link" aria-label={`Remove the saved filter “${f.name}”`} onClick={() => onRemoveFilter(f.id)}>×</button></li>)}</ul></>}
+    </div>
   </nav>;
 }

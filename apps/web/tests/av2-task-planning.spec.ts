@@ -1,4 +1,5 @@
 import {expect, test} from '@playwright/test';
+import {moreViews} from './fr-layout-helpers';
 import {axe, THEMES, applyTheme, offline, settle} from './p6-helpers';
 import {addProject, addTask} from '../lib/tasks/engine';
 import {emptyTasks} from '../lib/tasks/schema';
@@ -16,7 +17,8 @@ seeded = addTask(seeded, {title: 'Fictional standup', due: today, time: '10:00',
 seeded = addTask(seeded, {title: 'Write the fictional report', due: today, minutes: 60}, {id: 'task_report', at, today});
 seeded = addTask(seeded, {title: 'Pack the fictional boxes', due: '2026-11-25', deadline: '2026-11-28', projectId: 'project_fictional-move', level: 1}, {id: 'task_boxes', at, today});
 const tasks = (page: import('@playwright/test').Page) => page.evaluate(() => JSON.parse(localStorage.getItem('zigoals:tasks:v1') ?? '{"tasks":[]}') as {tasks: {id: string; time?: string; objective?: string; projectId?: string}[]; objectives?: {title: string}[]; areas?: {name: string}[]; projects?: {name: string; areaId?: string}[]});
-const open = async (page: import('@playwright/test').Page, name: string) => { await page.getByRole('navigation', {name: 'Task views'}).getByRole('button', {name: new RegExp(`^${name}`)}).click(); await settle(page); };
+// (fr-layout; deliberate) on a phone the view sits behind "More views" (FR-L-5): opened first, the same check after.
+const open = async (page: import('@playwright/test').Page, name: string) => { await moreViews(page); await page.getByRole('navigation', {name: 'Task views'}).getByRole('button', {name: new RegExp(`^${name}`)}).click(); await settle(page); };
 const clean = async (page: import('@playwright/test').Page) => { const f = await axe(page, page.locator('main')); expect(f.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(f)).toEqual([]); };
 
 for (const theme of THEMES) test(`${theme}: the day planner, This week, the layouts, areas and templates`, async ({page, isMobile}) => {
@@ -77,6 +79,7 @@ for (const theme of THEMES) test(`${theme}: the day planner, This week, the layo
   await page.getByRole('button', {name: 'Add area'}).click();
   await page.getByRole('combobox', {name: 'Fictional move'}).selectOption({label: 'Home'});
   await expect.poll(async () => !!(await tasks(page)).projects?.find(p => p.name === 'Fictional move')?.areaId).toBe(true);
+  await moreViews(page);
   await expect(page.getByRole('navigation', {name: 'Task views'}).getByRole('heading', {name: 'Home'})).toBeVisible();
   // Session AV lane 2 ("Template" alone also matched "Save a project as a template"; deliberate)
   await page.getByRole('combobox', {name: 'Template', exact: true}).selectOption({label: 'A trip'});

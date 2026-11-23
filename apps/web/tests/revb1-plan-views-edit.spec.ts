@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {moreViews} from './fr-layout-helpers';
 import {axe, offline, settle} from './p6-helpers';
 import {addProject, addTask} from '../lib/tasks/engine';
 import {emptyTasks} from '../lib/tasks/schema';
@@ -16,7 +17,8 @@ seeded = addTask(seeded, {title: 'Fictional standup', due: today, time: '10:00',
 seeded = addTask(seeded, {title: 'Pack the fictional boxes', due: '2026-11-25', deadline: '2026-11-28', projectId: 'project_fictional-move'}, {id: 'task_boxes', at, today});
 for (const i of [1, 2, 3, 4]) seeded = addTask(seeded, {title: `Fictional errand ${i}`, due: '2026-11-27'}, {id: `task_errand-${i}`, at, today});
 const due = (page: Page, id: string) => page.evaluate(i => (JSON.parse(localStorage.getItem('zigoals:tasks:v1')!).tasks as {id: string; due?: string; time?: string}[]).find(t => t.id === i), id);
-const open = async (page: Page, name: string) => { await page.getByRole('navigation', {name: 'Task views'}).getByRole('button', {name: new RegExp(`^${name}`)}).click(); await settle(page); };
+// (fr-layout; deliberate) on a phone the view sits behind "More views" (FR-L-5): opened first, the same check after.
+const open = async (page: Page, name: string) => { await moreViews(page); await page.getByRole('navigation', {name: 'Task views'}).getByRole('button', {name: new RegExp(`^${name}`)}).click(); await settle(page); };
 const clean = async (page: Page) => { const f = await axe(page, page.locator('main')); expect(f.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(f)).toEqual([]); };
 
 test('open, edit and move tasks from the Table, the Calendar and the Timeline', async ({page}) => {

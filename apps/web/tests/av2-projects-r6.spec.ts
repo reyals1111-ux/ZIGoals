@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {moreViews} from './fr-layout-helpers';
 import {axe, THEMES, applyTheme, offline, settle} from './p6-helpers';
 import {addTask, finishTask} from '../lib/tasks/engine';
 import {tasksSchema, type Tasks} from '../lib/tasks/schema';
@@ -92,6 +93,8 @@ for (const theme of THEMES) test(`${theme}: several tasks at once, a project on 
   await expect(row(page, 'Fictional venue')).toBeVisible();
   await expect(list(page).locator('li.task', {hasText: 'Fictional invitations'})).toHaveCount(0);
   await expect(list(page).locator('li.task', {hasText: 'Fictional gutters'})).toHaveCount(0);
+  // (fr-layout; deliberate) on a phone the view sits behind "More views" (FR-L-5): opened first, the same check after.
+  await moreViews(page);
   await expect(page.getByRole('navigation', {name: 'Task views'}).getByRole('button', {name: /Fictional house/})).toContainText('on hold');
 
   // Focus (LEDGER #394): only the party's tasks (and the Inbox's) until Show all.

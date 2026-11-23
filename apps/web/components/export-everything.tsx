@@ -1,5 +1,6 @@
 'use client';
 import {useState} from 'react';
+import Link from 'next/link';
 import {getAppStorage, isShowcase, showcaseDay} from '../lib/showcase-storage';
 // A static import, as before: Settings has the portfolio record's schema anyway, and a dynamic one kept every export of it on
 // every page that loads it (Wealth, Portfolio: +0.1 to 0.2 kB).
@@ -66,7 +67,8 @@ export function ExportEverything() {
     {status && <p role="status">{status}</p>}
     {notes.map(note => <p key={note} className="notice">{note}</p>)}
     {error && <p role="alert">{error}</p>}
-    <p className="fine">Made on this device. Nothing is uploaded. Settings → Your data → Restore from a backup reads it back.</p>
+    {/* Session AV lane 2 (fr-layout, FR-L-7, FR-MAX-10): the path is a link to the restore itself (it was words only). */}
+    <p className="fine">Made on this device. Nothing is uploaded. Settings → Your data → <Link className="text-link" href="/app/settings/data#restore">Restore from a backup</Link> reads it back.</p>
     {/* Session AV lane 2 (LEDGER #69; QUALITY "Not fixed"): the hide switch offered here too; the file itself is always complete. */}
     {/* Session AV lane 2 (nl-days, R3; q3-36): the file keeps the switch too, so a restore hides the figures again. */}
     {figuresHidden && <p className="fine" data-testid="export-figures-hidden">Calorie and weight figures are hidden on screen on this device. This file still holds them, so it stays a complete copy, and it keeps this choice: a restore hides them again.</p>}

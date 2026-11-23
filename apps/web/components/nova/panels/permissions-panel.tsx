@@ -43,6 +43,16 @@ export default function PermissionsPanel() {
   return <div className="nova-permissions">
     <p className="ai-note">What NOVA may read, pillar by pillar. {data.enabled ? 'With your model connected, this is also what may go with a message (in Guarded mode after redaction on this device); ZIGi\'s page switches in Settings still apply.' : 'No model is connected, so nothing leaves this device: NOVA reads these here only.'}</p>
     {setup.unreadable && <p role="alert">Your NOVA choices could not be read on this device, so the defaults apply (Health, Notes and the Journal off).</p>}
+    {/* Session AU (ADR-044 F-2, the rehearsal's Sanne and Tom): a person who set up for Health met three separate switches
+        before NOVA could read a meal or a night. One button, shown only while Health is closed and Today holds Health,
+        turns on exactly those three (NOVA's Health scope, Health page data, Include Health): the person's own tap, never a
+        default; each stays a switch here and in Settings to close again. An account's own Health permission still applies.
+        Session AV lane 2 (fr-layout, FR-TJ-1): first in the panel, above the eight scope switches — after them it sat at y 1,333
+        on a phone (925 at 1440), and the first Health switch a person met opened NOVA's scope only. */}
+    {!(scopes.health && gateOpen) && layoutHasHealth && (!consent.accountActive || consent.accountHealthPermitted === true) && <div className="nova-allow-health">
+      <p className="ai-note">Let NOVA and ZIGi read your Health records (meals, water, sleep, weight, workouts) to answer you. They stay on this device; without a model nothing is sent. Close it here any time.</p>
+      <div className="ai-card-actions"><button type="button" className="secondary" onClick={() => { try { setup.update(r => setScope(r, 'health', true)); settings.update(s => ({...s, includeHealth: true, pageShare: {...s.pageShare, health: true}})); setMessage({text: 'Health is open to NOVA and ZIGi now. Close it with the switches below.'}); } catch (error) { fail(error); } }}>Allow Health</button></div>
+    </div>}
     <div className="ai-switch-list">
       {/* Session AL (DV-065, P-DV-99): Earn is read only once a chain is chosen (context-pack scopeOpen); until then its switch
           says so instead of a plain "On" that NOVA does not act on. */}
@@ -50,14 +60,6 @@ export default function PermissionsPanel() {
         note={s === 'earn' && scopes.earn && !chain.chosen ? 'On once a chain is chosen. No chain is chosen on this device yet, so NOVA reads nothing from Earn.' : NOTES[s]}/>)}
     </div>
     {changed && <div className="ai-card-actions"><button type="button" className="text-link" onClick={() => scope(resetScopes, 'Back to the defaults: Health, Notes and the Journal off.')}>Back to the defaults</button></div>}
-    {/* Session AU (ADR-044 F-2, the rehearsal's Sanne and Tom): a person who set up for Health met three separate switches
-        before NOVA could read a meal or a night. One button, shown only while Health is closed and Today holds Health,
-        turns on exactly those three (NOVA's Health scope, Health page data, Include Health): the person's own tap, never a
-        default; each stays a switch here and in Settings to close again. An account's own Health permission still applies. */}
-    {!(scopes.health && gateOpen) && layoutHasHealth && (!consent.accountActive || consent.accountHealthPermitted === true) && <div className="nova-allow-health">
-      <p className="ai-note">Let NOVA and ZIGi read your Health records (meals, water, sleep, weight, workouts) to answer you. They stay on this device; without a model nothing is sent. Close it here any time.</p>
-      <div className="ai-card-actions"><button type="button" className="secondary" onClick={() => { try { setup.update(r => setScope(r, 'health', true)); settings.update(s => ({...s, includeHealth: true, pageShare: {...s.pageShare, health: true}})); setMessage({text: 'Health is open to NOVA and ZIGi now. Close it with the switches below.'}); } catch (error) { fail(error); } }}>Allow Health</button></div>
-    </div>}
     <h4>ZIGi&rsquo;s Health gate</h4>
     <div className="ai-switch-list">
       <Switch checked={data.pageShare.health} onChange={next => zigi(s => ({...s, pageShare: {...s.pageShare, health: next}}), next ? 'Health page data is on; Include Health decides the rest.' : 'Health page data is off.')} label="Health page data" note="The same switch as Settings → ZIGi → What each page may share."/>

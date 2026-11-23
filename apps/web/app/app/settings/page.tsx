@@ -17,7 +17,7 @@ import {StorageInternals} from "../../../components/settings/storage-internals";
 import {MotionPreference} from "../../../components/motion-preference";
 import {LazyThemeSwitch as ThemeSwitch} from "../../../components/shell/theme-switch-lazy";
 import {LazyCustomizeSettings} from "../../../components/settings/customize-settings-lazy";
-import {ShowcaseSlot} from "../../../components/settings/showcase-slot";
+import {ShowcaseDoor, ShowcaseSlot} from "../../../components/settings/showcase-slot";
 import { PrivateBackups } from "../../../components/private-backups";
 import { ExportEverything } from "../../../components/export-everything";
 import { EraseEverything } from "../../../components/settings/erase-everything";
@@ -137,7 +137,7 @@ export default function Settings() {
             {/* Session AL (COPY_AUDIT P-DV-112, DV-261, deliberate): true even where sync exists (it is off until turned on). */}
             {chain ? "Goal plans stay on this device. Your wallet controls onchain funds." : "Your records live on this device unless you turn on sync."}
           </p>
-          <p><Link className="text-link" href="/app/help" onClick={markHelpFromSettings} style={{display: "inline-flex", alignItems: "center", minHeight: 44}}>Help &amp; feedback →</Link></p>
+          <p className="settings-head-links"><Link className="text-link" href="/app/help" onClick={markHelpFromSettings} style={{display: "inline-flex", alignItems: "center", minHeight: 44}}>Help &amp; feedback →</Link><ShowcaseDoor/></p>
         </div>
         <HeaderArtCorner><OrbitArt glyph={SettingsGlyph} spin={12}/></HeaderArtCorner>
       </div>
