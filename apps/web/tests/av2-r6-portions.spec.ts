@@ -2,6 +2,7 @@ import {expect, test} from '@playwright/test';
 import {freshDevice, hydrated, offlineApi} from './ah-helpers';
 import {axe, THEMES, applyTheme} from './p6-helpers';
 import {FOOD_PLUS_KEY} from '../lib/food-plus/schema';
+import {openPhoneRow} from './phone-length-folds';
 
 /**
  * Session AV lane 2, round 6 (r6-body; Lifesum, LEDGER #418): Health → Diary shows no portion counter until one is chosen;
@@ -17,6 +18,9 @@ for (const theme of THEMES) test(`${theme}: portion counters in the diary`, asyn
   await applyTheme(page, theme);
   if (!isMobile) await page.setViewportSize({width: 1440, height: 900});
   await page.goto('/app/health?view=diary'); await hydrated(page);
+  // Session AV lane 2 (fix2011; deliberate): on a phone the counters are one row under the meals (tests/phone-length-folds.ts:
+  // there and closed on a phone, absent at 1440; tests/pillar-phone-length.spec.ts); it is opened, then checked as before.
+  await openPhoneRow(page, 'Portions');
   const box = page.locator('section.r6-portions');
   await expect(box).toContainText('None is on until you choose it');
   await expect(box.getByRole('button', {name: /^One more/})).toHaveCount(0);
