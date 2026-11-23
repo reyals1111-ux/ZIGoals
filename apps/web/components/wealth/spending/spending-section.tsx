@@ -38,6 +38,7 @@ import {amountProblem} from '../../../lib/money-calc/expression';
 import {checkMoneyEdit, checkMoneyForm, readMoneyAmount, replaceEntry} from '../../../lib/money-log/form';
 import {CalcHint} from '../../money-calc/calc-hint';
 import {MONEY_DRAFT_EVENT, type MoneyDraft} from '../../money-photos/draft-event';
+import {LOG_SPENDING_EVENT, takeLogSpending} from '../../../lib/money-log/log-request';
 import '../../money-select/money-select.css';
 import {changeWithUndo, removeWithUndo} from '../../ui/remove-with-undo';
 const SpendingMap = lazy(() => import('../../spending-map/spending-map'));
@@ -215,6 +216,13 @@ function SpendingBody({showcase = false, space}: {showcase?: boolean; space: Mon
     };
     window.addEventListener(MONEY_DRAFT_EVENT, take);
     return () => window.removeEventListener(MONEY_DRAFT_EVENT, take);
+  }, []);
+  // Session AV lane 2 (fr-money, FR-L-4): the Wealth hero's "Log spending" (or Quick add's Spending row) opens this form.
+  useEffect(() => {
+    const open = () => { if (takeLogSpending()) { setLogging(true); requestAnimationFrame(() => amountField.current?.focus()); } };
+    open();
+    window.addEventListener(LOG_SPENDING_EVENT, open);
+    return () => window.removeEventListener(LOG_SPENDING_EVENT, open);
   }, []);
   // Opening the form puts the cursor in Amount.
   useEffect(() => { if (logging) amountField.current?.focus({preventScroll: false}); }, [logging]);

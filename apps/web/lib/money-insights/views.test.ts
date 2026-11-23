@@ -86,7 +86,8 @@ describe('Ready to assign and bill price changes', () => {
   test('a price change reads "went up by X since <month>"', () => {
     const entries = ['2026-08-03', '2026-09-03', '2026-10-03'].map(d => e(d, '12.99', 'Subscriptions', 'expense', 'Netflix')).concat(e('2026-11-03', '13.49', 'Subscriptions', 'expense', 'Netflix'));
     const out = text(html(createElement(PriceChanges, {bills: [], candidates: detectBills(entries, TODAY), entries, today: TODAY})));
-    expect(out).toContain('Netflix went up by €0.50 since Oct 2026 (€12.99 then, €13.49 now).');
+    // (fr-money; deliberate) FR-L-18: "since" is the month of the first payment at the new price (€13.49 from 3 Nov).
+    expect(out).toContain('Netflix went up by €0.50 since Nov 2026 (€12.99 then, €13.49 now).');
     expect(html(createElement(PriceChanges, {bills: [], candidates: [], entries, today: TODAY}))).toBe('');
   });
 });

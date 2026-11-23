@@ -220,7 +220,8 @@ describe('each new widget’s one line is its own selector’s figures (the Show
     expect(line('spending-pace')).toBe(`By the 11th you usually have spent ${pace.usual}; this month ${pace.thisMonth}, ${pace.difference} more.`);
     expect(line('spending-pace', SHOW, 'nl')).toMatch(/^Rond de 11e heb je meestal €0\.00 uitgegeven/);
     // Session AU (ADR-044 D-SHOWCASE, deliberate): the Showcase's streaming bill is found in its money log and went up once.
-    expect(line('bill-changes')).toBe('Streaming went up by €1.00 since Jul 2026 (€12.99 then, €13.99 now).');
+    // (fr-money; deliberate) FR-L-18: "since" is the month of the first payment at the new price (€13.99 from 8 Aug).
+    expect(line('bill-changes')).toBe('Streaming went up by €1.00 since Aug 2026 (€12.99 then, €13.99 now).');
     const tags = moneyTagsCard(SHOW.moneyTags!, SHOW.moneyLog!, DAY);
     expect(tags.state).toBe('live');
     expect(line('money-tags')).toBe(`Most under “${tags.rows[0]!.tag}”: ${tags.rows[0]!.text} this month; ${tags.tags} tags in use.`);
