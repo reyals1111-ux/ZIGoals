@@ -7,6 +7,9 @@
 .phone-fold-hint svg { transition: transform 160ms ease; }
 .phone-fold[data-open] .phone-fold-hint svg { transform: rotate(180deg); }
 .phone-fold-body { min-width: 0; }
+/* Session AV lane 2 (CI run 2007): a jump to a folded section scrolls to its row (the title a person sees, P-36), with the
+   same room above it as the section's own panel had (.panel's 24 px). */
+.phone-fold { scroll-margin-top: 24px; }
 @media (prefers-reduced-motion: reduce) { .phone-fold-toggle, .phone-fold-hint svg { transition: none; } }
 :root[data-app-motion=off] :is(.phone-fold-toggle, .phone-fold-hint svg) { transition: none; }
 /* Session AK RB (R2-9): a folded Today widget's figure under its name (inherits the row's colour in every theme). */
