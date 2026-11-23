@@ -5,7 +5,7 @@ import { AppIcon } from "../app-icon";
 import { usePhoneActive } from "./use-phone-layout";
 import { hashId } from "../../lib/hash-id";
 import { wealthFolds } from "../../lib/wealth-folds";
-import { PhoneFold, type FoldProps } from "./phone-fold";
+import { PhoneFold, foldOf, type FoldProps } from "./phone-fold";
 import "./phone-fold.css";
 
 /**
@@ -49,7 +49,9 @@ function DeskFoldRow({ id, label, detail, children, ...layout }: LayoutAttrs & {
     const reveal = () => {
       const target = hashId(location.hash), el = target ? document.getElementById(target) : null;
       // The DOM opens now (React's state catches up), so the scroll that follows finds the target (as Settings' folds do).
-      if (el && body.current?.contains(el)) { body.current.removeAttribute("hidden"); setJumped(true); holdInView(el); }
+      // Session AV lane 2 (CI run 2007): a jump to the module itself brings its row into view with it — inside a fold the
+      // section's own title is said by the row only (P-36), so the row is the title a person sees.
+      if (el && body.current?.contains(el)) { body.current.removeAttribute("hidden"); setJumped(true); holdInView(foldOf(el)); }
     };
     reveal();
     window.addEventListener("hashchange", reveal);

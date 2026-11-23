@@ -27,13 +27,15 @@ const errorText = (e: unknown) => e instanceof Error && !/storage|quota/i.test(e
 const inUnit = (g: number, unit: 'kg' | 'lb') => String(Math.round((unit === 'lb' ? g / GRAMS_PER_LB : g / 1000) * 10) / 10);
 
 /** "Keep my weight between …" (LEDGER #331): the band, its days inside in the last 30, Remove with Undo. */
-export function WeightBandEditor({health, today}: {health: HealthData; today: string}) {
+// Session AV lane 2 (CI run 2007): inside "More goals" (`say`) the band speaks through that section's one status line, not
+// a second one of its own; on its own it keeps its status line.
+export function WeightBandEditor({health, today, say}: {health: HealthData; today: string; say?: (text: string) => void}) {
   const rec = useDeviceRecord(MORE_GOALS);
-  return rec.loaded ? <BandForm rec={rec} health={health} today={today}/> : null;
+  return rec.loaded ? <BandForm rec={rec} health={health} today={today} say={say}/> : null;
 }
-function BandForm({rec, health, today}: {rec: DeviceRecordState<MoreGoals>; health: HealthData; today: string}) {
+function BandForm({rec, health, today, say}: {rec: DeviceRecordState<MoreGoals>; health: HealthData; today: string; say?: (text: string) => void}) {
   const unit = dailyData(health).preferences.weightUnit, id = useId(), band = !rec.unreadable ? rec.data.weightBand : undefined;
-  const [low, setLow] = useState(band ? inUnit(band.lowGrams, unit) : ''), [high, setHigh] = useState(band ? inUnit(band.highGrams, unit) : ''), [issue, setIssue] = useState<{field: 'low' | 'high'; message: string} | null>(null), [said, setSaid] = useState('');
+  const [low, setLow] = useState(band ? inUnit(band.lowGrams, unit) : ''), [high, setHigh] = useState(band ? inUnit(band.highGrams, unit) : ''), [issue, setIssue] = useState<{field: 'low' | 'high'; message: string} | null>(null), [said, setOwnSaid] = useState(''), setSaid = say ?? setOwnSaid;
   if (rec.unreadable) return <p className="fine" role="alert">Your goals on this device could not be read, so the band cannot be changed here now.</p>;
   const days = band ? bandDays(health, band, today) : null;
   const submit = (e: FormEvent) => { e.preventDefault(); const out = setWeightBand(rec.data, low, high, unit, new Date().toISOString()); if (!out.ok) { setIssue(out); document.getElementById(`${id}-${out.field}`)?.focus(); return; } setIssue(null); try { rec.update(() => out.value); setSaid(`Your band: ${weightText(out.band.lowGrams, unit)} to ${weightText(out.band.highGrams, unit)}, shaded on the weight trend.`); } catch (err) { setSaid(errorText(err)); } };
@@ -48,7 +50,7 @@ function BandForm({rec, health, today}: {rec: DeviceRecordState<MoreGoals>; heal
         {band && <button type="button" className="quiet" onClick={() => { const was = band; try { rec.update(clearWeightBand); setSaid('The band is removed.'); showUndo({message: 'The weight band is removed.', undone: 'The weight band is back.', restore: () => rec.update(r => ({...r, weightBand: was}))}); } catch (err) { setSaid(errorText(err)); } }}>Remove the band</button>}</div>
     </form>
     <p className="fine">Your own band; nothing is suggested. <span className="health-estimate-tag">the trend is an estimate, not medical advice</span></p>
-    <p className="fine" role="status" aria-live="polite">{said}</p>
+    {!say && <p className="fine" role="status" aria-live="polite">{said}</p>}
   </section>;
 }
 

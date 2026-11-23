@@ -34,7 +34,7 @@ export function SleepCard(layout: LayoutAttrs) {
       {!day.past && <SleepTonight store={store} onDone={setNote}/>}
       {!day.past && !running && wallClock(store.now, store.zone).minutes >= 17 * 60 && <LoadBoundary quiet><Suspense fallback={null}><SleepR6 part="bedtime" compact sleep={store.sleep} today={store.today} zone={store.zone}/></Suspense></LoadBoundary>}
       {note && <p role="status">{note}</p>}
-      {!day.past && <LoadBoundary quiet><Suspense fallback={null}><HealthR4 part="sleep-tip" today={store.today}/></Suspense></LoadBoundary>}
+      {!day.past && <LoadBoundary quiet><Suspense fallback={null}><HealthR4 part="sleep-tip" today={store.today} say={setNote}/></Suspense></LoadBoundary>}
       <Link className="text-link" href="/app/health?view=sleep">Open Sleep →</Link>
     </>}
   </section>;

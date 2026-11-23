@@ -133,7 +133,9 @@ test('PR-088: Today\'s Health card on a partial day shows what is known with a "
 test('MO-014: the vitamin tiles count what is known in neutral words', async ({page}) => {
   await start(page, '?view=targets');
   await expect(page.getByText(/entries have no value/)).toHaveCount(0);
-  await expect(page.getByRole('region', {name: 'More micronutrients'})).toContainText('Magnesium, zinc, B vitamins and omega-3 show here');
+  // Session AV lane 2 (CI run 2007; deliberate): lane 2's food library (CoFID) counts more nutrients, so the empty panel
+  // names them too; the whole first sentence is asserted (stricter than its old opening words).
+  await expect(page.getByRole('region', {name: 'More micronutrients'})).toContainText('Magnesium, zinc, B vitamins, omega-3 and more (phosphorus, selenium, iodine, the sugars and fats one by one…) show here when a food you logged today carries them (a barcode, a label or the food library that gives them).');
 });
 
 test('C-MO-04: Targets estimate maintenance calories, labelled, and use them only on request', async ({page}) => {

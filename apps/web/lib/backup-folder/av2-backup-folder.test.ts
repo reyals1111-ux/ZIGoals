@@ -89,6 +89,18 @@ describe('the scheduled copy', () => {
     expect(stored()).toEqual({version: 1, savedOn: '2026-11-22', schedule: {every: 'week', folder: 'Backups', lastOn: '2026-11-22'}});
     expect(await runScheduledBackup({storage: localStorage, today: '2026-11-23', handle: folder})).toEqual({state: 'not-due'});
   });
+  // Session AV lane 2 (CI run 2007): Settings → Your data read "No copy yet. A copy is due now." after "Make a copy now"
+  // wrote one, because the record was written without telling the page's readers; now every reader is told, once.
+  test('a written copy tells the page\'s readers of the schedule, as a component\'s own save does', async () => {
+    Object.assign(window, {showDirectoryPicker: async () => fakeFolder()});
+    const {runScheduledBackup} = await import('./run');
+    const told: unknown[] = [], listen = (e: Event) => told.push((e as CustomEvent<string>).detail);
+    window.addEventListener('zigoals:zigi-store', listen);
+    try {
+      expect((await runScheduledBackup({storage: store(r({schedule: {every: 'week', folder: 'Backups', lastOn: '2026-11-01'}})), today: '2026-11-22', handle: fakeFolder()})).state).toBe('written');
+      expect(told).toEqual([BACKUP_REMINDER_KEY]);
+    } finally { window.removeEventListener('zigoals:zigi-store', listen); }
+  });
   test('the browser wants a tap: nothing is written until the tap; a browser without folders reminds; no schedule: off', async () => {
     Object.assign(window, {showDirectoryPicker: async () => fakeFolder()});
     const {runScheduledBackup} = await import('./run');

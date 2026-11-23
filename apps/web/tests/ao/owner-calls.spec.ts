@@ -20,7 +20,16 @@ test('RR-16: Showcase Wealth at 1440 folds its long sections; an opened one is r
   await expect(page.getByRole('button', {name: /^Your wealth over time/})).toHaveAttribute('aria-expanded', 'true');
   await expect(page.getByRole('button', {name: /^Budgets by category/})).toHaveAttribute('aria-expanded', 'false');
   await page.goto('/app/wealth?view=budgets'); await hydrated(page);
-  await expect(page.locator('#budgets-title')).toBeInViewport({timeout: 10_000});
+  // Session AV lane 2 (CI run 2007; deliberate): inside its fold the section's title is said by the fold's row only (P-36:
+  // the h2 stays for screen readers and jumps, 1 px wide, so it is never "in the viewport"). What a person meets is
+  // checked instead: the row, opened, in view with the section under it, and the focus on the section's title.
+  const row = page.getByRole('button', {name: /^Budgets by category/});
+  await expect(row).toBeInViewport({ratio: 1, timeout: 10_000});
+  await expect(row).toHaveAttribute('aria-expanded', 'true');
+  // Seen, not under the page's sticky header: the row is what is at its own centre.
+  await expect.poll(() => row.evaluate(el => { const r = el.getBoundingClientRect(), hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!hit && el.contains(hit); })).toBe(true);
+  await expect(page.locator('#budgets')).toBeInViewport();
+  await expect(page.locator('#budgets-title')).toBeFocused();
 });
 
 test('T-069: on Showcase phone pages the notice keeps "On this device" whole on one line beside the longer label', async ({page, isMobile}) => {
