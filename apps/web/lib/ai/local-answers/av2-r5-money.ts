@@ -132,10 +132,17 @@ add(mergeAccounts);
 
 // ── Try a change on the forecast (#388) ────────────────────────────────────────────────────────────────────────────
 const moreOf = (env: ToolEnv): MoneyMore | null => (env as ToolEnv & {moneyMore?: MoneyMore | null}).moneyMore ?? akOf(env).moneyMore ?? null;
+/**
+ * "What if" as the name of the kept sets ("my what if scenarios", "mijn wat als scenario's"), never a hypothetical: "what
+ * if I add 50 a month", "wat als ik 50 per maand extra inleg" is a request for the person's AI (the engine's own ADVICE
+ * rule sends "what if" there too), whose what-if card it proposes (Session AV lane 2, CI run 2011: journey 8 lost it).
+ */
+const WHAT_IF_EN = /\bwhat ifs\b|\bwhat if (?:scenarios?|changes?|sets?|models?|tool)\b|\b(?:my|the|kept|saved|any) what ifs?\b/;
+const WHAT_IF_NL = /\bwat als (?:scenarios?|wijziging(?:en)?|sets?|model(?:len)?)\b|\b(?:mijn|de|bewaarde) wat als\b/;
 /** "What changes have I tried on my forecast", "welke wijzigingen heb ik op mijn prognose geprobeerd". */
 function whatIfs(a: Asked): LocalReply | null {
-  const en = /\bwhat ifs?\b|\bscenarios?\b|\bchanges?\b.*\btried\b|\btried\b.*\bchanges?\b|\btry a change\b/.test(a.f) && /\bforecast\b|\bwhat ifs?\b|\bscenarios?\b|\btry a change\b/.test(a.f);
-  const nl = /\bwat als\b|\bscenarios?\b|\bwijziging(?:en)?\b.*\bgeprobeerd\b/.test(a.f) && /\bprognose\b|\bwat als\b|\bscenarios?\b/.test(a.f);
+  const en = (WHAT_IF_EN.test(a.f) || /\bscenarios?\b|\bchanges?\b.*\btried\b|\btried\b.*\bchanges?\b|\btry a change\b/.test(a.f)) && (WHAT_IF_EN.test(a.f) || /\bforecast\b|\bscenarios?\b|\btry a change\b/.test(a.f));
+  const nl = (WHAT_IF_NL.test(a.f) || /\bscenarios?\b|\bwijziging(?:en)?\b.*\bgeprobeerd\b/.test(a.f)) && (WHAT_IF_NL.test(a.f) || /\bprognose\b|\bscenarios?\b/.test(a.f));
   if (!(en || nl)) return null;
   const shut = closed(a.env, 'wealth'); if (shut) return shut;
   const kept = moreOf(a.env)?.whatIfs ?? [], calls = call('cash_forecast', {whatIfs: kept.length}, 'Cash forecast · try a change');
