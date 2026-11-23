@@ -114,7 +114,11 @@ function bringUpAnswer(a: Asked): LocalReply | null {
 
 /** "what time is my bedtime tonight", "wanneer is mijn bedtijd vanavond" (LEDGER #419): a fact from the goal, never "you must". */
 function bedtimeAnswer(a: Asked): LocalReply | null {
-  if (!(/\bbedtime tonight\b|\btonight(?:'| )?s bedtime\b|\bwhat time\b.*\bbed tonight\b.*\b(?:goal|wake)\b|\bwhen\b.*\bbed tonight\b.*\b(?:sleep goal|wake)\b/.test(a.f) || /\bbedtijd vanavond\b|\bhoe laat\b.*\bvanavond naar bed\b.*\b(?:doel|wakker)\b/.test(a.f))) return null;
+  // Session AV lane 2 (fr-answers; FR-S-4): "hoe laat moet ik vanavond naar bed" and "what time should I go to bed tonight"
+  // ask the same: tonight's bedtime from the sleep goal, never the clock (NOVA's stage answers the clock only when this has no answer).
+  if (!(/\bbedtime tonight\b|\btonight(?:'| )?s bedtime\b|\bwhat time\b.*\bbed tonight\b.*\b(?:goal|wake)\b|\bwhen\b.*\bbed tonight\b.*\b(?:sleep goal|wake)\b/.test(a.f) || /\bbedtijd vanavond\b|\bhoe laat\b.*\bvanavond naar bed\b.*\b(?:doel|wakker)\b/.test(a.f)
+    || /\b(?:what time|when) (?:should|do|must) i (?:go to bed|go to sleep|be in bed|get to bed)(?: tonight)?\b|\bwhat(?:s| is) my bedtime(?: tonight)?\b/.test(a.f)
+    || /\b(?:hoe laat|wanneer) (?:moet|zou|ga) ik (?:vanavond )?(?:naar bed|gaan slapen|slapen|in bed liggen)\b|\b(?:hoe laat|wanneer) is mijn bedtijd\b|\bwat is mijn bedtijd\b/.test(a.f))) return null;
   const shut = closed(a.env, 'health'); if (shut) return shut;
   const t = tonight(sleepOf(a), a.env.healthDay, null, a.env.healthZone), lang = a.lang;
   if (t.kind === 'no-goal') return answer(say(lang, 'Tonight’s bedtime needs your own sleep goal: set it in Health → Sleep, and the bedtime is worked out from it and your usual wake time.', 'De bedtijd van vanavond heeft je eigen slaapdoel nodig: stel het in bij Health → Sleep, dan wordt de bedtijd berekend uit dat doel en je gewone wektijd.'), CALLS);
