@@ -36,14 +36,16 @@ export default function NoteTableEdit({value, onChange, onClose}: {value: string
         <SecretGuard text={name} onRemove={() => setName('')}/>
         <button type="button" className="secondary" onClick={() => { apply(x => addColumn(x, name), `The column “${name.trim() || `Column ${t.head.length + 1}`}” was added.`); setName(''); }}>Add a column</button>
       </div>
+      {/* Session AV lane 2 (fixb5): Row and Column are named by their label's own word (aria-labelledby): inside the <label>
+          their options' words were part of the label's text, so "Column" did not find its select by its label. */}
       {t.rows.length > 0 && <div className="note-actions">
-        <label className="field"><span>Row</span><select value={Math.min(row, t.rows.length - 1)} onChange={e => setRow(Number(e.target.value))}>{t.rows.map((r, i) => <option key={i} value={i}>Row {i + 1}{r[0]?.trim() ? `: ${r[0].slice(0, 30)}` : ''}</option>)}</select></label>
+        <label className="field"><span id={`${id}-row-name`}>Row</span><select aria-labelledby={`${id}-row-name`} value={Math.min(row, t.rows.length - 1)} onChange={e => setRow(Number(e.target.value))}>{t.rows.map((r, i) => <option key={i} value={i}>Row {i + 1}{r[0]?.trim() ? `: ${r[0].slice(0, 30)}` : ''}</option>)}</select></label>
         <button type="button" className="quiet" disabled={row <= 0} onClick={() => { apply(x => moveRow(x, row, -1), `Row ${row + 1} moved up.`); setRow(row - 1); }}>Move up</button>
         <button type="button" className="quiet" disabled={row >= t.rows.length - 1} onClick={() => { apply(x => moveRow(x, row, 1), `Row ${row + 1} moved down.`); setRow(row + 1); }}>Move down</button>
         <button type="button" className="quiet" onClick={() => { apply(x => removeRow(x, Math.min(row, t.rows.length - 1)), `Row ${Math.min(row, t.rows.length - 1) + 1} was removed.`); setRow(Math.max(0, Math.min(row, t.rows.length - 2))); }}>Remove row</button>
       </div>}
       <div className="note-actions">
-        <label className="field"><span>Column</span><select value={Math.min(col, t.head.length - 1)} onChange={e => setCol(Number(e.target.value))}>{t.head.map((_, c) => <option key={c} value={c}>{colName(c)}</option>)}</select></label>
+        <label className="field"><span id={`${id}-col-name`}>Column</span><select aria-labelledby={`${id}-col-name`} value={Math.min(col, t.head.length - 1)} onChange={e => setCol(Number(e.target.value))}>{t.head.map((_, c) => <option key={c} value={c}>{colName(c)}</option>)}</select></label>
         <button type="button" className="quiet" disabled={t.rows.length < 2} onClick={() => apply(x => sortBy(x, col, 'up'), `Sorted by “${colName(col)}”, A to Z (small to large).`)}>Sort A to Z</button>
         <button type="button" className="quiet" disabled={t.rows.length < 2} onClick={() => apply(x => sortBy(x, col, 'down'), `Sorted by “${colName(col)}”, Z to A (large to small).`)}>Sort Z to A</button>
         <button type="button" className="quiet" disabled={t.head.length <= 1} onClick={() => { apply(x => removeColumn(x, Math.min(col, t.head.length - 1)), `The column “${colName(col)}” was removed.`); setCol(0); }}>Remove column</button>

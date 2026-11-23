@@ -44,6 +44,9 @@ test('with Health hidden, no mood shows on the Day Timeline', async ({page}) => 
   await page.goto('/app/settings'); await settle(page);
   await page.evaluate(([k, h, e, s]) => { localStorage.setItem(k!, h!); localStorage.setItem('zigoals:energy:v1', e!); localStorage.setItem('zigoals:settings:v1', s!); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); }, [HEALTH_STORAGE_KEY, health, energy, JSON.stringify(settings)]);
   await page.goto('/app/timeline'); await settle(page);
-  await expect(page.locator('.timeline-page')).toHaveAttribute('data-timeline', 'ready');
+  // Session AV lane 2 (fixb5; deliberate): the day holds only Health's mood and energy, so with Health hidden nothing is on it
+  // and the timeline is read and "quiet" (day-timeline.tsx: no block, no any-time row). "quiet" is the stricter check: a
+  // single mark would make it "ready", as the test above shows.
+  await expect(page.locator('.timeline-page')).toHaveAttribute('data-timeline', 'quiet');
   await expect(page.locator('[data-kind=mark]')).toHaveCount(0);
 });

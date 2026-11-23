@@ -32,7 +32,9 @@ for (const theme of THEMES) test(`${theme}: merge two accounts, with Undo`, asyn
   await expect(panel.getByRole('list', {name: 'What the merge moves'})).toContainText('1 balance of ING Current goes to ING Betaalrekening.');
   await expect(panel.getByRole('checkbox', {name: /^ING Current/})).toBeChecked();
   await expect(panel).toContainText('2 entries take the name “ING Betaalrekening”.');
-  await expect(panel.getByRole('checkbox', {name: /Remove the copy of Groceries/})).toBeChecked();
+  // Session AV lane 2 (fixb5; deliberate): the box names which account's copy goes ("from ING Current", merge-accounts.tsx),
+  // so its whole name is checked.
+  await expect(panel.getByRole('checkbox', {name: 'Remove the copy from ING Current of Groceries · Sep 2, 2026 · €20.00 (ref R1)', exact: true})).toBeChecked();
   const findings = await axe(page, panel);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   await panel.getByRole('button', {name: 'Merge ING Current into ING Betaalrekening'}).click();
