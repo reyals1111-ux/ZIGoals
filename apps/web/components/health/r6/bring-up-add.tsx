@@ -9,8 +9,8 @@ import {showStatus, showUndo} from '../../ui/undo-toast';
  * kept for "Report for a visit" (`zigoals:bring-up:v1`), from a journal entry (its first sentence) or a feeling word,
  * with Undo and a link to the list. The record's code loads on the tap.
  */
-export default function BringUpAdd({text, from, day, className = 'quiet'}: {text: string; from: 'journal' | 'checkin'; day: string; className?: string}) {
-  const [said, setSaid] = useState('');
+export default function BringUpAdd({text, from, day, className = 'quiet', say}: {text: string; from: 'journal' | 'checkin'; day: string; className?: string; /** Session AV lane 2 (fix2011): the section's own status line, where there is one (the feeling words'); else its own. */ say?: (text: string) => void}) {
+  const [own, setOwn] = useState(''), setSaid = say ?? setOwn;
   async function add() {
     try {
       const {BRING_UP, BRING_UP_UNREADABLE, BRING_UP_UNREADABLE_UNDO, addBringUpIn, bringUpLineFrom, newBringUpId, takeBackBringUpIn} = await import('../../../lib/clinician-report/bring-up');
@@ -24,6 +24,6 @@ export default function BringUpAdd({text, from, day, className = 'quiet'}: {text
   }
   return <>
     <button type="button" className={className} onClick={() => void add()}>Bring this up at my next visit</button>
-    <span className="sr-only" role="status" aria-live="polite">{said}</span>
+    {!say && <span className="sr-only" role="status" aria-live="polite">{own}</span>}
   </>;
 }
