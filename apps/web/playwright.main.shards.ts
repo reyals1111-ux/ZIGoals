@@ -385,6 +385,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'platform-visual.spec.ts', 'progress-glass.spec.ts', 'run11-food-volume.spec.ts', 'run9.spec.ts',
     'staking-errors.spec.ts', 'switch-import.spec.ts', 'timeline-af.spec.ts', 'timezone-phase4.spec.ts',
     'webkit-timeline.spec.ts', 'zigi-face-z.spec.ts', 'zigi-history-undo.spec.ts', 'zigi-memory-page.spec.ts',
+    'av-update-takeover.spec.ts', // Session AV lane 2 (owner follow-up 8): new; not with j04-offline in shard 13
   ],
   // Shard 19, 69.6 worker-min (the larger measured per file).
   [
