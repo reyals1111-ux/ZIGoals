@@ -1598,6 +1598,233 @@ Notes for the owner:
   - Money: 7
   - All: 41
 
+## Rounds 2–6: final verdicts (owner follow-up 6; 23 Nov 2026)
+
+The round tables above keep the verdict each row had when it was written ("to build"). Here is where each ended, on
+`feature/session-av-2`: **built** where a lane 2 commit names the row (`git log --no-merges 1c1b5953..HEAD`, its number or
+a short range), each one checked against the row by the round's fresh-agent review (QUALITY.md, batches 2–6); **Carried**
+with the row's own cause. No row was unwired. Round 7 (#432–#464) is "to build — next session" (follow-up 5).
+
+| round | rows | built | Carried |
+|---|---|---|---|
+| 2 | 33 | 32 | 1 |
+| 3 | 44 | 41 | 3 |
+| 4 | 48 | 47 | 1 |
+| 5 | 43 | 42 | 1 |
+| 6 | 41 | 41 | 0 |
+
+| # | round | app | feature | verdict | commits naming the row (oldest last; up to four) |
+|---|---|---|---|---|---|
+| 223 | 2 | Microsoft To Do | My Day | built | `f3eaef8b`, `345069d9`, `dddaace8` |
+| 224 | 2 | Google Tasks | Reminders from notes saved as tasks | built | `3ce77605` |
+| 225 | 2 | Google Tasks | Print your tasks | built | `cc04e71d` |
+| 226 | 2 | Any.do | Templates gallery | built | `c888af03` |
+| 227 | 2 | Any.do | Import from other task apps | built | `70998f4a` |
+| 228 | 2 | Any.do | Automations | built (part Carried, as the row says) | `68f259c6`, `5cbe2d69` |
+| 229 | 2 | Any.do | Custom fields | built | `c5b4affe`, `05bb42c2` |
+| 230 | 2 | Reflectly | Morning motivation and a daily challenge | built | `9cadeab3`, `d4ac520d`, `c68d1b95`, `e3d0b78f` |
+| 231 | 2 | Reflectly | A space to vent | built | `d4ac520d`, `c68d1b95` |
+| 232 | 2 | Moodnotes | Feelings with a strength | built | `d4ac520d`, `a3706eb1`, `e3d0b78f` |
+| 233 | 2 | Moodnotes | Thinking traps and the thought checker | built | `d4ac520d`, `5eb1b16e` |
+| 234 | 2 | Moodnotes | Self-awareness articles | Carried (Carried — needs content made for ZIGoals) | — |
+| 235 | 2 | Rise | Energy schedule and its reminders | built (part Carried, as the row says) | `d4ac520d`, `0f642e0e`, `5d44cc3e` |
+| 236 | 2 | Rise | Habits at suggested times | built | `d4ac520d`, `0f642e0e`, `5d44cc3e` |
+| 237 | 2 | Rise | Naps and their effect | built | `d4ac520d`, `5f6e117d` |
+| 238 | 2 | Rise | Sleep need from your own nights | built | `d4ac520d`, `5f6e117d` |
+| 239 | 2 | Fitbod | Gym profiles and equipment | built | `d4ac520d`, `f4a15b05`, `53db4101` |
+| 240 | 2 | Fitbod | A workout made for today | built | `d4ac520d`, `f4a15b05` |
+| 241 | 2 | Fitbod | Replace an exercise | built | `d4ac520d`, `f4a15b05` |
+| 242 | 2 | Wallet by BudgetBakers | Record templates | built | `22e104c6`, `c3528932`, `3d024d2d` |
+| 243 | 2 | Spendee | Daily amount left | built | `3b89f54a` |
+| 244 | 2 | Wallet by BudgetBakers | Payment types | built | `c3528932` |
+| 245 | 2 | Wallet by BudgetBakers | Planned payments with automatic confirmation | built | `a23cf013` |
+| 246 | 2 | Spendee | Budgets by label | built | `3b89f54a` |
+| 247 | 2 | Wallet by BudgetBakers | One-time budgets across categories | built | `3b89f54a` |
+| 248 | 2 | Emma | Unusual-transaction alerts | built | `a23cf013` |
+| 249 | 2 | Wallet by BudgetBakers | Balance-limit notifications | built | `27c994ad`, `a23cf013` |
+| 250 | 2 | Emma | Merchant-based budgets | built | `3b89f54a` |
+| 251 | 2 | Emma | Subcategories | built | `c3528932` |
+| 252 | 2 | Emma | Custom Split and Settle in Group | built (part Carried, as the row says) | `ca24b668` |
+| 253 | 2 | Wallet by BudgetBakers | Debts: lent and borrowed | built | `ca24b668` |
+| 254 | 2 | Wallet by BudgetBakers | Loyalty and club cards | built (part Carried, as the row says) | `b9cea805` |
+| 255 | 2 | Emma | Spaces: personal and business | built | `22e104c6`, `150613e8`, `3d024d2d`, `dddaace8` |
+| 256 | 3 | Structured | Morning planning and overdue reminders | built | `3ca8b235`, `a1e9f528`, `3d27688e` |
+| 257 | 3 | Structured | Task icons and colours | built | `e0624632`, `a1e9f528` |
+| 258 | 3 | Structured | A timeline for any day | built | `aff1be25`, `a1e9f528` |
+| 259 | 3 | Structured | Energy Monitor | built | `765d34af`, `dc8c2c25`, `a1e9f528` |
+| 260 | 3 | Structured | Notes during a focus session | built | `0f7181ca`, `24966a89`, `a1e9f528` |
+| 261 | 3 | Structured | Copy and clear a day | built | `c29cbc41`, `dcfc9569` |
+| 262 | 3 | Structured | Cycle Seasons on the day plan | built (part Carried, as the row says) | `43bb0bfd`, `a1e9f528` |
+| 263 | 3 | Structured | A font for reading with dyslexia | built | `df64c4d8`, `74be6960`, `22f4b54d`, `d55e5698` |
+| 264 | 3 | Obsidian | Tick boxes in notes, gathered | built | `e02b7f67`, `09a09ba3` |
+| 265 | 3 | Grid Diary | Every answer to one prompt | built | `15d36853` |
+| 266 | 3 | Grid Diary | Grid layout and the Mandala | built | `2aacb1f5` |
+| 267 | 3 | Obsidian | Highlights in six colours | built | `09a09ba3` |
+| 268 | 3 | Obsidian | Outline of a note | built | `d53c7ddf` |
+| 269 | 3 | Grid Diary | Entries for a week, a month or a year | built | `9d47c129`, `3c7c0bbe` |
+| 270 | 3 | Obsidian | Bases: views of notes by their properties | built | `c7ea1e86`, `7e1bfce4` |
+| 271 | 3 | Obsidian | Print a note or save it as PDF | built | `d53c7ddf` |
+| 272 | 3 | Grid Diary | Export as Markdown | built | `7cca33e8` |
+| 273 | 3 | Obsidian | Canvas | built | `e02b7f67`, `7db6f0d9`, `7e1bfce4` |
+| 274 | 3 | Obsidian | Diagrams from text (Mermaid) | Carried (Carried — a new dependency) | — |
+| 275 | 3 | Way of Life | Reminders in your own words | built | `4b16cf79`, `cbc0018a`, `01d4c644`, `790a8490` |
+| 276 | 3 | Way of Life | Trend per habit | built | `cbc0018a`, `01d4c644` |
+| 277 | 3 | Stoic | Quotes from Stoic writers | built | `e02b7f67`, `4339c1b3`, `3c7c0bbe` |
+| 278 | 3 | Stoic | Dream journal from the sleep log | built (part Carried, as the row says) | `e02b7f67`, `f3127128`, `3c7c0bbe` |
+| 279 | 3 | Stoic | A letter to open later | built | `e02b7f67`, `e1e39703`, `8feb4c73`, `3c7c0bbe` |
+| 280 | 3 | Waterllama | Reminders through the day | built | `5fc6ad5f`, `4db3d334`, `cbc0018a`, `07a42d8b` |
+| 281 | 3 | Waterllama | Your own drinks | built | `cbc0018a`, `07a42d8b`, `cec6b6ee` |
+| 282 | 3 | Waterllama | Calories from drinks | built | `8a66c886`, `c305237e`, `cbc0018a`, `07a42d8b` |
+| 283 | 3 | Waterllama | Hydration tips | built | `cbc0018a`, `07a42d8b`, `cec6b6ee` |
+| 284 | 3 | Carb Manager | Glucose and ketones beside meals | built | `0c3bac58`, `cbc0018a`, `18bbd9ff`, `bf032010` |
+| 285 | 3 | Carb Manager | Glycemic load per food | Carried (Carried — needs content made for ZIGoals) | — |
+| 286 | 3 | Carb Manager | Weigh-in reminders | built | `24f66b67`, `f62714bc`, `cbc0018a`, `0c435de9` |
+| 287 | 3 | Carb Manager | Goals on any health number | built (part Carried, as the row says) | `818f644b`, `5fc6ad5f`, `c305237e`, `5b4ba416` |
+| 288 | 3 | Nike Training Club | Find a workout by length, muscle and place | built | `cbc0018a`, `f58d5b18` |
+| 289 | 3 | Nike Training Club | Timed circuit workouts | built | `a03edcc3`, `a03b6fb1`, `cbc0018a`, `82f2d923` |
+| 290 | 3 | Nike Training Club | Trainer-led classes, yoga, Pilates and recovery | Carried (Carried — needs content made for ZIGoals) | — |
+| 291 | 3 | PocketGuard | Leftover for the month | built | `776a10e4`, `ddbc9750`, `3730e010`, `7a76fbfe` |
+| 292 | 3 | Simplifi | Planned spending | built | `3730e010`, `eda551e6`, `f72ac706` |
+| 293 | 3 | Simplifi | A credit card's limit and use | built | `faa9b6c8`, `27c994ad`, `cd95b493`, `f72ac706` |
+| 294 | 3 | Simplifi | Projected balances a year ahead | built | `eda551e6`, `f72ac706` |
+| 295 | 3 | PocketGuard | Needs, wants and saving | built (part Carried, as the row says) | `baa9d44f`, `3f5e1841`, `1d5ce1f5`, `f72ac706` |
+| 296 | 3 | PocketGuard | Spending beside daily routines | built | `8c9c2bdf`, `c2435100` |
+| 297 | 3 | Simplifi | Comparison report with a waterfall | built | `1d5ce1f5` |
+| 298 | 3 | Simplifi | What moved your net worth this month | built | `682fd2aa` |
+| 299 | 3 | Simplifi | Tags from imported files | built | `776a10e4`, `7a76fbfe`, `ba6d142a`, `3d27688e` |
+| 300 | 4 | Motion | Auto-scheduling over the coming days | built | `a40d2fc2`, `19d2412d`, `f6cc7798` |
+| 301 | 4 | Motion | Working hours per day | built | `a8862547`, `219c14ec`, `bfb441fd`, `e4f12101` |
+| 302 | 4 | Motion | A deadline at risk | built | `19d2412d` |
+| 303 | 4 | Motion | Split a long task | built | `19d2412d`, `3684078a` |
+| 304 | 4 | Motion | A task that waits for another | built | `19d2412d`, `3684078a` |
+| 305 | 4 | Motion | A repeat that floats in its week | built | `a8862547`, `58382c6d`, `a40d2fc2`, `19d2412d` |
+| 306 | 4 | Bear | Tags in the text, nested, and a tag as a workspace | built | `98fe6190`, `e739083a`, `a766f8fb`, `80ac6c74` |
+| 307 | 4 | Bear | Several photos placed in a note | built | `468a7e5f`, `205b2f0d`, `22f8ff04`, `a766f8fb` |
+| 308 | 4 | Journey | Formatting and tick boxes in an entry | built | `8916393f`, `af01a217` |
+| 309 | 4 | Journey | Throwback a week, a month and a year back | built | `de7ff111`, `8916393f`, `0191a086`, `9d4e8a51` |
+| 310 | 4 | Journey | Favourites, mood and order in the list | built | `8916393f`, `f42b6a01`, `9d4e8a51` |
+| 311 | 4 | Bear | Note info | built | `a766f8fb`, `6ea1b146` |
+| 312 | 4 | Bear | Find and replace in a note | built | `f4885f8e`, `dfff0375`, `a766f8fb`, `1c53576b` |
+| 313 | 4 | Bear | Fold a section | built | `a766f8fb`, `cfc3e612` |
+| 314 | 4 | Bear | Callouts | built | `a766f8fb`, `0974b1f3` |
+| 315 | 4 | Bear | Archive a note | built | `a766f8fb`, `6c403532`, `6d673503` |
+| 316 | 4 | Bear | A writing view (typewriter mode) | built | `a766f8fb`, `5976a3d9`, `6d673503` |
+| 317 | 4 | Journey | More photos in an entry | built | `bf97b448`, `8916393f`, `f13e5b7f`, `9d4e8a51` |
+| 318 | 4 | Bear | Lock a note | built | `c39121f9`, `a766f8fb`, `3e3ced4f`, `fac13a06` |
+| 319 | 4 | Bear | More ways to export a note | built | `a766f8fb`, `0658f031` |
+| 320 | 4 | Journey | E-book and Word export | built | `08925c2f`, `a766f8fb`, `55b98c8e` |
+| 321 | 4 | Bear | Imports from Evernote and Bear | built | `c68ccbb6`, `14d9f26a`, `7dbbd236`, `50638350` |
+| 322 | 4 | Bear | Math formulas | Carried (Carried — a new dependency) | — |
+| 323 | 4 | Atoms | The person behind the habits | built | `8916393f`, `9cc38df7`, `0ebb9350` |
+| 324 | 4 | How We Feel | What a feeling word means | built | `8916393f`, `6ee263a1`, `0ebb9350` |
+| 325 | 4 | How We Feel | Strategies for a feeling | built (part Carried, as the row says) | `8916393f`, `6ee263a1` |
+| 326 | 4 | How We Feel | Where you feel it | built | `8916393f`, `6ee263a1`, `0ebb9350` |
+| 327 | 4 | Atoms | Start small, then step up | built | `82a133b7`, `8916393f`, `9cc38df7`, `0ebb9350` |
+| 328 | 4 | Noom | A planned free day | built | `bfd39d4c`, `613dcb6b`, `97c5a38b`, `71293af1` |
+| 329 | 4 | Noom | A note for a harder week | built | `d4af07fe`, `dc2f747e` |
+| 330 | 4 | Runna | Plan, move and realign workouts | built | `cde33e9a`, `1eb783ac`, `d4dc3839`, `0e9dd885` |
+| 331 | 4 | Noom | Keep your weight in a band | built | `c4d5302e`, `d4af07fe`, `dc2f747e` |
+| 332 | 4 | Pillow | Sleep beside caffeine, steps and weight | built | `09e691a9`, `5b27da3a`, `d81e4e60` |
+| 333 | 4 | Pillow | Your sleep timing on free days | built | `75f32d09` |
+| 334 | 4 | Pillow | A sleep tip a day | built | `faab79db`, `75f32d09`, `dc2f747e` |
+| 335 | 4 | Pillow | A nap timer | built (part Carried, as the row says) | `6afe79b9`, `f979c456`, `93273a6c`, `10c158c1` |
+| 336 | 4 | Runna | Heart-rate zones | built | `726fd9f8`, `62bf9b7c`, `dc2f747e` |
+| 337 | 4 | Runna | Races ahead in one view | built | `bfd39d4c`, `09e691a9`, `57648861`, `5cac5e63` |
+| 338 | 4 | Lunch Money | A calendar of the month's money | built | `79983982` |
+| 339 | 4 | Actual Budget | Sums in an amount | built | `0831b535` |
+| 340 | 4 | Actual Budget | Reconcile an account | built | `4bced39a`, `0c11c3aa` |
+| 341 | 4 | Lunch Money | Group entries into one | built | `cb0cdfb5`, `0c11c3aa` |
+| 342 | 4 | Lunch Money | Archive a category | built | `cb0cdfb5`, `0c11c3aa` |
+| 343 | 4 | Actual Budget | Monthly spending with an average and a trend | built | `2aea49da`, `7fe1ab19` |
+| 344 | 4 | Lunch Money | Saved questions with a chart | built | `4bced39a`, `0c11c3aa` |
+| 345 | 4 | Actual Budget | Investment income against spending | built | `7fe1ab19`, `0c11c3aa` |
+| 346 | 4 | Actual Budget | Payee places | built | `0831b535`, `0c11c3aa` |
+| 347 | 4 | Lunch Money | Starter category sets | built | `cb0cdfb5`, `f6cc7798` |
+| 348 | 5 | Akiflow | Time slots | built | `64b55a74`, `399487ff`, `3e8dd40a`, `6008ae44` |
+| 349 | 5 | Akiflow | A week or a month without a day | built | `399487ff`, `3e8dd40a` |
+| 350 | 5 | Logseq | Doing and Cancelled as task states | built | `65be7075`, `399487ff`, `3e8dd40a` |
+| 351 | 5 | Tiimo | Timers on the steps of a task | built | `399487ff` |
+| 352 | 5 | Akiflow | Earlier finishes of a repeating task | built | `399487ff` |
+| 353 | 5 | Akiflow | Travel time before an event | built | `5d931132`, `399487ff`, `3e8dd40a` |
+| 354 | 5 | Akiflow | A place on a task | built | `399487ff`, `3e8dd40a` |
+| 355 | 5 | Akiflow | Files on a task | built | `76ead8b2`, `b2e0cc67`, `29352432`, `1242ec7f` |
+| 356 | 5 | Akiflow | A link to a task | built | `399487ff` |
+| 357 | 5 | Akiflow | A second time zone | built | `64b55a74`, `399487ff`, `3e8dd40a` |
+| 358 | 5 | Logseq | Mentions without a link | built | `b2e0cc67`, `29352432`, `ff6baa8f` |
+| 359 | 5 | Logseq | Act on several notes at once | built | `ff6baa8f` |
+| 360 | 5 | Logseq | Deleted notes kept for 30 days | built | `76ead8b2`, `ff6baa8f`, `43bb7564` |
+| 361 | 5 | Logseq | A line of another note inside this one | built | `ff6baa8f` |
+| 362 | 5 | Logseq | A template for every note with a tag | built | `ff6baa8f`, `43bb7564` |
+| 363 | 5 | Craft | Change a table in a note | built | `ff6baa8f` |
+| 364 | 5 | Craft | A note for a calendar event | built | `da8251b2` |
+| 365 | 5 | Logseq | Flashcards with spaced repetition | built | `fbe3494a`, `3e138a23` |
+| 366 | 5 | Craft | Daily notes for a range of days | built | `c66d14a8` |
+| 367 | 5 | Craft | A note's look | built | `b2e0cc67`, `29352432`, `be1e9a84`, `43bb7564` |
+| 368 | 5 | Logseq | Notes on a PDF | Carried (a new dependency) | — |
+| 369 | 5 | Productive | One reminder for each part of the day | built | `22c8f8f7`, `c9e13b4e`, `913db206` |
+| 370 | 5 | Tiimo | Moods on the day | built | `f3abc26a`, `22c8f8f7`, `c3f09439` |
+| 371 | 5 | Bevel | A late meal read from the food log | built | `22c8f8f7`, `81cc035d`, `913db206` |
+| 372 | 5 | Gentler Streak | How you feel today changes the suggestion | built | `bde02b8f`, `65ca1ec3`, `692314b0`, `39df9f4c` |
+| 373 | 5 | Bevel | A routine that keeps your last weights | built | `65ca1ec3`, `692314b0`, `3c724539`, `8393f575` |
+| 374 | 5 | Gentler Streak | A status for when you are ill, injured or on a break | built | `bde02b8f`, `65ca1ec3`, `692314b0`, `ec898ba3` |
+| 375 | 5 | Gentler Streak | How much movement suits this week | built | `65ca1ec3`, `692314b0`, `6da48814` |
+| 376 | 5 | Gentler Streak | Everyday movement as activities | built | `65ca1ec3`, `692314b0`, `f13b3936` |
+| 377 | 5 | Gentler Streak | Photos and favourites in the workout journal | built | `698cad9b`, `bde02b8f`, `65ca1ec3`, `692314b0` |
+| 378 | 5 | Bevel | Plates on one side | built | `65ca1ec3`, `692314b0`, `729fd45f`, `8393f575` |
+| 379 | 5 | Clue | Your cycles listed, with averages | built | `21753b64`, `22c8f8f7`, `4d8ab865` |
+| 380 | 5 | Clue | Your own things to track, chosen and ordered | built | `cec48d56`, `9941b202`, `22c8f8f7`, `4d8ab865` |
+| 381 | 5 | Clue | A cycle at a glance | built | `21753b64`, `22c8f8f7`, `4d8ab865` |
+| 382 | 5 | Clue | Leave a cycle out of the averages | built | `e3dfe06d`, `8d28cef2`, `22c8f8f7`, `4d8ab865` |
+| 383 | 5 | Clue | Tracking without a period, and perimenopause | built | `868b2356`, `22c8f8f7`, `4d8ab865`, `913db206` |
+| 384 | 5 | Tiller | A short money summary each morning | built | `8fca1ba9`, `d0d2a2ff`, `f894d31b`, `7fb90d07` |
+| 385 | 5 | Tiller | This year so far against the budgets | built | `647311b9`, `d0d2a2ff`, `45c3eaac` |
+| 386 | 5 | PocketSmith | An overdue bill paid early | built | `10d1e412`, `d0d2a2ff`, `f11ceaab` |
+| 387 | 5 | Tiller | Merge two accounts | built | `5262458e`, `a8ad8cec`, `61bfbebd`, `d0d2a2ff` |
+| 388 | 5 | PocketSmith | What-if on the cash forecast | built | `8a0549de`, `3816edb8`, `d0d2a2ff`, `7d9d2aee` |
+| 389 | 5 | Tiller | Your money as a spreadsheet | built | `d1caa9a4`, `d0d2a2ff`, `389c9e77` |
+| 390 | 5 | PocketSmith | Categories and rules in a file | built | `c493f3f6`, `eb207b23`, `d4b83d7e`, `d0d2a2ff` |
+| 391 | 6 | OmniFocus | Change several tasks at once | built | `de3700ed`, `ba739ea2`, `9eb34b4c`, `7e1b7dee` |
+| 392 | 6 | OmniFocus | A project on hold | built | `2743d02f`, `c9684f39`, `de4c8f2f`, `40a664ca` |
+| 393 | 6 | OmniFocus | Projects in order | built | `2743d02f`, `c9684f39`, `5ce54f18`, `40a664ca` |
+| 394 | 6 | OmniFocus | Only some projects in view | built | `ce6958f9`, `20938ac8`, `40a664ca`, `7e1b7dee` |
+| 395 | 6 | OmniFocus | Review each project every so often | built | `de4c8f2f`, `7e1b7dee`, `461eeb0e` |
+| 396 | 6 | Capacities | A repeating task's record | built | `65be7075`, `7e1b7dee` |
+| 397 | 6 | OmniFocus | One label of a group | built | `52bd79d1`, `de4c8f2f`, `c7558e60`, `7e1b7dee` |
+| 398 | 6 | OmniFocus | The second-to-last weekday of a month | built | `de3700ed`, `9eb34b4c`, `7e1b7dee`, `461eeb0e` |
+| 399 | 6 | Capacities | Rename or merge a tag | built | `11ab9506`, `500c3dbb`, `41021f15`, `97778eeb` |
+| 400 | 6 | Diarium | A daily word goal | built | `62f96d3d`, `ffa9b5db`, `7e8d9553` |
+| 401 | 6 | Diarium | People in an entry | built | `d848b9ee`, `ffa9b5db`, `7e8d9553` |
+| 402 | 6 | Capacities | Daily notes marked as read back | built | `e366bc07`, `7e8d9553` |
+| 403 | 6 | Diarium | On this day for any day | built | `ee28a4f0`, `ffa9b5db` |
+| 404 | 6 | Diarium | Every photo and voice note in one place | built | `ffa9b5db` |
+| 405 | 6 | Capacities | A property changed on several notes at once | built | `e366bc07` |
+| 406 | 6 | Diarium | Lock again after a while away | built | `6364349f`, `c8875f22`, `a43bdb4d` |
+| 407 | 6 | Capacities | Merge two notes | built | `94434e25`, `7e73e4cd`, `e366bc07` |
+| 408 | 6 | Capacities | Sums under a table of notes | built | `e366bc07` |
+| 409 | 6 | Diarium | Sunrise, sunset and the moon on the day | built | `ffa9b5db`, `7e8d9553` |
+| 410 | 6 | Diarium | Imports from more journal apps | built | `5ffead14`, `6548deb9`, `41021f15`, `97778eeb` |
+| 411 | 6 | Medito | When a meditation day ends | built | `9a4df909`, `f1d6d14a`, `0428e071` |
+| 412 | 6 | Moodfit | Your own things that lift you | built | `6e831ae4`, `3da1a461`, `cc266c2b` |
+| 413 | 6 | Medito | Your consistency | built | `0428e071` |
+| 414 | 6 | Moodfit | Grounding | built | `dd42788b` |
+| 415 | 6 | Medito | Log a range of past days | built | `0428e071` |
+| 416 | 6 | Moodfit | A plan for a low day | built | `dd42788b`, `cc266c2b` |
+| 417 | 6 | Moodfit | Things to bring up at an appointment | built | `6e831ae4`, `30a40b8e`, `cc266c2b` |
+| 418 | 6 | Lifesum | Fruit, vegetables and fish counted | built | `5ea1d048`, `ca74a7f9`, `cc266c2b` |
+| 419 | 6 | AutoSleep | Tonight's bedtime | built | `05d0a938`, `465903dd` |
+| 420 | 6 | Caliber | Favourite exercises | built | `bacc28d1`, `cc266c2b` |
+| 421 | 6 | Caliber | A workout left out of your bests | built | `a524cad1`, `bacc28d1`, `cc266c2b` |
+| 422 | 6 | Caliber | Your bests with their days, and a fresh start | built | `bacc28d1`, `cc266c2b` |
+| 423 | 6 | AutoSleep | Time asleep out of time in bed | built | `465903dd` |
+| 424 | 6 | Caliber | An exercise's own defaults | built | `f1d6d14a`, `bacc28d1`, `cc266c2b` |
+| 425 | 6 | Banktivity | A refund that lowers its category | built | `45ba0606`, `48389623`, `781b2ecc` |
+| 426 | 6 | EveryDollar | Each paycheck's own plan | built | `45ba0606`, `4e84f967`, `781b2ecc` |
+| 427 | 6 | EveryDollar | A streak for looking after your money | built | `45ba0606`, `2c9a4d03`, `b2a088b3`, `781b2ecc` |
+| 428 | 6 | Banktivity | Next month's budgets from this month | built | `45ba0606`, `4e84f967`, `781b2ecc` |
+| 429 | 6 | EveryDollar | Budgets in your own order | built | `45ba0606`, `4e84f967`, `781b2ecc` |
+| 430 | 6 | Banktivity | A check of the money records | built | `45ba0606`, `fdfe2832`, `781b2ecc` |
+| 431 | 6 | Banktivity | Put old entries away | built | `45ba0606`, `fdfe2832`, `781b2ecc`, `fb449c2c` |
+
 ## Round 7: rows #432–#464 (owner follow-up 4, item 4g; 22 Nov 2026)
 
 **Owner follow-up 5 (22 Nov 2026, 22:30):** round 7 stops at its research. Every to-build row below is **to build — next session**; nothing of round 7 is in this branch. Drafts of #432–#440, #441–#446 and #449–#455 were made on local branches before the stop, unreviewed and not integrated (ADR-045, "Follow-up 5 — how it is read"). The two Carried rows keep their causes.
