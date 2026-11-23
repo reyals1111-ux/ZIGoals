@@ -745,7 +745,7 @@ UNCHANGED: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudf
   production build of `01858ef3`. Lesson kept for the next session: **no person's words in any URL**, a Link's included.
 
 ## D-BUDGETS-STATUS — the Budgets page's per-panel status lines stay
-- Review O asked whether Budgets' several status lines (one per panel) should become one. They stay: each line belongs
+- A lane 2 review asked whether Budgets' several status lines (one per panel) should become one. They stay: each line belongs
   to the panel whose action it reports ("one live status region per section"), and folding them into one would move a
   message away from the control that caused it. Recorded, not changed.
 
