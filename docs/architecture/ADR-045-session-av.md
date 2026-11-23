@@ -743,6 +743,21 @@ UNCHANGED: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudf
   link and the page carry no name parameter. The tests became stricter (the href is checked plain, then the form is
   checked holding the name). Proof: `public-alpha.spec.ts:201` 2 of 2 and `webkit-au-sanne` green locally on the
   production build of `01858ef3`. Lesson kept for the next session: **no person's words in any URL**, a Link's included.
+- **2012, the other red jobs** (each read at its cause; the app was right in all but one):
+  - Five specs written before deliberate friend-readiness changes, each updated to the new exact text, as strict or
+    stricter: `zigi-no-model-ab` (Dutch "9,72", FR-TJ-4; the Dutch introduction without "voorlopig in het Engels",
+    FR-S-5), `webkit-au-lina` and `ap-money-bill-price` (a rise names the month the new price began, FR-L-18),
+    `send-feedback` (Help's "My day ends at" sentence with the Journal, FR-MAX-7), `logo-quickadd-goals-header` (Quick
+    add's Spending row, FR-L-4). Commits `965d0926`, `8f8b3341`, `187523b5`.
+  - One app bug: `header-art-ae` at 390 — Your data's new "Restore from a backup ↓" (FR-L-7) wrapped into the header
+    art's corner. It now sits under the header (`8f8b3341`).
+  - `zigi-browser-agents:126` (desktop, both attempts): Wealth's tools were not offered within 5 s on `63798740`. On
+    `ed454d25` it passes 24 of 24 locally (`--repeat-each=4`, two workers). Watched in the next run; a red there is
+    investigated, not re-run.
+  - **D-CI2012-SHARDS (TIER 3 CI, `5fe077e2`).** Main shard 14 was cancelled at its 60-min limit (582 of 588 tests); 7 and
+    6 took 59 and 58 min. Per-file worker-minutes from every shard's log (each test start's gap at two workers) put
+    shards 14, 7, 6, 1, 9 and 4 at 93–112 and the others at 67–80. 22 files moved; every list now measures 83–89. No
+    spec, test, assertion or timeout changed; `scripts/ci/main-shards.test.ts` 4 of 4.
 
 ## D-BUDGETS-STATUS — the Budgets page's per-panel status lines stay
 - A lane 2 review asked whether Budgets' several status lines (one per panel) should become one. They stay: each line belongs
