@@ -1,7 +1,8 @@
 'use client';
 import {useRememberedChoice} from '../ui/use-remembered-choice';
 import {useEffect, useId, useMemo, useState} from 'react';
-import {createMarketHistoryCache, fetchPublicMarketHistory, formatHistoryValue, type MarketHistoryResult} from '../../lib/market-history';
+import {formatHistoryValue, type MarketHistoryResult} from '../../lib/market-history';
+import {portfolioHistoryCache as cache} from './history-cache';
 import {formatDate, formatDateTime, formatMoney, formatSignedMoney} from '../../lib/visual-format';
 import {coinKey, type Portfolio} from '../../lib/portfolio/schema';
 import {PortfolioDecimal} from '../../lib/portfolio/math';
@@ -12,7 +13,6 @@ import {FilterChips} from '../markets/filter-chips';
 import './value-chart.css';
 import {ChartLookDefs, useChartLook} from '../charts/chart-defs';
 
-const cache = createMarketHistoryCache((request, refresh) => fetchPublicMarketHistory(request, refresh));
 const LABEL: Record<ValueRange, string> = {'24h': '24H', '7d': '7D', '30d': '30D', '90d': '90D', '1y': '1Y', all: 'All'};
 /** At most this many coins are charted, so one view never asks the market service for more than ten histories. */
 export const MAX_CHART_COINS = 10;
