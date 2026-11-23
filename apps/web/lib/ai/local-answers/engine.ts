@@ -805,21 +805,25 @@ function nutrientAnswer(env: ToolEnv, q: string, nutrient: NutrientName, found: 
 }
 const capital = (s: string) => `${s[0]!.toUpperCase()}${s.slice(1)}`;
 function waterAnswer(env: ToolEnv, q: string, found: DayRange[]): LocalReply {
-  const target = W.target.test(q), average = W.average.test(q);
+  const target = W.target.test(q) || /\b(?:doel|waterdoel|gehaald|halen|haal)\b/.test(q), average = W.average.test(q) || /\bgemiddeld\b/.test(q);
+  // Session AV lane 2 (fr-answers; FR-S-1, FR-TJ-2): a Dutch question gets the Dutch answer, with the same figures.
+  const nl = questionLanguage(q) === 'nl', say = (en: string, du: string) => nl ? du : en, spanIn = (r: DayRange) => nl ? nlSpan(r, env.healthDay) : span(r, env.healthDay);
+  const days_ = (k: number) => nl ? `${n(k, 0)} ${k === 1 ? 'dag' : 'dagen'}` : plural(k, 'day');
   const range = found[0] ?? defaultRange(env.healthDay, target || average ? 'the last 7 days' : 'today');
-  if (W.compare.test(q) || found.length > 1) {
+  if (W.compare.test(q) || /\b(?:dan|vergeleken|vergelijk\w*|verschil)\b/.test(q) || found.length > 1) {
     const other = found[1] ?? previousRange(range, env.healthDay);
     const a = call(env, 'water', {range: rangeArg(range)}), b = call(env, 'water', {range: rangeArg(other)}), refused = refusalOf([a, b]); if (refused) return refused;
-    const ma = Number(dataOf(a.result).totalMl), mb = Number(dataOf(b.result).totalMl);
-    return {kind: 'answer', text: lines(`Water: ${n(ma, 0)} mL ${span(range, env.healthDay)}, and ${n(mb, 0)} mL ${span(other, env.healthDay)}.`, [compareLine(ma, mb, 'mL', range, other)]), calls: [a.record, b.record]};
+    const ma = Number(dataOf(a.result).totalMl), mb = Number(dataOf(b.result).totalMl), diff = ma - mb;
+    const dutchLine = diff === 0 ? 'In beide periodes evenveel.' : `${n(Math.abs(diff), 2)} mL ${diff > 0 ? 'meer' : 'minder'} ${spanIn(range).replace(/ \(.*$/, '')} dan ${spanIn(other).replace(/ \(.*$/, '')}.`;
+    return {kind: 'answer', text: lines(say(`Water: ${n(ma, 0)} mL ${span(range, env.healthDay)}, and ${n(mb, 0)} mL ${span(other, env.healthDay)}.`, `Water: ${n(ma, 0)} mL ${spanIn(range)}, en ${n(mb, 0)} mL ${spanIn(other)}.`), [nl ? dutchLine : compareLine(ma, mb, 'mL', range, other)]), calls: [a.record, b.record]};
   }
   const r = call(env, 'water', {range: rangeArg(range)}), refused = refusalOf([r]); if (refused) return refused;
-  const d = dataOf(r.result), when = span(range, env.healthDay), total = Number(d.totalMl), days = d.daysInRange as number;
-  const flOz = d.totalFlOz ? ` (${d.totalFlOz} US fl oz)` : '';
-  if (target && typeof d.yourDailyTargetMl === 'number') return {kind: 'answer', text: lines(`Your daily water target is ${n(d.yourDailyTargetMl, 0)} mL. ${capital(when)}:`, [`Reached on ${plural(d.daysAtOrAboveTarget, 'day')}`, `${plural(d.daysWithWater - d.daysAtOrAboveTarget, 'day')} with less`, days - d.daysWithWater > 0 && `${plural(days - d.daysWithWater, 'day')} without water logged`]), calls: [r.record]};
-  if (target) return {kind: 'answer', text: `You haven't set a daily water target in Health. You logged ${n(total, 0)} mL ${when}${flOz}.`, calls: [r.record]};
-  if (average || days > 1) return {kind: 'answer', text: lines(`You logged ${n(total, 0)} mL of water ${when}${flOz}.`, [days > 1 && d.daysWithWater > 0 && `On average ${n(total / d.daysWithWater, 0)} mL on the ${plural(d.daysWithWater, 'day')} with water logged`, days > d.daysWithWater && `${plural(days - d.daysWithWater, 'day')} without water logged (not counted as 0)`]), calls: [r.record]};
-  return {kind: 'answer', text: d.daysWithWater ? `You logged ${n(total, 0)} mL of water ${when}${flOz}.` : `No water is logged ${when}.`, calls: [r.record]};
+  const d = dataOf(r.result), when = spanIn(range), total = Number(d.totalMl), days = d.daysInRange as number;
+  const flOz = d.totalFlOz ? ` (${grouped(String(d.totalFlOz))} US fl oz)` : '';
+  if (target && typeof d.yourDailyTargetMl === 'number') return {kind: 'answer', text: lines(say(`Your daily water target is ${n(d.yourDailyTargetMl, 0)} mL. ${capital(when)}:`, `Je dagelijkse waterdoel is ${n(d.yourDailyTargetMl, 0)} mL. ${capital(when)}:`), [say(`Reached on ${plural(d.daysAtOrAboveTarget, 'day')}`, `Gehaald op ${days_(d.daysAtOrAboveTarget)}`), say(`${plural(d.daysWithWater - d.daysAtOrAboveTarget, 'day')} with less`, `${days_(d.daysWithWater - d.daysAtOrAboveTarget)} met minder`), days - d.daysWithWater > 0 && say(`${plural(days - d.daysWithWater, 'day')} without water logged`, `${days_(days - d.daysWithWater)} zonder water gelogd`)]), calls: [r.record]};
+  if (target) return {kind: 'answer', text: say(`You haven't set a daily water target in Health. You logged ${n(total, 0)} mL ${when}${flOz}.`, `Je hebt geen dagelijks waterdoel ingesteld in Health. Je logde ${when} ${n(total, 0)} mL${flOz}.`), calls: [r.record]};
+  if (average || days > 1) return {kind: 'answer', text: lines(say(`You logged ${n(total, 0)} mL of water ${when}${flOz}.`, `Je logde ${when} ${n(total, 0)} mL water${flOz}.`), [days > 1 && d.daysWithWater > 0 && say(`On average ${n(total / d.daysWithWater, 0)} mL on the ${plural(d.daysWithWater, 'day')} with water logged`, `Gemiddeld ${n(total / d.daysWithWater, 0)} mL op de ${days_(d.daysWithWater)} met water gelogd`), days > d.daysWithWater && say(`${plural(days - d.daysWithWater, 'day')} without water logged (not counted as 0)`, `${days_(days - d.daysWithWater)} zonder water gelogd (niet als 0 geteld)`)]), calls: [r.record]};
+  return {kind: 'answer', text: d.daysWithWater ? say(`You logged ${n(total, 0)} mL of water ${when}${flOz}.`, `Je logde ${when} ${n(total, 0)} mL water${flOz}.`) : say(`No water is logged ${when}.`, `Er is ${when} geen water gelogd.`), calls: [r.record]};
 }
 function stepsAnswer(env: ToolEnv, q: string, found: DayRange[]): LocalReply {
   const active = HEALTH.active.test(q), average = W.average.test(q), target = W.target.test(q) && !active;
