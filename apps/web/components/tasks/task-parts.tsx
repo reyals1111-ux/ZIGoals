@@ -1,7 +1,7 @@
 'use client';
 import {minutesWords} from '../../lib/tasks/minutes';
 import Link from 'next/link';
-import {Suspense, lazy, useId, useMemo, useRef, useState, type ClipboardEvent, type FormEvent, type KeyboardEvent, type ReactNode} from 'react';
+import {Suspense, lazy, useEffect, useId, useMemo, useRef, useState, type ClipboardEvent, type FormEvent, type KeyboardEvent, type ReactNode} from 'react';
 import {LEVEL_SHORT, LEVEL_WORDS, TASK_PRIORITIES, TASK_TITLE_MAX, taskLevel, type HealthLink, type Task, type TaskLevel, type TaskPriority, type Tasks} from '../../lib/tasks/schema';
 import {deadlineState, subtaskProgress, taskState, waitingFor, type TaskInput} from '../../lib/tasks/engine';
 import {addLocalDays} from '../../lib/local-date';
@@ -121,9 +121,13 @@ export type EditScope = 'one' | 'all';
  * subtask progress; `selected`/`onSelect` for bulk actions (given only while the list is selecting: the row's one box then selects); `onMove` gives Move up / Move down (the keyboard alternative
  * to dragging); `drag` adds the drag handle's props; `children` render under it (its subtasks).
  */
-export function TaskRow({task, today, goal, onToggle, onRemove, onEdit, onFocus, goals = [], showGoal = true, record, nowClock, links, selected, onSelect, onMove, drag, depth = 0, editor, habits, children, focused, onOpen, onSkip}: {task: Task; today: string; goal?: GoalOption; onToggle: (done: boolean) => void; onRemove?: () => void; onEdit?: (patch: TaskPatch, scope?: EditScope) => boolean; onFocus?: () => void; goals?: readonly GoalOption[]; showGoal?: boolean;
-  record?: Tasks; nowClock?: string; links?: RowLinks; selected?: boolean; onSelect?: (on: boolean, shift: boolean) => void; onMove?: (step: -1 | 1) => void; drag?: React.HTMLAttributes<HTMLElement> & {draggable?: boolean}; depth?: number; editor?: 'inline' | 'none'; habits?: readonly {id: string; title: string}[]; children?: ReactNode; focused?: boolean; onOpen?: () => void; /** A repeating task: skip this occurrence (P-LS-02 "this one"). */ onSkip?: () => void}) {
+export function TaskRow({task, today, goal, onToggle, onRemove, onEdit, onFocus, goals = [], showGoal = true, record, nowClock, links, selected, onSelect, onMove, drag, depth = 0, editor, habits, children, focused, onOpen, onSkip, onEditing}: {task: Task; today: string; goal?: GoalOption; onToggle: (done: boolean) => void; onRemove?: () => void; onEdit?: (patch: TaskPatch, scope?: EditScope) => boolean; onFocus?: () => void; goals?: readonly GoalOption[]; showGoal?: boolean;
+  record?: Tasks; nowClock?: string; links?: RowLinks; selected?: boolean; onSelect?: (on: boolean, shift: boolean) => void; onMove?: (step: -1 | 1) => void; drag?: React.HTMLAttributes<HTMLElement> & {draggable?: boolean}; depth?: number; editor?: 'inline' | 'none'; habits?: readonly {id: string; title: string}[]; children?: ReactNode; focused?: boolean; onOpen?: () => void; /** A repeating task: skip this occurrence (P-LS-02 "this one"). */ onSkip?: () => void;
+  /** Session AV lane 2 (fixb5): told when the row's own editor opens (true) and closes or unmounts (false). */ onEditing?: (open: boolean) => void}) {
   const [editing, setEditing] = useState(false), done = !!task.doneAt, cancelled = isCancelled(task), state = taskState(task, today, nowClock), level = taskLevel(task);
+  const editingSaid = useRef(onEditing);
+  useEffect(() => { editingSaid.current = onEditing; });
+  useEffect(() => { if (!editing) return; const say = editingSaid.current; say?.(true); return () => say?.(false); }, [editing]);
   const progress = useMemo(() => record ? subtaskProgress(record, task.id) : null, [record, task.id]);
   // Session AV lane 2 (r3-plan, LEDGER #257): the task's own symbol in its colour, decoration beside the title.
   const look = taskLook(task);

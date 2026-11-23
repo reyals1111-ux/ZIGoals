@@ -18,6 +18,8 @@ import './tasks-r5.css';
  *   before the task on the Day Timeline and the Agenda, busy for Plan my day, and a "Leave by" reminder;
  * - a week or a month, for a task with no day (LEDGER #349);
  * - the time block it is in, on its day (LEDGER #348).
+ * Session AV lane 2 (fixb5): each control is named by its own words only (`aria-labelledby`), its note under it read as its
+ * description; inside the <label>, the note was part of the name ("Place Written as you type it; …").
  */
 export default function TaskR5Fields({task, today, due, time, value, onChange}: {task: Task; today: string; due: string; time: string; value: R5Fields; onChange: (v: R5Fields) => void}) {
   const id = useId(), plan = useDeviceRecord(TASK_PLAN);
@@ -27,18 +29,18 @@ export default function TaskR5Fields({task, today, due, time, value, onChange}: 
   const isLink = /^https?:\/\//i.test(value.place.trim());
   return <fieldset className="task-r5-fields">
     <legend>Where and when — optional</legend>
-    <label className="field"><span>Place</span><input dir="auto" value={value.place} maxLength={PLACE_MAX} placeholder="An address, or a link" aria-describedby={`${id}-place`} onChange={e => onChange({...value, place: e.target.value})} />
+    <label className="field"><span id={`${id}-place-name`}>Place</span><input aria-labelledby={`${id}-place-name`} dir="auto" value={value.place} maxLength={PLACE_MAX} placeholder="An address, or a link" aria-describedby={`${id}-place`} onChange={e => onChange({...value, place: e.target.value})} />
       <small id={`${id}-place`} className="tasks-field-note">{value.place.trim() ? isLink ? 'A link: it opens in a new tab from the task’s row.' : 'Shown on the task’s row and put in a calendar export. Nothing is looked up.' : 'Written as you type it; nothing is looked up.'}</small></label>
-    <label className="field"><span>Travel before (minutes)</span><input inputMode="numeric" autoComplete="off" list={`${id}-travel-list`} value={value.travel} disabled={!due || !time} placeholder="20" aria-invalid={bad || undefined} aria-describedby={`${id}-travel`} onChange={e => onChange({...value, travel: e.target.value})} />
+    <label className="field"><span id={`${id}-travel-name`}>Travel before (minutes)</span><input aria-labelledby={`${id}-travel-name`} inputMode="numeric" autoComplete="off" list={`${id}-travel-list`} value={value.travel} disabled={!due || !time} placeholder="20" aria-invalid={bad || undefined} aria-describedby={`${id}-travel`} onChange={e => onChange({...value, travel: e.target.value})} />
       <datalist id={`${id}-travel-list`}>{TRAVEL_CHOICES.map(n => <option key={n} value={n} />)}</datalist>
       <small id={`${id}-travel`} className={bad ? 'tasks-field-error' : 'tasks-field-note'} role={bad ? 'alert' : undefined}>{!due || !time ? 'Give the task a day and a time first.' : bad ? `Enter whole minutes from 1 to ${MAX_TRAVEL}.` : leave ? `Leave by ${formatClock(leave)}: ${minutesWords(travel)} kept free before it, and a reminder then when task reminders are on.` : 'How long it takes you to get there. You type it; no route is looked up.'}</small></label>
-    {!due && <label className="field"><span>Plan for</span><select value={value.bucket} aria-describedby={`${id}-bucket`} onChange={e => onChange({...value, bucket: e.target.value as R5Fields['bucket']})}>
+    {!due && <label className="field"><span id={`${id}-bucket-name`}>Plan for</span><select aria-labelledby={`${id}-bucket-name`} value={value.bucket} aria-describedby={`${id}-bucket`} onChange={e => onChange({...value, bucket: e.target.value as R5Fields['bucket']})}>
       <option value="">No week or month</option>
       {task.plan && current && <option value="keep">{name(current)} (as now)</option>}
       <option value="week">This week, any day</option><option value="next-week">Next week, any day</option><option value="month">This month, any day</option><option value="next-month">Next month, any day</option></select>
       <small id={`${id}-bucket`} className="tasks-field-note">It shows in Upcoming under its week or month until it is done or given a day. If the week passes, it moves to the next week’s list.</small></label>}
     {/* Review B5L-9: not for a repeating task (it moves on when ticked) */}
-    {due && !task.recur && (blocks.length > 0 || value.block) && <label className="field"><span>Time block</span><select value={value.block} aria-describedby={`${id}-block`} onChange={e => onChange({...value, block: e.target.value})}>
+    {due && !task.recur && (blocks.length > 0 || value.block) && <label className="field"><span id={`${id}-block-name`}>Time block</span><select aria-labelledby={`${id}-block-name`} value={value.block} aria-describedby={`${id}-block`} onChange={e => onChange({...value, block: e.target.value})}>
       <option value="">Not in a block</option>
       {value.block && !blocks.some(b => b.id === value.block) && <option value={value.block}>A block not on this day</option>}
       {blocks.map(b => <option key={b.id} value={b.id}>{b.name} · {formatClock(b.from)}–{formatClock(b.to)}</option>)}</select>

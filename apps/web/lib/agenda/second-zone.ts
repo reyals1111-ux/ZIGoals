@@ -5,11 +5,14 @@
  */
 /** Zones offered when the browser cannot list its own (a short list of well-known cities). */
 export const COMMON_ZONES = ['Europe/London', 'Europe/Amsterdam', 'Europe/Berlin', 'Europe/Paris', 'Europe/Madrid', 'Europe/Athens', 'Europe/Istanbul', 'Africa/Lagos', 'Africa/Johannesburg', 'Asia/Dubai', 'Asia/Kolkata', 'Asia/Bangkok', 'Asia/Singapore', 'Asia/Shanghai', 'Asia/Tokyo', 'Australia/Sydney', 'Pacific/Auckland', 'America/Sao_Paulo', 'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles', 'America/Anchorage', 'Pacific/Honolulu', 'UTC'] as const;
-/** Every zone this browser knows (its own list where it has one), each one that works. */
+/** Every zone this browser knows (its own list where it has one, with UTC), each one that works. */
 export function zoneChoices(): string[] {
   let all: string[] = [];
   try { const list = (Intl as unknown as {supportedValuesOf?: (k: string) => string[]}).supportedValuesOf?.('timeZone'); if (Array.isArray(list) && list.length) all = list; } catch { all = []; }
-  return (all.length ? all : [...COMMON_ZONES]).filter(validZone);
+  // Session AV lane 2 (fixb5): a browser's own list holds its region zones only (Chrome's has no "UTC"), so UTC, which the
+  // short list offers, is added at its end when missing.
+  const zones = all.length ? (all.includes('UTC') ? all : [...all, 'UTC']) : [...COMMON_ZONES];
+  return zones.filter(validZone);
 }
 export function validZone(zone: string): boolean {
   try { new Intl.DateTimeFormat('en-GB', {timeZone: zone}); return true; } catch { return false; }
