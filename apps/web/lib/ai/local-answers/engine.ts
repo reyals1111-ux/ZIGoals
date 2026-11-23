@@ -427,7 +427,7 @@ function averageAnswer(env: ToolEnv, goal: {id: string; name: string}): LocalRep
 export function zigiOverview(question: string, env: ToolEnv): LocalReply | null {
   const own = novaOverviewAnswer(question, env, {healthScope: true, healthGate: !!env.health});
   if (!own || !('text' in own)) return own;
-  if (own.kind === 'refusal' && /^Health (?:is|staat)/.test(own.text)) return {kind: 'refusal', text: HEALTH_CLOSED, calls: []};
+  if (own.kind === 'refusal' && /^Health(?: is| staat| answers are|-antwoorden staan)/.test(own.text)) return {kind: 'refusal', text: HEALTH_CLOSED, calls: []}; // FR-S-6: NOVA's gate-closed words too
   const text = own.text.replace(/ is off for NOVA, so it is not read here\. Turn it on in NOVA → Permissions\./g, ' isn’t shared with ZIGi here. Turn it on in Settings → ZIGi · your companion.')
     .replace(/off for NOVA, so not read \(NOVA → Permissions\)/g, 'not shared with ZIGi here (Settings → ZIGi)').replace(/staan? uit voor NOVA, dus niet gelezen \(NOVA → Permissions\)/g, 'niet gedeeld met ZIGi hier (Settings → ZIGi)').replace(/NOVA → Permissions/g, 'Settings → ZIGi').replace(/\bNOVA\b/g, 'ZIGi');
   return {...own, text: groupUnits(text)};
