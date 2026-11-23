@@ -1626,7 +1626,7 @@ with the row's own cause. No row was unwired. Round 7 (#432–#464) is "to build
 | 231 | 2 | Reflectly | A space to vent | built | `d4ac520d`, `c68d1b95` |
 | 232 | 2 | Moodnotes | Feelings with a strength | built | `d4ac520d`, `a3706eb1`, `e3d0b78f` |
 | 233 | 2 | Moodnotes | Thinking traps and the thought checker | built | `d4ac520d`, `5eb1b16e` |
-| 234 | 2 | Moodnotes | Self-awareness articles | Carried (Carried — needs content made for ZIGoals) | — |
+| 234 | 2 | Moodnotes | Self-awareness articles | Carried (needs content made for ZIGoals) | — |
 | 235 | 2 | Rise | Energy schedule and its reminders | built (part Carried, as the row says) | `d4ac520d`, `0f642e0e`, `5d44cc3e` |
 | 236 | 2 | Rise | Habits at suggested times | built | `d4ac520d`, `0f642e0e`, `5d44cc3e` |
 | 237 | 2 | Rise | Naps and their effect | built | `d4ac520d`, `5f6e117d` |
@@ -1666,7 +1666,7 @@ with the row's own cause. No row was unwired. Round 7 (#432–#464) is "to build
 | 271 | 3 | Obsidian | Print a note or save it as PDF | built | `d53c7ddf` |
 | 272 | 3 | Grid Diary | Export as Markdown | built | `7cca33e8` |
 | 273 | 3 | Obsidian | Canvas | built | `e02b7f67`, `7db6f0d9`, `7e1bfce4` |
-| 274 | 3 | Obsidian | Diagrams from text (Mermaid) | Carried (Carried — a new dependency) | — |
+| 274 | 3 | Obsidian | Diagrams from text (Mermaid) | Carried (a new dependency) | — |
 | 275 | 3 | Way of Life | Reminders in your own words | built | `4b16cf79`, `cbc0018a`, `01d4c644`, `790a8490` |
 | 276 | 3 | Way of Life | Trend per habit | built | `cbc0018a`, `01d4c644` |
 | 277 | 3 | Stoic | Quotes from Stoic writers | built | `e02b7f67`, `4339c1b3`, `3c7c0bbe` |
@@ -1677,12 +1677,12 @@ with the row's own cause. No row was unwired. Round 7 (#432–#464) is "to build
 | 282 | 3 | Waterllama | Calories from drinks | built | `8a66c886`, `c305237e`, `cbc0018a`, `07a42d8b` |
 | 283 | 3 | Waterllama | Hydration tips | built | `cbc0018a`, `07a42d8b`, `cec6b6ee` |
 | 284 | 3 | Carb Manager | Glucose and ketones beside meals | built | `0c3bac58`, `cbc0018a`, `18bbd9ff`, `bf032010` |
-| 285 | 3 | Carb Manager | Glycemic load per food | Carried (Carried — needs content made for ZIGoals) | — |
+| 285 | 3 | Carb Manager | Glycemic load per food | Carried (needs content made for ZIGoals) | — |
 | 286 | 3 | Carb Manager | Weigh-in reminders | built | `24f66b67`, `f62714bc`, `cbc0018a`, `0c435de9` |
 | 287 | 3 | Carb Manager | Goals on any health number | built (part Carried, as the row says) | `818f644b`, `5fc6ad5f`, `c305237e`, `5b4ba416` |
 | 288 | 3 | Nike Training Club | Find a workout by length, muscle and place | built | `cbc0018a`, `f58d5b18` |
 | 289 | 3 | Nike Training Club | Timed circuit workouts | built | `a03edcc3`, `a03b6fb1`, `cbc0018a`, `82f2d923` |
-| 290 | 3 | Nike Training Club | Trainer-led classes, yoga, Pilates and recovery | Carried (Carried — needs content made for ZIGoals) | — |
+| 290 | 3 | Nike Training Club | Trainer-led classes, yoga, Pilates and recovery | Carried (needs content made for ZIGoals) | — |
 | 291 | 3 | PocketGuard | Leftover for the month | built | `776a10e4`, `ddbc9750`, `3730e010`, `7a76fbfe` |
 | 292 | 3 | Simplifi | Planned spending | built | `3730e010`, `eda551e6`, `f72ac706` |
 | 293 | 3 | Simplifi | A credit card's limit and use | built | `faa9b6c8`, `27c994ad`, `cd95b493`, `f72ac706` |
@@ -1714,7 +1714,7 @@ with the row's own cause. No row was unwired. Round 7 (#432–#464) is "to build
 | 319 | 4 | Bear | More ways to export a note | built | `a766f8fb`, `0658f031` |
 | 320 | 4 | Journey | E-book and Word export | built | `08925c2f`, `a766f8fb`, `55b98c8e` |
 | 321 | 4 | Bear | Imports from Evernote and Bear | built | `c68ccbb6`, `14d9f26a`, `7dbbd236`, `50638350` |
-| 322 | 4 | Bear | Math formulas | Carried (Carried — a new dependency) | — |
+| 322 | 4 | Bear | Math formulas | Carried (a new dependency) | — |
 | 323 | 4 | Atoms | The person behind the habits | built | `8916393f`, `9cc38df7`, `0ebb9350` |
 | 324 | 4 | How We Feel | What a feeling word means | built | `8916393f`, `6ee263a1`, `0ebb9350` |
 | 325 | 4 | How We Feel | Strategies for a feeling | built (part Carried, as the row says) | `8916393f`, `6ee263a1` |
