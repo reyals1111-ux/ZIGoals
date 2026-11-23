@@ -20,6 +20,11 @@ test('the answers are checked by their shape, whatever the day', () => {
   expect(answerProblem('missed', 'Answered on this device · no AI usedYou asked: “how many habits did I miss this week”NOVA: You missed no habit this week (Mon, Nov 16 to Wed, Nov 18): 17 of 17 due check-ins done.')).toBeNull();
   expect(answerProblem('missed', 'Answered on this device · no AI usedYou asked: “how many habits did I miss this week”NOVA: Your habits: Read and Run.')).toMatch(/does not start/);
   expect(AT_ANSWERS.missed.test('Every habit was done on every due day this week (11 of 11).')).toBe(true);
+  // On a Monday the week's only day is today: what is still open today, as the exact layer writes it (CI run 2009).
+  expect(AT_ANSWERS.missed.test('3 of 7 habits are still open today: Exercise, Meditate and Drink water.')).toBe(true);
+  expect(AT_ANSWERS.missed.test('1 of 7 habits is still open today: Read.')).toBe(true);
+  expect(AT_ANSWERS.missed.test('Nothing is open: all 7 habits due today are done.')).toBe(true);
+  expect(AT_ANSWERS.missed.test('Your habits are still open today: Read.')).toBe(false);
 });
 test('Send feedback\'s details name the theme and the screen', () => {
   expect(detailsProblem('App: ZIGoals Alpha\nTheme: Nebula\nScreen: 1280 × 900 px')).toBeNull();
