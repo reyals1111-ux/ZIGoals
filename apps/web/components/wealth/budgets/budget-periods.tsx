@@ -11,6 +11,7 @@ import type {BudgetsRecord} from '../../../lib/budgets/schema';
 import {BUDGET_PERIODS, applyFill, fillTotals, incomeToFill, periodRows, saveFill, setPeriods, type Every} from '../../../lib/budgets/periods';
 import {formatDate} from '../../../lib/visual-format';
 import {perDayWords} from '../../../lib/budgets/per-day';
+import {budgetsInOrder} from '../../../lib/budgets/order';
 
 /**
  * Session AV lane 2 (Money group N11, LEDGER #212, #213, #216; Goodbudget): Budgets → "Pay periods and fills", its own
@@ -52,7 +53,7 @@ export default function BudgetPeriodsPanel({record, entries, today, startsOn, on
     {rows.length > 0 && <form className="budgets-fill" noValidate aria-labelledby={`${id}-fill`} onSubmit={e => { e.preventDefault(); write(p => saveFill(p, Object.entries(fill).map(([budgetId, amount]) => ({budgetId, amount}))), 'Fill saved: it is offered when you log income.'); }}>
       <h4 id={`${id}-fill`}>A paycheck fill</h4>
       <p className="fine">How one paycheck splits over your budgets. When you log income, the fill is offered with one tap; it sets those budgets’ amounts.</p>
-      {record.budgets.map(b => <label key={b.id} className="field"><span>{b.category} ({b.currency})</span><input inputMode="decimal" autoComplete="off" value={fill[b.id] ?? ''} placeholder={fromCents(minorUnits(b.monthly))} onChange={e => setFill(f => ({...f, [b.id]: e.target.value}))} /></label>)}
+      {budgetsInOrder(record.budgets).map(b => <label key={b.id} className="field">{/* Round 6 (#429): the person's own order */}<span>{b.category} ({b.currency})</span><input inputMode="decimal" autoComplete="off" value={fill[b.id] ?? ''} placeholder={fromCents(minorUnits(b.monthly))} onChange={e => setFill(f => ({...f, [b.id]: e.target.value}))} /></label>)}
       <button type="submit" className="secondary">Save the fill</button>
     </form>}
     {debts.length > 0 && rows.length > 0 && <div className="budgets-debts">

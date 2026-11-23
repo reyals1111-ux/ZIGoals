@@ -1,4 +1,5 @@
 'use client';
+import {setKeepWeights} from '../../../lib/workouts/keep-weights';
 import {useId, useState} from 'react';
 import {GUIDES, guideLine, type Guide, type Lang} from '../../../lib/workouts/routine-library';
 import {EXERCISES} from '../../../lib/workouts/library';
@@ -56,18 +57,22 @@ export function RoutineEdit({w, routine, change, unit, onDone}: {w: Workouts; ro
   // Session AV lane 2 (body; LEDGER #109): the progression rule — none, a rep range (double) or a step every session (linear).
   const p = routine.progression, [kind, setKind] = useState<'' | 'double' | 'linear'>(p?.kind ?? ''), [low, setLow] = useState(String(p?.minReps ?? 8)), [high, setHigh] = useState(String(p?.maxReps ?? 12));
   const [step, setStep] = useState(String(Math.round((p ? (unit === 'lb' ? p.stepKg / 0.45359237 : p.stepKg) : unit === 'lb' ? 5 : 2.5) * 100) / 100)), [problem, setProblem] = useState('');
+  // Session AV lane 2, round 5 (gym; LEDGER #373, Bevel's Auto Update Template): finishing it writes the done weights back.
+  const [keep, setKeep] = useState(routine.keepWeights === true);
   function save() {
     const stepKg = fromUnit(Number(step.replace(',', '.')), unit), lo = Number(low), hi = Number(high);
     if (kind && !(Number.isFinite(stepKg) && stepKg >= 0.25 && stepKg <= 20)) { setProblem(`Enter a step from ${unit === 'lb' ? '0.5 to 44 lb' : '0.25 to 20 kg'}.`); return; }
     if (kind === 'double' && !(Number.isInteger(lo) && Number.isInteger(hi) && lo >= 1 && hi <= 50 && lo < hi)) { setProblem('Enter a rep range with the lowest first, such as 8 to 12.'); return; }
     setProblem('');
     const rule = kind === 'double' ? {kind, minReps: lo, maxReps: hi, stepKg} : kind === 'linear' ? {kind, stepKg} : null;
-    if (change(x => setProgression(setRoutineNote(setRoutineFolder(x, routine.id, folder), routine.id, note), routine.id, rule), `Routine ${routine.name} saved${folder.trim() ? ` in ${folder.trim()}` : ''}.`)) onDone();
+    if (change(x => setKeepWeights(setProgression(setRoutineNote(setRoutineFolder(x, routine.id, folder), routine.id, note), routine.id, rule), routine.id, keep), `Routine ${routine.name} saved${folder.trim() ? ` in ${folder.trim()}` : ''}${keep ? '; it keeps your last weights' : ''}.`)) onDone();
   }
   return <form className="av2-routine-edit" onSubmit={e => { e.preventDefault(); save(); }}>
     <label className="field"><span>Folder (optional)</span><input value={folder} maxLength={40} list={`${id}-folders`} onChange={e => setFolder(e.target.value)} placeholder="Gym, At home…"/></label>
     <datalist id={`${id}-folders`}>{folderNames(w).map(f => <option key={f} value={f}/>)}</datalist>
     <label className="field"><span>Routine note (shown when you start it)</span><textarea rows={2} maxLength={500} value={note} onChange={e => setNote(e.target.value)} placeholder="Light week, 90 s rest…"/></label>
+    <label className="av2-check"><input type="checkbox" checked={keep} onChange={e => setKeep(e.target.checked)} aria-describedby={`${id}-keep`}/>Keep my last weights</label>
+    <p className="fine" id={`${id}-keep`}>When you finish a workout started from this routine, its done sets’ weights and reps are written back into it, with Undo.</p>
     <ShareRoutine w={w} routine={routine}/>
     <fieldset className="av2-progression"><legend>Progression (next session&rsquo;s targets from your last sets)</legend>
       <label className="field"><span>Rule</span><select value={kind} onChange={e => setKind(e.target.value as typeof kind)}><option value="">None</option><option value="double">A rep range: add weight when every set reaches the top</option><option value="linear">Add weight every session all sets are done</option></select></label>
@@ -107,7 +112,8 @@ export function RoutineImport({onImport}: {onImport: (s: WorkoutShare) => boolea
     const r = readRoutineFile(await file.text());
     if (r.ok) setShare(r.share); else setError(r.error);
   }
-  return <section className="av2-import" aria-labelledby={`${id}-title`}>
+  // Session AV lane 2 (polish4): this tool stays in English inside the library's Dutch, so it says so (lang="en").
+  return <section className="av2-import" lang="en" aria-labelledby={`${id}-title`}>
     <h4 id={`${id}-title`}>Add a routine someone shared</h4>
     <label className="field"><span>Workout routine file (.json)</span><input type="file" accept=".json,application/json" onChange={e => void read(e.target.files?.[0])}/></label>
     {error && <p role="alert" className="av2-problem">{error}</p>}

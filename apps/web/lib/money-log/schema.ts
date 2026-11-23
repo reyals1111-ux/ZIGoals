@@ -84,6 +84,16 @@ export const moneyEntrySchema = z.looseObject({
    */
   checked: day.optional().catch(undefined),
   group: z.looseObject({id, name: z.string().trim().min(1).max(40)}).optional().catch(undefined),
+  /**
+   * Session AV lane 2, round 6 (money; Banktivity's refund, LEDGER #425), TIER 3 (stored format), each additive and
+   * optional, dropped on read when this build cannot read it (older builds keep them untouched in the loose entry):
+   * - `refund`: on an entry written as income (`kind: 'income'`) in an expense category — money back for a purchase. Every
+   *   figure of this build counts it as spending below zero in that category (lib/money-log/counted.ts `isRefund`), never
+   *   as income; an older build reads it as money received, as before;
+   * - `refundOf`: the id of the purchase it refunds (the person's own link; nothing is counted by it).
+   */
+  refund: z.literal(true).optional().catch(undefined),
+  refundOf: id.optional().catch(undefined),
   history: z.array(z.looseObject({
     at: z.iso.datetime({offset: true}), by: z.enum(['you', 'rule', 'bulk', 'import']),
     field: z.enum(['category', 'amount', 'date', 'note', 'excluded', 'spread', 'transfer']), from: z.string().max(200).optional(), to: z.string().max(200).optional(),
@@ -95,6 +105,18 @@ const ownCategory = z.string().trim().min(1).max(40);
 export const NEED_WANT = ['need', 'want', 'saving'] as const, MAX_NEED_WANT = 80;
 /** Session AV lane 2, round 4 (money): at most this many archived categories of each kind, and investment-income marks. */
 export const MAX_ARCHIVED = 60, MAX_INVEST_INCOME = 30, MAX_GROUP = 20;
+/** Session AV lane 2, round 6 (money, LEDGER #431): at most this many years put away. */
+export const MAX_PUT_AWAY_YEARS = 60;
+/** One year put away (lib/money-log/put-away.ts): its entries are kept exactly as they were written, read one by one. */
+export const putAwayYearSchema = z.looseObject({id, year: z.string().regex(/^\d{4}$/), at: z.iso.datetime({offset: true}), entries: z.array(z.unknown()).max(MAX_ENTRIES)});
+export type PutAwayYear = z.infer<typeof putAwayYearSchema>;
+declare const UNREADABLE_YEAR: unique symbol;
+/** Review B6O-13: a put-away year this build cannot read, kept exactly as it was stored (never read, never dropped). */
+export type UnreadablePutAwayYear = {readonly [UNREADABLE_YEAR]: true; readonly id?: unknown; readonly year?: unknown; readonly entries?: unknown};
+/** Whether a put-away year is one this build reads. */
+export const isReadableYear = (y: PutAwayYear | UnreadablePutAwayYear): y is PutAwayYear => putAwayYearSchema.safeParse(y).success;
+/** The put-away years this build reads, in their order (the others stay as they are). */
+export const readableYears = (log: {putAway?: {years: readonly (PutAwayYear | UnreadablePutAwayYear)[]} | undefined}): PutAwayYear[] => (log.putAway?.years ?? []).filter(isReadableYear);
 export const moneyLogSchema = z.looseObject({
   version: z.literal(1),
   entries: z.array(moneyEntrySchema).max(MAX_ENTRIES),
@@ -137,6 +159,18 @@ export const moneyLogSchema = z.looseObject({
    */
   archived: z.looseObject({expense: z.array(ownCategory).max(MAX_ARCHIVED).optional().catch(undefined), income: z.array(ownCategory).max(MAX_ARCHIVED).optional().catch(undefined)}).optional().catch(undefined),
   investIncome: z.array(ownCategory).max(MAX_INVEST_INCOME).optional().catch(undefined),
+  /**
+   * Session AV lane 2, round 6 (money; Banktivity's Remove Historical Data, LEDGER #431), TIER 3 (stored format), additive
+   * and optional, dropped on read when unreadable: years of entries the person put away (at most 60 years), each with the
+   * entries exactly as they were (kept as written, read back one by one when brought back), so nothing is deleted and
+   * "Bring back" restores them (lib/money-log/put-away.ts). Put-away entries are in no list, search or figure. In this same
+   * record, so Export everything, the backup, restore and the erase carry them. Older builds keep the field untouched
+   * (loose record) and show the year as empty.
+   * Review B6O-13: read a year at a time. A year this build cannot read (a bad `at` or `year`, more than 10,000 entries, a
+   * later format) is kept in its place exactly as stored (`UnreadablePutAwayYear`), so it is never dropped and the next
+   * save writes it back unchanged; readable years parse as before (`readableYears` lists them).
+   */
+  putAway: z.looseObject({years: z.array(z.union([putAwayYearSchema, z.custom<UnreadablePutAwayYear>(() => true)])).max(MAX_PUT_AWAY_YEARS)}).optional().catch(undefined),
 });
 /** Session AV lane 2, round 3 (money): the three marks a spending category can carry (lib/money-insights/needs-wants.ts). */
 export type NeedWant = typeof NEED_WANT[number];

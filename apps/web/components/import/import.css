@@ -60,6 +60,8 @@
 .switch-import { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
 .switch-import input[type=file] { max-width: 100%; }
 .switch-more p { overflow-wrap: anywhere; }
+/* Session AV lane 2 (polish4): each app to switch from is a 44 px row (the radios were 25 px). */
+.switch-more label.check { display: flex; align-items: center; gap: 8px; min-height: 44px; }
 .switch-import h3 { margin: 0; font-size: 1.1rem; }
 .switch-import h4 { margin: 0; font-size: 15px; }
 .switch-choose { display: grid; gap: 12px; }

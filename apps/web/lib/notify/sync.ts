@@ -11,7 +11,7 @@ import {readHealth} from '../sync-homes-store';
 import {waterSummary} from '../health-daily';
 import {getAppStorage, isShowcase} from '../showcase-storage';
 import {readLock} from '../device-lock';
-import {formatNumber} from '../visual-format';
+import {formatClock, formatNumber} from '../visual-format';
 import {habitWeekdays} from '../push/schedule';
 import {storedHabits} from '../push/device';
 import {namesOn} from '../push/labels-sync';
@@ -32,6 +32,8 @@ import {TASKS} from '../tasks/schema';
 import {lateCount} from '../tasks/engine';
 import {TASK_PLAN} from '../tasks/plan-record';
 import {reminderInstants} from '../tasks/reminders';
+import {leaveByWakes} from '../tasks/leave-by';
+import {CALENDAR_IMPORT} from '../ics/calendar';
 import {NOTES} from '../notes/schema';
 import {noteReminders} from '../notes/reminders';
 import {COUNTDOWNS} from '../countdowns/schema';
@@ -46,6 +48,7 @@ import {BUDGETS} from '../budgets/schema';
 import {ACCOUNTS} from '../accounts/schema';
 import {cashForecast} from '../cash-forecast/model';
 import {moneyWakes} from '../money-notices';
+import {morningMoneyWakes} from '../money-log/yesterday';
 // Session AV lane 2, round 2 (money; Wallet's lent and borrowed): a reminded loan's due day, as a money notice.
 import {MONEY_MORE} from '../money-more/schema';
 import {loanWakes} from '../money-more/people';
@@ -56,6 +59,7 @@ import {energyItems} from './energy-items';
 import {healthGroupIn} from '../vault/w-homes';
 import {spreadSlots, spreadTimes} from '../water-spread';
 import {HABIT_EXTRAS} from '../habits-extras/schema';
+import {habitPartsInput} from './habit-parts';
 import {reminderMoreOf} from '../habit-reminder-words';
 import {weighedInOn, weighInOf, weighInPlanInput} from '../weigh-in';
 
@@ -88,6 +92,8 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
         const more = reminderMoreOf(habitExtras, habit.id), linked = !!healthLinked?.has(habit.id);
         input.habits.push({id: habit.id, ...(isRoutineHead(habits, habit.id) ? {routine: true} : {}), ...(linked ? {} : {title: habit.title}), ...(!linked && more.words ? {words: more.words} : {}), ...(more.times.length ? {more: more.times} : {}), time: reminder.time, weekdays: habitWeekdays(habits, habit.id, day), doneToday: !(status === 'due' || status === 'partial') || reminders.dismissed[habit.id] === day});
       }
+      // Session AV lane 2 (r5-body; LEDGER #369; TIER 3 (PWA)): one reminder per part of the day, when chosen.
+      input.habitParts = habitPartsInput(habits, day, prefs, healthLinked);
     }
   } catch { /* habits unreadable: no habit wakes */ }
   if (reminders.water) {
@@ -130,6 +136,12 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
   // Session AV (follow-up 1, F-TASK-NOTIFY): the reminders set on open tasks — the instant, the id, and a title for the
   // plan to show only where names are allowed.
   try { const tasks = reminderInstants(readDeviceRecord(storage, TASKS).data, zone).filter(r => r.at > now); if (tasks.length) input.tasks = tasks.slice(0, 60).map(r => ({id: r.task.id, title: r.task.title, at: r.at})); } catch { /* tasks unreadable: no task wakes */ }
+  // Session AV lane 2 (r5-plan, LEDGER #353; TIER 3 (PWA)): "Leave by 8:40" before a timed task or an imported event with
+  // travel minutes typed before it — under the tasks switch as task reminders are; a title only where names are allowed.
+  try {
+    const wakes = leaveByWakes({tasks: readDeviceRecord(storage, TASKS).data, plan: readDeviceRecord(storage, TASK_PLAN).data, calendars: readDeviceRecord(storage, CALENDAR_IMPORT).data, zone, now, today});
+    if (wakes.length) input.tasks = [...(input.tasks ?? []), ...wakes.map(w => ({id: w.id, title: w.title, at: w.at, leave: formatClock(w.leave), href: w.href}))];
+  } catch { /* unreadable: no leave-by wakes */ }
   // Session AV lane 2 (r3-plan, LEDGER #256): the "Plan your day" time set in Tasks, and how many open tasks are overdue on
   // each of the plan's days (a task due today is overdue tomorrow if still open) — a count, never a name.
   try {
@@ -155,6 +167,8 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
     const wakes = [...moneyWakes({entries: log.entries, budgets, rows, line: log.lowBalance, today}), ...(() => { try { return loanWakes(readDeviceRecord(storage, MONEY_MORE).data, today); } catch { return []; } })()];
     if (wakes.length) input.money = wakes.map(w => ({id: w.id, date: w.date, title: w.title, ...(w.detail ? {detail: w.detail} : {})}));
   } catch { /* unreadable: no money wakes */ }
+  // Session AV lane 2, round 5 (money; LEDGER #384): Yesterday's money, only when its switch is on (a count; amounts for names-on).
+  if (typeOn(prefs, 'moneyMorning')) { try { const wakes = morningMoneyWakes(readDeviceRecord(storage, MONEY_LOG).data.entries, readDeviceRecord(storage, ACCOUNTS).data, today); if (wakes.length) input.moneyMorning = wakes.map(w => ({id: w.id, date: w.date, plain: w.plain, title: w.title, detail: w.detail})); } catch { /* unreadable: no morning summary */ } }
   // Session AV lane 2 (food, LEDGER #90): the meal reminders switched on in Health — each meal's time; its name for names-on only.
   try { const extras = readDeviceRecord(storage, HEALTH_EXTRAS).data; if (extras.mealReminders?.on) { const meals = mealWakes(extras, await readHealth(storage), new Date(now)); if (meals.length) input.meals = meals.map(m => ({meal: m.meal, label: m.label, time: m.time, doneToday: m.doneToday})); } } catch { /* unreadable: no meal wakes */ }
   // Session AV lane 2 (bodymind-r2; LEDGER #235, #236): the energy curve's reminders and the plan steps with a reminder,

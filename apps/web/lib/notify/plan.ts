@@ -2,6 +2,7 @@ import {addDays, inQuiet, toMinutes, wallClock, weekdayBit, weekdayOf, zonedInst
 import {eveningTime, moodTimes, morningTime, typeOn, type NotifyPrefs} from './prefs';
 import type {EnergyInput} from './energy-items';
 import {spacedTimes} from '../habit-reminder-words';
+import type {HabitPartsInput} from './habit-parts';
 
 /**
  * Session AK Part 2 (ADR-036 Q3, A1, A2): the notification plan of this device, pure. From what the page already knows
@@ -11,7 +12,7 @@ import {spacedTimes} from '../habit-reminder-words';
  * one-off wake minutes, and minutes to skip. The registration never carries a name, a kind, a count or an amount, and
  * the snapshot keeps an amount (a contribution or a bill) only where names are allowed.
  */
-export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown' | 'journal' | 'money' | 'meal' | 'mood' | 'energy' | 'planDay' | 'weighIn';
+export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown' | 'journal' | 'money' | 'meal' | 'mood' | 'energy' | 'planDay' | 'weighIn' | 'habitPart';
 export type PlanItem = {at: number; kind: ItemKind; id: string; label?: string; detail?: string; href: string; actionable: boolean};
 export type Snapshot = {v: 1; written: number; zone: string; labels: boolean; quiet: {from: string; to: string}; items: PlanItem[]; summary: {date: string; done: number; total: number}; prices: PriceWatch[]};
 export type PriceWatch = {alertId: string; coin: string; currency: 'USD' | 'EUR'; direction: 'above' | 'below'; price: string; label?: string; request: unknown};
@@ -51,7 +52,8 @@ export type PlanInput = {
    * Session AV (follow-up 1, F-TASK-NOTIFY; Todoist, TickTick, Things): the reminders the person set on open tasks
    * (lib/tasks/reminders.ts reminderInstants): the instant and the task's id; its title only where names are allowed.
    */
-  tasks?: {id: string; title?: string; at: number; /** Session AV lane 2 (LEDGER #31): a reminder written in a note opens its note and has no Done. */ note?: string}[];
+  tasks?: {id: string; title?: string; at: number; /** Session AV lane 2 (LEDGER #31): a reminder written in a note opens its note and has no Done. */ note?: string;
+    /** Session AV lane 2 (r5-plan, LEDGER #353): "Leave by" this time (as shown) before a task or an event; no Done; `href` opens it. */ leave?: string; href?: string}[];
   /**
    * Session AV (1c, q1 #44; TickTick): the mornings a countdown's reminder reaches the device (lib/countdowns/extras.ts
    * countdownWakes): the day, the countdown's id, how many days are left then; its title only where names are allowed.
@@ -80,6 +82,13 @@ export type PlanInput = {
    */
   money?: {id: string; date: string; title?: string; detail?: string}[];
   /**
+   * Session AV lane 2, round 5 (money; Tiller's Hello Money, LEDGER #384; TIER 3 (PWA)): "Yesterday's money" each morning
+   * (lib/money-log/yesterday.ts morningMoneyWakes), under its own switch, off by default: the day, an id, `plain` — the
+   * count of entries, the only words shown while names are off — and, for names-on only, a title and the detail with
+   * amounts and account names. Never a payee.
+   */
+  moneyMorning?: {id: string; date: string; plain: string; title?: string; detail?: string}[];
+  /**
    * Session AV lane 2 (food, LEDGER #90; MyFitnessPal): the meal reminders the person switched on in Health, at each meal's
    * usual time (lib/food-plus/meal-notify.ts mealWakes); the meal's own name only where names are allowed, never food.
    */
@@ -106,6 +115,12 @@ export type PlanInput = {
    * weight is logged today. Never a weight.
    */
   weighIn?: {time: string; weekdays: number; dates: string[]; doneToday: boolean};
+  /**
+   * Session AV lane 2 (r5-body; LEDGER #369, Productive; TIER 3 (PWA)): one reminder at the start of each part of the day
+   * (lib/notify/habit-parts.ts habitPartsInput) with how many of its habits are still open; its habits' own reminders are
+   * then not sent. Names only where names are allowed (and never a Health-linked habit's).
+   */
+  habitParts?: HabitPartsInput;
   orbit: {done: number; total: number};
   prices: PriceWatch[];
 };
@@ -139,7 +154,9 @@ export function buildPlan(input: PlanInput): Plan {
     }
   };
   const EVERY = 127;
-  if (typeOn(prefs, 'habits')) for (const h of input.habits) for (const time of spacedTimes(h.time, h.more ?? [])) daily('habit', h.id, time, h.weekdays, () => ({label: label(h.words ?? h.title), href: h.routine ? `/app/habits#routine=${encodeURIComponent(h.id)}&open` : '/app/habits', actionable: true}), date => date === today && h.doneToday);
+  const partCovered = new Set(typeOn(prefs, 'habits') ? input.habitParts?.covered ?? [] : []);
+  if (typeOn(prefs, 'habits')) for (const p of input.habitParts?.parts ?? []) daily('habitPart', `part:${p.part}`, p.time, EVERY, date => { const d = p.days.find(x => x.date === date); return d && d.open > 0 ? {detail: d.detail, label: label(d.names?.join(' · ')), href: '/app/habits', actionable: false} : null; }, date => !(p.days.find(x => x.date === date)?.open));
+  if (typeOn(prefs, 'habits')) for (const h of input.habits.filter(x => !partCovered.has(x.id))) for (const time of spacedTimes(h.time, h.more ?? [])) daily('habit', h.id, time, h.weekdays, () => ({label: label(h.words ?? h.title), href: h.routine ? `/app/habits#routine=${encodeURIComponent(h.id)}&open` : '/app/habits', actionable: true}), date => date === today && h.doneToday);
   // Session AK (F5): never labelled, whatever the names switch says (a supplement or medicine's name is health data).
   if (typeOn(prefs, 'supplements')) for (const s of input.supplements ?? []) daily('supplement', s.id, s.time, s.weekdays, () => ({href: '/app/health', actionable: false}), date => date === today && s.doneToday);
   // Session AV lane 2 (health r3; LEDGER #280): reminders through the day, each its own wake, quiet once today is on pace
@@ -209,7 +226,10 @@ export function buildPlan(input: PlanInput): Plan {
     const time = wallClock(t.at, zone).time;
     if (inQuiet(time, quiet)) { refused.push({kind: 'task', time}); continue; }
     once.set(Math.floor(t.at / 60000), 'task');
-    push(t.note ? {at: t.at, kind: 'task', id: `note:${t.note}@${t.at}`, label: label(t.title), href: `/app/notes?note=${encodeURIComponent(t.note)}`, actionable: false}
+    // Session AV lane 2 (r5-plan, LEDGER #353): a "Leave by" wake says the time to leave (never a name without the opt-in);
+    // its id is not a task: id, so Done can never finish the task from it.
+    push(t.leave ? {at: t.at, kind: 'task', id: `leave:${t.id}@${t.at}`, label: label(t.title), detail: `Leave by ${t.leave}`, href: t.href ?? '/app/agenda', actionable: false}
+      : t.note ? {at: t.at, kind: 'task', id: `note:${t.note}@${t.at}`, label: label(t.title), href: `/app/notes?note=${encodeURIComponent(t.note)}`, actionable: false}
       : {at: t.at, kind: 'task', id: `task:${t.id}@${t.at}`, label: label(t.title), href: `/app/tasks#task-${t.id}`, actionable: true});
   }
   // Session AV (1c, q1 #44): a countdown's reminder wakes at the morning time (the end of quiet hours when the morning is
@@ -243,6 +263,14 @@ export function buildPlan(input: PlanInput): Plan {
     const at = zonedInstant(m.date, inQuiet(morningTime(prefs), quiet) ? quiet.to : morningTime(prefs), zone); if (at < now) continue;
     once.set(Math.floor(at / 60000), 'money');
     push({at, kind: 'money', id: m.id, label: label(m.title), ...(labels && m.detail ? {detail: m.detail} : {}), href: moneyHref(m.id), actionable: false});
+  }
+  // Session AV lane 2, round 5 (money; LEDGER #384): Yesterday's money wakes at the morning time of its day (the end of quiet
+  // hours when the morning is quiet), as a money notice does; the count alone unless names are allowed.
+  if (typeOn(prefs, 'moneyMorning')) for (const m of input.moneyMorning ?? []) {
+    if (m.date < today || m.date > addDays(today, ONCE_AHEAD_DAYS)) continue;
+    const at = zonedInstant(m.date, inQuiet(morningTime(prefs), quiet) ? quiet.to : morningTime(prefs), zone); if (at < now) continue;
+    once.set(Math.floor(at / 60000), 'money');
+    push({at, kind: 'money', id: m.id, label: label(m.title), detail: labels && m.detail ? m.detail : m.plain, href: '/app/wealth#spending', actionable: false});
   }
   // Owner follow-up 1 (F4; security review F10 R3-F1, R3-F2): a vote reminder wakes at the person's morning time on the
   // day it falls due (a day before voting ends), as bills do — never at a minute derived from the proposal's public end

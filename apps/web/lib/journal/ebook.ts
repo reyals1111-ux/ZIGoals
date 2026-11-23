@@ -53,7 +53,7 @@ export function journalEpubEntries(journal: Journal, pick: EbookPick, photos: Re
       for (const {pid, ext, p} of kept) if (!files.some(f => f.name === `OEBPS/images/${pid}.${ext}`)) { add(`images/${pid}.${ext}`, p.data); manifest.push(`<item id="img-${xml(pid)}" href="images/${xml(pid)}.${ext}" media-type="${p.type}"/>`); }
       const head = `${longDay(e.date)}${entryTitle(e) ? ` · ${entryTitle(e)}` : ''}`;
       listed.push({anchor, label: head});
-      sections.push(`<section id="${anchor}"><h2>${xml(longDay(e.date))}</h2>${pick.book === 'all' && book ? `<p class="meta">${xml(book.name)}</p>` : ''}${e.tags?.length ? `<p class="meta">${xml(e.tags.map(t => `#${t}`).join(' '))}</p>` : ''}${blocksHtml(entryBlocks(e), () => null, 3)}${kept.map(({pid, ext}) => `<figure><img src="images/${xml(pid)}.${ext}" alt="${xml(`A photo from ${longDay(e.date)}`)}"/></figure>`).join('')}</section>`);
+      sections.push(`<section id="${anchor}"><h2>${xml(longDay(e.date))}</h2>${pick.book === 'all' && book ? `<p class="meta">${xml(book.name)}</p>` : ''}${e.tags?.length ? `<p class="meta">${xml(e.tags.map(t => `#${t}`).join(' '))}</p>` : ''}${e.people?.length ? `<p class="meta">${xml(`With ${e.people.join(', ')}`)}</p>` : ''}${blocksHtml(entryBlocks(e), () => null, 3)}${kept.map(({pid, ext}) => `<figure><img src="images/${xml(pid)}.${ext}" alt="${xml(`A photo from ${longDay(e.date)}`)}"/></figure>`).join('')}</section>`);
     }
     add(file, xhtml(monthName(ym), `<h1>${xml(monthName(ym))}</h1>${sections.join('\n')}`, lang));
     manifest.push(`<item id="${item}" href="${file}" media-type="application/xhtml+xml"/>`); spine.push(`<itemref idref="${item}"/>`);
@@ -82,7 +82,7 @@ export function journalDocx(journal: Journal, pick: EbookPick, images: ReadonlyM
     for (const e of list) {
       const book = bookOf(journal, e);
       blocks.push({kind: 'heading', level: 2, runs: [{text: longDay(e.date)}]});
-      if ((pick.book === 'all' && book) || e.tags?.length) blocks.push({kind: 'para', runs: [{text: [pick.book === 'all' && book ? book.name : '', e.tags?.map(t => `#${t}`).join(' ') ?? ''].filter(Boolean).join(' · '), italic: true}]});
+      if ((pick.book === 'all' && book) || e.tags?.length || e.people?.length) blocks.push({kind: 'para', runs: [{text: [pick.book === 'all' && book ? book.name : '', e.tags?.map(t => `#${t}`).join(' ') ?? '', e.people?.length ? `With ${e.people.join(', ')}` : ''].filter(Boolean).join(' · '), italic: true}]}); // r6-notes (#401): who was there
       blocks.push(...docBlocks(entryBlocks(e), () => null, 3));
       for (const pid of e.photos ?? []) { const img = images.get(pid); if (img) blocks.push({kind: 'image', image: img}); }
     }

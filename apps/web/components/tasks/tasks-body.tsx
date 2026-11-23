@@ -1,7 +1,9 @@
 'use client';
 import Link from 'next/link';
 import {useEffect, useMemo, useState} from 'react';
-import {openTasks} from '../../lib/tasks/engine';
+import {openTasks, setAside} from '../../lib/tasks/engine';
+import {useDeviceRecord} from '../ai/use-device-record';
+import {FOCUS_VIEW, inFocus, liveFocus} from '../../lib/tasks/focus';
 import {dueReminders} from '../../lib/tasks/reminders';
 import {checklistZone} from '../../lib/checklist/zone';
 import {TaskAddForm, TaskRow, TaskStatusLine} from './task-parts';
@@ -22,7 +24,9 @@ export function TasksBody() {
   const list = useTaskList(), goals = useGoalOptions(), {tasks, today, clock} = list, [all, setAll] = useState(false);
   const [now, setNow] = useState(() => Date.now()), [dismissed, setDismissed] = useState<ReadonlySet<string>>(new Set());
   useEffect(() => { const t = window.setInterval(() => setNow(Date.now()), 30_000); return () => window.clearInterval(t); }, []);
-  const open = useMemo(() => openTasks(tasks.data, today).filter(t => !t.parentId), [tasks.data, today]);
+  // Session AV lane 2 (r6-plan, LEDGER #392–#394): not a task of a project on hold or one waiting its turn; with a focus on, only its tasks and the Inbox's.
+  const focusRead = useDeviceRecord(FOCUS_VIEW), focus = useMemo(() => liveFocus(focusRead.data, tasks.data), [focusRead.data, tasks.data]);
+  const open = useMemo(() => openTasks(tasks.data, today).filter(t => !t.parentId && !setAside(tasks.data, t, today) && inFocus(t, focus, tasks.data)), [tasks.data, today, focus]);
   const reminders = useMemo(() => tasks.loaded ? dueReminders(tasks.data, now, checklistZone(), {dismissed}) : [], [tasks.loaded, tasks.data, now, dismissed]);
   if (!tasks.loaded) return <p className="fine">Loading your tasks…</p>;
   return <div className="tasks-body">

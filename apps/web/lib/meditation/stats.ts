@@ -1,5 +1,6 @@
 import type {Meditation, MeditationSession} from './schema';
 import {addDays, wallClock} from '../zone-time';
+import {activityDay, currentDayEnds, type DayEnds} from '../day-boundary-core';
 
 /**
  * Meditation figures (Session W Part 5), from the person's own sessions. A session belongs to the day it started in the
@@ -7,7 +8,37 @@ import {addDays, wallClock} from '../zone-time';
  * end, so "minutes this week" is exact. No score: totals, counts, the longest session and the days in a row, which say
  * nothing about a rest day.
  */
-export const sessionDay = (s: Pick<MeditationSession, 'startedAt' | 'timeZone'>) => wallClock(Date.parse(s.startedAt), s.timeZone).date;
+/**
+ * Session AV lane 2, round 6 (r6-body; LEDGER #411, a fix of a real inconsistency): the day a session counts on follows
+ * "My day ends at", as habits, the Checklist and streaks do (lib/day-boundary.ts), so a night owl's 01:00 session counts
+ * on the evening's day in the minutes, the weekly bars, the days in a row and the weekly goal. Read only: each session's
+ * start and zone are as stored (the strict, synced Health group is unchanged). Owner rule 1 holds: a session started
+ * before the latest change of the setting counts under the end in force then (`activityDay`), so a change never
+ * re-dates the sessions behind it. With the default (midnight) and no change, the calendar day exactly as before.
+ */
+export function sessionDayUnder(s: Pick<MeditationSession, 'startedAt' | 'timeZone'>, ends: DayEnds): string {
+  return ends.endsAt || ends.change ? activityDay(ends, new Date(s.startedAt), s.timeZone) : wallClock(Date.parse(s.startedAt), s.timeZone).date;
+}
+export const sessionDay = (s: Pick<MeditationSession, 'startedAt' | 'timeZone'>) => sessionDayUnder(s, currentDayEnds());
+/**
+ * Review B6P-2: the meditation day `now` counts for in `zone`, as the Meditation view's today (use-meditation.ts) and the
+ * sessions' days (`sessionDay`), for a caller that holds Health's calendar day (`calendarDay`, in the same zone): exactly
+ * that day with the default end (midnight) and no change, else the day under "My day ends at". So a habit link, Today's
+ * widget and the Checklist ask for the day the 01:00 session counts on.
+ */
+export function meditationDayAt(calendarDay: string, now: Date, zone: string): string {
+  const ends = currentDayEnds();
+  return ends.endsAt || ends.change ? activityDay(ends, now, zone) : calendarDay;
+}
+/**
+ * Review B6P-9: "Several days" by default runs over the week to the Meditation view's today (which follows "My day ends
+ * at", as `useMeditation` says it); the latest day it takes stays the calendar day now in `zone`, so a session typed
+ * for just after midnight can still be logged.
+ */
+export function rangeDefaults(now: number, zone: string): {from: string; to: string; max: string} {
+  const today = activityDay(currentDayEnds(), new Date(now), zone);
+  return {from: addDays(today, -6), to: today, max: wallClock(now, zone).date};
+}
 const minutes = (seconds: number) => Math.round(seconds / 60);
 /** Monday of the week a day falls in. */
 export function weekStart(day: string): string {

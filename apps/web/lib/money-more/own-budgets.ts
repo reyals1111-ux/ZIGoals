@@ -1,7 +1,7 @@
 import {monthOf} from '../money-log/engine';
 import {perDay, daysLeftInMonth} from '../budgets/per-day';
 import {amountText, currencyCode, type MoneyEntry} from '../money-log/schema';
-import {isCounted, mineParts} from '../money-log/counted';
+import {isSpending, mineParts} from '../money-log/counted';
 import {MAX_OWN_BUDGETS, type MoneyMore, type OwnBudget} from './schema';
 import type {BudgetsRecord} from '../budgets/schema';
 import {NEAR_SHARE} from '../budgets/pace';
@@ -58,7 +58,7 @@ export function ownBudgetRows(more: Pick<MoneyMore, 'budgets'> | null | undefine
     const ids = b.tag ? tagged(b.tag) : null, cats = new Set((b.categories ?? []).map(c => c.toLowerCase()));
     let spent = 0, count = 0;
     for (const e of entries) {
-      if (e.kind !== 'expense' || e.currency !== b.currency || e.date < period.start || e.date > period.end || !isCounted(e)) continue;
+      if (!isSpending(e) || e.currency !== b.currency || e.date < period.start || e.date > period.end) continue; // Round 6 (#425): a refund lowers it
       const c = ids ? (ids.has(e.id) ? mineParts(e).reduce((s, p) => s + p.cents, 0) : 0) : mineParts(e).filter(p => cats.has(p.category.toLowerCase())).reduce((s, p) => s + p.cents, 0);
       if (c) { spent += c; count++; }
     }

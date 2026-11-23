@@ -10,6 +10,7 @@ import {undoOfChange} from '../../lib/tasks/undo';
 import type {Tasks} from '../../lib/tasks/schema';
 import {TEMPLATE_GALLERY, galleryByGroup, type GalleryLang} from '../../lib/tasks/template-gallery';
 import {formatNumber} from '../../lib/visual-format';
+import {LabelGroups} from './label-groups';
 import './tasks-r2.css';
 
 /**
@@ -53,6 +54,8 @@ export default function TasksOrganise({list, record, today}: {list: List; record
       <ul className="tasks-areas" aria-label="Sections">{sections.map(s => <li key={s.id}><strong dir="auto">{s.name}</strong> <small>{record.projects?.find(p => p.id === s.projectId)?.name ?? ''}{s.archived ? ' · archived' : ''}</small>
         <button type="button" className="text-link" aria-label={`${s.archived ? 'Bring back' : 'Archive'} the section “${s.name}”`} onClick={() => list.change(r => archiveSection(r, s.id, !s.archived), s.archived ? `“${s.name}” is back.` : `Archived the section “${s.name}”.`, 'Undone.')}>{s.archived ? 'Bring back' : 'Archive'}</button></li>)}</ul>
     </>}
+    {/* Session AV lane 2 (r6-plan, LEDGER #397): label groups, one label of each on a task */}
+    <LabelGroups list={list} record={record} />
     <Templates list={list} record={record} today={today} />
   </section>;
 }

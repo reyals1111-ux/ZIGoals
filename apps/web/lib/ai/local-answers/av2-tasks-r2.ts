@@ -10,6 +10,7 @@ import {text as clean} from '../tools/format';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, clockIn, closed, count, dayIn, isQuestion, list, num, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
+import {isFinished} from '../../tasks/finished';
 
 /**
  * Session AV lane 2 (tasks-r2, LEDGER #223–#229; Microsoft To Do, Google Tasks, Any.do): NOVA's and ZIGi's on-device
@@ -52,7 +53,7 @@ function myDay(a: Ask): LocalReply | null {
   if (!(en || nl)) return null;
   const got = tasksOf(a); if (!got) return null; if ('reply' in got) return got.reply;
   const md = readMyDay(a.plan?.myDay), open = new Map(got.record.tasks.filter(t => !t.doneAt).map(t => [t.id, t]));
-  const done = new Map(got.record.tasks.filter(t => t.doneAt).map(t => [t.id, t]));
+  const done = new Map(got.record.tasks.filter(isFinished /* review B5L-3 */).map(t => [t.id, t]));
   const ids = picksToday(md, a.today), now = ids.map(id => open.get(id)).filter(t => !!t), finished = ids.filter(id => done.has(id)).length;
   const carried = carriedPicks(md, a.today, id => open.has(id));
   const back = carried ? say(a.lang, ` ${count(carried.ids.length, 'en', ['task', 'tasks'], ['', ''])} from ${lastDay('en', carried.day, a.today)} ${carried.ids.length === 1 ? 'is' : 'are'} still open: Plan my day offers ${carried.ids.length === 1 ? 'it' : 'them'} back.`,

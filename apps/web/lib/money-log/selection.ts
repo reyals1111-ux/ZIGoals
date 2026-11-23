@@ -1,5 +1,6 @@
 import type {MoneyEntry} from './schema';
 import {minorUnits} from '../money-split/parts';
+import {categoryKind} from './counted';
 
 /**
  * Session AK (BUILD list 2 #7, COMPETITORS_2: Copilot 8.5/8.6): the running total of the entries picked in the money
@@ -7,21 +8,23 @@ import {minorUnits} from '../money-split/parts';
  * currency's own total ("2 currencies: −€80.00 and +$4.20"). An entry counts once, whole, even when it is split into
  * parts (the parts add up to the entry). Income adds, spending takes away. Pure; nothing stored.
  */
-export type SelectionTotal = {currency: string; cents: number; expenses: number; income: number};
-export type SelectionSummary = {count: number; expenses: number; income: number; totals: SelectionTotal[]};
+/** Review B6O-11: a refund (money back in a spending category) is counted as a refund, never as income; it still adds. */
+export type SelectionTotal = {currency: string; cents: number; expenses: number; income: number; refunds?: number};
+export type SelectionSummary = {count: number; expenses: number; income: number; refunds: number; totals: SelectionTotal[]};
 
 export function summarizeSelection(entries: readonly MoneyEntry[], selected: ReadonlySet<string> | readonly string[]): SelectionSummary {
   const wanted = selected instanceof Set ? selected : new Set(selected as readonly string[]);
   const by = new Map<string, SelectionTotal>(), counted = new Set<string>();
-  let expenses = 0, income = 0;
+  let expenses = 0, income = 0, refunds = 0;
   for (const e of entries) {
     if (!wanted.has(e.id) || counted.has(e.id)) continue;
     counted.add(e.id);
     const row = by.get(e.currency) ?? {currency: e.currency, cents: 0, expenses: 0, income: 0}, amount = minorUnits(e.amount);
-    if (e.kind === 'income') { row.cents += amount; row.income++; income++; } else { row.cents -= amount; row.expenses++; expenses++; }
+    if (e.kind === 'income' && categoryKind(e) === 'expense') { row.cents += amount; row.refunds = (row.refunds ?? 0) + 1; refunds++; }
+    else if (e.kind === 'income') { row.cents += amount; row.income++; income++; } else { row.cents -= amount; row.expenses++; expenses++; }
     by.set(e.currency, row);
   }
-  return {count: counted.size, expenses, income, totals: [...by.values()].sort((a, b) => a.currency.localeCompare(b.currency))};
+  return {count: counted.size, expenses, income, refunds, totals: [...by.values()].sort((a, b) => a.currency.localeCompare(b.currency))};
 }
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
@@ -35,7 +38,7 @@ export function signedMoney(cents: number, currency: string, format: (cents: num
  */
 export function selectionLine(summary: SelectionSummary, format: (cents: number, currency: string) => string): string {
   if (!summary.count) return 'Nothing selected';
-  const kinds = [summary.expenses ? plural(summary.expenses, 'expense', 'expenses') : '', summary.income ? plural(summary.income, 'income', 'incomes') : ''].filter(Boolean).join(', ');
+  const kinds = [summary.expenses ? plural(summary.expenses, 'expense', 'expenses') : '', summary.refunds ? plural(summary.refunds, 'refund', 'refunds') : '', summary.income ? plural(summary.income, 'income', 'incomes') : ''].filter(Boolean).join(', ');
   const amounts = summary.totals.map(t => signedMoney(t.cents, t.currency, format));
   const money = amounts.length === 1 ? amounts[0]! : `${amounts.length} currencies: ${amounts.slice(0, -1).join(', ')} and ${amounts.at(-1)!}`;
   return `${summary.count} selected · ${money} (${kinds})`;

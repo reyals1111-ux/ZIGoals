@@ -47,6 +47,17 @@ export function TimePicker({block, actions, onClose}: {block: TimelineBlock; act
 }
 
 export function TimelineBlockRow({block, actions, busy}: {block: TimelineBlock; actions: BlockActions; busy: boolean}) {
+  if (block.kind === 'mark') return <TimelineMarkRow block={block}/>;
+  return <TimelineBlockBody block={block} actions={actions} busy={busy}/>;
+}
+/** Session AV lane 2 (r5-body, LEDGER #370): a small mark at its time (a mood check-in), in words as well as colour. */
+function TimelineMarkRow({block}: {block: TimelineBlock}) {
+  return <li className="timeline-row timeline-mark" data-kind="mark" data-pillar={block.pillar ?? undefined} data-block={block.id} style={block.colour ? {'--item-colour': block.colour} as CSSProperties : undefined}>
+    <span className="timeline-time">{block.start !== null ? clockLabel(block.start) : 'Any time'}</span>
+    <p className="timeline-mark-line"><span className="timeline-mark-dot" aria-hidden="true"/><Link href={block.href} className="text-link">{block.title}</Link>{block.note && <span className="timeline-meta"> · {block.note}</span>}</p>
+  </li>;
+}
+function TimelineBlockBody({block, actions, busy}: {block: TimelineBlock; actions: BlockActions; busy: boolean}) {
   const [picking, setPicking] = useState(false);
   const drag = useMoveBlock({start: block.start ?? 0, onCommit: m => actions.move(block, m)});
   const timed = block.start !== null, moving = drag.pending !== null && drag.pending !== block.start;
@@ -60,7 +71,7 @@ export function TimelineBlockRow({block, actions, busy}: {block: TimelineBlock; 
     <span className="timeline-time">{timed ? clockLabel(moving ? drag.pending! : block.start!) : 'Any time'}</span>
     <div className="timeline-block">
       <div className="timeline-block-main">
-        <p className="timeline-title"><strong>{block.glyph && <span aria-hidden="true">{block.glyph} </span>}{block.title}</strong>{block.done && <span className="timeline-state">Done</span>}{block.skipped && <span className="timeline-state">Skipped</span>}</p>
+        <p className="timeline-title"><strong>{block.glyph && <span aria-hidden="true">{block.glyph} </span>}{block.title}</strong>{block.done && <span className="timeline-state">Done</span>}{block.skipped && <span className="timeline-state">{block.cancelled ? 'Cancelled' : 'Skipped'}</span>}</p>
         {meta && <p className="timeline-meta">{meta}</p>}
         {block.note && <p className="timeline-note">{block.note}</p>}
         {moving && <p className="timeline-moving" role="status">To {clockLabel(drag.pending!)}: let go (or press Enter) to save.</p>}

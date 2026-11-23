@@ -67,7 +67,7 @@ const DUTCH: Record<string, string> = {
   dagelijks: 'daily', wekelijks: 'weekly', maandelijks: 'monthly', jaarlijks: 'yearly',
   werkdag: 'weekday', werkdagen: 'weekdays', doordeweeks: 'weekdays', weekenden: 'weekends',
   tot: 'until', keer: 'times', en: 'and', op: 'on', om: 'at', de: 'the', het: 'the', voor: 'by', vanaf: 'from',
-  eerste: 'first', tweede: 'second', derde: 'third', vierde: 'fourth', vijfde: 'fifth', laatste: 'last',
+  eerste: 'first', tweede: 'second', derde: 'third', vierde: 'fourth', vijfde: 'fifth', laatste: 'last', voorlaatste: 'penultimate',
   een: 'a', twee: 'two', drie: 'three', vier: 'four', vijf: 'five', zes: 'six', zeven: 'seven', acht: 'eight', negen: 'nine', tien: 'ten', elf: 'eleven', twaalf: 'twelve',
   middag: 'noon', middernacht: 'midnight', uur: "o'clock",
   zondag: 'sunday', maandag: 'monday', dinsdag: 'tuesday', woensdag: 'wednesday', donderdag: 'thursday', vrijdag: 'friday', zaterdag: 'saturday',
@@ -239,6 +239,9 @@ export function parseTaskLine(input: string, today: string, {keep = []}: {keep?:
     const partTime = DAY_PART_TIMES[toks[j]!.text.toLowerCase()];
     if (partTime && interval === 1) return finish({len: j + 1 - i, recur: {every: 'day', interval: 1}, time: partTime});
     if (UNITS[u]) { recur = {every: UNITS[u]!, interval}; j++; }
+    // Session AV lane 2 (r6-plan, LEDGER #398; OmniFocus): "every last workday", "every second-to-last Friday" (a month's).
+    else if (workdayAt(j)) { const w = workdayAt(j)!; recur = {every: 'month', interval, workday: w.which}; j += w.len; j += ofTheMonth(j); }
+    else if (fromEndAt(j) && WEEKDAYS[at(j + fromEndAt(j)!.len) ?? ''] !== undefined) { const f = fromEndAt(j)!; recur = {every: 'month', interval, fromEnd: {n: f.n, weekday: WEEKDAYS[at(j + f.len)!]!}}; j += f.len + 1; j += ofTheMonth(j); }
     else if (u === 'weekday' || u === 'weekdays' || u === 'workday' || u === 'workdays') { recur = {every: 'week', interval: 1, weekdays: [1, 2, 3, 4, 5]}; j++; }
     else if (u === 'weekend' || u === 'weekends') { recur = {every: 'week', interval: 1, weekdays: [6, 0]}; j++; }
     else if (WEEKDAYS[u] !== undefined) {
@@ -271,6 +274,8 @@ export function parseTaskLine(input: string, today: string, {keep = []}: {keep?:
       if (recur.every === 'month' && v && /^\d{1,2}(st|nd|rd|th|e)?$/.test(v) && dayNum(v)! >= 1 && dayNum(v)! <= 31) { recur.monthDay = dayNum(v)!; j = k + 1; j += ofTheMonth(j); }
       else if (recur.every === 'month' && v && ORDINALS[v] !== undefined && WEEKDAYS[at(k + 1) ?? ''] !== undefined) { recur.nth = {n: ORDINALS[v]!, weekday: WEEKDAYS[at(k + 1)!]!}; j = k + 2; j += ofTheMonth(j); }
       else if (recur.every === 'month' && v === 'last' && at(k + 1) === 'day') { recur.monthDay = -1; j = k + 2; }
+      else if (recur.every === 'month' && workdayAt(k)) { const w = workdayAt(k)!; recur.workday = w.which; j = k + w.len; j += ofTheMonth(j); }
+      else if (recur.every === 'month' && fromEndAt(k) && WEEKDAYS[at(k + fromEndAt(k)!.len) ?? ''] !== undefined) { const f = fromEndAt(k)!; recur.fromEnd = {n: f.n, weekday: WEEKDAYS[at(k + f.len)!]!}; j = k + f.len + 1; j += ofTheMonth(j); }
       else if (recur.every === 'week' && v && WEEKDAYS[v] !== undefined) {
         const days: number[] = []; let m = k;
         while (at(m) !== undefined && (WEEKDAYS[at(m)!] !== undefined || ((at(m) === 'and' || at(m) === ',') && WEEKDAYS[at(m + 1) ?? ''] !== undefined))) { if (WEEKDAYS[at(m)!] !== undefined && !days.includes(WEEKDAYS[at(m)!]!)) days.push(WEEKDAYS[at(m)!]!); m++; }
@@ -281,6 +286,25 @@ export function parseTaskLine(input: string, today: string, {keep = []}: {keep?:
       }
     }
     return finish({len: j - i, recur});
+    /** "second-to-last", "second last", "next-to-last", "penultimate" (Dutch "voorlaatste") at k: its length and n (2–5). */
+    function fromEndAt(k: number): {len: number; n: number} | null {
+      const w = at(k);
+      if (w === 'penultimate') return {len: 1, n: 2};
+      const n = w === 'next' ? 2 : w && ORDINALS[w] !== undefined && ORDINALS[w]! >= 2 ? ORDINALS[w]! : 0;
+      if (!n) return null;
+      let m = k + 1; if (at(m) === '-') m++;
+      if (at(m) === 'to') { m++; if (at(m) === '-') m++; }
+      return at(m) === 'last' ? {len: m + 1 - k, n} : null;
+    }
+    /** "last workday", "last weekday", "last working day", "first business day" (Dutch "laatste werkdag") at k. */
+    function workdayAt(k: number): {len: number; which: 'first' | 'last'} | null {
+      const w = at(k), which = w === 'last' ? 'last' : w === 'first' || w === '1st' ? 'first' : null;
+      if (!which) return null;
+      const u = at(k + 1);
+      if (u === 'weekday' || u === 'workday') return {len: 2, which};
+      if ((u === 'working' || u === 'business') && at(k + 2) === 'day') return {len: 3, which};
+      return null;
+    }
     /** "of the month", "of each month", the Dutch "van de maand" / "van elke maand": how many tokens it takes at k. */
     function ofTheMonth(k: number) { return (at(k) === 'of' || toks[k]?.text.toLowerCase() === 'van') && (at(k + 1) === 'the' || at(k + 1) === 'each' || at(k + 1) === 'every') && at(k + 2) === 'month' ? 3 : 0; }
     function yearStart(m: number, d: number) { const y = Number(today.slice(0, 4)), here = `${y}-${pad(m)}-${pad(d <= daysInMonth(y, m) ? d : daysInMonth(y, m))}`; return here >= today ? here : `${y + 1}-${pad(m)}-${pad(Math.min(d, daysInMonth(y + 1, m)))}`; }

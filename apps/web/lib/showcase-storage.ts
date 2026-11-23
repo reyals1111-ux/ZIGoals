@@ -87,6 +87,7 @@ export async function clearShowcasePhotos(waitMs=1500):Promise<void>{
   import('./tasks/attachments').then(m=>m.deleteTaskAttachments(SHOWCASE_PHOTO_SCOPE)), // Session AV lane 2 (LEDGER #8)
   import('./food-plus/photos').then(m=>m.deleteAllFoodPhotos(SHOWCASE_PHOTO_SCOPE)), // Session AV lane 2 (LEDGER #103)
   import('./journal/media').then(m=>m.deleteAllJournalMedia(SHOWCASE_PHOTO_SCOPE)), // Session AV lane 2 (review b1 #4)
+  import('./workouts/photos').then(m=>m.deleteAllWorkoutPhotos(SHOWCASE_PHOTO_SCOPE)), // Session AV lane 2, round 5 (LEDGER #377)
   import('./wealth-sheet/docs').then(m=>m.deleteWealthDocs(SHOWCASE_PHOTO_SCOPE)), // Session AV lane 2 (review b2a #4): account documents
  ]).then(()=>undefined);
  await Promise.race([work,wait]);clearTimeout(timer);

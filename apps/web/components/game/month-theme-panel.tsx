@@ -1,5 +1,6 @@
 'use client';
 import {useRef, useState} from 'react';
+import {NebulaFlow} from '../nebula-flow';
 import Link from 'next/link';
 import {setMonthTheme, type GameRecord} from '../../lib/game/schema';
 import {themeMonthsReached, themeProgress} from '../../lib/game/month-theme';
@@ -25,11 +26,11 @@ export default function MonthThemePanel({game, habits, extras, today}: {game: De
     catch (cause) { setSaid(storageMessageOr(cause, 'Not saved on this device.')); }
     requestAnimationFrame(() => button.current?.focus());
   };
-  if (off) return <section className="panel journey-theme journey-theme-off" aria-labelledby="journey-theme-title"><p className="eyebrow">Each month</p><h2 id="journey-theme-title">The monthly theme is hidden</h2>
+  if (off) return <section className="panel journey-theme journey-theme-off" aria-labelledby="journey-theme-title"><p className="eyebrow">Each month</p><h2 id="journey-theme-title"><NebulaFlow identity="journey-theme-off">The monthly theme is hidden</NebulaFlow></h2>
     <p className="fine">Its badge is not earned while it is hidden; one already earned stays.</p>
     <button ref={button} type="button" className="secondary" onClick={flip}>Show the monthly theme</button>{said && <p className="fine" role="status">{said}</p>}</section>;
   return <section className="panel journey-theme" aria-labelledby="journey-theme-title" data-testid="journey-month-theme"><p className="eyebrow">{formatMonth(today.slice(0, 7))} · this month&rsquo;s theme</p>
-    <h2 id="journey-theme-title"><span aria-hidden="true">{t.symbol} </span>{t.en}</h2>
+    <h2 id="journey-theme-title"><span aria-hidden="true">{t.symbol} </span><NebulaFlow identity="journey-theme">{t.en}</NebulaFlow></h2>
     <p>{t.lineEn} {p.inArea ? `Check-ins on your ${area} habits count.` : `Every habit counts this month; give a habit the ${area} area (its Details → ◈ Choose an area) to make it the month’s own.`}</p>
     <p className="journey-theme-count"><strong>{formatNumber(Math.min(p.days, p.target))} of {formatNumber(p.target)} days</strong> with a check-in{p.reached ? ' · reached: the Theme month badge is yours' : ''}</p>
     <progress className="journey-theme-bar" max={p.target} value={Math.min(p.days, p.target)} aria-label={`${t.en}: ${p.days} of ${p.target} days with a check-in`} />

@@ -5,6 +5,7 @@ import {addLocalDays} from '../../../local-date';
 import {DONE_KEEP_DAYS, type Tasks} from '../../../tasks/schema';
 import {formatDate} from '../../../visual-format';
 import {taskLoad, type DoneDay} from './day-tasks';
+import {isFinished} from '../../../tasks/finished';
 
 /**
  * Session AS (ADR-042 Part 2, family: radar and scanner; addition A3): "how am I doing" as facts beside the person's own
@@ -38,7 +39,7 @@ export function lifeRadar(input: LifeInput, period: Period, today: string, doneD
     return ratio(done, due, 'due check-ins done');
   };
   // Nothing kept at all (no task, no session) is unknown, not a count of zero.
-  const tasks = (p: Period | null): number | null => !input.tasks?.tasks.length || !p || p.from < keptFrom ? null : input.tasks.tasks.filter(t => { const d = t.doneAt ? doneDay(t.doneAt) : null; return !!d && d >= p.from && d <= p.to; }).length;
+  const tasks = (p: Period | null): number | null => !input.tasks?.tasks.length || !p || p.from < keptFrom ? null : input.tasks.tasks.filter(t => { const d = isFinished(t) /* review B5L-1 */ ? doneDay(t.doneAt!) : null; return !!d && d >= p.from && d <= p.to; }).length;
   const focus = (p: Period | null): number | null => !input.focus?.length || !p ? null : Math.round(input.focus.filter(s => s.day >= p.from && s.day <= p.to).reduce((n, s) => n + s.focusedSeconds, 0) / 60);
   const checklist = (p: Period | null): SpokeSide => {
     if (!input.checklist || !p) return UNKNOWN;

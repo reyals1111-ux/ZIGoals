@@ -38,7 +38,7 @@ export function HrZones({workoutId, name}: {workoutId: string; name: string}) {
     </> : <p className="fine">This run kept the time at each heart rate from its file. Type your maximum heart rate (from a test or your watch, never guessed from age) to see its five zones.</p>}
     <form className="r3-toggle" aria-label="Your maximum heart rate" noValidate onSubmit={keep}>
       <label className="field"><span>Maximum heart rate (bpm, {MAX_HR_MIN}–{MAX_HR_MAX})</span><input id={`${id}-max`} type="text" inputMode="numeric" value={text} aria-invalid={issue ? true : undefined} aria-describedby={issue ? `${id}-issue` : undefined} onChange={e => { setText(e.target.value); setIssue(''); }}/></label>
-      <button type="submit" className="secondary">{max ? 'Change it' : 'Keep it'}</button>{max && <button type="button" className="quiet" onClick={remove}>Remove my maximum</button>}
+      <button type="submit" className="secondary">{max ? 'Change it' : 'Save'}</button>{max && <button type="button" className="quiet" onClick={remove}>Remove my maximum</button>}
       {issue && <p className="field-error" id={`${id}-issue`} role="alert">{issue}</p>}
     </form>
     <p className="fine" role="status" aria-live="polite">{said}</p>

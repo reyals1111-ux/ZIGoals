@@ -20,6 +20,20 @@ export const journalDisplaySchema = z.looseObject({
    * word of it). Off unless switched on; a value this build cannot read is dropped on read; older builds keep it untouched.
    */
   memoryNotify: z.boolean().optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r6-notes; LEDGER #409, Diarium's sunrise, sunset and moon; TIER 3 (stored format), additive and
+   * optional): the place the Journal reckons a day's sunrise and sunset for — a city from the built-in list (`city`) or a
+   * typed latitude and longitude (`lat`, `lon`, with an optional name) — or `off: true` to show no sun or moon. Absent:
+   * the city of this device's time zone when the list has one. Computed in code on this device; nothing is looked up. A
+   * value this build cannot read is dropped (the time zone's city is used); older builds keep it untouched.
+   */
+  sky: z.looseObject({
+    city: z.string().regex(/^[a-z-]{2,40}$/).optional().catch(undefined),
+    lat: z.number().finite().min(-90).max(90).optional().catch(undefined),
+    lon: z.number().finite().min(-180).max(180).optional().catch(undefined),
+    name: z.string().trim().min(1).max(60).optional().catch(undefined),
+    off: z.literal(true).optional().catch(undefined),
+  }).optional().catch(undefined),
 });
 export type JournalDisplay = z.infer<typeof journalDisplaySchema>;
 export const emptyJournalDisplay = (): JournalDisplay => ({version: 1});

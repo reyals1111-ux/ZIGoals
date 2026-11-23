@@ -1,3 +1,4 @@
+import {BRING_UP} from '../../clinician-report/bring-up';
 import {CALORIE_WEEK} from '../../health-aa/calorie-week';
 import {PLANNED_WORKOUTS} from '../../workouts/planned';
 import {RACES} from '../../workouts/races';
@@ -48,5 +49,7 @@ export function readAkToolSources(storage: Read): AkToolSources {
     // Session AV lane 2, round 3 (health; each answer checks the Health gate first, as the batch 2 Health records do).
     healthExtras: one(HEALTH_EXTRAS), notifyPrefs: one(NOTIFY_PREFS), healthGoalsMore: one(MORE_GOALS), workoutCircuits: one(CIRCUITS),
     // Round 4 (health).
-    plannedWorkouts: one(PLANNED_WORKOUTS), races: one(RACES), workoutHr: one(WORKOUT_HR), calorieWeek: one(CALORIE_WEEK)};
+    plannedWorkouts: one(PLANNED_WORKOUTS), races: one(RACES), workoutHr: one(WORKOUT_HR), calorieWeek: one(CALORIE_WEEK),
+    // Round 6 (health): the visit's "To bring up" list (Health gate in the answer). The low-day plan is never an AI source.
+    bringUp: one(BRING_UP)};
 }

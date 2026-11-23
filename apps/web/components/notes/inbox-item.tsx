@@ -54,7 +54,7 @@ export function InboxItem({note, record, targets, today, change}: {note: Note; r
     <div className="note-actions">
       <button type="button" className="secondary" aria-expanded={open} aria-controls={`${id}-file`} onClick={() => setOpen(o => !o)}>{open ? 'Close' : 'File…'}</button>
       <Link className="quiet" href={noteHref(note.id)} aria-label={`Edit “${name}”`}>Edit</Link>
-      <button type="button" className="quiet" aria-label={`Delete “${name}”`} onClick={() => change(r => removeNote(r, note.id), `“${shortNoteName(note)}” deleted.`)}>Delete</button>
+      <button type="button" className="quiet" aria-label={`Delete “${name}”`} onClick={() => change(r => removeNote(r, note.id), `“${shortNoteName(note)}” deleted. It waits 30 days in Notes → Notes → Recently deleted.`)}>Delete</button>
     </div>
     {open && <fieldset id={`${id}-file`} className="note-file">
       <legend>File “{name.length > 40 ? `${name.slice(0, 39)}…` : name}” into</legend>

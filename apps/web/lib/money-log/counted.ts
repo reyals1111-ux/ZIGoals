@@ -7,8 +7,31 @@ import {entryParts, minorUnits, type EntryPart} from '../money-split/parts';
  * payment or a move between accounts (`transfer`) stay in the log, in search and in Export, but no total, budget, pace or
  * insight counts them. Pure.
  */
-export const isCounted = (e: Pick<MoneyEntry, 'excluded' | 'transfer'>) => !e.excluded && !e.transfer;
-export const countedOnly = <T extends Pick<MoneyEntry, 'excluded' | 'transfer'>>(entries: readonly T[]): T[] => entries.filter(isCounted);
+type Marks = Pick<MoneyEntry, 'excluded' | 'transfer'> & {kind?: string; refund?: true};
+/**
+ * Session AV lane 2, round 6 (money; Banktivity's refund, LEDGER #425): a refund is kept as income with `refund: true` in
+ * an expense category (so an older build reads it as money received, as it does today), and every figure here counts it
+ * as spending below zero in that category: it lowers the category, its budget, the pace and the month — and it is never
+ * income. `isCounted` is false for a refund (no income figure counts it, and no figure counts it as itself);
+ * `isRefund`, `inFigures`, `countedKind` and `isSpending` are how a figure takes it in. A refund left out of the figures
+ * or marked a transfer counts nowhere, as any entry.
+ */
+export const isRefund = (e: Marks) => e.kind === 'income' && e.refund === true && !e.excluded && !e.transfer;
+export const isCounted = (e: Marks) => !e.excluded && !e.transfer && !(e.kind === 'income' && e.refund === true);
+export const countedOnly = <T extends Marks>(entries: readonly T[]): T[] => entries.filter(isCounted);
+/** Whether an entry reaches any figure at all: counted as itself, or a refund (spending below zero). */
+export const inFigures = (e: Marks) => isCounted(e) || isRefund(e);
+/** The kind a figure counts an entry as: a refund is spending (below zero), every other entry its own kind. */
+export const countedKind = <K extends string>(e: Marks & {kind: K}): K | 'expense' => isRefund(e) ? 'expense' : e.kind;
+/**
+ * Review B6O-3, B6O-8: the kind of category an entry sits in. A refund (`refund: true` on income) sits in an expense
+ * category whatever its marks — left out or a transfer it counts nowhere, but its category is still a spending one, so
+ * a rule, a check or a repair never moves it into an income category. Every other entry: its own kind.
+ */
+export const categoryKind = <K extends string>(e: {kind: K; refund?: true}): K | 'expense' => e.kind === 'income' && e.refund === true ? 'expense' : e.kind;
+/** A counted expense or a refund: the entries every spending figure sums (a refund below zero). */
+export const isSpending = (e: Marks & {kind: string}) => e.kind === 'expense' ? isCounted(e) : isRefund(e);
+const signOf = (e: Marks) => isRefund(e) ? -1 : 1;
 
 /**
  * Session AV lane 2, round 2 (money; Emma's custom split): the person's own share of a cost paid for others too. The log
@@ -16,17 +39,17 @@ export const countedOnly = <T extends Pick<MoneyEntry, 'excluded' | 'transfer'>>
  * amount; otherwise the whole amount, as older builds do). Each part is scaled to the share in exact cents (the first
  * parts take the leftover cents, so the parts add up to the share).
  */
-export function mineCents(e: Pick<MoneyEntry, 'amount' | 'share'>): number {
+export function mineCents(e: Pick<MoneyEntry, 'amount' | 'share'> & Partial<Marks>): number {
   const whole = minorUnits(e.amount), mine = e.share ? minorUnits(e.share) : whole;
-  return mine > 0 && mine <= whole ? mine : whole;
+  return (mine > 0 && mine <= whole ? mine : whole) * signOf(e); // Round 6 (#425): a refund below zero
 }
 export function mineParts(e: MoneyEntry): EntryPart[] {
-  const parts = entryParts(e), whole = minorUnits(e.amount), mine = mineCents(e);
-  if (mine === whole) return parts;
+  const parts = entryParts(e), whole = minorUnits(e.amount), mine = Math.abs(mineCents(e)), sign = signOf(e);
+  if (mine === whole) return sign < 0 ? parts.map(p => ({...p, cents: -p.cents})) : parts;
   const scaled = parts.map(p => ({...p, cents: Math.floor(p.cents * mine / whole)}));
   let rest = mine - scaled.reduce((sum, p) => sum + p.cents, 0);
   for (let i = 0; rest > 0 && scaled.length; i = (i + 1) % scaled.length, rest--) scaled[i]!.cents++;
-  return scaled;
+  return sign < 0 ? scaled.map(p => ({...p, cents: -p.cents})) : scaled;
 }
 /**
  * Review b2a #1 (one month's spending is one figure everywhere): what one entry adds to a spending or income figure, in
@@ -34,7 +57,7 @@ export function mineParts(e: MoneyEntry): EntryPart[] {
  * Settle-up refund (kept as a left-out income entry) or either side of a transfer; an expense counts the person's own
  * share; income counts whole. NOVA's and ZIGi's money answers and widgets sum through this.
  */
-export const countedCents = (e: Pick<MoneyEntry, 'kind' | 'amount' | 'share' | 'excluded' | 'transfer'>): number => !isCounted(e) ? 0 : e.kind === 'expense' ? mineCents(e) : minorUnits(e.amount);
+export const countedCents = (e: Pick<MoneyEntry, 'kind' | 'amount' | 'share' | 'excluded' | 'transfer'> & {refund?: true}): number => !inFigures(e) ? 0 : countedKind(e) === 'expense' ? mineCents(e) : minorUnits(e.amount);
 const monthIndex = (m: string) => Number(m.slice(0, 4)) * 12 + Number(m.slice(5, 7)) - 1;
 /**
  * What an expense counts in a month's budgets: its parts in its own month, or — spread over `spread` months from its own
@@ -42,7 +65,7 @@ const monthIndex = (m: string) => Number(m.slice(0, 4)) * 12 + Number(m.slice(5,
  * add up exactly). Nothing for a month outside it, or for an entry that is not counted.
  */
 export function budgetMonthParts(e: MoneyEntry, month: string): EntryPart[] {
-  if (!isCounted(e)) return [];
+  if (!inFigures(e)) return [];
   const own = e.date.slice(0, 7), n = e.spread ?? 1, k = monthIndex(month) - monthIndex(own);
   if (k < 0 || k >= n) return [];
   if (n === 1) return mineParts(e);
@@ -56,7 +79,7 @@ export function budgetMonthParts(e: MoneyEntry, month: string): EntryPart[] {
  * Nothing for an entry left out of the figures or a transfer.
  */
 export function budgetDayParts(e: MoneyEntry): {date: string; parts: EntryPart[]}[] {
-  if (!isCounted(e)) return [];
+  if (!inFigures(e)) return [];
   const n = e.spread ?? 1;
   if (n === 1) return [{date: e.date, parts: mineParts(e)}];
   const [y, m, d] = e.date.split('-').map(Number) as [number, number, number];
@@ -74,9 +97,11 @@ export function budgetDayParts(e: MoneyEntry): {date: string; parts: EntryPart[]
  * period that holds every month of a spread, the shares add up to what `totals` counts.
  */
 export function countedDayParts(e: MoneyEntry): {date: string; parts: EntryPart[]}[] {
-  if (!isCounted(e)) return [];
-  return e.kind === 'expense' ? budgetDayParts(e) : [{date: e.date, parts: entryParts(e)}];
+  if (!inFigures(e)) return [];
+  return countedKind(e) === 'expense' ? budgetDayParts(e) : [{date: e.date, parts: entryParts(e)}];
 }
+/** Round 6 (#425): what one entry adds to spending, by day (`countedDayParts`; a refund below zero); nothing for income. */
+export const spendingDayParts = (e: MoneyEntry) => isSpending(e) ? countedDayParts(e) : [];
 export type CountedFilter = {kind?: MoneyEntry['kind']; currency?: string; category?: string;
   /** Review b4f #1: only the parts this keeps count (a saved search on a subcategory: the parts in the entry's own category). */
   only?: (e: MoneyEntry, part: EntryPart) => boolean};
@@ -88,7 +113,7 @@ export const foldName = (s: string) => s.toLowerCase().normalize('NFKD').replace
 export function countedBetween(entries: readonly MoneyEntry[], from: string, to: string, {kind = 'expense', currency, category, only}: CountedFilter = {}): Map<string, number> {
   const out = new Map<string, number>(), cat = category ? foldName(category) : '';
   for (const e of entries) {
-    if (e.kind !== kind || (currency && e.currency !== currency)) continue;
+    if (countedKind(e) !== kind || (currency && e.currency !== currency)) continue;
     for (const d of countedDayParts(e)) {
       if (d.date < from || d.date > to) continue;
       const cents = d.parts.reduce((sum, p) => (!cat || foldName(p.category) === cat) && (!only || only(e, p)) ? sum + p.cents : sum, 0);
@@ -101,7 +126,7 @@ export function countedBetween(entries: readonly MoneyEntry[], from: string, to:
 export function countedByCategoryBetween(entries: readonly MoneyEntry[], from: string, to: string, kind: MoneyEntry['kind'] = 'expense', only?: (e: MoneyEntry, part: EntryPart) => boolean): {category: string; currency: string; total: number; count: number}[] {
   const by = new Map<string, {category: string; currency: string; total: number; count: number}>();
   for (const e of entries) {
-    if (e.kind !== kind) continue;
+    if (countedKind(e) !== kind) continue;
     for (const d of countedDayParts(e)) {
       if (d.date < from || d.date > to) continue;
       for (const p of d.parts) { if (!p.cents || (only && !only(e, p))) continue; const k = `${e.currency}\u0000${p.category}`, row = by.get(k) ?? {category: p.category, currency: e.currency, total: 0, count: 0}; row.total += p.cents; row.count++; by.set(k, row); }

@@ -1,12 +1,12 @@
 import {habitCalendarDay, habitDay, habitRuleOn, logHabitValue, smartDoneValue, type HabitData} from '../habits';
 import {dailyHealthSummary, type HealthData} from '../health';
-import {dailyData, healthDay, waterSummary} from '../health-daily';
+import {dailyData, healthDay, healthZone, waterSummary} from '../health-daily';
 import {latestWeightObservation} from '../body-measurements';
 import {countOn, exerciseData} from '../health-counters';
 import type {AppliedCheckInV4, HabitHealthLinkV4, HabitHealthLinksV4, HealthMeasureV4} from './schema';
 import {healthGroupIn} from '../vault/w-homes';
 import {asleep, bedClock, nightDay} from '../sleep/night';
-import {minutesOn as meditationMinutesOn} from '../meditation/stats';
+import {meditationDayAt, minutesOn as meditationMinutesOn} from '../meditation/stats';
 import type {SleepNight} from '../sleep/schema';
 import {formatNumber} from '../visual-format';
 
@@ -47,14 +47,16 @@ export type AutoCompletion = {habitId: string; date: string; healthDate: string;
  * both at the same instant.
  */
 export function autoCompletions({links, habits, health, now = new Date()}: {links: HabitHealthLinksV4; habits: HabitData; health: HealthData; now?: Date}): AutoCompletion[] {
-  const date = habitCalendarDay(habits, now), healthDate = healthDay(dailyData(health).preferences.timezone, now), out: AutoCompletion[] = [];
+  const timezone = dailyData(health).preferences.timezone, date = habitCalendarDay(habits, now), healthDate = healthDay(timezone, now), out: AutoCompletion[] = [];
+  // Review B6P-2: mindful minutes count on the meditation day ("My day ends at"; lib/meditation/stats.ts), kept in the marker.
+  const meditationDate = meditationDayAt(healthDate, now, healthZone(timezone));
   for (const [habitId, link] of Object.entries(links.links)) {
     const habit = habits.habits.find(h => h.id === habitId);
     if (!habit || links.applied.some(a => a.habitId === habitId && a.date === date)) continue;
     const rule = habitRuleOn(habit, date);
     if (!rule || rule.type !== 'build' || !OPEN.has(habitDay(habit, date, date).status)) continue;
-    const value = measureValue(health, healthDate, link);
-    if (value !== null && ruleMet(link, value)) out.push({habitId, date, healthDate, measure: link.measure, value});
+    const day = link.measure === 'meditationMinutes' ? meditationDate : healthDate, value = measureValue(health, day, link);
+    if (value !== null && ruleMet(link, value)) out.push({habitId, date, healthDate: day, measure: link.measure, value});
   }
   return out;
 }

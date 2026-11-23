@@ -1,5 +1,6 @@
 'use client';
 import {useMemo} from 'react';
+import {NebulaFlow} from '../../nebula-flow';
 import {useChartWidth} from '../../charts/use-chart-width';
 import {clockFromMidnight, clockFromNoon, type DayPoint} from '../../../lib/sleep/engine';
 import {groupSleep, lastMonths} from '../../../lib/sleep/longer';
@@ -24,7 +25,7 @@ const delta = (now: number | null, usual: number | null, words: (n: number) => s
 export default function SleepUsual({sleep, today}: {sleep: Sleep; today: string}) {
   const v = useMemo(() => weekVsUsual(sleep, today), [sleep, today]), usual = useMemo(() => usualSleep(sleep, today), [sleep, today]);
   return <section className="panel sleep-usual-card" aria-labelledby="sleep-usual-title">
-    <h2 id="sleep-usual-title">Your week beside your usual</h2>
+    <h2 id="sleep-usual-title"><NebulaFlow identity="sleep-usual-title">Your week beside your usual</NebulaFlow></h2>
     {!usual ? <p className="fine">Your usual is worked out from your own nights: the middle value of the nights you logged in the 90 days before this week. It needs at least {USUAL_MIN_NIGHTS} of them; keep logging and it shows here.</p>
       : !v ? <p className="fine">No night logged in the last 7 days. Your usual: {usual.asleep === null ? '—' : formatMinutes(Math.round(usual.asleep))} asleep, from {usual.nights} nights.</p>
       : <><dl className="sleep-usual-stats">

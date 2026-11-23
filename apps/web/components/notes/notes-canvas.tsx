@@ -174,7 +174,7 @@ function CardText({value, onKeep, label = 'The card’s words', single = false}:
   const [draft, setDraft] = useState(value);
   return <form className="canvas-row" onSubmit={e => { e.preventDefault(); if (draft !== value) onKeep(draft); }}>
     <label className="field"><span>{label}</span>{single ? <input type="text" value={draft} maxLength={60} onChange={e => setDraft(e.target.value)}/> : <textarea rows={3} value={draft} maxLength={2000} onChange={e => setDraft(e.target.value)}/>}</label>
-    <button type="submit" className="secondary" disabled={draft === value}>Keep</button>
+    <button type="submit" className="secondary" disabled={draft === value}>Save</button>
     <SecretGuard text={draft} onRemove={() => setDraft(value)}/>
   </form>;
 }

@@ -6,12 +6,14 @@ import {formatCurrencyAmount, formatDate, formatNumber} from '../visual-format';
 // Session AV lane 2, round 3 (money; PocketGuard's Financial Wellness, LEDGER #296): the day's spending as an outcome, by Wealth → Spending's own sums.
 import {byCategory, totals} from '../money-log/engine';
 import type {MoneyEntry} from '../money-log/schema';
-import {isCounted, mineCents} from '../money-log/counted';
+import {isSpending, mineCents} from '../money-log/counted';
 import {healthGroupIn} from '../vault/w-homes';
 import {wallClock} from '../zone-time';
 import {entryNutrients, reportNutrients, type ReportNutrient} from '../health-aa/nutrient-report';
 import type {HealthVitamins} from '../health-vitamins/schema';
 import type {NutrientExtras} from '../health-vitamins/extras';
+import {lateMealDays, lateMealRule} from './late-meal';
+import type {FoodPlus} from '../food-plus/schema';
 import {CROSS_MIN_PER_SIDE, CROSS_WINDOW_DAYS, LABEL_WORDS, confidenceOf, deviceTime, habitShare, hoursMinutes, type CrossLabel} from '../insights/cross-pillar';
 
 /**
@@ -97,7 +99,7 @@ const FOOD_GAP: Readonly<Record<FoodOutcomeId, number>> = {kcal: 150, protein: 1
 const FOOD_LABELS: Readonly<Record<FoodOutcomeId, string>> = {kcal: 'Calories logged', protein: 'Protein logged (g)', weight: 'Weight (kg)', bp: 'Blood pressure, upper (mmHg)'};
 const isFoodOutcome = (id: string): id is FoodOutcomeId => (FOOD_OUTCOMES as readonly string[]).includes(id);
 export type Lag = 'same' | 'next';
-export type FactorKind = 'habit' | 'sleep-tag' | 'journal-tag' | 'workout' | 'fasting' | 'spend' | 'scale' | 'cycle' | 'dose' | 'symptom' | 'caffeine' | 'caffeine-late' | 'steps';
+export type FactorKind = 'habit' | 'sleep-tag' | 'journal-tag' | 'workout' | 'fasting' | 'spend' | 'scale' | 'cycle' | 'dose' | 'symptom' | 'caffeine' | 'caffeine-late' | 'steps' | 'late-meal';
 export type FactorOption = {id: string; kind: FactorKind; label: string; group: string};
 export type OutcomeOption = {id: OutcomeId; label: string};
 
@@ -129,6 +131,12 @@ export type CompareSources = {
    * (zigoals:health-extras:v1 `drinks`, keyed by the entry's id), for the caffeine factors.
    */
   drinks?: Readonly<Record<string, {type: string; caffeineMg?: number}>> | null;
+  /**
+   * Session AV lane 2 (r5-body; Bevel, LEDGER #371): the food log's eaten-at times and the person's late-meal numbers
+   * (zigoals:food-plus:v1 `times`, `lateMeal`), and the Health journal's time zone, for the late-meal factor.
+   */
+  foodPlus?: FoodPlus | null;
+  zone?: string;
 };
 
 /** Each outcome's meaningful gap (as the cross-pillar pairings: 0.4 points, 20 minutes, 10 percentage points). */
@@ -188,6 +196,7 @@ export const CONFOUNDERS: Readonly<Record<FactorKind, string>> = {
   caffeine: 'busy or tiring days can bring both more coffee and a different night',
   'caffeine-late': 'late coffee often comes with late evenings, which shape the night as well',
   steps: 'active days are often different days too, such as weekends, trips or days off',
+  'late-meal': 'late evenings, plans with others and busy days can bring both a later meal and a different night',
 };
 const MAX_TAGS = 20, MAX_HABITS = 60;
 
@@ -213,7 +222,8 @@ function fastingEnds(src: CompareSources): string[] {
  * does — an entry left out of the figures and either side of a transfer add nothing, and a shared cost counts the
  * person's own share (lib/money-log/counted.ts). In cents.
  */
-const expenses = (src: CompareSources, from: string, to: string) => (src.money?.entries ?? []).filter(e => e.kind === 'expense' && e.date >= from && e.date <= to && isCounted(e));
+// Round 6 (#425): a refund lowers its day (spending below zero), as Wealth → Spending's `totals` counts it.
+const expenses = (src: CompareSources, from: string, to: string) => (src.money?.entries ?? []).filter(e => isSpending(e) && e.date >= from && e.date <= to);
 const spentByDay = (entries: ReturnType<typeof expenses>, currency: string) => { const totals = new Map<string, number>(); for (const e of entries) if (e.currency === currency) totals.set(e.date, (totals.get(e.date) ?? 0) + mineCents(e)); return totals; };
 /** The spending factor's currency (the most used expense currency in the window) and a usual amount (the median day). */
 export function spendBasis(src: CompareSources, today: string): {currency: string; usual: number} | null {
@@ -224,6 +234,14 @@ export function spendBasis(src: CompareSources, today: string): {currency: strin
   return {currency, usual: Math.round((sorted[Math.ceil(sorted.length / 2) - 1] ?? 0) / 100)};
 }
 
+const lateMemo = new WeakMap<object, Map<string, boolean>>();
+/** The late-meal days of the sources (worked out once per sources object). */
+function lateMealOf(src: CompareSources): Map<string, boolean> {
+  let m = lateMemo.get(src);
+  if (!m) { m = lateMealDays(src.health, src.foodPlus, src.zone ?? deviceZone()); lateMemo.set(src, m); }
+  return m;
+}
+const deviceZone = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch { return 'UTC'; } };
 const CAFFEINATED = new Set(['coffee', 'tea', 'soft drink']);
 type CaffeineEntry = {mg: number | null; hour: number | null};
 type CaffeineDay = {date: string; entries: CaffeineEntry[]; knownMg: number; unknown: number};
@@ -262,6 +280,8 @@ export function factorOptions(src: CompareSources, today: string): FactorOption[
   const sleepTags = new Map<string, number>();
   for (const n of sleepNights(src)) if ((nightDay(n) ?? '') >= start) for (const t of n.tags ?? []) sleepTags.set(t, (sleepTags.get(t) ?? 0) + 1);
   for (const t of byUse(sleepTags)) out.push({id: `sleep-tag:${t}`, kind: 'sleep-tag', label: `Night tagged “${t}”`, group: 'Sleep tags'});
+  // Session AV lane 2 (r5-body; Bevel, LEDGER #371): a late meal read from the food log, beside the hand-set tag.
+  if ([...lateMealOf(src).keys()].some(d => d >= start)) out.push({id: 'late-meal', kind: 'late-meal', label: 'Late meal (from your food log)', group: 'Sleep tags'});
   const journalTags = new Map<string, number>();
   for (const e of src.journal?.entries ?? []) if (e.date >= start) for (const t of e.tags ?? []) journalTags.set(t, (journalTags.get(t) ?? 0) + 1);
   for (const t of byUse(journalTags)) out.push({id: `journal-tag:${t}`, kind: 'journal-tag', label: `Journal tag “${t}”`, group: 'Journal tags'});
@@ -377,6 +397,12 @@ function factorTest(src: CompareSources, factor: FactorOption, today: string, am
       if (day.entries.some(e => e.hour !== null && e.hour >= hour && e.mg !== null && e.mg > 0)) return true;
       return day.entries.some(e => (e.mg === null || e.mg > 0) && (e.hour === null || e.hour >= hour)) ? null : false;
     }};
+  }
+  if (kind === 'late-meal') {
+    const rule = lateMealRule(src.foodPlus), byDay = lateMealOf(src);
+    // A day with food logged in the hours before that night's bedtime, at or above the number, is "with"; a day whose
+    // food is all timed and none of it reaches the number is "without"; anything else is unknown.
+    return {phrase: `On days with ${formatNumber(rule.kcal)} kcal or more logged in the ${rule.hours === 1 ? 'hour' : `${rule.hours} hours`} before bed`, test: d => byDay.get(d) ?? null};
   }
   if (kind === 'steps') {
     const limit = amount ?? dayFactorBasis(src, today).steps ?? 8000, days = new Set((src.health?.activity ?? []).filter(a => a.steps > 0).map(a => a.date));

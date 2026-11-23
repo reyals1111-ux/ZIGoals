@@ -1,5 +1,5 @@
 import {bellPrefsSchema, meditationGoalSchema, meditationSchema, meditationSessionSchema, type BellPrefs, type Meditation, type MeditationSession} from './schema';
-import {instantAt} from '../zone-time';
+import {addDays, instantAt, wallClock} from '../zone-time';
 
 /**
  * Meditation edits (Session W Part 5): each returns a new, validated group for Health v4 `meditation`. Timer and
@@ -27,6 +27,35 @@ export function saveManual(m: Meditation, input: ManualInput, at: Date): Meditat
   const clean = JSON.parse(JSON.stringify(session)) as MeditationSession;
   return parse({...m, sessions: held ? m.sessions.map(s => s.id === clean.id ? clean : s) : [...m.sessions, clean]});
 }
+/**
+ * Session AV lane 2, round 6 (r6-body; LEDGER #415, Medito's past sessions): "Several days" — one manual session a day
+ * from `from` to `to` (at most 31 days), each at the same time and length. A day that already has a session starting at
+ * that time is skipped, and so is a day whose session would end in the future; the ids written come back so one Undo
+ * takes them all away. Ordinary sessions in the strict group: no new field.
+ */
+export const MAX_RANGE_DAYS = 31;
+export type RangeInput = {from: string; to: string; time: string; minutes: number; note?: string; timeZone: string};
+export function saveManualRange(m: Meditation, input: RangeInput, at: Date): {meditation: Meditation; added: string[]; skipped: string[]} {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.from) || !/^\d{4}-\d{2}-\d{2}$/.test(input.to)) throw Error('Choose the first and the last day.');
+  if (input.to < input.from) throw Error('The last day comes on or after the first.');
+  if (!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(input.time)) throw Error('Enter the time you began.');
+  if (!Number.isInteger(input.minutes) || input.minutes < 1 || input.minutes > 1440) throw Error('Enter whole minutes from 1 to 1440.');
+  const days: string[] = [];
+  for (let d = input.from; d <= input.to; d = addDays(d, 1)) { days.push(d); if (days.length > MAX_RANGE_DAYS) throw Error(`Choose at most ${MAX_RANGE_DAYS} days.`); }
+  let next = m; const added: string[] = [], skipped: string[] = [];
+  for (const day of days) {
+    const start = instantAt(day, input.time, input.timeZone);
+    const taken = next.sessions.some(s => { const w = wallClock(Date.parse(s.startedAt), s.timeZone); return w.date === day && w.clock === input.time; });
+    if (taken || start + input.minutes * 60_000 > at.getTime() + 60_000) { skipped.push(day); continue; }
+    next = saveManual(next, {date: day, time: input.time, minutes: input.minutes, note: input.note, timeZone: input.timeZone}, at);
+    added.push(next.sessions.at(-1)!.id);
+  }
+  return {meditation: next, added, skipped};
+}
+/** Undo of a range: the sessions it wrote go again (one already removed elsewhere is passed over). */
+export const removeSessions = (m: Meditation, ids: readonly string[]): Meditation => parse({...m, sessions: m.sessions.filter(s => !ids.includes(s.id))});
+/** The days a range covers, for the form's line ("7 days"). */
+export const rangeDays = (from: string, to: string) => from && to && to >= from ? Math.round((Date.parse(`${to}T12:00:00Z`) - Date.parse(`${from}T12:00:00Z`)) / 86_400_000) + 1 : 0;
 export function deleteSession(m: Meditation, id: string): Meditation {
   if (!m.sessions.some(s => s.id === id)) throw Error('This session is no longer here.');
   return parse({...m, sessions: m.sessions.filter(s => s.id !== id)});

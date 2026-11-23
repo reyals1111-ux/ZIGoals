@@ -1,6 +1,6 @@
 import {byCategory, cents, fromCents} from '../../../money-log/engine';
 import type {MoneyEntry} from '../../../money-log/schema';
-import {countedCents, isCounted} from '../../../money-log/counted';
+import {countedCents, countedKind, inFigures} from '../../../money-log/counted';
 import {detectBills, openCandidates} from '../../../bills/detect';
 import {billPriceChange, candidatePriceChange, type PriceChange} from '../../../bills/price-change';
 import {billsCard} from '../../../nova/cards/bills';
@@ -32,7 +32,8 @@ type Kind = 'expense' | 'income';
  * it, and a shared cost counts the person's own share, so "how much did I spend" says what Wealth → Spending says.
  */
 export function ledger(entries: readonly MoneyEntry[], kind: Kind, p: Period, category?: string | null) {
-  const inRange = entries.filter(e => e.kind === kind && isCounted(e) && e.date >= p.from && e.date <= p.to && (p.weekday === null || p.days.includes(e.date)) && (!category || e.category.toLowerCase() === category.toLowerCase()));
+  // Round 6 (#425): a refund is spending below zero in its category, never income.
+  const inRange = entries.filter(e => countedKind(e) === kind && inFigures(e) && e.date >= p.from && e.date <= p.to && (p.weekday === null || p.days.includes(e.date)) && (!category || e.category.toLowerCase() === category.toLowerCase()));
   const per = new Map<string, number>();
   for (const e of inRange) per.set(e.currency, (per.get(e.currency) ?? 0) + countedCents(e));
   const ranked = [...per.entries()].sort((a, b) => b[1] - a[1]), currency = ranked[0]?.[0] ?? null, own = inRange.filter(e => e.currency === currency);
@@ -65,7 +66,10 @@ export function spendingAnswer(q: Query, env: ToolEnv): Exact | null {
   }
   // The largest single entry ("my biggest expense").
   if ((q.ask === 'best' || q.ask === 'worst') && /\b(?:expense|purchase|payment|entry|uitgave|aankoop|betaling)\b/.test(q.read)) {
-    const hit = now.own.reduce((a, e) => (q.ask === 'best' ? cents(e.amount) > cents(a.amount) : cents(e.amount) < cents(a.amount)) ? e : a);
+    // Review B6O-10: a period whose spending is only refunds has no purchase to name (and `reduce` of nothing throws).
+    const list = now.own.filter(e => e.kind === kind);
+    if (!list.length) return out(t(lang, `${what}No ${income ? 'income entry' : 'purchase'} logged ${span}${income ? '' : ', only money back (refunds)'}.`, `${what}Geen ${income ? 'inkomst' : 'aankoop'} gelogd ${span}${income ? '' : ', alleen geld terug (terugbetalingen)'}.`), {...base, entry: null}, widgets, p);
+    const hit = list.reduce((a, e) => (q.ask === 'best' ? cents(e.amount) > cents(a.amount) : cents(e.amount) < cents(a.amount)) ? e : a);
     return out(t(lang, `Your ${q.ask === 'best' ? 'largest' : 'smallest'} ${income ? 'income entry' : 'expense'} ${span}: ${money(cents(hit.amount), cur)} on ${day(hit.date)} (${plain(hit.note?.trim() || hit.category)}).`, `Je ${q.ask === 'best' ? 'grootste' : 'kleinste'} ${income ? 'inkomst' : 'uitgave'} ${span}: ${money(cents(hit.amount), cur)} op ${day(hit.date)} (${plain(hit.note?.trim() || hit.category)}).`), {...base, entry: {day: hit.date, cents: cents(hit.amount), category: hit.category}}, widgets, p);
   }
   // Days without an entry, or with one.

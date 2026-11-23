@@ -6,7 +6,8 @@ const moneyMoreOf = (env: ToolEnv): MoneyMore | null => (env as ToolEnv & {money
 import type {HealthNumbers} from '../../health-numbers/store';
 import {BP_LINE, LAB_LINE, VERDICT_WORDS, bpReadings, markers, rangeText, verdictOf} from '../../health-numbers/engine';
 import type {Cycle} from '../../cycle/store';
-import {SYMPTOM_WORDS, cycleOn} from '../../cycle/store';
+import {cycleOn} from '../../cycle/store';
+import {wordLabel} from '../../cycle/words';
 import {CYCLE_LINE, cycleDay, cycleLengths, nextPeriodEstimate, periodStarts} from '../../cycle/engine';
 import type {Scales} from '../../scales/store';
 import {scaleSeries, valueWords} from '../../scales/engine';
@@ -91,11 +92,12 @@ export const cycleLogTool: ToolDefinition<Record<string, never>> = {
     if (!starts.length && !Object.keys(record.days).length) return ok('cycle_log', label, where(env, 'cycle log'), {periods: [], note: 'Nothing is logged yet (Health → Cycle log).', rule: CYCLE_LINE});
     const from = addLocalDays(today, -13);
     const recent = Object.entries(record.days).filter(([d]) => d >= from && d <= today).sort(([a], [b]) => a.localeCompare(b))
-      .map(([d, v]) => ({day: d, ...(v.flow ? {flow: v.flow} : {}), ...(v.symptoms?.length ? {symptoms: v.symptoms.map(s => SYMPTOM_WORDS[s] ?? text(s, 30))} : {})}));
+      .map(([d, v]) => ({day: d, ...(v.flow ? {flow: v.flow} : {}), ...(v.symptoms?.length ? {symptoms: v.symptoms.map(s => record.own?.some(w => w.id === s) ? text(wordLabel(record, s), 30) : wordLabel(record, s))} : {})}));
     const day = cycleDay(record, today);
     return ok('cycle_log', label, where(env, 'cycle log'), {today, ...(day !== null ? {dayOfCycle: day} : {}), periodStarts: starts.slice(-6), cycleLengths: lengths.slice(-6).map(n => `${n} days`),
       estimate: estimate.kind === 'range'
         ? {nextPeriod: `${estimate.from} to ${estimate.to}`, from: `the shortest and longest of the last ${Math.min(estimate.cycles, 6)} cycles (${estimate.shortest} to ${estimate.longest} days)`, ...(estimate.passed ? {passed: 'that range has passed without a logged period'} : {}), label: 'an estimate from your past cycles, never a date'}
+        : estimate.kind === 'off' ? {nextPeriod: 'not shown', why: 'the person chose "No period" in the cycle log'} // Session AV lane 2 (r5-body, LEDGER #383)
         : {nextPeriod: 'not shown yet', why: `it needs ${estimate.need} complete cycles; ${estimate.cycles} logged so far`},
       lastTwoWeeks: recent, rule: CYCLE_LINE});
   },
@@ -173,7 +175,7 @@ export const moneySelectionTool: ToolDefinition<{words?: string; category?: stri
       .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
     const summary = summarizeSelection(hits, hits.map(e => e.id)), money = (cents: number, c: string) => `${fromCents(cents)} ${c}`;
     return ok('money_selection', label, source, {from, to, matched: plural(summary.count, 'entry', 'entries'), total: selectionLine(summary, money),
-      totals: summary.totals.map(t => ({currency: t.currency, net: `${t.cents < 0 ? '-' : t.cents > 0 ? '+' : ''}${fromCents(Math.abs(t.cents))} ${t.currency}`, expenses: t.expenses, income: t.income})),
+      totals: summary.totals.map(t => ({currency: t.currency, net: `${t.cents < 0 ? '-' : t.cents > 0 ? '+' : ''}${fromCents(Math.abs(t.cents))} ${t.currency}`, expenses: t.expenses, income: t.income, ...(t.refunds ? {refunds: t.refunds} : {})})), // B6O-11: a refund is not income
       entries: hits.slice(0, 20).map(e => ({day: e.date, category: text(e.category, 40), ...(e.note ? {note: text(e.note, 80)} : {}), amount: `${e.kind === 'income' ? '+' : '-'}${fromCents(minorUnits(e.amount))} ${e.currency}`})),
       ...(hits.length > 20 ? {notListed: hits.length - 20} : {}), rule: 'exact, per currency, never converted; an entry split into parts counts once, whole; not advice'});
   },

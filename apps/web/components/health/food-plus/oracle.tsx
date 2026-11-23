@@ -1,5 +1,6 @@
 'use client';
 import {useEffect, useId, useState} from 'react';
+import {NebulaFlow} from '../../nebula-flow';
 import {dailyHealthSummary, type HealthData} from '../../../lib/health';
 import {ORACLE_NUTRIENTS, oracleAmount, oracleFoods, oracleNutrient, type OracleFood, type OracleRank} from '../../../lib/food-plus/oracle';
 import './food-plus.css';
@@ -26,7 +27,7 @@ export default function Oracle({data, today}: {data: HealthData; today: string})
   const summary = dailyHealthSummary(data, today), target = data.targets.proteinMg, eaten = summary.knownNutrients.proteinMg ?? 0;
   const gap = key === 'protein' && target ? Math.max(0, target - eaten) : null;
   return <section className="food-plus-card" aria-labelledby={`${id}-title`} id="health-oracle">
-    <p className="eyebrow">THE ORACLE</p><h2 id={`${id}-title`}>Foods high in a nutrient</h2>
+    <p className="eyebrow">THE ORACLE</p><h2 id={`${id}-title`}><NebulaFlow identity="food-oracle-title">Foods high in a nutrient</NebulaFlow></h2>
     <div className="food-plus-row">
       <label className="field"><span>Nutrient</span><select value={key} onChange={e => setKey(e.target.value)}>{ORACLE_NUTRIENTS.map(x => <option key={x.key} value={x.key}>{x.label}</option>)}</select></label>
       <fieldset className="health-quick-macros"><legend>Rank by</legend><div className="food-plus-row">

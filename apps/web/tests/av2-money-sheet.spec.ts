@@ -31,8 +31,8 @@ for (const theme of THEMES) test(`${theme}: equity, a 50 % share and a group, a 
   const joint = page.getByRole('group', {name: 'SHEET · Joint savings'});
   await joint.getByLabel(/^Your share/).fill('50');
   await joint.getByLabel(/^Your group/).fill('Savings');
-  // Session AV lane 2 (“Keep” also matched “Keep the lines” of the balance lines form: the exact name, deliberate)
-  await joint.getByRole('button', {name: 'Keep', exact: true}).click();
+  // Session AV lane 2 (the exact name, deliberate). Polish4: the form's submit is “Save” (it read “Keep”, which elsewhere in the app means “do not remove”)
+  await joint.getByRole('button', {name: 'Save', exact: true}).click();
   await joint.getByLabel('Remind me to update it').selectOption('month');
   await joint.locator('summary', {hasText: 'Money in and out'}).click();
   // Session AV lane 2 (getByLabel('On') also matched "Your group — optional", "Remind me to update it" and more: the money

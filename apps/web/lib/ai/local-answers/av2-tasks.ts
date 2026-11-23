@@ -13,6 +13,7 @@ import {text as clean} from '../tools/format';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, clockIn, closed, count, dayIn, isQuestion, list, money, say, type Asked, type Lang} from './av-words';
 import type {LocalReply} from './engine';
+import {isCancelled} from '../../tasks/finished';
 
 /**
  * Session AV lane 2 (tasks; Sunsama, Todoist, TickTick, Things, Notion): NOVA's and ZIGi's on-device answers, in English
@@ -57,7 +58,7 @@ function objectives(a: Ask): LocalReply | null {
   const got = tasksOf(a); if (!got) return null; if ('reply' in got) return got.reply;
   const next = /\bnext week\b|\bvolgende week\b/.test(a.f), week = next ? addLocalDays(weekStart(a.today), 7) : weekStart(a.today), list_ = weekObjectives(got.record, week);
   if (!list_.length) return answer(say(a.lang, `No objectives for ${next ? 'next' : 'this'} week yet. Add them in Tasks → This week, then link the tasks that move them on.`, `Nog geen weekdoelen voor ${next ? 'volgende' : 'deze'} week. Voeg ze toe in Tasks → This week en koppel de taken die ze vooruit helpen.`), CALLS);
-  const lines = list_.map(o => { const p = objectiveProgress(got.record, o.id); return `• ${clean(o.title, 80)}${o.doneAt ? say(a.lang, ' (reached)', ' (gehaald)') : ''}${p.tasks.length ? say(a.lang, ` — ${p.done} of ${p.tasks.length} tasks done`, ` — ${p.done} van ${p.tasks.length} taken klaar`) : ''}`; });
+  const lines = list_.map(o => { const p = objectiveProgress(got.record, o.id); return `• ${clean(o.title, 80)}${o.doneAt ? say(a.lang, ' (reached)', ' (gehaald)') : ''}${p.tasks.length ? say(a.lang, ` — ${p.done} of ${p.of} tasks done`, ` — ${p.done} van ${p.of} taken klaar`) : ''}`; });
   const done = list_.filter(o => o.doneAt).length;
   return answer([say(a.lang, `${count(list_.length, 'en', ['objective', 'objectives'], ['', ''])} for ${next ? 'next' : 'this'} week, ${done} reached:`, `${count(list_.length, 'nl', ['', ''], ['weekdoel', 'weekdoelen'])} voor ${next ? 'volgende' : 'deze'} week, ${done} gehaald:`), ...lines].join('\n'), CALLS);
 }
@@ -85,7 +86,7 @@ function spentTime(a: Ask): LocalReply | null {
   if (!(en || nl)) return null;
   const got = tasksOf(a); if (!got) return null; if ('reply' in got) return got.reply;
   const week = /\bweek\b/.test(a.f), dd = doneDay(a.env.habitZone || 'UTC'), from = week ? weekStart(a.today) : a.today;
-  const tasks = got.record.tasks.filter(t => !t.parentId && ((t.doneAt ? dd(t.doneAt) : t.due ?? '') >= from) && ((t.doneAt ? dd(t.doneAt) : t.due ?? '') <= a.today));
+  const tasks = got.record.tasks.filter(t => !t.parentId && !isCancelled(t) /* review B5L-3 */ && ((t.doneAt ? dd(t.doneAt) : t.due ?? '') >= from) && ((t.doneAt ? dd(t.doneAt) : t.due ?? '') <= a.today));
   const p = plannedVsActual(tasks), when = week ? say(a.lang, 'this week', 'deze week') : say(a.lang, 'today', 'vandaag');
   if (!p.planned && !p.actual) return answer(say(a.lang, `No minutes planned or spent ${when} yet. Give a task its minutes in its editor, and time it with Start timer in Tasks → Today.`, `${when[0]!.toUpperCase()}${when.slice(1)} nog geen minuten gepland of besteed. Geef een taak minuten in de editor en tijd hem met Start timer in Tasks → Today.`), CALLS);
   return answer(say(a.lang, `${when[0]!.toUpperCase()}${when.slice(1)}: planned ${min(p.planned, 'en')}, spent ${min(p.actual, 'en')}${p.actual > p.planned && p.planned ? ` (${min(p.actual - p.planned, 'en')} more than planned)` : ''}.`,

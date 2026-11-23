@@ -14,8 +14,10 @@ import './workout-calendar.css';
  */
 // Session AV lane 2 (body; LEDGER #118, Hevy's yearly calendar): the year view, its own chunk, loaded when chosen.
 const WorkoutYearView = lazy(() => import('./workout-year'));
-export default function WorkoutCalendar({w, today}: {w: Workouts; today: string}) {
-  const [mode, setMode] = useState<'month' | 'year'>('month'), streak = useMemo(() => weekStreak(w, today), [w, today]);
+const NO_PAUSES: readonly {from: string; to: string}[] = [];
+// Session AV lane 2, round 5 (LEDGER #374): `pauses`, the days a workout status covered, are passed over by the streak.
+export default function WorkoutCalendar({w, today, pauses = NO_PAUSES}: {w: Workouts; today: string; pauses?: readonly {from: string; to: string}[]}) {
+  const [mode, setMode] = useState<'month' | 'year'>('month'), streak = useMemo(() => weekStreak(w, today, pauses), [w, today, pauses]);
   return <>
     <div className="workouts-weeks-pick workout-calendar-mode" role="group" aria-label="Calendar view">{(['month', 'year'] as const).map(m => <button key={m} type="button" className="quiet" aria-pressed={mode === m} onClick={() => setMode(m)}>{m === 'month' ? 'Month' : 'Year'}</button>)}</div>
     <p className="fine workout-streak">{streak.current ? `${streak.current} ${streak.current === 1 ? 'week' : 'weeks'} in a row with a workout${streak.thisWeek ? '' : ' (this week still open)'}` : 'No week in a row yet: a workout this week starts one'}{streak.best > streak.current ? ` · longest ${streak.best} weeks` : ''}.</p>

@@ -1,6 +1,6 @@
 import type {MoneyEntry} from './schema';
 import {entryParts} from '../money-split/parts';
-import {isCounted} from './counted';
+import {inFigures} from './counted';
 import {payeePart} from './suggest';
 
 /**
@@ -25,8 +25,8 @@ export function searchEntries(entries: readonly MoneyEntry[], q: MoneyQuery): Mo
   const words = fold(q.text ?? '').split(/\s+/).filter(Boolean), cat = q.category ? fold(q.category) : '';
   const nots = fold(q.not ?? '').split(/[\s,]+/).filter(Boolean), payee = q.payee ? fold(q.payee).trim() : '';
   return entries.filter(e => {
-    if (q.counted === 'counted' && !isCounted(e)) return false;
-    if (q.counted === 'left-out' && isCounted(e)) return false;
+    if (q.counted === 'counted' && !inFigures(e)) return false; // Round 6 (#425): a refund counts (below zero)
+    if (q.counted === 'left-out' && inFigures(e)) return false;
     if (q.tax && !e.taxDeductible) return false;
     if (q.paidWith && (q.paidWith === 'unmarked' ? !!e.paidWith : e.paidWith !== q.paidWith)) return false;
     if (q.sub && fold(e.sub ?? '') !== fold(q.sub)) return false;

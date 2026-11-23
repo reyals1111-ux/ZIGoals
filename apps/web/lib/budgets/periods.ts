@@ -2,11 +2,12 @@ import * as z from 'zod';
 import type {DeviceRecordSpec} from '../device-record';
 import {addLocalDays, localWeekday} from '../local-date';
 import {minorUnits} from '../money-split/parts';
-import {budgetDayParts} from '../money-log/counted';
+import {budgetDayParts, isRefund, isSpending} from '../money-log/counted';
 import {fromCents} from '../money-log/engine';
 import type {MoneyEntry} from '../money-log/schema';
 import type {Account} from '../accounts/schema';
 import {budgetsSchema, type Budget, type BudgetsRecord} from './schema';
+import {budgetsInOrder} from './order';
 
 /**
  * Session AV lane 2 (Money group N11, LEDGER #212, #213, #216; Goodbudget; TIER 3 (stored format), a new additive key
@@ -20,6 +21,8 @@ import {budgetsSchema, type Budget, type BudgetsRecord} from './schema';
  * Loose, versioned, bounded; device only (exported, restored, erased with the account; never synced). Pure.
  */
 export const BUDGET_PERIODS_KEY = 'zigoals:budget-periods:v1';
+/** Review B6O-7: a real calendar day, "2026-11-13" (never throws). */
+export const isDay = (v: string) => { try { return /^\d{4}-\d{2}-\d{2}$/.test(v) && addLocalDays(v, 0) === v; } catch { return false; } };
 const id = z.string().regex(/^[A-Za-z0-9_-]{1,80}$/), amountText = z.string().regex(/^\d{1,12}(?:\.\d{1,2})?$/);
 const record = <T extends z.ZodType>(value: T, max: number) => z.preprocess(v => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).filter(([k, x]) => id.safeParse(k).success && value.safeParse(x).success).slice(0, max)) : undefined, z.record(z.string(), value).optional());
 export const budgetPeriodsSchema = z.looseObject({
@@ -29,6 +32,20 @@ export const budgetPeriodsSchema = z.looseObject({
   fill: z.looseObject({items: z.array(z.looseObject({budgetId: id, amount: amountText})).max(100)}).optional().catch(undefined),
   filled: z.preprocess(v => Array.isArray(v) ? v.filter(x => typeof x === 'string' && x.length <= 80).slice(-50) : undefined, z.array(z.string()).optional()),
   debts: record(id, 50),
+  /**
+   * Session AV lane 2, round 6 (money; EveryDollar's paycheck planning, LEDGER #426), TIER 3 (stored format), additive and
+   * optional, dropped on read when unreadable: two or more paychecks a month (`items`, at most 6: a name, every month on a
+   * day, or every week or two weeks on a weekday, and the person's own amount), and which paycheck covers each budget
+   * (`b:<budget id>`) and bill (`bill:<bill id>`) in `lines`. Older builds keep it (loose object) and ignore it.
+   * Review B6O-7, TIER 3 (stored format), additive and optional: `from`, one payday of a two-weekly paycheck (a day,
+   * "2026-11-13"), which says which week it falls in; without it (every plan kept before) the weeks count from 2024-01-01
+   * as before. Dropped on read when unreadable, so the paycheck still reads; an older build keeps it and ignores it.
+   */
+  paychecks: z.looseObject({
+    items: z.array(z.looseObject({id, name: z.string().trim().min(1).max(40), every: z.enum(['month', 'week', 'fortnight']), day: z.number().int().min(0).max(31), amount: amountText, currency: z.string().regex(/^[A-Z]{3}$/),
+      from: z.string().refine(isDay).optional().catch(undefined)})).max(6),
+    lines: z.preprocess(v => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).filter(([k, x]) => /^(?:b|bill):[A-Za-z0-9_-]{1,80}$/.test(k) && id.safeParse(x).success).slice(0, 200)) : undefined, z.record(z.string(), z.string()).optional()),
+  }).optional().catch(undefined),
 });
 export type BudgetPeriods = z.infer<typeof budgetPeriodsSchema>;
 export const emptyBudgetPeriods = (): BudgetPeriods => ({version: 1});
@@ -60,12 +77,12 @@ export type PeriodRow = {budget: Budget; every: Every; start: string; end: strin
  * counted as the month budgets count them) and paid on its linked debts (same currency) in that period, and what is left. Never converted between currencies.
  */
 export function periodRows(entries: readonly MoneyEntry[], budgets: BudgetsRecord, plan: BudgetPeriods, today: string, {accounts = [], startsOn = 'monday'}: {accounts?: readonly Account[]; startsOn?: 'monday' | 'sunday'} = {}): PeriodRow[] {
-  return budgets.budgets.filter(b => b.since <= today.slice(0, 7)).map(budget => {
+  return budgetsInOrder(budgets.budgets).filter(b => b.since <= today.slice(0, 7)).map(budget => { // Round 6 (#429): the person's own order
     const every: Every = plan.every?.[budget.id] ?? 'month', {start, end} = every === 'month' ? payMonth(today, plan.payday ?? 1) : weekRange(today, every, startsOn), name = budget.category.toLowerCase();
     let spent = 0, debtPaid = 0;
     // Review b2a #2: as the month budgets count (lib/money-log/counted.ts): no entry left out or transfer, the person's
     // own share of a shared cost, and an entry spread over months by each month's share, on its day in that month.
-    for (const e of entries) if (e.kind === 'expense' && e.currency === budget.currency && e.date <= end) for (const piece of budgetDayParts(e)) if (piece.date >= start && piece.date <= end) for (const p of piece.parts) if (p.category.toLowerCase() === name) spent += p.cents;
+    for (const e of entries) if (isSpending(e) && e.currency === budget.currency && e.date <= end) for (const piece of budgetDayParts(e)) if (piece.date >= start && piece.date <= end) for (const p of piece.parts) if (p.category.toLowerCase() === name) spent += p.cents;
     for (const a of accounts) if (plan.debts?.[a.id] === budget.id && a.currency === budget.currency) for (const p of a.payments) if (p.date >= start && p.date <= end) debtPaid += paymentCents(p);
     const amount = periodAmount(minorUnits(budget.monthly), every), left = amount - spent - debtPaid;
     return {budget, every, start, end, amount, spent, debtPaid, left, over: left < 0};
@@ -95,7 +112,7 @@ export function saveFill(plan: BudgetPeriods, items: readonly {budgetId: string;
 export function incomeToFill(entries: readonly MoneyEntry[], budgets: BudgetsRecord, plan: BudgetPeriods, today: string): MoneyEntry | null {
   if (!plan.fill?.items.length) return null;
   const currencies = new Set(plan.fill.items.map(i => budgets.budgets.find(b => b.id === i.budgetId)?.currency).filter(Boolean)), used = new Set(plan.filled ?? []), from = addLocalDays(today, -14);
-  return [...entries].filter(e => e.kind === 'income' && e.date >= from && e.date <= today && currencies.has(e.currency) && !used.has(e.id)).sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt))[0] ?? null;
+  return [...entries].filter(e => e.kind === 'income' && !isRefund(e) && e.date >= from && e.date <= today && currencies.has(e.currency) && !used.has(e.id)).sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt))[0] ?? null;
 }
 /** The fill's total per currency (what it hands out of one paycheck). */
 export function fillTotals(budgets: BudgetsRecord, plan: BudgetPeriods): {currency: string; cents: number}[] {

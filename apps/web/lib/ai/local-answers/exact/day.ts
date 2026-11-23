@@ -15,6 +15,7 @@ import {dayIn, dayWords, nlDate, nlDay, periodSpan, periodWords, previousPeriod,
 import {listWords, t} from './text';
 import {periodFor, trackAnswer, type Track} from './track';
 import type {Ask, Exact, ExactWidget, Lang, Query} from './types';
+import {isFinished} from '../../../tasks/finished';
 
 /**
  * Session AS (ADR-042, Part 1): the day's own records, exactly — tasks, the journal, focus, notes, the agenda, the
@@ -66,7 +67,7 @@ export function tasksAnswer(q: Query, env: ToolEnv): Exact | null {
   if (!record.tasks.length) return out(t(lang, 'No tasks yet.', 'Nog geen taken.'), {tasks: 0}, [{id: 'tasks'}]);
   const r = runTool('tasks', {}, env), open = (r.ok ? r.data.open as {task: string; state: string; due?: string; time?: string; priority: string; deadline?: string; minutes?: number}[] | undefined : undefined) ?? [];
   const name = (x: {task: string; due?: string; time?: string}) => `${plain(x.task)}${x.due ? ` (${t(lang, 'due', 'gepland')} ${x.due === today ? t(lang, 'today', 'vandaag') : day(x.due)}${x.time ? ` ${clock(x.time)}` : ''})` : ''}`;
-  const overdue = open.filter(x => x.state === 'overdue'), doneDay = (x: {doneAt?: string}) => x.doneAt ? calendarDay(x.doneAt, env.habitZone) : null;
+  const overdue = open.filter(x => x.state === 'overdue'), doneDay = (x: {doneAt?: string; state?: {kind?: string}}) => isFinished(x) /* review B5L-3 */ ? calendarDay(x.doneAt!, env.habitZone) : null;
   const base = {open: open.length, overdue: overdue.map(x => plain(x.task))}, timeline: ExactWidget[] = [{id: 'task-timeline', fallback: 'tasks'}];
   // Finished: how many, which, and which of them after their day.
   if (q.ask === 'done' || /\b(?:finished|completed|afgerond|voltooid|gedaan|done)\b/.test(q.read) && q.ask !== 'not-done' && q.ask !== 'open') {

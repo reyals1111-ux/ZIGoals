@@ -4,6 +4,7 @@ import {join} from 'node:path';
 import {ERASE_PREFIX, KNOWN_DATABASES, eraseEverything} from './erase-everything';
 import {EVERYTHING_KEYS} from './export/everything';
 import {DEVICE_ONLY, SYNCED} from './data-health/catalog';
+import {AV2_R6_NOTES_NOT_RECORDS} from './av2-r6-notes-keys';
 
 /**
  * Session AJ (Part 10, owner amendment A6): every ZIGoals key and IndexedDB database that the code names is accounted
@@ -64,6 +65,8 @@ const NOT_RECORDS: Record<string, string> = {
   'zigoals:restore-undo:v1': 'the bytes a restore replaced, kept for its Undo; removed after',
   'zigoals:wallet-reconnect-hint:v1': 'a hint that a wallet was connected before (no address); a display mark',
   'zigoals:wallet-session:v1': 'this tab\'s wallet connection; never exported, reconnect in your wallet',
+  // Session AV lane 2 (r6-notes; LEDGER #406, deliberate): the lock's time away is listed with its reason, as the lock is (equally strict: it must still be in the code).
+  ...AV2_R6_NOTES_NOT_RECORDS,
   'zigoals:ai-chats:v1': 'ZIGi\'s conversations, kept in their own IndexedDB store and listed in the catalog\'s device stores; exported from ZIGi\'s own Export chats',
 };
 

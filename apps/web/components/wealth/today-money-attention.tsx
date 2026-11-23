@@ -27,6 +27,9 @@ import {usePlatform} from '../platform/use-platform';
 import {leftThisMonth} from '../../lib/budgets/left-this-month';
 import {plannedContributions} from '../../lib/cash-forecast/model';
 import {plannedForForecast} from '../../lib/cash-forecast/planned';
+// Session AV lane 2, round 5 (money; Tiller's Hello Money, LEDGER #384): yesterday's money as a quiet line (opt-in).
+import {NOTIFY_PREFS} from '../../lib/notify/prefs';
+import {dayWords, figureWords, hasDayMoney, yesterdayMoney} from '../../lib/money-log/yesterday';
 
 /**
  * Session AV (owner follow-up 1, F-MONEY-ATTENTION; YNAB's Spotlight): one line on Today, beside "Tasks due today",
@@ -55,14 +58,19 @@ export default function TodayMoneyAttention() {
   // and never in the Showcase (whose Today is pinned as it is).
   const leftMonth = useMemo(() => left.length && !isShowcase() && !budgets.unreadable && !log.unreadable ? leftThisMonth({entries: log.data.entries, budgets: budgets.data, bills: bills.unreadable ? null : bills.data, contributions: plannedContributions(platform.data.goals), planned: more.unreadable ? [] : plannedForForecast(more.data, log.data.entries, today), today}).slice(0, 2) : [],
     [left.length, budgets.unreadable, budgets.data, log.unreadable, log.data.entries, bills.unreadable, bills.data, platform.data.goals, more.unreadable, more.data, today]);
-  if (!a || (!a.count && !left.length)) return null;
+  // Session AV lane 2, round 5: plain text (no Tab stop), only when the person chose it (never in the Showcase, whose Today is pinned).
+  const prefs = useDeviceRecord(NOTIFY_PREFS);
+  const yesterday = useMemo(() => ready && prefs.loaded && !prefs.unreadable && prefs.data.moneyMorning?.onToday && !isShowcase() && !log.unreadable ? yesterdayMoney(log.data.entries, accounts.unreadable ? null : accounts.data, today) : null,
+    [ready, prefs.loaded, prefs.unreadable, prefs.data.moneyMorning, log.unreadable, log.data.entries, accounts.unreadable, accounts.data, today]);
+  const yesterdayLine = yesterday && hasDayMoney(yesterday) ? <p className="today-tasks-due-line today-yesterday-money"><span><strong>Yesterday:</strong> {dayWords(yesterday)}{yesterday.byCurrency.length ? <> · <span data-private-amount="">{figureWords(yesterday)}</span></> : null}</span></p> : null;
+  if (!a || (!a.count && !left.length)) return yesterdayLine ? <section className="today-tasks-due today-money-attention" aria-label="Money that asks for a look">{yesterdayLine}</section> : null;
   const pieces = attentionLinks(a), shown = pieces.slice(0, 3);
   // Session AV lane 2 (money; YNAB's home tab): what is left in each budget, as plain text (no Tab stop), only when the
   // person turned it on in Budgets — the Showcase and every device that did not keep Today as it was.
   const leftLine = left.length ? <p className="today-tasks-due-line today-budgets-left"><span><strong>Budgets left:</strong> {left.slice(0, 4).map(l => `${l.category} ${l.left < 0 ? `${moneyCents(-l.left, l.currency)} over` : moneyCents(l.left, l.currency)}`).join(' · ')}{left.length > 4 ? ` and ${left.length - 4} more` : ''}</span></p> : null;
   // Session AV lane 2, round 3: its own quiet line under Budgets left (plain text, no Tab stop).
   const leftMonthLine = leftMonth.length ? <p className="today-tasks-due-line today-left-month"><span><strong>Left this month:</strong> {leftMonth.map(r => r.left < 0 ? `${moneyCents(-r.left, r.currency)} more than came in` : moneyCents(r.left, r.currency)).join(' · ')}</span></p> : null;
-  if (!pieces.length) return <section className="today-tasks-due today-money-attention" aria-label="Money that asks for a look">{leftLine}{leftMonthLine}</section>;
+  if (!pieces.length) return <section className="today-tasks-due today-money-attention" aria-label="Money that asks for a look">{leftLine}{leftMonthLine}{yesterdayLine}</section>;
   return <section className="today-tasks-due today-money-attention" aria-label="Money that asks for a look">
     <p className="today-tasks-due-line"><span>
       {/* One link, as Today's other glance lines (Showcase Today keeps its 90 Tab stops, D-028): it opens the place of the
@@ -70,5 +78,6 @@ export default function TodayMoneyAttention() {
       <strong>Money:</strong> <Link className="text-link" href={shown[0]!.href}>{shown.map(p => p.text).join(' · ')}{pieces.length > shown.length ? ` and ${pieces.length - shown.length} more` : ''} <span aria-hidden="true">→</span></Link></span></p>
     {leftLine}
     {leftMonthLine}
+    {yesterdayLine}
   </section>;
 }

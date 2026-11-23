@@ -3,3 +3,8 @@
 .task-energy { color: var(--text-secondary, var(--muted)); }
 /* Session AV lane 2 (r4-plan, LEDGER #301, #303, #304): waiting, in pieces, after hours — muted, never red. */
 .task-waiting, .task-pieces, .task-after-hours { color: var(--text-secondary, var(--muted)); }
+/* Session AV lane 2 (r5-plan, LEDGER #350, #353, #354): Doing (bold, never a colour alone), travel and a place — muted. */
+.task-doing { font-weight: 600; }
+.task-travel, .task-place { color: var(--text-secondary, var(--muted)); overflow-wrap: anywhere; min-width: 0; }
+/* Session AV lane 2 (r5-plan, review B5L-3): a cancelled task — muted, never struck through as done. */
+.task[data-cancelled] .task-title { color: var(--text-secondary, var(--muted)); }

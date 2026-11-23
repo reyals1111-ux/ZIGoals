@@ -29,7 +29,7 @@ for (const theme of THEMES) test(`${theme}: a credit card's limit, share used, s
   await form.getByLabel(/^Credit limit/).fill('2000');
   await form.getByLabel(/^Statement day/).fill('5');
   await form.getByLabel(/^Payment due day/).fill('25');
-  await form.getByRole('button', {name: 'Keep', exact: true}).click();
+  await form.getByRole('button', {name: 'Save', exact: true}).click();
   expect((await readRecord<WealthSheet>(page, WEALTH_SHEET_KEY)).cards).toEqual({[CARD]: {limit: '2000.00', statementDay: 5, dueDay: 25}});
   await expect(page.locator('.accounts-card-line')).toHaveText('€450.00 of €2,000.00 used (23%) · €1,550.00 available · statement Dec 5, 2026 · due Nov 25, 2026');
   // Review b3a #4: the line's amounts blur with Hide amounts, as the row's balance does.
@@ -54,7 +54,7 @@ for (const theme of THEMES) test(`${theme}: a credit card's limit, share used, s
   await expect(form.getByText('A payment reminder is in Upcoming bills.', {exact: true})).toBeFocused();
   // A day outside 1–31 is refused in plain words.
   await form.getByLabel(/^Statement day/).fill('40');
-  await form.getByRole('button', {name: 'Keep', exact: true}).click();
+  await form.getByRole('button', {name: 'Save', exact: true}).click();
   await expect(form.getByRole('alert')).toHaveText('A day of the month is 1 to 31.');
   const findings = await axe(page, page.locator('.accounts-section'));
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);

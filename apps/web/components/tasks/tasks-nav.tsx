@@ -1,6 +1,6 @@
 'use client';
 import {Suspense, lazy, useState, type DragEvent, type ReactNode} from 'react';
-import {labelsInUse, viewTasks, type TaskView} from '../../lib/tasks/engine';
+import {labelsInUse, projectHeld, viewTasks, type TaskView} from '../../lib/tasks/engine';
 import {TASK_COLOURS, LEVEL_WORDS, type Project, type TaskColour, type TaskLevel, type Tasks} from '../../lib/tasks/schema';
 import {formatNumber} from '../../lib/visual-format';
 import {TEXT_LIMITS} from '../../lib/limits/text'; // Session AO (M-011): the one limits table
@@ -24,7 +24,7 @@ export function viewKey(view: TaskView, board = false): string {
 export function readView(raw: string | null, record: Tasks): {view: TaskView; board: boolean} | null {
   if (!raw) return null;
   const v = raw.trim();
-  const simple = ['inbox', 'today', 'upcoming', 'all', 'overdue', 'completed', 'evening', 'someday', 'matrix', 'week', 'table', 'days', 'timeline', 'insights', 'organise'] as const;
+  const simple = ['inbox', 'today', 'upcoming', 'all', 'overdue', 'completed', 'evening', 'someday', 'matrix', 'week', 'table', 'days', 'timeline', 'insights', 'organise', 'review'] as const;
   if ((simple as readonly string[]).includes(v)) return {view: {kind: v as (typeof simple)[number]}, board: false};
   if (v === 'done') return {view: {kind: 'completed'}, board: false};
   if (v === 'calendar') return {view: {kind: 'upcoming'}, board: false};
@@ -53,6 +53,7 @@ export function viewTitle(view: TaskView, record: Tasks): string {
     case 'timeline': return 'Timeline';
     case 'insights': return 'Insights';
     case 'organise': return 'Areas and templates';
+    case 'review': return 'Review';
     case 'project': return record.projects?.find(p => p.id === view.id)?.name ?? 'Project';
     case 'label': return `@${view.name}`;
     case 'priority': return LEVEL_WORDS[view.level];
@@ -62,10 +63,11 @@ export function viewTitle(view: TaskView, record: Tasks): string {
 const same = (a: TaskView, b: TaskView) => viewKey(a) === viewKey(b);
 // Session AT (ADR-043 D7): This evening's and Someday's counts come from their own chunk, after the page shows.
 const WhenCount = lazy(() => import('./tasks-when-count'));
-export function TasksNav({record, today, view, board, counts, projects, onGo, onAddProject, dropOn, onRemoveFilter}: {record: Tasks; today: string; view: TaskView; board: boolean; counts: {open: number; overdue: number; today: number}; projects: Project[];
+export function TasksNav({record, today, view, board, counts, projects, onGo, onAddProject, dropOn, onRemoveFilter, scope, toReview = 0}: {record: Tasks; today: string; view: TaskView; board: boolean; counts: {open: number; overdue: number; today: number}; projects: Project[];
+  /** Session AV lane 2 (r6-plan, LEDGER #394, #395): the focus applied to a view's count; how many projects wait for their review. */ scope?: (v: TaskView) => Tasks; toReview?: number;
   onGo: (v: TaskView, board?: boolean) => void; onAddProject: (name: string, colour: TaskColour) => boolean; dropOn: (projectId: string | null) => {onDragOver: (e: DragEvent<HTMLElement>) => void; onDrop: (e: DragEvent<HTMLElement>) => void}; onRemoveFilter: (id: string) => void}) {
   const [adding, setAdding] = useState(false), [name, setName] = useState(''), [colour, setColour] = useState<TaskColour>('blue'), [archived, setArchived] = useState(false);
-  const count = (v: TaskView) => viewTasks(record, v, today).length;
+  const count = (v: TaskView) => viewTasks(scope ? scope(v) : record, v, today).length;
   const item = (v: TaskView, label: string, n?: number | ReactNode, extra?: object, colourName?: string) => <li key={viewKey(v)}><button type="button" className="tasks-nav-item" aria-current={same(v, view) ? 'page' : undefined} data-colour={colourName} onClick={() => onGo(v, v.kind === 'project' && same(v, view) ? board : false)} {...(extra ?? {})}>
     <span dir="auto">{label}</span>{typeof n === 'number' ? n ? <small>{formatNumber(n)}</small> : null : n}</button></li>;
   const labels = labelsInUse(record), live = projects.filter(p => !p.archived), old = projects.filter(p => p.archived);
@@ -83,11 +85,12 @@ export function TasksNav({record, today, view, board, counts, projects, onGo, on
     </ul>
     {/* Session AV lane 2 (tasks): planning and layouts (Sunsama, Todoist, TickTick, Notion), drawn by their own chunk. */}
     <h3>Plan and views</h3>
-    <ul>{([['week', 'This week'], ['table', 'Table'], ['days', 'Calendar'], ['timeline', 'Timeline'], ['insights', 'Insights'], ['organise', 'Areas and templates']] as const).map(([kind, label]) => item({kind}, label))}</ul>
+    <ul>{([['week', 'This week'], ['table', 'Table'], ['days', 'Calendar'], ['timeline', 'Timeline'], ['insights', 'Insights'], ['organise', 'Areas and templates']] as const).map(([kind, label]) => item({kind}, label))}
+      {/* Session AV lane 2 (r6-plan, LEDGER #395): once a project has a review interval */}{record.projects?.some(p => p.review && !p.archived) && item({kind: 'review'}, 'Review', toReview)}</ul>
     <h3>Projects</h3>
     {/* Session AV lane 2 (LEDGER #20, #12): projects under their area (Things' Areas, TickTick's folders). */}
     {(record.areas?.length ? [...record.areas.map(a => ({key: a.id, name: a.name as string | null, items: live.filter(p => p.areaId === a.id)})), {key: '', name: null, items: live.filter(p => !p.areaId || !record.areas!.some(a => a.id === p.areaId))}] : [{key: '', name: null, items: live}])
-      .filter(g => g.items.length || g.name).map(g => <div key={g.key || 'none'} className="tasks-nav-area">{g.name && <h4 dir="auto">{g.name}</h4>}<ul>{g.items.map(p => item({kind: 'project', id: p.id}, p.name, count({kind: 'project', id: p.id}), dropOn(p.id), p.colour))}</ul></div>)}
+      .filter(g => g.items.length || g.name).map(g => <div key={g.key || 'none'} className="tasks-nav-area">{g.name && <h4 dir="auto">{g.name}</h4>}<ul>{g.items.map(p => item({kind: 'project', id: p.id}, p.name, projectHeld(p, today) ? <small>on hold</small> : count({kind: 'project', id: p.id}), dropOn(p.id), p.colour))}</ul></div>)}
     {old.length > 0 && <><button type="button" className="text-link" aria-expanded={archived} onClick={() => setArchived(!archived)}>Archived projects ({formatNumber(old.length)})</button>
       {archived && <ul>{old.map(p => item({kind: 'project', id: p.id}, p.name, undefined, undefined, p.colour))}</ul>}</>}
     {adding ? <form className="tasks-nav-add" noValidate onSubmit={e => { e.preventDefault(); if (name.trim() && onAddProject(name, colour)) { setName(''); setAdding(false); } }}>

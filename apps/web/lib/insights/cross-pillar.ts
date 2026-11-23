@@ -1,4 +1,6 @@
 import {habitDay, type HabitData} from '../habits';
+import {isSpending, mineCents} from '../money-log/counted';
+import type {MoneyEntry} from '../money-log/schema';
 import {dailyHealthSummary, type HealthData} from '../health';
 import {waterSummary} from '../health-daily';
 import {dailySeries} from '../sleep/engine';
@@ -89,7 +91,7 @@ export function habitShare(habits: HabitData, date: string, today: string): numb
  * Session AJ (item 10): `energy` (the daily check-in, zigoals:energy:v1) and `workouts` (zigoals:workouts:v1) join, for
  * eight more pairings; a pairing whose records the person does not keep is not listed at all.
  */
-export type CrossExtras = {spending?: {entries: readonly {kind: string; amount: string; currency: string; date: string}[]}; hidden?: ReadonlySet<string>; localTime?: (iso: string) => {date: string; hour: number};
+export type CrossExtras = {spending?: {entries: readonly ({kind: string; amount: string; currency: string; date: string} & Partial<Pick<MoneyEntry, 'excluded' | 'transfer' | 'refund' | 'share'>>)[]}; hidden?: ReadonlySet<string>; localTime?: (iso: string) => {date: string; hour: number};
   energy?: {days: Readonly<Record<string, {energy: number}>>} | null; workouts?: {workouts: readonly {startedAt: string}[]} | null;
   /** Session AP (feature 2): the symptom and factor tracker (zigoals:symptoms:v1). Health-private: never passed by a ZIGi or NOVA path. */
   symptoms?: SymptomsLike | null};
@@ -144,9 +146,10 @@ export function crossPillarInsights({habits, health, today, max = 3, spending, h
   pair('habits-mood', 'Habits and mood', list.flatMap(d => { const share = habitShare(habits, d, today), mood = moods[d]?.mood; return share === null || mood === undefined ? [] : [{date: d, a: share >= 0.5, value: mood}]; }), 'mood',
     'a calm day can make both habits and a good mood easier, and a hard one both harder',
     (a, b) => `On days you completed at least half of your scheduled habits, your mood that day averaged ${scale(a.value)} of 5; on other days, ${scale(b.value)}.`, true);
-  const spent = (spending?.entries ?? []).filter(e => e.kind === 'expense' && e.date >= window.start && e.date <= window.end);
+  // Round 6 (#425): Wealth → Spending's rule (lib/money-log/counted.ts): left out and transfers not counted, the person's share, a refund below zero.
+  const spent = (spending?.entries ?? []).filter(e => isSpending(e) && e.date >= window.start && e.date <= window.end);
   const currency = [...spent.reduce((m, e) => m.set(e.currency, (m.get(e.currency) ?? 0) + 1), new Map<string, number>())].sort((x, y) => y[1] - x[1])[0]?.[0];
-  const totals = new Map<string, number>(); for (const e of spent) if (e.currency === currency) totals.set(e.date, (totals.get(e.date) ?? 0) + Number(e.amount));
+  const totals = new Map<string, number>(); for (const e of spent) if (e.currency === currency) totals.set(e.date, (totals.get(e.date) ?? 0) + mineCents(e) / 100);
   const sortedTotals = [...totals.values()].sort((x, y) => x - y), usual = sortedTotals[Math.ceil(sortedTotals.length / 2) - 1] ?? 0;
   if (currency && usual > 0) pair('spending-mood', 'Spending and mood', list.flatMap(d => { const mood = moods[d]?.mood; return mood === undefined ? [] : [{date: d, a: (totals.get(d) ?? 0) > usual, value: mood}]; }), 'mood',
     'paydays, weekends and plans with others can shape both',

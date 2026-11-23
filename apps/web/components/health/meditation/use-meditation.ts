@@ -8,7 +8,7 @@ import {healthGroupIn} from '../../../lib/vault/w-homes';
 import {updateHealthGroup} from '../../../lib/w-homes-store';
 import {emptyMeditation, MEDITATION_RUN, type Meditation} from '../../../lib/meditation/schema';
 import {dailyData} from '../../../lib/health-daily';
-import {wallClock} from '../../../lib/zone-time';
+import {activityDay, currentDayEnds, subscribeDayEnds} from '../../../lib/day-boundary-core';
 
 /**
  * Meditation in a component (Session W Part 5): the Health v4 `meditation` group from the one shared Health read, written
@@ -30,7 +30,11 @@ export function useMeditation() {
     document.addEventListener('visibilitychange', tick);
     return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', tick); };
   }, [running]);
+  // Session AV lane 2, round 6 (r6-body; LEDGER #411): today follows "My day ends at", as the sessions' days do
+  // (lib/meditation/stats.ts sessionDay); a new end applies at once.
+  const [, setEnds] = useState(0);
+  useEffect(() => subscribeDayEnds(() => setEnds(n => n + 1)), []);
   const update = useCallback((change: (current: Meditation) => Meditation) => updateHealthGroup('meditation', change), []);
-  return {loaded: health.loaded && run.loaded, error: health.error, runUnreadable: run.unreadable, meditation, update, run, zone, now, today: wallClock(now, zone).date};
+  return {loaded: health.loaded && run.loaded, error: health.error, runUnreadable: run.unreadable, meditation, update, run, zone, now, today: activityDay(currentDayEnds(), new Date(now), zone)};
 }
 export type MeditationStore = ReturnType<typeof useMeditation>;

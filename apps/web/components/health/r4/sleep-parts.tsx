@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import {NebulaFlow} from '../../nebula-flow';
 import {useEffect, useId, useRef, useState} from 'react';
 import {formatMinutes} from '../../../lib/zone-time';
 import {formatClock, formatTime} from '../../../lib/visual-format';
@@ -29,7 +30,7 @@ const at = (m: number) => formatClock(clockFromMidnight(Math.round(m)));
 export function SleepTiming({sleep, today}: {sleep: Sleep; today: string}) {
   const t = sleepTiming(sleep, today);
   return <section className="panel r4-timing" aria-labelledby="r4-timing-title">
-    <h2 id="r4-timing-title">Your timing</h2>
+    <h2 id="r4-timing-title"><NebulaFlow identity="r4-timing-title">Your timing</NebulaFlow></h2>
     {!t ? <p className="health-empty-inline">Your timing shows once the last {TIMING_DAYS} days hold {TIMING_MIN_NIGHTS} weekend nights and {TIMING_MIN_NIGHTS} weekday nights. It sets the middle of your sleep on free days beside work days.</p> : <>
       <dl className="r4-facts">
         <div><dt>Middle of sleep, weekend nights</dt><dd>{at(t.free.mid)} <small className="fine">({t.free.nights} nights)</small></dd></div>

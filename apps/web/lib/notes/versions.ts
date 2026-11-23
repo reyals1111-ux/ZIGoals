@@ -1,5 +1,5 @@
 import {MAX_NOTE_VERSIONS, MAX_NOTE_VERSION_CHARS, NOTE_VERSIONS_PER_NOTE, type NoteVersion, type Notes} from './schema';
-import {checked, updateNote, type NotePatch, type NotesUndo} from './store';
+import {checked, keptNoteIds, updateNote, type NotePatch, type NotesUndo} from './store';
 import {fieldTags, tagsForSave} from './tags';
 
 /**
@@ -23,7 +23,7 @@ export function capNoteVersions(versions: readonly NoteVersion[], noteIds: Reado
 export const noteVersionsOf = (record: Pick<Notes, 'versions'>, noteId: string) => [...(record.versions ?? [])].filter(v => v.noteId === noteId).reverse();
 const withVersion = (record: Notes, version: NoteVersion): Notes => {
   const same = (record.versions ?? []).some(v => v.noteId === version.noteId && v.body === version.body && v.title === version.title);
-  return same ? record : {...record, versions: capNoteVersions([...(record.versions ?? []), version], new Set(record.notes.map(n => n.id)))};
+  return same ? record : {...record, versions: capNoteVersions([...(record.versions ?? []), version], keptNoteIds(record))}; // r5-notes (#360): a deleted note's versions wait with it
 };
 /** updateNote, keeping the replaced title and words as an earlier version when they change. */
 export function updateNoteKeepingVersion(record: Notes, id: string, patch: NotePatch, now: string, versionId = newNoteVersionId()): Notes {

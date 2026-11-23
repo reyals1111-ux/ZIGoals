@@ -15,11 +15,13 @@ import './av2-body.css';
 export const SPORT_GOAL_WORDS: Record<DistanceGoal['sport'], string> = {run: 'Running', ride: 'Cycling', swim: 'Swimming', walk: 'Walking', any: 'All sports'};
 export const PERIOD_WORDS: Record<DistanceGoal['period'], string> = {week: 'this week', month: 'this month', year: 'this year'};
 type Change = (fn: (w: Workouts) => Workouts, said?: string, undone?: string) => boolean;
+const NO_PAUSES: readonly {from: string; to: string}[] = [];
 const km = (n: number) => `${formatNumber(n, {maximumFractionDigits: 1})} km`;
-export default function DistanceGoals({w, today, change}: {w: Workouts; today: string; change: Change}) {
+// Session AV lane 2, round 5 (LEDGER #374): `pauses`, the days a workout status covered, change the load's words.
+export default function DistanceGoals({w, today, change, pauses = NO_PAUSES}: {w: Workouts; today: string; change: Change; pauses?: readonly {from: string; to: string}[]}) {
   const goals = useMemo(() => (w.distanceGoals ?? []).map(g => goalProgress(w, g, today)), [w, today]);
   const [sport, setSport] = useState<DistanceGoal['sport']>('run'), [period, setPeriod] = useState<DistanceGoal['period']>('month'), [amount, setAmount] = useState(''), [problem, setProblem] = useState('');
-  const [metric, setMetric] = useState<LoadMetric>('minutes'), load = useMemo(() => trainingLoad(w, today, metric), [w, today, metric]), id = useId();
+  const [metric, setMetric] = useState<LoadMetric>('minutes'), load = useMemo(() => trainingLoad(w, today, metric, pauses), [w, today, metric, pauses]), id = useId();
   const add = () => {
     const n = Number(amount.replace(',', '.'));
     if (!Number.isFinite(n) || n < 1 || n > 100_000) { setProblem('Enter a distance from 1 to 100,000 km.'); return; }

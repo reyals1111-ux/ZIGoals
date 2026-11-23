@@ -1,5 +1,5 @@
 import {parseFrontMatter} from '../notes/markdown';
-import {IMPORT_SOURCES, PERIOD, MAX_AUDIO_SECONDS, MAX_ENTRIES, MAX_ENTRY_AUDIO, MAX_ENTRY_PHOTOS, MAX_ENTRY_PHOTOS_ALL, MAX_JOURNALS, MAX_TEXT, journalSchema, type Journal, type JournalEntry} from './schema';
+import {IMPORT_SOURCES, PERIOD, MAX_PEOPLE, PERSON_MAX, MAX_AUDIO_SECONDS, MAX_ENTRIES, MAX_ENTRY_AUDIO, MAX_ENTRY_PHOTOS, MAX_ENTRY_PHOTOS_ALL, MAX_JOURNALS, MAX_TEXT, journalSchema, type Journal, type JournalEntry} from './schema';
 import {MAIN_JOURNAL, booksOf, newJournalId} from './books';
 import {readTags} from './tags';
 import {FOLLOW_UP_MARK, followUpOfQuote} from './export';
@@ -19,17 +19,24 @@ import {FOLLOW_UP_MARK, followUpOfQuote} from './export';
  */
 export type ImportSource = (typeof IMPORT_SOURCES)[number];
 export type PlannedEntry = {date: string; text: string; createdAt: string; updatedAt?: string; tags?: string[]; book?: string; template?: string; source: ImportSource; photos: string[]; audio: {file: string; seconds: number}[]; followUp?: {question: string; answer?: string};
-  /** Session AV lane 2 (r3-notes; LEDGER #269, #278, #279, #272): an entry's period, night and opening day, read back from ZIGoals' own exports. */ extra?: {period?: string; night?: string; opensOn?: string; /** Session AV lane 2 (r4-mind; LEDGER #310): a starred entry (Day One's `starred`). */ star?: true};
+  /** Session AV lane 2 (r3-notes; LEDGER #269, #278, #279, #272): an entry's period, night and opening day, read back from ZIGoals' own exports. */ extra?: {period?: string; night?: string; opensOn?: string; /** Session AV lane 2 (r4-mind; LEDGER #310): a starred entry (Day One's `starred`). */ star?: true; /** Session AV lane 2 (r6-notes; LEDGER #401): who was there. */ people?: string[]};
   /** Session AV lane 2 (review B3C-5): read from ZIGoals' own Markdown file, its `createdAt` the entry's own (a day and creation time already in the journal is that entry). */ own?: true};
 /** Session AV lane 2 (r3-notes): the round-3 fields of an entry, from a ZIGoals export's `zigoals` block or Markdown front matter. */
-function extraOf(z: {period?: unknown; night?: unknown; opensOn?: unknown; 'opens-on'?: unknown; starred?: unknown} | null | undefined): PlannedEntry['extra'] | undefined {
+function extraOf(z: {period?: unknown; night?: unknown; opensOn?: unknown; 'opens-on'?: unknown; starred?: unknown; people?: unknown} | null | undefined): PlannedEntry['extra'] | undefined {
   if (!z) return undefined;
-  const opens = z.opensOn ?? z['opens-on'];
-  const out = {...(typeof z.period === 'string' && PERIOD.test(z.period) ? {period: z.period} : {}), ...(typeof z.night === 'string' && validDay(z.night) ? {night: z.night} : {}), ...(typeof opens === 'string' && validDay(opens) ? {opensOn: opens} : {}), ...(z.starred === true || z.starred === 'true' ? {star: true as const} : {})};
+  const opens = z.opensOn ?? z['opens-on'], people = readPeople(z.people);
+  const out = {...(typeof z.period === 'string' && PERIOD.test(z.period) ? {period: z.period} : {}), ...(typeof z.night === 'string' && validDay(z.night) ? {night: z.night} : {}), ...(typeof opens === 'string' && validDay(opens) ? {opensOn: opens} : {}), ...(z.starred === true || z.starred === 'true' ? {star: true as const} : {}), ...(people.length ? {people} : {})};
   return Object.keys(out).length ? out : undefined;
 }
+/** Session AV lane 2 (r6-notes; LEDGER #401): names read from a list or a comma-separated line, as the entry keeps them. */
+export function readPeople(v: unknown): string[] {
+  const list = Array.isArray(v) ? v : typeof v === 'string' ? v.split(',') : [];
+  const out: string[] = [];
+  for (const x of list) { if (typeof x !== 'string') continue; const n = x.trim().replace(/\s+/g, ' '); if (n && n.length <= PERSON_MAX && !out.some(o => o.toLowerCase() === n.toLowerCase())) out.push(n); }
+  return out.slice(0, MAX_PEOPLE);
+}
 export type ImportSkip = {name: string; reason: string};
-export type JournalImportPlan = {entries: PlannedEntry[]; skipped: ImportSkip[]; books: string[]; cut: number};
+export type JournalImportPlan = {entries: PlannedEntry[]; skipped: ImportSkip[]; books: string[]; cut: number; /** Review b6n B6N-8: how a file was read where it could be read two ways (a CSV's day order), said in the plan. */ notes?: string[]};
 export type InFile = {name: string; text: string};
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const validDay = (d: string) => DAY.test(d) && !Number.isNaN(Date.parse(`${d}T12:00:00Z`)) && new Date(`${d}T12:00:00Z`).toISOString().slice(0, 10) === d;
@@ -75,7 +82,7 @@ export function readDayOneJson(file: InFile, zone?: string): {entries: PlannedEn
     const label = `${file.name} #${i + 1}`;
     if (!e || typeof e !== 'object') { skipped.push({name: label, reason: 'it is not an entry'}); continue; }
     const created = typeof e.creationDate === 'string' && Number.isFinite(Date.parse(e.creationDate)) ? new Date(Date.parse(e.creationDate)).toISOString() : null;
-    const z = e.zigoals && typeof e.zigoals === 'object' ? e.zigoals as {date?: unknown; journal?: unknown; template?: unknown; question?: unknown; answer?: unknown; period?: unknown; night?: unknown; opensOn?: unknown} : null;
+    const z = e.zigoals && typeof e.zigoals === 'object' ? e.zigoals as {date?: unknown; journal?: unknown; template?: unknown; question?: unknown; answer?: unknown; period?: unknown; night?: unknown; opensOn?: unknown; people?: unknown} : null;
     const date = typeof z?.date === 'string' && validDay(z.date) ? z.date : created ? dayIn(created, typeof e.timeZone === 'string' ? e.timeZone : zone) : null;
     const words = typeof e.text === 'string' ? dayOneWords(e.text) : '';
     const photos = Array.isArray(e.photos) ? e.photos.flatMap(p => p && typeof p === 'object' && typeof (p as {md5?: unknown}).md5 === 'string' ? [`photos/${(p as {md5: string}).md5}.${String((p as {type?: unknown}).type ?? 'jpeg')}`] : []).slice(0, MAX_ENTRY_PHOTOS_ALL) : [];
@@ -142,14 +149,112 @@ export function readHtmlFile(file: InFile, today: string): {entries: PlannedEntr
   const text = head && lines[0] && dayInLine(lines[0]) === head && lines[0].length <= 40 ? lines.slice(1).join('\n') : words;
   return readTextFile({name: `${baseName(file.name)}.txt`, text: date ? `---\ndate: ${date}\n---\n${text}` : text}, today);
 }
+/* ---- Session AV lane 2 (r6-notes; LEDGER #410, Diarium's imports from more journal apps) ------------------------ */
+type JourneyEntry = {id?: unknown; text?: unknown; type?: unknown; date_journal?: unknown; date_modified?: unknown; timezone?: unknown; tags?: unknown; photos?: unknown; favourite?: unknown};
+const isJourney = (x: unknown): x is JourneyEntry => !!x && typeof x === 'object' && typeof (x as JourneyEntry).date_journal === 'number' && 'text' in (x as object);
+/** A time in milliseconds as an ISO stamp, or null when it is outside the calendar (`new Date` would throw on it). */
+const isoOf = (ms: number): string | null => { const d = new Date(ms); return Number.isFinite(d.getTime()) ? d.toISOString() : null; };
+/** Whether a JSON file is Journey's: one entry with `date_journal`, or a list of them. */
+export function isJourneyJson(text: string): boolean {
+  try { const d: unknown = JSON.parse(text); return isJourney(d) || (Array.isArray(d) && d.length > 0 && d.every(isJourney)); } catch { return false; }
+}
+/** A photo of a Journey entry, by its file's name, as the ZIP reader keeps it (`journey/<name>`). */
+export const journeyPhotoKey = (name: string) => `journey/${name.split('/').pop()!}`;
+/**
+ * Journey's export: a ZIP with one JSON file per entry (`text` in HTML or Markdown, `date_journal` in milliseconds, its
+ * `timezone`, `tags`, `photos` named by the files beside it, `favourite`), or the JSON alone. Each entry keeps its day
+ * in its own time zone, its words (HTML read as words), tags, up to 12 photos and the star. Nothing in a file runs.
+ */
+export function readJourneyJson(file: InFile, zone?: string): {entries: PlannedEntry[]; skipped: ImportSkip[]; cut: number} {
+  let data: unknown;
+  try { data = JSON.parse(file.text); } catch { return {entries: [], skipped: [{name: file.name, reason: 'it is not a JSON file ZIGoals can read'}], cut: 0}; }
+  const list = Array.isArray(data) ? data : [data], entries: PlannedEntry[] = [], skipped: ImportSkip[] = [];
+  let cut = 0;
+  for (const [i, e] of list.entries()) {
+    const label = list.length > 1 ? `${file.name} #${i + 1}` : file.name;
+    if (!isJourney(e)) { skipped.push({name: label, reason: 'it is not a Journey entry'}); continue; }
+    const ms = e.date_journal as number, created = ms > 0 ? isoOf(ms) : null; // review b6n B6N-5: a time outside the calendar skips this entry only
+    const date = created ? dayIn(created, typeof e.timezone === 'string' ? e.timezone : zone) : null;
+    if (!date || !created) { skipped.push({name: label, reason: 'it has no date ZIGoals can read'}); continue; }
+    const raw = typeof e.text === 'string' ? e.text : '', words = (e.type === 'html' || /<\/?(?:p|div|br|span|h\d|li|ul|ol|b|i|strong|em)\b/i.test(raw) ? htmlWords(raw) : raw.replace(/\r\n?/g, '\n')).trim();
+    const photos = Array.isArray(e.photos) ? e.photos.filter((x): x is string => typeof x === 'string' && !!x.trim()).map(journeyPhotoKey).slice(0, MAX_ENTRY_PHOTOS_ALL) : [];
+    if (!words && !photos.length) { skipped.push({name: label, reason: 'it has no words or photo'}); continue; }
+    const c = clip(words || (photos.length > 1 ? 'Photos.' : 'A photo.')); if (c.cut) cut++;
+    const tags = Array.isArray(e.tags) ? readTags(e.tags.filter((t): t is string => typeof t === 'string').join(',')) : [];
+    const mod = typeof e.date_modified === 'number' && e.date_modified > ms ? isoOf(e.date_modified) ?? undefined : undefined;
+    entries.push({date, text: c.text, createdAt: created, ...(mod ? {updatedAt: mod} : {}), ...(tags.length ? {tags} : {}), ...(e.favourite === true ? {extra: {star: true as const}} : {}), source: 'journey', photos, audio: []});
+  }
+  return {entries, skipped, cut};
+}
+/** One CSV line set read into rows (RFC 4180: quoted cells, "" for a quote, line breaks inside quotes). */
+export function csvRows(text: string, delimiter: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [], cell = '', quoted = false;
+  const src = text.replace(/^\uFEFF/, '');
+  for (let i = 0; i < src.length; i++) {
+    const ch = src[i]!;
+    if (quoted) { if (ch === '"') { if (src[i + 1] === '"') { cell += '"'; i++; } else quoted = false; } else cell += ch; continue; }
+    if (ch === '"' && !cell) quoted = true;
+    else if (ch === delimiter) { row.push(cell); cell = ''; }
+    else if (ch === '\n' || ch === '\r') { if (ch === '\r' && src[i + 1] === '\n') i++; row.push(cell); cell = ''; if (row.some(c => c.trim())) rows.push(row); row = []; }
+    else cell += ch;
+    if (rows.length > MAX_ENTRIES + 1) break;
+  }
+  row.push(cell); if (row.some(c => c.trim())) rows.push(row);
+  return rows;
+}
+const CSV_DATE = /^(?:date|datum|day|dag|created|creation date|date created)$/i, CSV_TEXT = /^(?:text|tekst|entry|content|inhoud|body|note|notes|notitie)$/i, CSV_TAGS = /^(?:tags?|labels?|categor(?:y|ies))$/i;
+/**
+ * A CSV of entries: a row per entry with its date, words and tags. The columns are found by their header (date, text,
+ * tags, in English or Dutch); without a header row they are read as date, text, tags. Commas or semicolons both work.
+ */
+/**
+ * Review b6n B6N-8: the order of a CSV's numeric dates (3/11/2026, 11.03.2026, 3-11-2026), found from the file itself:
+ * month-day-year when every one fits that order and some do not fit day-month-year (12/25/2026); else day-month-year.
+ * Never silent: the plan says which order was used, and when every date fits both orders it says they could be read two
+ * ways and how to make them plain (2026-11-03).
+ */
+const NUM_DATE = /^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})\b/;
+const numDay = (m: RegExpExecArray, order: 'dmy' | 'mdy') => { const [d, mo] = order === 'dmy' ? [m[1]!, m[2]!] : [m[2]!, m[1]!]; const day = `${m[3]}-${mo.padStart(2, '0')}-${d.padStart(2, '0')}`; return validDay(day) ? day : null; };
+export function csvDateOrder(raws: readonly string[], file: string): {order: 'dmy' | 'mdy'; note: string | null} {
+  const nums = raws.flatMap(r => { const m = NUM_DATE.exec(r.trim()); return m ? [m] : []; });
+  if (!nums.length) return {order: 'dmy', note: null};
+  const dmy = nums.every(m => numDay(m, 'dmy')), mdy = nums.every(m => numDay(m, 'mdy'));
+  const two = nums.find(m => m[1] !== m[2] && Number(m[1]) <= 12 && Number(m[2]) <= 12);
+  if (mdy && !dmy) return {order: 'mdy', note: `The dates in ${file} were read as month-day-year (${nums.find(m => !numDay(m, 'dmy'))![0]} is ${numDay(nums.find(m => !numDay(m, 'dmy'))!, 'mdy')}), as every one of them fits that order.`};
+  if (dmy && mdy && two) return {order: 'dmy', note: `Dates such as ${two[0]} in ${file} can be read two ways; they were read as day-month-year (${two[0]} is ${numDay(two, 'dmy')}). If they are month-day-year, cancel and write them as year-month-day (such as 2026-11-03) first.`};
+  return {order: 'dmy', note: `The dates in ${file} were read as day-month-year${dmy ? ', as the file writes them' : ''}.`};
+}
+export function readCsvFile(file: InFile, today: string): {entries: PlannedEntry[]; skipped: ImportSkip[]; cut: number; notes?: string[]} {
+  const first = file.text.split(/\r?\n/, 1)[0] ?? '', delimiter = (first.match(/;/g)?.length ?? 0) > (first.match(/,/g)?.length ?? 0) ? ';' : ',';
+  const rows = csvRows(file.text, delimiter), head = rows[0]?.map(h => h.trim()) ?? [];
+  const named = head.some(h => CSV_DATE.test(h)) && head.some(h => CSV_TEXT.test(h));
+  const col = named ? {date: head.findIndex(h => CSV_DATE.test(h)), text: head.findIndex(h => CSV_TEXT.test(h)), tags: head.findIndex(h => CSV_TAGS.test(h))} : {date: 0, text: 1, tags: 2};
+  const entries: PlannedEntry[] = [], skipped: ImportSkip[] = [], data = named ? rows.slice(1) : rows;
+  const {order, note} = csvDateOrder(data.map(r => r[col.date] ?? ''), file.name);
+  let cut = 0;
+  for (const [i, r] of data.entries()) {
+    const label = `${file.name} row ${i + (named ? 2 : 1)}`, rawDate = (r[col.date] ?? '').trim(), words = (r[col.text] ?? '').replace(/\r\n?/g, '\n').trim();
+    const num = NUM_DATE.exec(rawDate), date = num ? numDay(num, order) : dayInLine(rawDate);
+    if (!date) { skipped.push({name: label, reason: rawDate ? `its date cannot be read${num ? ` as ${order === 'dmy' ? 'day-month-year' : 'month-day-year'}, as the file's other dates are` : ''} (use 2026-11-03)` : 'it has no date'}); continue; }
+    if (!words) { skipped.push({name: label, reason: 'it has no words'}); continue; }
+    const c = clip(words); if (c.cut) cut++;
+    const tags = col.tags >= 0 ? readTags((r[col.tags] ?? '').replace(/;/g, ',')) : [];
+    entries.push({date, text: c.text, createdAt: `${date}T12:00:00.000Z`, ...(tags.length ? {tags} : {}), source: 'csv', photos: [], audio: []});
+  }
+  if (!rows.length) skipped.push({name: file.name, reason: 'it holds no rows'});
+  void today;
+  return {entries, skipped, cut, ...(note ? {notes: [note]} : {})};
+}
 /** The plan for every file read: entries in date order, duplicates (with the journal or each other) left out and said. */
 export function planJournalImport(journal: Journal, files: readonly InFile[], {today, zone, skipped: already = []}: {today: string; zone?: string; skipped?: readonly ImportSkip[]}): JournalImportPlan {
-  const entries: PlannedEntry[] = [], skipped: ImportSkip[] = [...already], books: string[] = [];
+  const entries: PlannedEntry[] = [], skipped: ImportSkip[] = [...already], books: string[] = [], notes: string[] = [];
   let cut = 0;
   for (const f of files) {
-    const r = /\.json$/i.test(f.name) ? readDayOneJson(f, zone) : /\.html?$/i.test(f.name) ? {...readHtmlFile(f, today), book: null} : /\.(?:md|markdown|txt)$/i.test(f.name) ? {...readTextFile(f, today), book: null} : null;
-    if (!r) { skipped.push({name: f.name, reason: 'it is not a journal file ZIGoals reads (Day One JSON, Markdown, text or HTML)'}); continue; }
-    entries.push(...r.entries); skipped.push(...r.skipped); cut += r.cut;
+    // Session AV lane 2 (r6-notes; LEDGER #410): Journey's JSON entries and a CSV of entries.
+    const r = /\.json$/i.test(f.name) && isJourneyJson(f.text) ? {...readJourneyJson(f, zone), book: null} : /\.csv$/i.test(f.name) ? {...readCsvFile(f, today), book: null} : /\.json$/i.test(f.name) ? readDayOneJson(f, zone) : /\.html?$/i.test(f.name) ? {...readHtmlFile(f, today), book: null} : /\.(?:md|markdown|txt)$/i.test(f.name) ? {...readTextFile(f, today), book: null} : null;
+    if (!r) { skipped.push({name: f.name, reason: 'it is not a journal file ZIGoals reads (Day One or Journey JSON, Markdown, text, HTML or CSV)'}); continue; }
+    entries.push(...r.entries); skipped.push(...r.skipped); cut += r.cut; notes.push(...((r as {notes?: string[]}).notes ?? []));
   }
   // Session AV lane 2 (review B3C-5): an entry from ZIGoals' own Markdown is also known by its day and creation time, so it
   // is recognised even when its words were changed here since the export.
@@ -163,7 +268,7 @@ export function planJournalImport(journal: Journal, files: readonly InFile[], {t
   }
   const room = MAX_ENTRIES - journal.entries.length;
   if (kept.length > room) { for (const e of kept.slice(room)) skipped.push({name: `${e.date}: ${e.text.slice(0, 40)}`, reason: `the journal keeps at most ${MAX_ENTRIES.toLocaleString('en-US')} entries`}); kept.length = Math.max(0, room); }
-  return {entries: kept, skipped, books, cut};
+  return {entries: kept, skipped, books, cut, ...(notes.length ? {notes} : {})};
 }
 export type ImportUndo = {entries: string[]; books: string[]; media: string[]};
 /**

@@ -1,6 +1,7 @@
 import {addLocalDays} from '../local-date';
 import {taskLevel, type Task, type TaskLevel, type Tasks} from './schema';
-import {taskState} from './engine';
+import {heldProject, taskState, waitingFor, waitsTurn} from './engine';
+import {isFinished} from './finished';
 
 /**
  * Session AL (Part 8, P-LS-05 / LS-005, LS-047, LS-H47): finding tasks by words and simple operators, for the Tasks
@@ -12,6 +13,8 @@ import {taskState} from './engine';
  * - `#Home` a project, `@bills` a label, `p1`…`p4` (or `priority:high|medium|normal|low`), `goal:` a linked goal key;
  * - days: `today`, `tomorrow`, `overdue`, `no date`, `due:today`, `due:tomorrow`, `due:week` (the next 7 days),
  *   `due:2026-12-05`, `due before:2026-12-05`, `due after:…`; `recurring`, `subtask`, `done`;
+ * - Session AV lane 2 (r5-plan): `doing`, `cancelled`, `plan:week`, `plan:month` (a week or a month without a day);
+ * - Session AV lane 2 (r6-plan): `is:hold` (a project on hold), `is:waiting` (waiting its turn or for another task);
  * - `&` / `and` between terms (also plain spaces), `|` / `or` between groups, `!` or `-` before a term negates it.
  */
 type Pred = (t: Task) => boolean;
@@ -47,8 +50,16 @@ function term(raw: string, ctx: TaskSearchContext, record: Tasks): Pred | null {
     const a = /^due(?:_|-)?after:(\d{4}-\d{2}-\d{2})$/.exec(low); if (a) return t => !!t.due && t.due > a[1]!;
     if (low === 'recurring' || low === 'repeating') return t => !!t.recur;
     if (low === 'subtask' || low === 'subtasks') return t => !!t.parentId;
-    if (low === 'done' || low === 'completed') return t => !!t.doneAt;
+    if (low === 'done' || low === 'completed') return t => isFinished(t); // review B5L-3: a cancelled one is `cancelled`
     if (low === 'open') return t => !t.doneAt;
+    // Session AV lane 2 (r5-plan, LEDGER #350, #349): Doing, Cancelled, and a week or a month without a day.
+    if (low === 'doing') return t => !t.doneAt && t.state?.kind === 'doing';
+    if (low === 'cancelled' || low === 'canceled') return t => !!t.doneAt && t.state?.kind === 'cancelled';
+    const pl = /^plan:(week|month)$/.exec(low); if (pl) return t => !t.doneAt && !t.due && t.plan?.kind === pl[1];
+    // Session AV lane 2 (r6-plan, LEDGER #392, #393): the tasks of projects on hold, and those waiting (their turn or another
+    // task). Review B6M-9: prefixed (`is:hold`, `is:waiting`), so “hold music” or “waiting room” still match titles.
+    if (low === 'is:hold' || low === 'is:on-hold') return t => !t.doneAt && !!heldProject(record, t, ctx.today);
+    if (low === 'is:waiting') return t => !t.doneAt && (!!waitsTurn(record, t) || waitingFor(record, t).length > 0);
     return t => fold(`${t.title} ${t.notes ?? ''}`).includes(low);
   })();
   return negate ? t => !pred(t) : pred;
@@ -70,12 +81,12 @@ export function parseQuery(query: string): string[][] {
 export function matchTasks(record: Tasks, query: string, ctx: TaskSearchContext): Task[] {
   const groups = parseQuery(query);
   if (!groups.length) return [];
-  const wantsDone = groups.some(g => g.some(w => /^(done|completed)$/i.test(w)));
+  const wantsDone = groups.some(g => g.some(w => /^(done|completed|cancelled|canceled)$/i.test(w)));
   const preds = groups.map(g => g.map(w => term(w, ctx, record)).filter((p): p is Pred => !!p));
   return record.tasks.filter(t => (wantsDone || !t.doneAt) && preds.some(group => group.length > 0 && group.every(p => p(t))));
 }
 /** Whether a query uses an operator (so a search page can say "Tasks matching p1 & today"). */
-export const hasOperator = (query: string) => /(^|\s)([#@!]|p[1-4]\b|due:|priority:|goal:|today\b|overdue\b|tomorrow\b|no date\b|recurring\b)|[&|]/i.test(query);
+export const hasOperator = (query: string) => /(^|\s)([#@!]|p[1-4]\b|due:|priority:|goal:|today\b|overdue\b|tomorrow\b|no date\b|recurring\b|doing\b|cancell?ed\b|plan:|is:(?:hold|on-hold|waiting)\b)|[&|]/i.test(query);
 
 export type TaskSearchHit = {id: string; title: string; detail: string; href: string};
 /**
@@ -90,7 +101,7 @@ export async function searchTasks(query: string, {today, limit = 20, storage}: {
   const names = new Map((record.projects ?? []).map(p => [p.id, p.name]));
   return matchTasks(record, query, {today: day}).slice(0, limit).map(t => ({
     id: t.id, title: t.title,
-    detail: ['Task', t.doneAt ? 'done' : t.due ? (t.due < day ? `overdue · ${t.due}` : t.due === day ? 'today' : t.due) : 'no date', t.projectId ? `#${names.get(t.projectId) ?? 'project'}` : 'Inbox', ...(t.labels ?? []).map(l => `@${l}`)].join(' · '),
+    detail: ['Task', t.doneAt ? (isFinished(t) ? 'done' : 'cancelled') : t.due ? (t.due < day ? `overdue · ${t.due}` : t.due === day ? 'today' : t.due) : 'no date', t.projectId ? `#${names.get(t.projectId) ?? 'project'}` : 'Inbox', ...(t.labels ?? []).map(l => `@${l}`)].join(' · '),
     href: `/app/tasks?task=${encodeURIComponent(t.id)}`,
   }));
 }

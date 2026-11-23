@@ -102,3 +102,42 @@ export function completeLink(text: string, start: number, caret: number, name: s
   const link = `[[${name.replace(/[[\]|#\n]/g, ' ').replace(/\s+/g, ' ').trim()}]]`;
   return {text: `${text.slice(0, start)}${link}${rest.slice(closing)}`, caret: start + link.length};
 }
+
+/* ---- Session AV lane 2 (r5-notes; LEDGER #358, Logseq's unlinked references) ------------------------------------- */
+export type Mention = {note: Note; line: string; start: number; end: number; words: string};
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+/** The text with the parts that are not words to search blanked (same length): [[links]], `code`, fenced code, addresses. */
+function blanked(text: string): string {
+  const blank = (m: string) => ' '.repeat(m.length);
+  return text.replace(/^(```|~~~)[^\n]*\n[\s\S]*?^\1[^\n]*$/gm, blank).replace(/!?\[\[[^\]\n]*\]\]/g, blank).replace(/!?\[[^\]\n]*\]\([^)\n]*\)/g, blank /* review b5i B5I-7: a Markdown link's words too */).replace(/`[^`\n]*`/g, blank).replace(/\b(?:https?:\/\/|www\.)\S+/gi, blank).replace(/\]\([^)\n]*\)/g, blank);
+}
+/**
+ * The notes whose words name a note's title (whole words, any case) but do not link it — never the note itself, a
+ * locked or archived note, or a name shorter than three characters. Each with its first such place and the line it is
+ * on (at most ~140 characters), newest change first. Derived each time; nothing stored.
+ */
+export function unlinkedMentions(notes: readonly Note[], target: Pick<Note, 'id'>, name: string, index: LinkIndex, limit = 20): Mention[] {
+  const words = name.normalize('NFC').trim();
+  if (words.length < 3) return [];
+  const re = new RegExp(`(?<![\\p{L}\\p{N}_])${escapeRe(words).replace(/\s+/g, '\\s+')}(?![\\p{L}\\p{N}_])`, 'iu'), out: Mention[] = [];
+  const self = {kind: 'note' as const, id: target.id};
+  for (const n of [...notes].sort((a, b) => (b.updatedAt ?? b.createdAt).localeCompare(a.updatedAt ?? a.createdAt))) {
+    if (n.id === target.id || n.locked || n.archived || !n.body) continue;
+    if (parseLinks(n.body).some(l => { const t = resolveLink(index, l.target); return !!t && same(t, self); })) continue;
+    const body = n.body.normalize('NFC'), m = re.exec(blanked(body));
+    if (!m) continue;
+    const start = m.index, end = start + m[0].length;
+    const ls = body.lastIndexOf('\n', start) + 1, le = body.indexOf('\n', end), line = body.slice(ls, le < 0 ? undefined : le).trim();
+    out.push({note: n, line: line.length > 140 ? `${line.slice(0, 137)}…` : line, start, end, words: body.slice(start, end)});
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+/** The words with that one place made a [[link]] to the note (its own words kept as the shown words when they differ). */
+export function linkMention(body: string, mention: Pick<Mention, 'start' | 'end' | 'words'>, name: string): string {
+  const text = body.normalize('NFC');
+  if (text.slice(mention.start, mention.end) !== mention.words) throw new Error('The note changed meanwhile. Open it to link the words yourself.');
+  const target = name.replace(/[[\]|#\n]/g, ' ').replace(/\s+/g, ' ').trim();
+  const link = mention.words === target ? `[[${target}]]` : `[[${target}|${mention.words.replace(/[[\]|\n]/g, ' ')}]]`;
+  return `${text.slice(0, mention.start)}${link}${text.slice(mention.end)}`;
+}

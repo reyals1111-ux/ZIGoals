@@ -368,3 +368,74 @@ button.note-tag:focus-visible, .note-tag-pick:focus-visible { outline: 3px solid
 .note-save { display: grid; gap: 8px; padding: 12px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--brand-cyan, #63e7ff) 40%, transparent); }
 .note-save-title { margin: 0; font-size: 16px; }
 .note-save p { margin: 0; }
+
+/* Session AV lane 2 (r5-notes; LEDGER #359, #360): Select several notes; Recently deleted. */
+.note-select-open { margin: 4px 0; }
+.notes-select-bar { margin: 8px 0; padding: 10px 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, currentColor 22%, transparent); }
+.notes-select-bar .note-actions button { min-height: 44px; }
+.notes-select-item { display: flex; gap: 10px; align-items: flex-start; min-height: 44px; padding: 4px 0; cursor: pointer; overflow-wrap: anywhere; }
+.notes-select-item input { flex: none; width: 22px; height: 22px; margin: 11px 0 0; accent-color: var(--brand-violet, #826cff); }
+.notes-select-line { display: block; }
+.note-trash-list li { padding: 6px 0; overflow-wrap: anywhere; }
+.note-trash-list .note-actions button { min-height: 44px; }
+/* Session AV lane 2 (r5-notes; LEDGER #358): mentions without a link. */
+.note-unlinked { list-style: none; margin: 8px 0 0; padding: 0; }
+.note-unlinked li { padding: 6px 0; overflow-wrap: anywhere; }
+.note-unlinked button { min-height: 44px; }
+/* Session AV lane 2 (r5-notes; LEDGER #361): another note's section drawn inside this one. */
+.note-embed-quote { margin: 12px 0; padding: 8px 14px; border-radius: 12px; border-inline-start: 4px solid color-mix(in srgb, currentColor 30%, transparent); background: color-mix(in srgb, currentColor 5%, transparent); overflow-wrap: anywhere; }
+.note-embed-quote > blockquote { margin: 0; padding: 0; border: 0; }
+.note-embed-from { margin-top: 4px; }
+.note-embed-from .text-link { min-height: 44px; display: inline-flex; align-items: center; }
+@media (forced-colors: active) { .note-embed-quote { border-color: CanvasText; } }
+/* Session AV lane 2 (r5-notes; LEDGER #363): change a table. */
+.note-table-edit { margin: 8px 0; padding: 10px 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, currentColor 22%, transparent); }
+.note-table-grid { max-inline-size: 100%; overflow-x: auto; margin: 8px 0; }
+.note-table-grid table { border-collapse: collapse; }
+.note-table-grid th, .note-table-grid td { padding: 2px; }
+.note-table-grid input { min-inline-size: 8rem; min-height: 44px; font-size: 15px; }
+/* Session AV lane 2 (polish4): fields are 16 px on a phone, so iOS never zooms into them (the rules above set 15 px). */
+@media (max-width: 900px) { .note-marks select, .notes-board-card select, .note-table-grid input { font-size: 16px; } }
+.note-table-grid th input { font-weight: 600; }
+.note-table-edit .note-actions { flex-wrap: wrap; align-items: flex-end; }
+.note-table-edit .note-actions button { min-height: 44px; }
+.note-table-name input { max-inline-size: 12rem; }
+/* Session AV lane 2 (r5-notes; LEDGER #366): daily notes for a range of days. */
+.note-daily-range { margin: 12px 0 0; padding: 8px 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, currentColor 22%, transparent); min-inline-size: 0; }
+.note-daily-range legend { font-weight: 600; padding: 0 4px; }
+.note-daily-range input[type="date"] { min-height: 44px; }
+/* Session AV lane 2 (r5-notes; LEDGER #367): a note's look — a light tint over the theme's own page, so the words keep
+   their contrast (the text colour is the theme's); a cover from the note's own photos. Reading view only. */
+.note-page { border-radius: 14px; }
+.note-page[data-look] { padding: 10px 14px; background: color-mix(in srgb, var(--look) 13%, transparent); border: 1px solid color-mix(in srgb, var(--look) 35%, transparent); }
+.note-page[data-look="sand"], .note-look-swatch[data-look="sand"] { --look: #d4ad6a; }
+.note-page[data-look="sage"], .note-look-swatch[data-look="sage"] { --look: #78a886; }
+.note-page[data-look="sky"], .note-look-swatch[data-look="sky"] { --look: #6aa3d8; }
+.note-page[data-look="lilac"], .note-look-swatch[data-look="lilac"] { --look: #a58bd6; }
+.note-page[data-look="rose"], .note-look-swatch[data-look="rose"] { --look: #d68aa0; }
+.note-page[data-look="stone"], .note-look-swatch[data-look="stone"] { --look: #999999; }
+.note-cover { display: block; inline-size: 100%; max-block-size: 220px; object-fit: cover; border-radius: 12px; margin: 0 0 10px; }
+.note-look-pick fieldset { border: 0; padding: 0; margin: 8px 0; min-inline-size: 0; }
+.note-look-pick legend { font-weight: 600; }
+.note-look-options { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.note-look-options label { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; min-width: 44px; cursor: pointer; } /* polish4: at least 44 px wide */
+.note-look-swatch { inline-size: 18px; block-size: 18px; border-radius: 50%; background: var(--look); border: 1px solid color-mix(in srgb, currentColor 40%, transparent); }
+@media (forced-colors: active) { .note-page[data-look] { background: Canvas; border-color: CanvasText; } }
+/* Session AV lane 2 (r5-notes; LEDGER #365): review cards. */
+.note-card { margin: 8px 0; padding: 12px 14px; border-radius: 12px; border: 1px solid color-mix(in srgb, currentColor 22%, transparent); overflow-wrap: anywhere; }
+.note-card-face { outline-offset: 4px; }
+.note-card-question { font-size: 18px; font-weight: 600; margin: 8px 0; }
+.note-card-answer { font-size: 17px; margin: 8px 0; padding-top: 8px; border-top: 1px dashed color-mix(in srgb, currentColor 30%, transparent); }
+.note-card-rate button, .note-cards .note-actions button { min-height: 44px; }
+/* Session AV lane 2 (r6-notes; LEDGER #399, #402, #405, #407, #408): rename or merge a tag, read back, a property on
+   several notes, merge two notes, sums under the table. Theme variables and color-mix only. */
+.note-tag-rename, .note-merge { margin: 8px 0; display: grid; gap: 6px; }
+.note-tag-rename-row { display: grid; gap: 6px; padding: 8px 0; border-top: 1px solid var(--line); }
+.note-tag-rename button, .note-merge button, .note-read-back-list button, .note-read-back-button, .note-merge-button { min-height: 44px; }
+.note-merge { padding: 10px 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, currentColor 22%, transparent); overflow-wrap: anywhere; }
+.notes-select-prop { border: 0; border-top: 1px solid var(--line); margin: 8px 0 0; padding: 8px 0 0; min-inline-size: 0; display: grid; gap: 6px; }
+.notes-select-prop legend { font-weight: 600; }
+.notes-select-prop .switch-row { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; }
+.notes-table tfoot th, .notes-table tfoot td { border-top: 2px solid color-mix(in srgb, currentColor 30%, transparent); border-bottom: 0; font-variant-numeric: tabular-nums; }
+.note-read-back-list li { display: grid; gap: 2px; }
+.note-this-day-read { margin: 0 0 6px; }

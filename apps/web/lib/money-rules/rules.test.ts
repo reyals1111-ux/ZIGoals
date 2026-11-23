@@ -136,3 +136,28 @@ describe('rules in the import preview', () => {
     expect(loggedWithRules(t({amount: '12.51'}), log, rules)).toBe(false);
   });
 });
+
+describe('review B6O-3: a refund is money out to the rules', () => {
+  const refund: MoneyEntry = {...e('r', 'Tikkie', '30.00', 'income', '2026-11-12', 'Groceries'), refund: true};
+  test('a money-in rule never matches it; a money-out one does; either way it is matched as money out', () => {
+    expect(subjectOf(refund).kind).toBe('expense');
+    expect(ruleMatches(rule('in', {text: 'tikkie', direction: 'in', category: 'Gifts received'}), subjectOf(refund))).toBe(false);
+    expect(ruleMatches(rule('out', {text: 'tikkie', direction: 'out', category: 'Food & drink'}), subjectOf(refund))).toBe(true);
+    const leftOut: MoneyEntry = {...refund, excluded: true};
+    expect(subjectOf(leftOut).kind).toBe('expense');
+  });
+  test('an either-way rule naming an income category leaves its category alone; a spending one moves it', () => {
+    const toGifts = rule('g', {text: 'tikkie', category: 'Gifts received'});
+    expect(applyRule(refund, toGifts)).toBe(refund);
+    expect(applyRules([refund], [toGifts]).changes).toEqual([]);
+    expect(applyRule(refund, rule('s', {text: 'tikkie', category: 'Salary'}))).toBe(refund); // a usual income category too
+    expect(applyRule(refund, rule('t', {text: 'tikkie', category: 'Gifts received', tag: 'friends'}))).toMatchObject({category: 'Groceries', note: 'Tikkie #friends'});
+    expect(applyRule(refund, rule('f', {text: 'tikkie', category: 'Food & drink'})).category).toBe('Food & drink');
+    // Money received (not a refund) is unchanged: an either-way rule still gives it its income category.
+    expect(applyRule(e('in', 'Tikkie', '30.00', 'income'), toGifts).category).toBe('Gifts received');
+    expect(previewPast({entries: [refund]}, [toGifts], '2026-11-20')).toEqual([]);
+  });
+  test('a rule made from a refund is a money-out rule in its spending category', () => {
+    expect(ruleFromEntry(refund)).toMatchObject({direction: 'out', category: 'Groceries'});
+  });
+});

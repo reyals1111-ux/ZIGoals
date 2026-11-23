@@ -12,7 +12,9 @@ import './habit-longer-history.css';
  * axis, each point titled, the whole series in the chart's name and "As a table"); days done of days scheduled by month,
  * quarter or year since the habit began; and the days done on each weekday, month by month (numbers in every cell).
  */
-const W = 520, H = 140, L = 30, R = 8, T = 10, B = 22;
+// Session AV lane 2 (polish4): the axis words are HTML beside and under the chart (14 px at every width; SVG text
+// shrank with the chart to about 6 px on a phone), so the plot keeps only small margins.
+const W = 520, H = 140, L = 6, R = 8, T = 10, B = 10;
 const periodText = (p: string, unit: PeriodUnit) => unit === 'month' ? formatMonth(p) : unit === 'quarter' ? `${p.slice(5)} ${p.slice(0, 4)}` : p;
 export default function HabitHistory({habit, today}: {habit: Habit; today: string}) {
   const [unit, setUnit] = useState<PeriodUnit>('month'), id = useId();
@@ -26,12 +28,15 @@ export default function HabitHistory({habit, today}: {habit: Habit; today: strin
   return <div className="habit-longer">
     <h4>Strength, week by week · last {HISTORY_WEEKS} weeks</h4>
     {known.length ? <>
+      <div className="habit-longer-plot">
+      <span className="habit-longer-y" aria-hidden="true">{[100, 50, 0].map(v => <span key={v} style={{top: `${y(v) / H * 100}%`}}>{v}</span>)}</span>
       <svg className="habit-longer-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Strength at the end of each week, 0 to 100: ${known.length} weeks with a figure, from ${known[0]!.score} on ${formatDate(known[0]!.weekEnd, {year: false})} to ${known.at(-1)!.score} on ${formatDate(known.at(-1)!.weekEnd, {year: false})}, highest ${Math.max(...known.map(k => k.score!))}, lowest ${Math.min(...known.map(k => k.score!))}.`}>
-        {[0, 50, 100].map(v => <g key={v}><line className="habit-longer-grid" x1={L} x2={W - R} y1={y(v)} y2={y(v)}/><text x={L - 4} y={y(v) + 4} textAnchor="end">{v}</text></g>)}
+        {[0, 50, 100].map(v => <line key={v} className="habit-longer-grid" x1={L} x2={W - R} y1={y(v)} y2={y(v)}/>)}
         <path className="habit-longer-line" d={d}/>
         {weeks.map((w, i) => w.score === null ? null : <circle key={w.weekEnd} className="habit-longer-dot" cx={x(i)} cy={y(w.score)} r={2.2}><title>{`Week to ${formatDate(w.weekEnd, {year: false})}: ${w.score}`}</title></circle>)}
-        <text x={L} y={H - 4}>{formatDate(weeks[0]!.weekEnd, {year: false})}</text><text x={W - R} y={H - 4} textAnchor="end">{formatDate(today, {year: false})}</text>
       </svg>
+      <p className="habit-longer-x" aria-hidden="true"><span>{formatDate(weeks[0]!.weekEnd, {year: false})}</span><span>{formatDate(today, {year: false})}</span></p>
+      </div>
       <details className="habit-longer-table"><summary>As a table</summary><table><caption>Strength at the end of each week</caption><thead><tr><th scope="col">Week to</th><th scope="col">Strength</th></tr></thead>
         <tbody>{[...known].reverse().map(w => <tr key={w.weekEnd}><th scope="row">{formatDate(w.weekEnd, {year: false})}</th><td>{w.score}</td></tr>)}</tbody></table></details>
     </> : <p className="fine">The weekly line starts once the habit has seven scheduled days behind it.</p>}

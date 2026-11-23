@@ -1,18 +1,20 @@
 'use client';
 import {minutesWords} from '../../lib/tasks/minutes';
 import Link from 'next/link';
-import {Suspense, lazy, useId, useMemo, useRef, useState, type ClipboardEvent, type FormEvent, type KeyboardEvent, type ReactNode} from 'react';
+import {Suspense, lazy, useEffect, useId, useMemo, useRef, useState, type ClipboardEvent, type FormEvent, type KeyboardEvent, type ReactNode} from 'react';
 import {LEVEL_SHORT, LEVEL_WORDS, TASK_PRIORITIES, TASK_TITLE_MAX, taskLevel, type HealthLink, type Task, type TaskLevel, type TaskPriority, type Tasks} from '../../lib/tasks/schema';
-import {deadlineState, subtaskProgress, taskState, waitingFor, type TaskInput} from '../../lib/tasks/engine';
+import {deadlineState, subtaskProgress, taskState, waitingFor, waitsTurn, type TaskInput} from '../../lib/tasks/engine';
 import {addLocalDays} from '../../lib/local-date';
 import {describeRecur} from '../../lib/tasks/recurrence';
 import {pausedRepeat} from '../../lib/tasks/paused';
 import {reminderLabel} from '../../lib/tasks/reminders';
-import {formatClock, formatDate} from '../../lib/visual-format';
+import {formatClock, formatDate, formatMonth} from '../../lib/visual-format';
+import {bucketOf, bucketTitle} from '../../lib/tasks/plan-bucket';
 import type {GoalOption} from './use-goal-options';
 import type {TaskPatch} from './use-task-list';
 import {celebrateCompletion} from '../motion/completion';
 import {taskLook} from '../../lib/tasks/look';
+import {isCancelled} from '../../lib/tasks/finished';
 import '../habits/habit-look.css';
 import './task-row-r3.css';
 
@@ -46,7 +48,8 @@ export function deadlineText(t: Task, today: string): string | null {
 export function dueText(t: Task, today: string, nowClock?: string): string {
   const s = taskState(t, today, nowClock), at = t.time ? ` at ${formatClock(t.time)}` : '';
   if (s === 'overdue') return t.due === today ? `Late · today${at}` : `Overdue · ${dayWords(t.due!, today)}${at}`;
-  return s === 'today' ? `Due today${at}` : s === 'someday' ? 'No day' : `Due ${dayWords(t.due!, today, true)}${at}`;
+  // Session AV lane 2 (r5-plan, LEDGER #349): a task with no day planned for a week or a month says so.
+  return s === 'today' ? `Due today${at}` : s === 'someday' ? ((b => b ? `${bucketTitle(b.kind, b.of, today, of => formatMonth(of, {year: of.slice(0, 4) !== today.slice(0, 4)}), d => formatDate(d, {year: false}))}, any day` : 'No day')(bucketOf(t, today)) /* review B5L-6: its own week or month */) : `Due ${dayWords(t.due!, today, true)}${at}`;
 }
 
 /** The title field: its own 140 limit (older builds read up to 140), and a paste that would be cut says so. */
@@ -118,26 +121,36 @@ export type EditScope = 'one' | 'all';
  * subtask progress; `selected`/`onSelect` for bulk actions (given only while the list is selecting: the row's one box then selects); `onMove` gives Move up / Move down (the keyboard alternative
  * to dragging); `drag` adds the drag handle's props; `children` render under it (its subtasks).
  */
-export function TaskRow({task, today, goal, onToggle, onRemove, onEdit, onFocus, goals = [], showGoal = true, record, nowClock, links, selected, onSelect, onMove, drag, depth = 0, editor, habits, children, focused, onOpen, onSkip}: {task: Task; today: string; goal?: GoalOption; onToggle: (done: boolean) => void; onRemove?: () => void; onEdit?: (patch: TaskPatch, scope?: EditScope) => boolean; onFocus?: () => void; goals?: readonly GoalOption[]; showGoal?: boolean;
-  record?: Tasks; nowClock?: string; links?: RowLinks; selected?: boolean; onSelect?: (on: boolean, shift: boolean) => void; onMove?: (step: -1 | 1) => void; drag?: React.HTMLAttributes<HTMLElement> & {draggable?: boolean}; depth?: number; editor?: 'inline' | 'none'; habits?: readonly {id: string; title: string}[]; children?: ReactNode; focused?: boolean; onOpen?: () => void; /** A repeating task: skip this occurrence (P-LS-02 "this one"). */ onSkip?: () => void}) {
-  const [editing, setEditing] = useState(false), done = !!task.doneAt, state = taskState(task, today, nowClock), level = taskLevel(task);
+export function TaskRow({task, today, goal, onToggle, onRemove, onEdit, onFocus, goals = [], showGoal = true, record, nowClock, links, selected, onSelect, onMove, drag, depth = 0, editor, habits, children, focused, onOpen, onSkip, onEditing}: {task: Task; today: string; goal?: GoalOption; onToggle: (done: boolean) => void; onRemove?: () => void; onEdit?: (patch: TaskPatch, scope?: EditScope) => boolean; onFocus?: () => void; goals?: readonly GoalOption[]; showGoal?: boolean;
+  record?: Tasks; nowClock?: string; links?: RowLinks; selected?: boolean; onSelect?: (on: boolean, shift: boolean) => void; onMove?: (step: -1 | 1) => void; drag?: React.HTMLAttributes<HTMLElement> & {draggable?: boolean}; depth?: number; editor?: 'inline' | 'none'; habits?: readonly {id: string; title: string}[]; children?: ReactNode; focused?: boolean; onOpen?: () => void; /** A repeating task: skip this occurrence (P-LS-02 "this one"). */ onSkip?: () => void;
+  /** Session AV lane 2 (fixb5): told when the row's own editor opens (true) and closes or unmounts (false). */ onEditing?: (open: boolean) => void}) {
+  const [editing, setEditing] = useState(false), done = !!task.doneAt, cancelled = isCancelled(task), state = taskState(task, today, nowClock), level = taskLevel(task);
+  const editingSaid = useRef(onEditing);
+  useEffect(() => { editingSaid.current = onEditing; });
+  useEffect(() => { if (!editing) return; const say = editingSaid.current; say?.(true); return () => say?.(false); }, [editing]);
   const progress = useMemo(() => record ? subtaskProgress(record, task.id) : null, [record, task.id]);
   // Session AV lane 2 (r3-plan, LEDGER #257): the task's own symbol in its colour, decoration beside the title.
   const look = taskLook(task);
-  return <li id={`task-${task.id}`} className={`task task-${done ? 'finished' : state} task-priority-${task.priority} task-level-${level}${selected ? ' is-selected' : ''}`} data-done={done || undefined} data-depth={depth || undefined} data-focused={focused || undefined} style={depth ? {['--task-depth' as string]: depth} : undefined} {...(drag ?? {})}>
+  return <li id={`task-${task.id}`} className={`task task-${done ? 'finished' : state}${cancelled ? ' task-cancelled' : ''} task-priority-${task.priority} task-level-${level}${selected ? ' is-selected' : ''}`} data-done={(done && !cancelled) || undefined} data-cancelled={cancelled || undefined} data-depth={depth || undefined} data-focused={focused || undefined} style={depth ? {['--task-depth' as string]: depth} : undefined} {...(drag ?? {})}>
     {/* Release review AL (RR-18): one box per row. Selecting (bulk actions) is a mode the list turns on: then the box selects,
         and Done is the bulk bar's; otherwise the box marks the task done. Never two look-alike boxes side by side. */}
     {onSelect && <label className="task-select"><input type="checkbox" checked={!!selected} onClick={e => onSelect(!selected, e.shiftKey)} onChange={() => undefined} /><span className="sr-only">Select “{task.title}”</span></label>}
-    {!onSelect && <label className="task-done"><input type="checkbox" checked={done} onChange={e => { if (e.target.checked) celebrateCompletion(e.currentTarget.parentElement); /* Session AK M1: the completion moment */ onToggle(e.target.checked); }} /><span className="sr-only">{done ? `Mark “${task.title}” not done` : `Mark “${task.title}” done`}</span></label>}
+    {/* Session AV lane 2 (r5-plan, review B5L-3): a cancelled task is never drawn ticked; its box opens it again. */}
+    {!onSelect && (cancelled ? <label className="task-done"><input type="checkbox" checked={false} onChange={() => onToggle(false)} /><span className="sr-only">{`Open “${task.title}” again (cancelled)`}</span></label>
+      : <label className="task-done"><input type="checkbox" checked={done} onChange={e => { if (e.target.checked) celebrateCompletion(e.currentTarget.parentElement); /* Session AK M1: the completion moment */ onToggle(e.target.checked); }} /><span className="sr-only">{done ? `Mark “${task.title}” not done` : `Mark “${task.title}” done`}</span></label>)}
     <span className="task-title" dir="auto">{look && <span className="habit-look task-look" data-look-colour={look.colour} aria-hidden="true">{look.glyph} </span>}{onOpen ? <button type="button" className="task-title-button" dir="auto" onClick={onOpen}>{task.title}</button> : task.title}</span>
     <span className="task-meta">
       {level !== 3 && <span className={`task-chip task-chip-p${level}`} title={LEVEL_WORDS[level]}>P{level} · {LEVEL_SHORT[level]}</span>}
-      <span className="task-due">{done ? `Done ${formatDate(task.doneAt!, {year: false})}` : dueText(task, today, nowClock)}</span>
+      {/* Session AV lane 2 (r5-plan, LEDGER #350): Doing, and a cancelled task that is never called done */}
+      {!done && task.state?.kind === 'doing' && <span className="task-doing">Doing</span>}
+      <span className="task-due">{done ? `${task.state?.kind === 'cancelled' ? 'Cancelled' : 'Done'} ${formatDate(task.doneAt!, {year: false})}` : dueText(task, today, nowClock)}</span>
       {!done && task.minutes ? <span className="task-minutes">{minutesWords(task.minutes)}</span> : null}{/* Session AV (F-TASK-MINUTES) */}
       {!done && task.energy && task.energy !== 'neutral' ? <span className="task-energy">Energy · {task.energy[0]!.toUpperCase() + task.energy.slice(1)}</span> : null}{/* Session AV lane 2 (r3-plan, LEDGER #259) */}
       {!done && task.deadline && <span className={`task-deadline is-${deadlineState(task, today)}`}><span aria-hidden="true">⚑ </span>{deadlineText(task, today)}</span>}
       {/* Session AV lane 2 (r4-plan, LEDGER #304, #303, #301): waiting for other tasks, in pieces, after hours */}
       {!done && record && task.after?.length ? (w => w.length ? <span className="task-waiting">Waiting for {w.map(b => `“${b.title}”`).join(', ')}</span> : null)(waitingFor(record, task)) : null}
+      {/* Session AV lane 2 (r6-plan, LEDGER #393): in an in-order project or task, the ones after the first wait their turn */}
+      {!done && record ? (w => w ? <span className="task-waiting">After “<span dir="auto">{w.title}</span>”</span> : null)(waitsTurn(record, task)) : null}
       {!done && task.chunk && (task.minutes ?? 0) > task.chunk ? <span className="task-pieces">In pieces of {minutesWords(task.chunk)}</span> : null}
       {!done && task.afterHours && <span className="task-after-hours">After hours</span>}
       {task.recur && <span className="task-recur"><span aria-hidden="true">↻ </span>{describeRecur(task.recur)}{/* Session AV lane 2 (minors, q1 #43): a paused repeat says so on its row */}{!done && (() => { const p = pausedRepeat(task, today); return p ? ` · paused until ${formatDate(p.until, {weekday: true, year: p.until.slice(0, 4) !== today.slice(0, 4)})}` : ''; })()}</span>}
@@ -145,6 +158,9 @@ export function TaskRow({task, today, goal, onToggle, onRemove, onEdit, onFocus,
       {links?.projectName && <span className="task-project" data-colour={links.projectColour}><span aria-hidden="true"># </span>{links.projectName}</span>}
       {(task.labels ?? []).map(l => <span key={l} className="task-label" dir="auto">@{l}</span>)}
       {task.reminders?.length ? <span className="task-reminder"><span aria-hidden="true">⏰ </span>{task.reminders.length === 1 ? reminderLabel(task.reminders[0]!) : `${task.reminders.length} reminders`}</span> : null}
+      {/* Session AV lane 2 (r5-plan, LEDGER #354, #353): a place (a web link opens in a new tab) and the travel before its time */}
+      {task.place && <span className="task-place"><span aria-hidden="true">⌖ </span>{/^https?:\/\/[^\s]+$/i.test(task.place) ? <a href={task.place} target="_blank" rel="noopener noreferrer nofollow" dir="auto">{task.place.replace(/^https?:\/\//i, '').slice(0, 60)}</a> : <span dir="auto">{task.place}</span>}</span>}
+      {!done && task.travel && task.time ? <span className="task-travel">{minutesWords(task.travel)} travel before</span> : null}
       {task.notes && <span className="task-has-notes">Notes</span>}
       {showGoal && goal && <Link prefetch={false} className="task-goal" href={goal.href}>Goal · {goal.name}{goal.closed ? ` (${goal.closed})` : ''}</Link>}
       {task.habit && <Link prefetch={false} className="task-goal" href="/app/habits">Habit · {links?.habitTitle ?? 'linked'}</Link>}

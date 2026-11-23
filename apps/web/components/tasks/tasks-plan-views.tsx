@@ -1,4 +1,5 @@
 'use client';
+import {focusedRecord, type TaskFocus} from '../../lib/tasks/focus';
 import {Suspense, lazy, useEffect, useId, useMemo, useRef, useState, type DragEvent, type ReactNode} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {useScrollEdges} from '../ui/use-scroll-edges'; // Session AV lane 2 (P-8): a table that scrolls sideways says so at its edge
@@ -8,6 +9,7 @@ import type {useTaskList} from './use-task-list';
 import type {useGoalOptions} from './use-goal-options';
 import {addLocalDays} from '../../lib/local-date';
 import {editMany, openTasks} from '../../lib/tasks/engine';
+import {bucketOf, bucketTitle, planFor} from '../../lib/tasks/plan-bucket';
 import {minutesWords} from '../../lib/tasks/minutes';
 import {LEVEL_SHORT, taskLevel, type Task, type Tasks} from '../../lib/tasks/schema';
 import {TASK_PLAN, finishesByDay, goalStreak, harvestDoneLog} from '../../lib/tasks/plan-record';
@@ -21,12 +23,15 @@ import {fieldText, projectFields, sortByField} from '../../lib/tasks/custom-fiel
 const WEEK_HEADS = ['2026-11-23', '2026-11-24', '2026-11-25', '2026-11-26', '2026-11-27', '2026-11-28', '2026-11-29'] as const;
 import TasksOrganise from './tasks-organise';
 import './tasks-plan.css';
+import {isCancelled, isFinished} from '../../lib/tasks/finished';
 // Review b1 #7: the task editor the list uses, opened from the Table, Calendar and Timeline (its own chunk, as on a row).
 const TaskEditor = lazy(() => import('./task-editor'));
 // Session AV lane 2 (r4-plan, LEDGER #300, #301, #305): Plan my week, the floating repeats and the working hours, their own chunks.
 const PlanWeek = lazy(() => import('./plan-week'));
 const FloatingRepeats = lazy(() => import('./plan-week').then(m => ({default: m.FloatingRepeats})));
 const TaskHoursSettings = lazy(() => import('./task-hours-settings'));
+/** Session AV lane 2 (r5-plan, LEDGER #348; Akiflow's time slots): named time blocks (its own chunk). */
+const TimeBlocksSettings = lazy(() => import('./time-blocks-settings'));
 
 /**
  * Session AV lane 2 (tasks; Sunsama, Todoist, TickTick, Notion), one chunk loaded when one of these Tasks views opens:
@@ -49,11 +54,12 @@ type List = ReturnType<typeof useTaskList>;
 type Goals = ReturnType<typeof useGoalOptions>;
 const n = (x: number) => formatNumber(x);
 const day = (d: string, today: string, weekday = true) => formatDate(d, {weekday, year: d.slice(0, 4) !== today.slice(0, 4)});
-export default function TasksPlanViews({kind, list, goals}: {kind: PlanKind; list: List; goals: Goals}) {
+/** Session AV lane 2 (r6-plan, LEDGER #394): `focus` narrows the Calendar to the projects and areas in focus. */
+export default function TasksPlanViews({kind, list, goals, focus = null}: {kind: PlanKind; list: List; goals: Goals; focus?: TaskFocus | null}) {
   const record = list.tasks.data, today = list.today;
   if (kind === 'week') return <WeekView list={list} goals={goals} record={record} today={today} />;
   if (kind === 'table') return <TableView list={list} goals={goals} record={record} today={today} />;
-  if (kind === 'days') return <DaysView list={list} goals={goals} record={record} today={today} />;
+  if (kind === 'days') return <DaysView list={list} goals={goals} record={record} today={today} focus={focus} />;
   if (kind === 'timeline') return <TimelineView list={list} goals={goals} record={record} today={today} />;
   if (kind === 'insights') return <InsightsView list={list} record={record} today={today} />;
   return <TasksOrganise list={list} record={record} today={today} />;
@@ -89,8 +95,8 @@ function WeekView({list, goals, record, today}: {list: List; goals: Goals; recor
       const progress = objectiveProgress(record, o.id), linkable = openTasks(record, today).filter(t => !t.parentId && t.objective !== o.id).slice(0, 50);
       return <li key={o.id} data-done={o.doneAt ? true : undefined}>
         <label className="tasks-objective-check"><input type="checkbox" checked={!!o.doneAt} onChange={e => list.change(r => finishObjective(r, o.id, e.target.checked, new Date()), e.target.checked ? `Objective reached: “${o.title}”.` : `“${o.title}” is open again.`)} /> <span dir="auto">{o.title}</span></label>
-        <small>{progress.tasks.length ? `${n(progress.done)} of ${n(progress.tasks.length)} tasks done` : 'No tasks linked yet'}{o.goal ? ` · goal: ${goals.byKey.get(o.goal)?.name ?? 'a goal no longer here'}` : ''}</small>
-        {progress.tasks.length > 0 && <ul className="tasks-objective-tasks">{progress.tasks.map(t => <li key={t.id}><span aria-hidden="true">{t.doneAt ? '✓ ' : '○ '}</span><span dir="auto">{t.title}</span>{t.due ? ` · ${day(t.due, today)}` : ''}
+        <small>{progress.tasks.length ? `${n(progress.done)} of ${n(progress.of)} tasks done` : 'No tasks linked yet'}{o.goal ? ` · goal: ${goals.byKey.get(o.goal)?.name ?? 'a goal no longer here'}` : ''}</small>
+        {progress.tasks.length > 0 && <ul className="tasks-objective-tasks">{progress.tasks.map(t => <li key={t.id}><span aria-hidden="true">{isCancelled(t) ? '– ' : t.doneAt ? '✓ ' : '○ '}</span>{isCancelled(t) && <span className="sr-only">(cancelled) </span>}<span dir="auto">{t.title}</span>{t.due ? ` · ${day(t.due, today)}` : ''}
           <button type="button" className="text-link" aria-label={`Unlink “${t.title}” from “${o.title}”`} onClick={() => list.change(r => linkObjective(r, t.id, null), `“${t.title}” no longer serves “${o.title}”.`)}>Unlink</button></li>)}</ul>}
         <span className="tasks-objective-actions">
           {linkable.length > 0 && <label className="field"><span>Link a task</span><select value="" onChange={e => { const tid = e.target.value; const t = record.tasks.find(x => x.id === tid); if (t) list.change(r => linkObjective(r, tid, o.id), `“${t.title}” serves “${o.title}”.`, 'Unlinked again.'); }}><option value="">Choose…</option>{linkable.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}</select></label>}
@@ -109,16 +115,20 @@ function WeekView({list, goals, record, today}: {list: List; goals: Goals; recor
     <Suspense fallback={null}><FloatingRepeats record={record} today={today} week={week} change={list.change} /></Suspense>
     <h4>Plan into the week</h4>
     {unplanned.length ? <ul className="tasks-week-unplanned" aria-label="Open tasks with no day">{unplanned.map(t => <li key={t.id}><span dir="auto">{t.title}</span>
-      <label className="field"><span className="sr-only">Plan “{t.title}” for</span><select value="" onChange={e => { const d = e.target.value; if (d) list.change(r => editMany(r, [t.id], () => ({due: d}), today, {allowPast: true}), `“${t.title}” is planned for ${day(d, today)}.`, 'It has no day again.'); }}><option value="">Plan for…</option>{days.filter(d => d >= today).map(d => <option key={d} value={d}>{day(d, today)}</option>)}</select></label></li>)}</ul>
+      <label className="field"><span className="sr-only">Plan “{t.title}” for</span><select value="" onChange={e => { const d = e.target.value; if (d === 'week' || d === 'month' || d === 'next-week' || d === 'next-month') { const plan = planFor(d, today), name = bucketTitle(plan.kind, plan.of, today, formatMonth, x => formatDate(x, {year: false})); list.change(r => editMany(r, [t.id], () => ({plan}), today, {allowPast: true}), `“${t.title}” is planned for ${name.toLowerCase()}, any day. It shows in Upcoming.`, 'It has no week or month again.'); } else if (d) list.change(r => editMany(r, [t.id], () => ({due: d, plan: null}), today, {allowPast: true}), `“${t.title}” is planned for ${day(d, today)}.`, 'It has no day again.'); }}><option value="">Plan for…</option>{days.filter(d => d >= today).map(d => <option key={d} value={d}>{day(d, today)}</option>)}
+        {/* Session AV lane 2 (r5-plan, LEDGER #349; Akiflow's This week and This month): a week or a month, no day yet. */}
+        <option value="week">This week, any day</option><option value="next-week">Next week, any day</option><option value="month">This month, any day</option><option value="next-month">Next month, any day</option></select></label>
+        {(b => b ? <small className="fine">{bucketTitle(b.kind, b.of, today, formatMonth, x => formatDate(x, {year: false}))}</small> : null)(bucketOf(t, today))}</li>)}</ul>
       : <p className="fine">Every open task has a day.</p>}
     <WeekTable list={list} record={record} days={days} today={today} />
     <TaskPlanSettings />
     <Suspense fallback={null}><TaskHoursSettings /></Suspense>
+    <Suspense fallback={null}><TimeBlocksSettings today={today} /></Suspense>
   </section>;
 }
 function WeekTable({list, record, days, today}: {list: List; record: Tasks; days: string[]; today: string}) {
   const plan = useDeviceRecord(TASK_PLAN), byDay = useMemo(() => finishesByDay(plan.data, record, list.doneDay), [plan.data, record, list.doneDay]);
-  const rows = days.map(d => { const tasks = record.tasks.filter(t => !t.parentId && (t.doneAt ? list.doneDay(t.doneAt) === d : t.due === d)); return {d, tasks, pva: plannedVsActual(tasks), done: byDay.get(d) ?? 0}; });
+  const rows = days.map(d => { const tasks = record.tasks.filter(t => !t.parentId && !isCancelled(t) /* review B5L-3 */ && (t.doneAt ? list.doneDay(t.doneAt) === d : t.due === d)); return {d, tasks, pva: plannedVsActual(tasks), done: byDay.get(d) ?? 0}; });
   const goal = plan.data.dailyGoal, streak = goal ? goalStreak(byDay, goal, today) : null, edges = useScrollEdges<HTMLDivElement>();
   return <>
     <h4>Planned and spent</h4>
@@ -194,7 +204,8 @@ function TableView({list, goals, record, today}: {list: List; goals: Goals; reco
 
 /* ---- Calendar: 3 days or a month, all tasks or one project ------------------------------------------------------- */
 
-function DaysView({list, goals, record, today}: {list: List; goals: Goals; record: Tasks; today: string}) {
+function DaysView({list, goals, record: all, today, focus}: {list: List; goals: Goals; record: Tasks; today: string; focus: TaskFocus | null}) {
+  const record = useMemo(() => focusedRecord(all, focus), [all, focus]);
   const edit = usePlanEditor(list, goals, today), heading = useRef<HTMLHeadingElement>(null);
   // Review b1 #7: the task being moved (by "Move" or a drag), and the month days whose "+N more" is open.
   const [moving, setMoving] = useState<Task | null>(null), [dragging, setDragging] = useState<string | null>(null), [more, setMore] = useState<ReadonlySet<string>>(new Set());
@@ -240,7 +251,7 @@ function DaysView({list, goals, record, today}: {list: List; goals: Goals; recor
           <tbody>{weeks.map(w => <tr key={w[0]!.day}>{w.map(c => { const all = more.has(c.day), shown = all ? c.tasks : c.tasks.slice(0, 3); return <td key={c.day} data-out={!c.inMonth || undefined} data-today={c.day === today || undefined} data-drop={dragging ? true : undefined} aria-label={`${day(c.day, today)}: ${c.tasks.length ? `${c.tasks.length} ${c.tasks.length === 1 ? 'task' : 'tasks'}` : 'nothing'}`} {...dropOn(c.day)}>
             {moving ? <button type="button" className="tasks-month-day tasks-plan-here" aria-label={`Move “${moving.title}” to ${day(c.day, today)}`} onClick={() => moveTo(moving, c.day)}>{Number(c.day.slice(8))}</button>
               : <span className="tasks-month-day" aria-hidden="true">{Number(c.day.slice(8))}</span>}
-            {shown.map(t => <span key={t.id} className="tasks-month-task" data-done={t.doneAt ? true : undefined} {...dragOf(t)}><TitleButton task={t} edit={edit} />{moveButton(t)}</span>)}
+            {shown.map(t => <span key={t.id} className="tasks-month-task" data-done={isFinished(t) || undefined} data-cancelled={isCancelled(t) || undefined} {...dragOf(t)}><TitleButton task={t} edit={edit} />{moveButton(t)}</span>)}
             {c.tasks.length > 3 && <button type="button" className="text-link tasks-month-more" aria-expanded={all} aria-label={all ? `Show fewer on ${day(c.day, today)}` : `Show ${c.tasks.length - 3} more on ${day(c.day, today)}`} onClick={() => setMore(s => { const next = new Set(s); if (next.has(c.day)) next.delete(c.day); else next.add(c.day); return next; })}>{all ? 'Show fewer' : `+${c.tasks.length - 3} more`}</button>}</td>; })}</tr>)}</tbody></table>
       </div>
     </>}

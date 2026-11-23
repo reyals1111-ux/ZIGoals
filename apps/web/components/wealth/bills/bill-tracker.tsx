@@ -1,5 +1,5 @@
 'use client';
-import {useId, useMemo, useState, type FormEvent} from 'react';
+import {useId, useMemo, useRef, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {ACCOUNTS} from '../../../lib/accounts/schema';
 import {recordPayment} from '../../../lib/accounts/net-worth';
@@ -14,6 +14,9 @@ import {readMoneyAmount} from '../../../lib/money-log/form';
 import {formatDate, formatMoney} from '../../../lib/visual-format';
 import {changeWithUndo} from '../../ui/remove-with-undo';
 import {moneyCents} from '../money-tools/format';
+// Session AV lane 2, round 5 (money; PocketSmith, LEDGER #386): a passed bill date paid early (in this chunk).
+import PaidEarly from './paid-early';
+import '../spending/money-r5.css';
 
 /**
  * Session AV lane 2 (money; Undebt.it's Plan.it and Bill Tracker): "Bill tracker" under Upcoming bills — this month's
@@ -24,7 +27,7 @@ import {moneyCents} from '../money-tools/format';
 const CADENCE: Record<BillCadence, string> = {weekly: 'Weekly', monthly: 'Monthly', quarterly: 'Every 3 months', yearly: 'Yearly'};
 export default function BillTracker({record, entries, today, onChange}: {record: BillsRecord; entries: readonly MoneyEntry[]; today: string; onChange: (fn: (r: BillsRecord) => BillsRecord) => void}) {
   const id = useId(), log = useDeviceRecord(MONEY_LOG), accounts = useDeviceRecord(ACCOUNTS), planner = useDeviceRecord(DEBT_PLANNER);
-  const [status, setStatus] = useState(''), [problem, setProblem] = useState(''), [editing, setEditing] = useState<string | null>(null);
+  const [status, setStatus] = useState(''), [problem, setProblem] = useState(''), [editing, setEditing] = useState<string | null>(null), [early, setEarly] = useState<string | null>(null), toPay = useRef<HTMLHeadingElement>(null);
   const month = useMemo(() => billsThisMonth(record, entries, today), [record, entries, today]);
   const debts = useMemo(() => accounts.loaded && planner.loaded ? debtMinimumsThisMonth(accounts.unreadable ? null : accounts.data, planner.unreadable ? null : planner.data, today) : [], [accounts.loaded, accounts.unreadable, accounts.data, planner.loaded, planner.unreadable, planner.data, today]);
   const say = (words: string) => { setProblem(''); setStatus(words); };
@@ -34,13 +37,14 @@ export default function BillTracker({record, entries, today, onChange}: {record:
   const byId = new Map(record.bills.map(b => [b.id, b]));
   return <section className="bill-tracker" aria-labelledby={`${id}-title`}>
     <h3 id={`${id}-title`}>Bill tracker</h3>
-    <h4>To pay this month</h4>
+    <h4 ref={toPay} tabIndex={-1}>To pay this month</h4>
     {month.lines.length || debts.length ? <ul className="bills-list bill-tracker-list">
       {month.lines.map(l => { const bill = byId.get(l.billId)!; return <li key={`${l.billId}-${l.due}`} className="bills-row">
         <span className="bills-date">{formatDate(l.due, {weekday: true, year: false})}</span>
         <span className="bills-what"><strong>{l.title}</strong><span className="fine"> · {l.state === 'seen' ? 'paid: in your money log' : l.state === 'passed' ? 'date passed, not in your money log' : 'still to come'}{bill.autopay ? ' · paid automatically' : ''}</span></span>
         <span className="bills-amount">{moneyCents(l.cents, l.currency)}</span>
-        <span className="bills-actions">{l.state !== 'seen' && log.loaded && !log.unreadable && <button type="button" className="secondary" aria-label={`Mark ${l.title} of ${formatDate(l.due)} paid`} onClick={() => markBill(bill, l.due)}>Mark paid</button>}</span>
+        <span className="bills-actions">{l.state !== 'seen' && log.loaded && !log.unreadable && <button type="button" className="secondary" aria-label={`Mark ${l.title} of ${formatDate(l.due)} paid`} onClick={() => markBill(bill, l.due)}>Mark paid</button>}{l.state === 'passed' && <button type="button" className="quiet" aria-expanded={early === `${l.billId}|${l.due}`} aria-label={`Paid early? ${l.title} of ${formatDate(l.due)}`} onClick={() => setEarly(k => k === `${l.billId}|${l.due}` ? null : `${l.billId}|${l.due}`)}>Paid early?</button>}</span>
+        {l.state === 'passed' && early === `${l.billId}|${l.due}` && <PaidEarly record={record} entries={entries} bill={bill} due={l.due} today={today} onChange={onChange} onDone={words => { say(words); setEarly(null); requestAnimationFrame(() => toPay.current?.focus()); }}/>}
       </li>; })}
       {debts.map(d => <li key={d.id} className="bills-row">
         <span className="bills-date">This month</span>

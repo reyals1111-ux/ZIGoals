@@ -138,3 +138,9 @@
 .timeline-day-picker { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 12px; margin: 0 0 16px; }
 .timeline-day-picker > button { min-height: 44px; }
 .timeline-day-field { flex: 0 1 200px; min-width: 0; }
+/* Session AV lane 2 (r5-body, LEDGER #370): a mood check-in as a small mark at its time, in words as well as colour. */
+.timeline-mark::before { width: 8px; height: 8px; left: -16px; top: 14px; background: var(--item-colour, var(--violet)); border-color: var(--item-colour, var(--violet)); }
+.timeline-mark-line { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; min-height: 44px; font-size: 15px; overflow-wrap: anywhere; min-width: 0; }
+.timeline-mark-line .text-link { min-height: 44px; display: inline-flex; align-items: center; }
+.timeline-mark-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--item-colour, var(--violet)); flex: none; }
+@media (forced-colors: active) { .timeline-mark-dot { forced-color-adjust: none; background: CanvasText; } }

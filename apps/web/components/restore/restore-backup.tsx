@@ -47,8 +47,8 @@ const summaryText = (s: PartSummary | null) => !s ? 'Nothing here yet' : `${s.co
  * what is left here is only what sits in other folders of the file.
  */
 export const notRestoredNote = (n: number) => `This file also holds ${n} ${n === 1 ? 'photo or recording' : 'photos and recordings'} in folders Restore does not read, so ${n === 1 ? 'it stays' : 'they stay'} in the ZIP to open yourself.`;
-const MEDIA_ORDER: readonly MediaStore[] = ['tasks', 'journal', 'notes', 'receipts', 'meals', 'foods', 'wealth'];
-const MEDIA_WHERE: Record<MediaStore, string> = {tasks: 'on tasks', journal: 'in the journal', notes: 'on notes', receipts: 'on spending entries', meals: 'on estimated meals', foods: 'on foods', wealth: 'kept with accounts'};
+const MEDIA_ORDER: readonly MediaStore[] = ['tasks', 'journal', 'notes', 'receipts', 'meals', 'foods', 'wealth', 'workouts'];
+const MEDIA_WHERE: Record<MediaStore, string> = {tasks: 'on tasks', journal: 'in the journal', notes: 'on notes', receipts: 'on spending entries', meals: 'on estimated meals', foods: 'on foods', wealth: 'kept with accounts', workouts: 'on workouts'};
 const many = (n: number, one: string, more: string) => `${n} ${n === 1 ? one : more}`;
 /** Review b1 #18: the choice that puts the files back, with how many come back and where. */
 export const mediaChoiceLabel = (plan: MediaPlan) => `Add the missing photos, voice notes and documents (${plan.total} in the file: ${MEDIA_ORDER.filter(s => plan.back[s]).map(s => `${plan.back[s]} ${MEDIA_WHERE[s]}`).join(', ')})`;

@@ -3,7 +3,7 @@ import {useId, useMemo, useRef, useState} from 'react';
 import type {MoneyEntry} from '../../../lib/money-log/schema';
 import {searchEntries, usedCategories, usedPayees, type MoneyQuery} from '../../../lib/money-log/search';
 import {signedMoney, summarizeSelection} from '../../../lib/money-log/selection';
-import {isCounted} from '../../../lib/money-log/counted';
+import {inFigures} from '../../../lib/money-log/counted';
 import {formatDate, formatNumber} from '../../../lib/visual-format';
 import {moneyCents} from '../money-tools/format';
 import {parseNumberInput} from '../../../lib/numbers/parse';
@@ -47,8 +47,8 @@ export default function MoneySearch({entries, onEdit, onBulk, onUngroup, categor
   const asked = !!(q.text?.trim() || q.category || q.from || q.to || (q.kind && q.kind !== 'all') || minCents !== undefined || maxCents !== undefined || q.not?.trim() || q.payee || tag || (q.counted && q.counted !== 'all') || q.tax || q.paidWith || q.sub);
   const found = useMemo(() => asked ? searchEntries(entries, {...q, minCents, maxCents, ...(tagged ? {tagged} : {})}) : [], [asked, entries, q, minCents, maxCents, tagged]);
   // The total counts what the figures count: an entry left out is found and listed, but not added in.
-  const sum = useMemo(() => summarizeSelection(found, found.filter(isCounted).map(e => e.id)), [found]);
-  const leftOut = found.length - found.filter(isCounted).length;
+  const sum = useMemo(() => summarizeSelection(found, found.filter(inFigures).map(e => e.id)), [found]);
+  const leftOut = found.length - found.filter(inFigures).length;
   const set = (patch: Partial<MoneyQuery>) => { setQ(x => ({...x, ...patch})); setMore(false); };
   const totals = sum.totals.map(t => signedMoney(t.cents, t.currency, money));
   // Select mode on the results.
@@ -84,7 +84,7 @@ export default function MoneySearch({entries, onEdit, onBulk, onUngroup, categor
   const shownFound = found.slice(0, more ? found.length : SHOWN);
   const item = (e: MoneyEntry) => <li key={e.id}>
       {selecting && <label className="money-select-check"><input type="checkbox" checked={pickedNow.has(e.id)} onChange={() => toggle(e.id)} aria-label={`Select ${e.category} ${e.amount} ${e.currency} on ${formatDate(e.date)}`}/></label>}
-      <span className="spending-entry-what"><strong>{categoryPath(e)}</strong>{e.note && <span className="fine"> · {e.note}</span>}<span className="fine"> · {formatDate(e.date)}</span>{e.paidWith && <span className="fine"> · {PAID_WITH_WORDS[e.paidWith].en}</span>}{!isCounted(e) && <span className="money-mark"> · {e.transfer ? 'Transfer' : 'Left out'}</span>}{e.taxDeductible && <span className="money-mark"> · Tax-deductible</span>}{e.checked && <span className="money-mark money-mark-checked"> · checked with the bank {formatDate(e.checked)}</span>}</span>
+      <span className="spending-entry-what"><strong>{categoryPath(e)}</strong>{e.note && <span className="fine"> · {e.note}</span>}<span className="fine"> · {formatDate(e.date)}</span>{e.paidWith && <span className="fine"> · {PAID_WITH_WORDS[e.paidWith].en}</span>}{!inFigures(e) ? <span className="money-mark"> · {e.transfer ? 'Transfer' : 'Left out'}</span> : e.refund ? <span className="money-mark"> · Refund</span> : null}{e.taxDeductible && <span className="money-mark"> · Tax-deductible</span>}{e.checked && <span className="money-mark money-mark-checked"> · checked with the bank {formatDate(e.checked)}</span>}</span>
       <span className={`spending-amount${e.kind === 'income' ? ' spending-in' : ''}`}>{e.kind === 'income' ? '+' : '−'}{money(Math.round(Number(e.amount) * 100), e.currency)}</span>
       <span className="spending-entry-actions"><button type="button" className="text-link spending-edit" aria-label={`Edit ${e.category} ${e.amount} ${e.currency} on ${e.date}`} onClick={() => onEdit(e)}>Edit</button></span>
     </li>;

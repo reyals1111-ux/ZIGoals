@@ -39,6 +39,9 @@
       var names = named ? habits.map(function (h) { return h.label; }).filter(Boolean) : [];
       lines.push(names.length === habits.length ? names.slice(0, 3).join(' · ') + (names.length > 3 ? ' and ' + (names.length - 3) + ' more' : '') : plural(habits.length, 'habit due', 'habits due'));
     }
+    // Session AV lane 2 (r5-body; LEDGER #369): one reminder per part of the day, with how many of its habits are open;
+    // their names only where names are allowed.
+    (kinds.habitPart || []).slice(0, 1).forEach(function (p) { lines.push((p.detail || 'Habits still open') + (named && p.label ? ' · ' + p.label : '')); });
     (kinds.water || []).slice(0, 1).forEach(function (w) { lines.push(w.detail ? 'Water: ' + w.detail : 'Time for some water'); });
     var money = kinds.contribution || [];
     if (money.length) lines.push(named && money.every(function (c) { return c.label; }) ? money.slice(0, 2).map(function (c) { return c.label + (c.detail ? ' · ' + c.detail : ''); }).join(' · ') : plural(money.length, 'contribution due', 'contributions due'));
@@ -46,7 +49,10 @@
     if (bills.length) lines.push(named && bills.every(function (b) { return b.label; }) ? bills.slice(0, 2).map(function (b) { return b.label + (b.detail ? ' · ' + b.detail : ''); }).join(' · ') : plural(bills.length, 'bill due tomorrow', 'bills due tomorrow'));
     // Session AV (F-TASK-NOTIFY): task reminders, by name only where names are allowed.
     var taskItems = kinds.task || [];
-    if (taskItems.length) lines.push(named && taskItems.every(function (t) { return t.label; }) ? taskItems.slice(0, 2).map(function (t) { return t.label; }).join(' · ') + (taskItems.length > 2 ? ' and ' + (taskItems.length - 2) + ' more' : '') : plural(taskItems.length, 'task reminder', 'task reminders'));
+    // Session AV lane 2 (r5-plan, LEDGER #353; TIER 3 (PWA)): a "Leave by 8:40" item says its time to leave, also without names.
+    var leaving = taskItems.filter(function (t) { return t.detail && /^leave:/.test(String(t.id || '')); }), reminding = taskItems.filter(function (t) { return leaving.indexOf(t) < 0; });
+    if (leaving.length) lines.push(leaving.slice(0, 2).map(function (t) { return t.detail + (named && t.label ? ' · ' + t.label : ''); }).join(' · ') + (leaving.length > 2 ? ' and ' + (leaving.length - 2) + ' more' : ''));
+    if (reminding.length) lines.push(named && reminding.every(function (t) { return t.label; }) ? reminding.slice(0, 2).map(function (t) { return t.label; }).join(' · ') + (reminding.length > 2 ? ' and ' + (reminding.length - 2) + ' more' : '') : plural(reminding.length, 'task reminder', 'task reminders'));
     // Session AV (1c, q1 #44): countdown reminders, by name only where names are allowed.
     var countdowns = kinds.countdown || [];
     if (countdowns.length) lines.push(named && countdowns.every(function (c) { return c.label; }) ? countdowns.slice(0, 2).map(function (c) { return c.label + (c.detail ? ' · ' + c.detail : ''); }).join(' · ') : plural(countdowns.length, 'countdown reminder', 'countdown reminders'));
@@ -57,7 +63,10 @@
     (kinds.journal || []).filter(function (j) { return /^memory:/.test(String(j.id || '')); }).slice(0, 1).forEach(function (j) { lines.push('A memory from ' + (j.detail || 'your journal')); });
     (kinds.journal || []).filter(function (j) { return !/^(?:letter|memory):/.test(String(j.id || '')); }).slice(0, 1).forEach(function (j) { lines.push('Time to write in your journal' + (j.detail ? ' · ' + j.detail : '')); });
     // Session AV lane 2 (money): budgets near or over, payday tomorrow, the low-balance line; words only where names are allowed.
-    var moneyNotes = kinds.money || [];
+    // Session AV lane 2, round 5 (money; LEDGER #384): Yesterday's money on its own line — the count, and amounts only where
+    // names are allowed (the plan leaves them out otherwise); never a payee.
+    (kinds.money || []).filter(function (m) { return /^money:yesterday:/.test(String(m.id || '')); }).slice(0, 1).forEach(function (m) { lines.push('Yesterday\u2019s money' + (m.detail ? ' \u00b7 ' + m.detail : '')); });
+    var moneyNotes = (kinds.money || []).filter(function (m) { return !/^money:yesterday:/.test(String(m.id || '')); });
     if (moneyNotes.length) lines.push(named && moneyNotes.every(function (m) { return m.label; }) ? moneyNotes.slice(0, 2).map(function (m) { return m.label + (m.detail ? ' · ' + m.detail : ''); }).join(' · ') : plural(moneyNotes.length, 'money notice: open Wealth', 'money notices: open Wealth'));
     // Session AV lane 2 (LEDGER #180): the mood check-in; never a mood.
     if (kinds.mood) lines.push('How does today feel? One tap answers it.');

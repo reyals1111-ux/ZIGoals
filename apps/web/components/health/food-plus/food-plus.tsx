@@ -21,7 +21,9 @@ export type FoodPlusProps =
   | {part: 'pack-photos' | 'pack-thumbs' | 'recipe-cook' | 'food-marks' | 'marks-settings'; data: HealthData}
   | {part: 'recipe-book'; data: HealthData; perform: Perform}
   | {part: 'fit-plan'; data: HealthData; date: string; today: string; perform: Perform}
-  | {part: 'day-plans'; data: HealthData; date: string; perform: Perform};
+  | {part: 'day-plans'; data: HealthData; date: string; perform: Perform}
+  // Session AV lane 2, round 6 (r6-body; LEDGER #418): portion counters for the diary's day.
+  | {part: 'portions'; date: string; today: string};
 const SaveMeal = lazy(() => import('./save-meal'));
 const ExtraMealNames = lazy(() => import('./extra-meals'));
 const EntryTimes = lazy(() => import('./entry-times'));
@@ -39,6 +41,7 @@ const MarksSettings = lazy(() => import('./food-marks'));
 const PackThumbs = lazy(() => import('./pack-photos').then(m => ({default: m.PackThumbs})));
 const ChallengeLine = lazy(() => import('./challenge').then(m => ({default: m.ChallengeLine})));
 const ChallengeCard = lazy(() => import('./challenge').then(m => ({default: m.ChallengeCard})));
+const PortionCounters = lazy(() => import('./portion-counters'));
 const SugarAlcohols = lazy(() => import('./weekday-targets').then(m => ({default: m.SugarAlcohols})));
 export default function FoodPlus(props: FoodPlusProps) {
   if (props.part === 'save-meal') return <SaveMeal {...props}/>;
@@ -57,6 +60,7 @@ export default function FoodPlus(props: FoodPlusProps) {
   if (props.part === 'recipe-book') return <RecipeBook data={props.data} perform={props.perform}/>;
   if (props.part === 'food-marks') return <FoodMarks data={props.data}/>;
   if (props.part === 'marks-settings') return <MarksSettings data={props.data}/>;
+  if (props.part === 'portions') return <PortionCounters date={props.date} today={props.today}/>;
   if (props.part === 'day-plans') return <DayPlans data={props.data} date={props.date} perform={props.perform}/>;
   if (props.part === 'fit-plan') return <FitPlan data={props.data} date={props.date === props.today ? addLocalDays(props.today, 1) : props.date} perform={props.perform}/>;
   return null;

@@ -67,6 +67,15 @@ export const recurSchema = z.looseObject({
    * or month (on its last day) and `interval` 1, so an older build reads it as that fixed repeat; it keeps `flex` untouched.
    */
   flex: z.enum(['week', 'month']).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r6-plan, LEDGER #398; OmniFocus's "next to last" weekday; TIER 3 (stored format), additive and
+   * optional): `fromEnd` a weekday counted from the month's end — n 2 the second-to-last, up to 5 (the last one stays `nth`
+   * -1); `workday` the month's first or last working day (Monday to Friday). An older build drops an `nth` it cannot read, so
+   * these never go in `nth`: each is written beside a plain `monthDay` (the first occurrence's day; the last working day:
+   * -1, the first: 1) that an older build follows, keeping these untouched. This build reads them before `nth` and `monthDay`.
+   */
+  fromEnd: z.looseObject({n: z.number().int().min(2).max(5), weekday: z.number().int().min(0).max(6)}).optional().catch(undefined),
+  workday: z.enum(['first', 'last']).optional().catch(undefined),
 });
 export type Recur = z.infer<typeof recurSchema>;
 /**
@@ -88,6 +97,9 @@ export type TaskEnergy = (typeof TASK_ENERGY)[number];
 export const MAX_TASK_MINUTES = 1440;
 /** Session AV lane 2 (r4-plan, LEDGER #303, #304): a long task's smallest piece, and how many tasks one can wait for. */
 export const MIN_CHUNK = 15, MAX_CHUNK = 240, MAX_AFTER = 3;
+/** Session AV lane 2 (r5-plan, LEDGER #350, #353, #354): a task's states, the longest travel before it, the longest place. */
+export const TASK_STATES = ['doing', 'cancelled'] as const;
+export const MAX_TRAVEL = 600, PLACE_MAX = 200;
 const ID = /^[A-Za-z0-9_-]{1,80}$/;
 export const taskSchema = z.looseObject({
   id,
@@ -178,6 +190,29 @@ export const taskSchema = z.looseObject({
   chunk: z.number().int().min(MIN_CHUNK).max(MAX_CHUNK).optional().catch(undefined),
   after: z.preprocess(v => { if (!Array.isArray(v)) return undefined; const ids = [...new Set(v.filter(x => typeof x === 'string' && ID.test(x)))].slice(0, MAX_AFTER); return ids.length ? ids : undefined; }, z.array(z.string()).optional()),
   afterHours: z.literal(true).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r5-plan; Akiflow, Logseq; TIER 3 (stored format), additive and optional, each dropped on read when it
+   * cannot be read; older builds keep them untouched (the object is loose) and do not show them):
+   * `state` (LEDGER #350, Logseq's DOING and CANCELED) "doing" — begun at `at` — or "cancelled" — closed at `at` without
+   * being done. A cancelled task also carries `doneAt`, so an older build shows it as finished, never as open; this build
+   * keeps it out of the done chart, the daily goal and its streak (lib/tasks/task-state.ts);
+   * `plan` (LEDGER #349, Akiflow's This week and This month) a task with no day planned for a week (`of`, a day of it) or a
+   * month (`of`, its first day); it means nothing once the task has a day (lib/tasks/plan-bucket.ts);
+   * `block` (LEDGER #348, Akiflow's time slots) the time block (`zigoals:task-plan:v1` `blocks`) it is dropped into, on its day;
+   * `travel` (LEDGER #353) the minutes of travel before its time, typed by the person (nothing is looked up);
+   * `place` (LEDGER #354) a written place, an address or a link (nothing is looked up), written as the LOCATION of the .ics export.
+   */
+  state: z.looseObject({kind: z.enum(TASK_STATES), at: z.iso.datetime({offset: true})}).optional().catch(undefined),
+  plan: z.looseObject({kind: z.enum(['week', 'month']), of: day}).refine(p => p.kind !== 'month' || p.of.endsWith('-01')).optional().catch(undefined),
+  block: id.optional().catch(undefined),
+  travel: z.number().int().min(1).max(MAX_TRAVEL).optional().catch(undefined),
+  place: z.string().trim().min(1).max(PLACE_MAX).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r6-plan, LEDGER #393; OmniFocus's sequential action groups; TIER 3 (stored format), additive and
+   * optional): its subtasks are done in order — only the first open one is available, the next waits for it
+   * (lib/tasks/engine.ts orderAhead). An older build keeps it untouched and shows every subtask as before.
+   */
+  inOrder: z.literal(true).optional().catch(undefined),
 });
 /**
  * Session AV lane 2 (tasks-r2, LEDGER #228; Any.do's automations; TIER 3 (stored format), additive and optional): a rule on a
@@ -204,6 +239,19 @@ export const fieldDefSchema = z.looseObject({
   id, name: z.string().trim().min(1).max(FIELD_NAME_MAX), kind: z.enum(FIELD_KINDS),
   options: z.preprocess(v => Array.isArray(v) ? [...new Set(v.filter(x => typeof x === 'string' && x.trim() && x.trim().length <= FIELD_NAME_MAX).map(x => (x as string).trim()))].slice(0, MAX_FIELD_OPTIONS) : undefined, z.array(z.string()).optional()),
 });
+/** Session AV lane 2 (r6-plan, LEDGER #395, #397): the longest review interval in weeks; label groups and their size. */
+export const MAX_REVIEW_WEEKS = 52, MAX_LABEL_GROUPS = 20, LABEL_GROUP_MAX = 12, LABEL_GROUP_NAME_MAX = 40;
+/**
+ * Session AV lane 2 (r6-plan, LEDGER #397; OmniFocus's mutually exclusive tags; TIER 3 (stored format), additive and
+ * optional): a named group of labels ("Where": home, office, errand) of which a task carries one at a time. A label that
+ * cannot be read is dropped, a group that cannot be read is dropped (never the record); older builds keep `labelGroups`
+ * untouched and treat the labels as free words, as before.
+ */
+export const labelGroupSchema = z.looseObject({
+  id, name: z.string().trim().min(1).max(LABEL_GROUP_NAME_MAX),
+  labels: z.preprocess(v => Array.isArray(v) ? [...new Set(v.filter(x => typeof x === 'string' && LABEL_PATTERN.test(x)))].slice(0, LABEL_GROUP_MAX) : undefined, z.array(z.string()).min(1)),
+});
+export type LabelGroup = z.infer<typeof labelGroupSchema>;
 export const projectSchema = z.looseObject({
   id, name: z.string().trim().min(1).max(PROJECT_NAME_MAX), colour: z.enum(TASK_COLOURS).catch('grey'),
   order: z.number().finite().catch(0), archived: z.boolean().optional().catch(undefined), view: z.enum(['list', 'board']).optional().catch(undefined),
@@ -211,6 +259,17 @@ export const projectSchema = z.looseObject({
   areaId: id.optional().catch(undefined),
   rules: tolerantArray(ruleSchema, MAX_RULES),
   fields: tolerantArray(fieldDefSchema, MAX_FIELDS),
+  /**
+   * Session AV lane 2 (r6-plan; OmniFocus; TIER 3 (stored format), additive and optional, each dropped on read when it cannot
+   * be read; older builds keep them untouched (the object is loose) and show the project's tasks as before):
+   * `hold` (LEDGER #392, On Hold) the project is set aside from `since`, until the day `until` (none: until resumed); its tasks
+   * leave Today, Upcoming, the matrix, the plans and the reminders meanwhile and come back by themselves on `until`;
+   * `inOrder` (LEDGER #393, sequential projects) only the first open task is available, the next waits for it;
+   * `review` (LEDGER #395, Review) the project comes up for review every `every` weeks after `last`, the day it was reviewed.
+   */
+  hold: z.looseObject({since: day, until: day.optional().catch(undefined)}).optional().catch(undefined),
+  inOrder: z.literal(true).optional().catch(undefined),
+  review: z.looseObject({every: z.number().int().min(1).max(MAX_REVIEW_WEEKS), last: day.optional().catch(undefined)}).optional().catch(undefined),
 });
 /** Session AV lane 2 (tasks, LEDGER #20): `archived` puts a finished section away as a block, its tasks with it. */
 export const sectionSchema = z.looseObject({id, projectId: id, name: z.string().trim().min(1).max(PROJECT_NAME_MAX), order: z.number().finite().catch(0), archived: z.literal(true).optional().catch(undefined)});
@@ -254,6 +313,8 @@ export const tasksSchema = z.looseObject({
   // Session AV lane 2 (tasks; TIER 3 (stored format), additive): areas above projects and the week objectives.
   areas: tolerantArray(areaSchema, MAX_AREAS),
   objectives: tolerantArray(objectiveSchema, MAX_OBJECTIVES),
+  // Session AV lane 2 (r6-plan, LEDGER #397; TIER 3 (stored format), additive): label groups, one label of each on a task.
+  labelGroups: tolerantArray(labelGroupSchema, MAX_LABEL_GROUPS),
 }).transform(breakParentLoops);
 export type Task = z.infer<typeof taskSchema>;
 export type Tasks = z.infer<typeof tasksSchema>;

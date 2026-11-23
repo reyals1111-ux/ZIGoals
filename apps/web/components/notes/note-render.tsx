@@ -3,9 +3,10 @@ import Link from 'next/link';
 import {Fragment, useEffect, useId, useMemo, useState, type ReactNode} from 'react';
 import {parseBlocks, plainText, type NoteBlock, type NoteInline} from '../../lib/ai/safe-render';
 import {parseLinks, resolveLink, type LinkIndex} from '../../lib/notes/links';
+import {noteName, notePhotoIdsOf, type Note} from '../../lib/notes/schema';
 import {splitTags} from '../../lib/notes/tags';
 import {getNotePhoto} from '../../lib/notes/photos';
-import {foldable, foldsHiding, hiddenBlocks, sectionSize} from '../../lib/notes/fold';
+import {foldable, foldsHiding, hiddenBlocks, sectionOf, sectionSize} from '../../lib/notes/fold';
 import {photoScope} from '../../lib/health-aa/photos';
 
 /**
@@ -16,7 +17,7 @@ import {photoScope} from '../../lib/health-aa/photos';
  * ==highlights== in six named colours, and "- [ ]" tick boxes that tick in the reading view (`onTick`, with the line).
  */
 const KIND_WORD = {note: 'note', goal: 'goal', habit: 'habit'} as const;
-type Ctx = {index: LinkIndex; onCreate?: (name: string) => void; /** Session AV lane 2 (r4-notes; LEDGER #306): a #tag focuses Notes on it. */ onTag?: (tag: string) => void; /** LEDGER #307: the photo ids this note keeps. */ photos?: readonly string[]; /** Review b4g B4G-14: photos already read (the print sheet), drawn at once. */ photoUrls?: ReadonlyMap<string, string | null>; /** LEDGER #313: the section folds of the reading view. */ fold?: Folds};
+type Ctx = {index: LinkIndex; onCreate?: (name: string) => void; /** Session AV lane 2 (r4-notes; LEDGER #306): a #tag focuses Notes on it. */ onTag?: (tag: string) => void; /** LEDGER #307: the photo ids this note keeps. */ photos?: readonly string[]; /** Review b4g B4G-14: photos already read (the print sheet), drawn at once. */ photoUrls?: ReadonlyMap<string, string | null>; /** LEDGER #313: the section folds of the reading view. */ fold?: Folds; /** Session AV lane 2 (r5-notes; LEDGER #361): the notes an `![[Note#Heading]]` line can draw (none inside an embed). */ embed?: (id: string) => Note | undefined};
 type Folds = {folded: ReadonlySet<number>; size: (i: number) => number; toggle: (i: number) => void};
 const NO_FOLDS: ReadonlySet<number> = new Set();
 /** Session AV lane 2 (r4-notes; LEDGER #307): one of the note's own photos, read from this device's photo store. */
@@ -73,7 +74,16 @@ const CALLOUT_ICON = {note: 'ℹ', tip: '✦', important: '❗', warning: '⚠',
 function block(b: NoteBlock, i: number, ctx: Ctx, onTick: Tick | undefined, id: string): ReactNode {
   const r = (n: readonly NoteInline[]) => inline(n, ctx);
   switch (b.type) {
-    case 'paragraph': return <p key={i}>{r(b.children)}</p>;
+    case 'paragraph': {
+      // Session AV lane 2 (r5-notes; LEDGER #361, Logseq's embeds in Obsidian's form): a line that is only ![[Note]] or
+      // ![[Note#Heading]] draws that note (or that section of it) here as a quiet quote that follows its source.
+      const first = b.children[0], only = ctx.embed && b.children.length === 1 && first?.type === 'text' ? first.text.trim() : '';
+      const link = only.startsWith('![[') ? parseLinks(only)[0] : undefined;
+      const t = link && link.embed && link.start === 0 && link.end === only.length ? resolveLink(ctx.index, link.target) : null;
+      const source = t?.kind === 'note' ? ctx.embed!(t.id) : undefined;
+      if (source) return <NoteEmbed key={i} source={source} heading={link!.heading} href={t!.href} ctx={ctx}/>;
+      return <p key={i}>{r(b.children)}</p>;
+    }
     case 'heading': {
       const hid = `${id}-h${i}`, head = b.level === 1 ? <h3 key={i} id={hid} tabIndex={-1}>{r(b.children)}</h3> : b.level === 2 ? <h4 key={i} id={hid} tabIndex={-1}>{r(b.children)}</h4> : <h5 key={i} id={hid} tabIndex={-1}>{r(b.children)}</h5>;
       // Session AV lane 2 (r4-notes; LEDGER #313, Bear): a heading with words under it folds them, for this visit.
@@ -104,6 +114,29 @@ function block(b: NoteBlock, i: number, ctx: Ctx, onTick: Tick | undefined, id: 
   }
 }
 /**
+ * Session AV lane 2 (r5-notes; LEDGER #361): another note, or one section of it (a heading and what is under it, up to
+ * the next heading of its level), drawn inside this one as a quote with a link to it. It only reads the source (its tick
+ * boxes are shown, never ticked here), draws no embed inside an embed, and shows nothing of a locked note.
+ */
+const EMBED_MAX_BLOCKS = 40;
+function NoteEmbed({source, heading, href, ctx}: {source: Note; heading: string | null; href: string; ctx: Ctx}) {
+  const id = useId(), name = source.kind === 'daily' && source.day ? source.day : noteName(source);
+  const blocks = useMemo(() => source.locked ? [] : parseBlocks(source.body, {notes: true}), [source.locked, source.body]);
+  const label = heading ? `${name} › ${heading}` : name;
+  const caption = <figcaption className="fine note-embed-from"><Link className="text-link" href={href}>From “{label}”</Link></figcaption>;
+  if (source.locked) return <figure className="note-embed-quote is-empty" aria-label={`From “${name}”`}><p className="fine">“{name}” is locked: nothing of it shows here.</p>{caption}</figure>;
+  const shown = sectionOf(blocks, heading, b => plainText([b]));
+  if (!shown) return <figure className="note-embed-quote is-empty" aria-label={`From “${name}”`}><p className="fine">“{name}” has no heading “{heading}” now.</p>{caption}</figure>;
+  const more = shown.length > EMBED_MAX_BLOCKS;
+  const inner: Ctx = {index: ctx.index, onTag: ctx.onTag, photos: notePhotoIdsOf(source)};
+  return <figure className="note-embed-quote" aria-label={`From “${label}”`}>
+    <blockquote className="note-render">{shown.slice(0, EMBED_MAX_BLOCKS).map((b, j) => block(b, j, inner, undefined, id))}</blockquote>
+    {!shown.length && <p className="fine">“{name}” has no words yet.</p>}
+    {more && <p className="fine">The rest is in the note itself.</p>}
+    {caption}
+  </figure>;
+}
+/**
  * Session AV lane 2 (r3-notes; LEDGER #268, Obsidian's outline): a note with two headings or more lists them above it, in
  * a fold (closed, so a phone's first screen keeps the words); each jumps to its section and puts focus on that heading.
  */
@@ -118,7 +151,7 @@ function Outline({blocks, id, onReveal}: {blocks: readonly NoteBlock[]; id: stri
     <ol>{heads.map(h => <li key={h.i} data-level={h.level}><button type="button" className="text-link" onClick={() => go(h.i)}>{h.words || 'Untitled heading'}</button></li>)}</ol>
   </details></nav>;
 }
-export function NoteRender({text, index, onCreate, onTick, onTag, photos, photoUrls, outline = false, fold = false}: {text: string; index: LinkIndex; onCreate?: (name: string) => void; /** Session AV lane 2 (LEDGER #264): ticks a tick box (its line in the text). */ onTick?: Tick; /** LEDGER #306: a #tag pressed. */ onTag?: (tag: string) => void; /** LEDGER #307: the photo ids the note keeps (a photo line draws only these). */ photos?: readonly string[]; /** Review b4g B4G-14: photos already read. */ photoUrls?: ReadonlyMap<string, string | null>; /** LEDGER #268: list the headings above. */ outline?: boolean; /** LEDGER #313: headings fold their sections. */ fold?: boolean}) {
+export function NoteRender({text, index, onCreate, onTick, onTag, photos, photoUrls, outline = false, fold = false, notes}: {text: string; index: LinkIndex; onCreate?: (name: string) => void; /** Session AV lane 2 (LEDGER #264): ticks a tick box (its line in the text). */ onTick?: Tick; /** LEDGER #306: a #tag pressed. */ onTag?: (tag: string) => void; /** LEDGER #307: the photo ids the note keeps (a photo line draws only these). */ photos?: readonly string[]; /** Review b4g B4G-14: photos already read. */ photoUrls?: ReadonlyMap<string, string | null>; /** LEDGER #268: list the headings above. */ outline?: boolean; /** LEDGER #313: headings fold their sections. */ fold?: boolean; /** Session AV lane 2 (r5-notes; LEDGER #361): the notes an embed line may draw. */ notes?: readonly Note[]}) {
   const blocks = useMemo(() => parseBlocks(text, {notes: true}), [text]), id = useId();
   const levels = useMemo(() => blocks.map(b => b.type === 'heading' ? b.level : null), [blocks]);
   // The folds belong to this text: a changed text starts open (its block numbers move).
@@ -129,7 +162,8 @@ export function NoteRender({text, index, onCreate, onTick, onTag, photos, photoU
   const toggle = (i: number) => setFolded(f => { const next = new Set(f); if (next.has(i)) next.delete(i); else next.add(i); return next; });
   const reveal = (i: number) => setFolded(f => { const open = foldsHiding(levels, f, i); return open.length ? new Set([...f].filter(h => !open.includes(h))) : f; });
   const folds: Folds | undefined = fold && can.length ? {folded, size: i => sectionSize(levels, i), toggle} : undefined;
-  const ctx: Ctx = {index, onCreate, onTag, photos, photoUrls, fold: folds};
+  const byId = useMemo(() => notes ? new Map(notes.map(n => [n.id, n])) : null, [notes]);
+  const ctx: Ctx = {index, onCreate, onTag, photos, photoUrls, fold: folds, embed: byId ? (i => byId.get(i)) : undefined};
   return <>{outline && <Outline blocks={blocks} id={id} onReveal={folds ? reveal : undefined}/>}
     {folds && <div className="note-fold-all" role="group" aria-label="Fold the sections of this note">
       <button type="button" className="quiet" disabled={can.every(i => folded.has(i))} onClick={() => setFolded(new Set(can))}>Fold all</button>

@@ -30,6 +30,7 @@ import {plainErrorMessage} from '../../../lib/plain-error';
 import {energyCurve} from '../../../lib/energy-curve/curve';
 // Session AV lane 2 (bodymind-r2; LEDGER #237, #238): naps in the balance, and a sleep need from your own nights.
 import {balanceWithNaps} from '../../../lib/sleep/naps-need';
+import {efficiency} from '../../../lib/sleep/night';
 /** The energy fold's face: its name, then the focus window and tonight's bedtime it estimates (C-MO-23), or what it needs. */
 /**
  * Session AV lane 2 (polish 2, P-22): a tile's explanation of how its figure is worked out, folded behind "What is this?"
@@ -65,6 +66,8 @@ const SleepQualityTrend = lazy(() => import('./sleep-usual').then(m => ({default
 const NightDreams = lazy(() => import('./night-dreams'));
 // Session AV lane 2, round 4 (health; Pillow, LEDGER #333, #335): your timing on free days, and the nap timer.
 const HealthR4 = lazy(() => import('../r4/health-r4'));
+// Session AV lane 2, round 6 (r6-body; AutoSleep, LEDGER #419, #423): tonight's bedtime, and time asleep of time in bed.
+const SleepR6 = lazy(() => import('../r6/sleep-parts'));
 
 const nightLine = (n: SleepNight) => {
   const a = asleep(n)!;
@@ -104,7 +107,7 @@ export default function SleepView() {
       <p className="page-lede">Nights and naps you log or bring in. Private to your Health journal; it syncs only with Health, under the same consent.</p>
     </div><HeaderArtCorner><OrbitArt glyph={SleepGlyph} tone="health" spin={6}/></HeaderArtCorner></div>
     {note && <p className="sleep-note">{note}</p>}
-    <section className="panel sleep-tonight-panel" aria-labelledby="sleep-tonight-title"><h2 id="sleep-tonight-title">Tonight</h2><SleepTonight store={store} onDone={setNote}/><LoadBoundary quiet><Suspense fallback={null}><EveningPlan zone={store.zone} now={store.now}/></Suspense></LoadBoundary><LoadBoundary quiet><Suspense fallback={null}><MorningSteps sleep={store.sleep} today={store.today}/></Suspense></LoadBoundary><WindDownSounds/><WindDownSetting/><FocusWindowSetting/></section>
+    <section className="panel sleep-tonight-panel" aria-labelledby="sleep-tonight-title"><h2 id="sleep-tonight-title">Tonight</h2><SleepTonight store={store} onDone={setNote}/><LoadBoundary quiet><Suspense fallback={null}><SleepR6 part="bedtime" sleep={store.sleep} today={store.today} zone={store.zone}/></Suspense></LoadBoundary><LoadBoundary quiet><Suspense fallback={null}><EveningPlan zone={store.zone} now={store.now}/></Suspense></LoadBoundary><LoadBoundary quiet><Suspense fallback={null}><MorningSteps sleep={store.sleep} today={store.today}/></Suspense></LoadBoundary><WindDownSounds/><WindDownSetting/><FocusWindowSetting/></section>
     {/* Session AH (HE3, D-199): the log form sits near the top, full width, not squeezed beside the goal at the bottom. */}
     <section className="panel sleep-log" aria-labelledby="sleep-log-title"><h2 id="sleep-log-title">Log a night or a nap</h2><LoadBoundary quiet><Suspense fallback={null}><HealthR4 part="nap-timer" store={store}/></Suspense></LoadBoundary><NightForm key={`new-${saves}`} store={store} onDone={done}/>{/* Session AL third pass (GAP-071, GAP-072): nights from a Sleep Cycle, Oura or start/end CSV. */}<SleepCsvImport store={store}/></section>
     {shortNights(sleep, today) && <section className="panel sleep-gentle" aria-label="A gentle word"><p>Your recent nights have been short. That happens, and small steps count. If sleeping stays hard for a while, a doctor or another health professional can help.</p></section>}
@@ -122,6 +125,7 @@ export default function SleepView() {
         {/* Session AK (4.9): wake-time consistency beside the bedtime one; a steady wake time is the usual first step. */}
         <div className="sleep-stat-wide"><dt>Wake-time consistency</dt><dd>{steadyWake ? `± ${formatMinutes(steadyWake.minutes)}` : 'Not yet'}</dd>{steadyWake ? <StatHow of="Wake-time consistency">How much your wake times vary: the standard deviation of {steadyWake.nights} wake times in the last 14 days.</StatHow> : <dd className="dd-note"><small>Needs at least 4 logged nights in 14 days.</small></dd>}</div>
       </dl> : <p>No night logged in the last 7 days yet.</p>}
+      {week && <LoadBoundary quiet><Suspense fallback={null}><SleepR6 part="week-efficiency" sleep={sleep} today={today}/></Suspense></LoadBoundary>}
     </section>
     <SleepScoreCard sleep={sleep} today={today}/>
     <LoadBoundary quiet><Suspense fallback={null}><SleepUsual sleep={sleep} today={today}/></Suspense></LoadBoundary>
@@ -149,7 +153,7 @@ export default function SleepView() {
       <h2 id="sleep-recent-title">Recent nights and naps</h2>
       {/* Session AV lane 2 (P-22): the latest five, then "Show all" (the page was 13,800 px at 390) */}{nights.length ? <ul className="sleep-nights" id="sleep-nights-list">{(allNights ? nights : nights.slice(0, 5)).map(n => <li key={n.id}>
         {editing === n.id ? <NightForm store={store} night={n} onDone={done} onCancel={() => setEditing(null)}/> : <>
-          <div><strong>{n.kind === 'nap' ? 'Nap' : 'Night'} ending {formatDate(nightDay(n)!)}</strong><span>{nightLine(n)}</span>{(n.quality || n.tags?.length) && <span className="fine">{n.quality ? `Quality ${n.quality}/5` : ''}{n.quality && n.tags?.length ? ' · ' : ''}{n.tags?.join(', ')}</span>}{n.source !== 'manual' && n.source !== 'timer' && <span className="fine">From {sourceName(n.source)}</span>}{n.kind !== 'nap' && <LoadBoundary quiet><Suspense fallback={null}><NightDreams night={nightDay(n)!} latest={n.id === latestNight}/></Suspense></LoadBoundary>}</div>
+          <div><strong>{n.kind === 'nap' ? 'Nap' : 'Night'} ending {formatDate(nightDay(n)!)}</strong><span>{nightLine(n)}</span>{(() => { const e = efficiency(n); return e ? <span className="fine">Asleep {formatMinutes(e.asleep)} of {formatMinutes(e.inBed)} in bed ({e.percent} %){e.estimated ? ', an estimate' : ''}</span> : null; })()}{(n.quality || n.tags?.length) && <span className="fine">{n.quality ? `Quality ${n.quality}/5` : ''}{n.quality && n.tags?.length ? ' · ' : ''}{n.tags?.join(', ')}</span>}{n.source !== 'manual' && n.source !== 'timer' && <span className="fine">From {sourceName(n.source)}</span>}{n.kind !== 'nap' && <LoadBoundary quiet><Suspense fallback={null}><NightDreams night={nightDay(n)!} latest={n.id === latestNight}/></Suspense></LoadBoundary>}</div>
           <div className="actions">
             <button type="button" className="secondary" onClick={() => setEditing(n.id)} aria-label={`Edit the ${n.kind} ending ${formatDate(nightDay(n)!)}`}>Edit</button>
             {confirm === n.id ? <><button type="button" className="secondary" onClick={() => void remove(n.id)}>Delete it</button><button type="button" className="quiet" onClick={() => setConfirm(null)}>Keep it</button></>

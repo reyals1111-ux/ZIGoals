@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useEffect, useRef, useState} from 'react';
+import {Suspense, lazy, useEffect, useRef, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {Switch} from '../ai/ai-switch';
 import {NOTIFY_LABELS, NOTIFY_PREFS, NOTIFY_TYPES, eveningTime, moodTimes, morningTime, setMoodTimes, setTime, setType, typeOn, type NotifyType} from '../../lib/notify/prefs';
@@ -10,6 +10,9 @@ import {isShowcase} from '../../lib/showcase-storage';
 import {formatClock} from '../../lib/visual-format';
 import {NOTIFY_CHANGE} from './notify-sync';
 import './notifications.css';
+
+// Session AV lane 2 (r5-body; LEDGER #369): one reminder per part of the day, its own chunk.
+const HabitPartsChoice = lazy(() => import('./habit-parts-choice'));
 
 /** Session AL (P-BN-37, BN-114): this browser's own answer, said beside the service's state (they are two things). */
 export type BrowserPermission = 'granted' | 'denied' | 'default' | 'unsupported';
@@ -108,6 +111,7 @@ export function NotificationsCard() {
       <legend>What to be told about</legend>
       {NOTIFY_TYPES.map((type: NotifyType) => <Switch key={type} label={NOTIFY_LABELS[type].title} note={NOTIFY_LABELS[type].blurb} checked={typeOn(prefs.data, type)} onChange={on => save(p => setType(p, type, on))}/>)}
     </fieldset>
+    {prefs.loaded && typeOn(prefs.data, 'habits') && <Suspense fallback={null}><HabitPartsChoice/></Suspense>}
     <div className="notify-times">
       <label className="field"><span>Morning orbit at</span><input type="time" step={60} value={morningTime(prefs.data)} onChange={e => { if (e.target.value) save(p => setTime(p, 'morning', e.target.value)); }}/></label>
       <label className="field"><span>Evening wrap-up at</span><input type="time" step={60} value={eveningTime(prefs.data)} onChange={e => { if (e.target.value) save(p => setTime(p, 'evening', e.target.value)); }}/></label>
