@@ -198,11 +198,12 @@ function waterAnswer(env: ToolEnv, info: NovaEnvInfo): LocalReply {
 }
 
 /** The questions NOVA's welcome offers, each answered by this layer or the engine on NOVA's environment (tested). */
-export function novaExampleQuestions(env: ToolEnv): string[] {
-  const out = ['What is due today?'];
-  if (env.areas.goals && summaries(env).some(g => g.status === 'active')) out.push('How far am I on my goals?');
-  if (env.areas.today) out.push('What\'s on my agenda this week?');
-  if (env.health && env.areas.health) out.push('How did I sleep this week?');
-  if (env.areas.habits && env.habits.habits.length) out.push('How many habits are left today?');
+export function novaExampleQuestions(env: ToolEnv, lang: Lang = 'en'): string[] {
+  // Session AV lane 2 (fr-answers; FR-S-5): a Dutch fallback offers the same questions in Dutch, each answered on the device.
+  const out = [say(lang, 'What is due today?', 'Wat staat er vandaag nog open?')];
+  if (env.areas.goals && summaries(env).some(g => g.status === 'active')) out.push(say(lang, 'How far am I on my goals?', 'Hoe gaat het met mijn doelen?'));
+  if (env.areas.today) out.push(say(lang, 'What\'s on my agenda this week?', 'Wat staat er deze week in mijn agenda?'));
+  if (env.health && env.areas.health) out.push(say(lang, 'How did I sleep this week?', 'Hoe heb ik deze week geslapen?'));
+  if (env.areas.habits && env.habits.habits.length) out.push(say(lang, 'How many habits are left today?', 'Hoeveel gewoontes staan er vandaag nog open?'));
   return out;
 }

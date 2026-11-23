@@ -36,6 +36,7 @@ import {av2RoadmapAnswer} from './av2-roadmap';
 import {av2MoneyAnswer} from './av2-money';
 import {av2FoodAnswer, readFoodSources} from './av2-food';
 import {mealWordsAnswer} from './fr-meal-words';
+import {frAnswer} from './fr-answers';
 import {av2BodyAnswer} from './av2-body';
 import {av2RestAnswer} from './av2-rest';
 import {av2MoneyR2Answer} from './av2-money-r2';
@@ -294,6 +295,8 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   if (!subject) { const own = av2R5GymAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, round 6 (Body: calm, meditation days, sleep tonight, bests, a visit's list): after round 5's.
   if (!subject) { const own = av2R6BodyAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
+  // Session AV lane 2 (fr-answers; FR-S-5, FR-MAX-4, FR-MAX-12): the sleep goal, on time to bed, when a task is, what was finished.
+  if (!subject) { const own = frAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   const strict = exactLocal(question, env, subject, strictClaim);
   if (strict) return strict;
   // A misspelt question the exact layer reads once its slips are fixed is asked of the layers below in the fixed words.

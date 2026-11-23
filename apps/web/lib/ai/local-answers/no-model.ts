@@ -43,9 +43,10 @@ export function questionLanguage(text: string): ReplyLanguage {
 
 // Session AK P4 (FIRST_RUN_REVIEW FR-2): "without any AI" read as a contradiction under NOVA's "Private intelligence"; the
 // introduction says what answers now and what a brain adds.
-export const EXAMPLES_INTRO_NL = 'Tot je me een brein geeft, beantwoord ik vragen uit je eigen gegevens op dit apparaat, voorlopig in het Engels. Tik op een voorbeeld:';
+// Session AV lane 2 (fr-answers; FR-S-5): the Dutch examples are Dutch questions now, answered in Dutch, so "voorlopig in het Engels" is gone.
+export const EXAMPLES_INTRO_NL = 'Tot je me een brein geeft, beantwoord ik vragen uit je eigen gegevens op dit apparaat. Tik op een voorbeeld:';
 /** The examples reply in the question's language (the examples themselves are the device's English questions). */
-export const examplesIn = (env: ToolEnv | null, lang: ReplyLanguage): LocalReply => ({kind: 'examples', text: lang === 'nl' ? EXAMPLES_INTRO_NL : EXAMPLES_INTRO, examples: examplesFor(env), calls: []});
+export const examplesIn = (env: ToolEnv | null, lang: ReplyLanguage): LocalReply => ({kind: 'examples', text: lang === 'nl' ? EXAMPLES_INTRO_NL : EXAMPLES_INTRO, examples: examplesFor(env, 6, lang), calls: []});
 
 type HowTo = {id: 'create-food' | 'log-meal-plan' | 'plan-goal'; en: RegExp; nl: RegExp; page: string; view?: string; text: Record<ReplyLanguage, string>};
 export const HOW_TO: readonly HowTo[] = [
