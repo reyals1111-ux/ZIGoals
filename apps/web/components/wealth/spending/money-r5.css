@@ -13,7 +13,7 @@
 .money-ytd-table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
 .money-ytd-table caption{text-align:left;font-size:14px;color:var(--text-secondary,var(--muted));padding-bottom:4px}
 .money-ytd-table th,.money-ytd-table td{padding:6px 8px 6px 0;text-align:left;vertical-align:baseline;border-bottom:1px solid var(--line,rgba(140,160,220,.25));overflow-wrap:anywhere}
-.money-ytd-open{min-height:44px;text-align:left}
+.money-ytd-open{min-height:44px;min-width:44px;text-align:left} /* polish4: 44 × 44 */
 .bill-paid-early{grid-column:1 / -1;display:grid;gap:6px;margin:4px 0 8px;padding-left:12px;border-left:2px solid var(--line,rgba(140,160,220,.35));min-width:0}
 .bill-paid-early-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
 .bill-paid-early-list li{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;font-size:14px;overflow-wrap:anywhere}
