@@ -49,7 +49,7 @@ export default function MoreGoals({health, today}: {health: HealthData; today: s
       <button type="button" className="quiet" aria-label={`Remove ${g.name}`} onClick={() => { if (keep(r => removeMoreGoal(r, g.id), `${g.name} removed.`)) showUndo({message: `${g.name} removed.`, undone: `${g.name} is back.`, restore: () => rec.update(r => restoreMoreGoal(r, g, at))}); }}>Remove</button></div>
   </li>; };
   return <div className="more-goals">
-    <Suspense fallback={null}><WeightBandEditor health={health} today={today}/></Suspense>
+    <Suspense fallback={null}><WeightBandEditor health={health} today={today} say={setSaid}/></Suspense>
     <p className="fine">At least or at most your own target, as an average over the last 7, 14 or 30 days. A day with nothing to count is left out, never counted as zero, and today counts once it ends. Nothing is suggested. Targets on ketones, glucose, insulin, HbA1c and BMI are not offered: setting one is medical advice.</p>
     {rec.unreadable ? <p className="fine" role="alert">These goals on this device could not be read, so they cannot be changed here now.</p> : <>
       {active.length ? <ul className="health-goal-list">{active.map(row)}</ul> : <p className="health-empty-inline">No goal of this kind yet. Try protein at least 100 g a day, fibre at least 25 g, or your waist at most a number of your own.</p>}

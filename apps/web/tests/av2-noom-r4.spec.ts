@@ -65,7 +65,9 @@ for (const theme of THEMES) test(`${theme}: a note for a harder week, a free day
   await band.getByRole('textbox', {name: 'From (kg)'}).fill('71');
   await band.getByRole('textbox', {name: 'To (kg)'}).fill('73');
   await band.getByRole('button', {name: 'Keep this band'}).click();
-  await expect(page.getByRole('region', {name: 'Keep my weight between …'}).getByRole('status')).toContainText('Your band: 71');
+  // Session AV lane 2 (CI run 2007; deliberate): the band now speaks through "More goals"' one status line (the section had
+  // two at once); the same words, in the section's only status (strict mode: exactly one).
+  await expect(page.locator('#goals-health').locator('.more-goals').getByRole('status')).toContainText('Your band: 71');
   expect(await page.evaluate(k => JSON.parse(localStorage.getItem(k)!).weightBand, MORE_GOALS_KEY)).toMatchObject({lowGrams: 71_000, highGrams: 73_000});
   await page.goto('/app/health?view=weight'); await hydrated(page);
   const trend = page.getByRole('region', {name: 'Weight trend'});
