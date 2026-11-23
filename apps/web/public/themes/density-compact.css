@@ -1667,6 +1667,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :root:where([data-density=compact]) .dh-facts dd:not(#\-) { margin-top: 3px; margin-bottom: 0; }
 :root:where([data-density=compact]) .dh-actions:not(#\-) { row-gap: 10px; }
 :root:where([data-density=compact]) .dh-subhead:not(#\-) { margin-top: 14px; margin-bottom: 4px; }
+:root:where([data-density=compact]) .data-restore-jump-row:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/device-lock.css  */
 :where(:root[data-density=compact]) .device-lock-host:not(#\-) { padding-top: 16px; padding-bottom: 16px; }
 :where(:root[data-density=compact]) .device-lock:not(#\-) { row-gap: 14px; }
