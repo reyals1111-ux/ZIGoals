@@ -823,6 +823,12 @@ UNCHANGED: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudf
   15,583 unit tests passed, then Vitest reported an unhandled `EnvironmentTeardownError` ("Closing rpc while
   onUserConsoleLog was pending", attributed to `habit-card-render.test.ts`, which Vitest says need not be its source).
   Not reproduced locally (alone, and with teardown held 4 s: no console output); recorded, not chased.
+- **Run 2020 (`5c1ca33c`, docs only).** 30 of 31 jobs green on the first attempt, `j04-offline` and the checks job
+  included; main shards 25.2–43.2 min, WebKit to 37.6. Red: main shard 6 cancelled at 60 min, as in run 2018 — the same
+  list, not a slow runner (112 worker-min both times against 69.7 packed): `honesty-banners` (19.3 there, 3.6
+  elsewhere) and `hydration-zone` (7.3 against 4.2) both visit every main page and slowed each other on the job's two
+  workers; with `l7-fifth-answers` (13.2 against 6.2) they move to the three lightest lists of run 2019 (`3d491fef`,
+  TIER 3 CI; still twenty lists).
 - **D-CI2016-J04, the cause measured (run 2019 red on it again; no third fix, by the two-attempt rule).** A probe with
   Chromium's own service-worker reporting (DevTools protocol, `ServiceWorker.workerVersionUpdated`; 12 runs, 3 stuck):
   after the tap the old worker is stopped for the takeover; in the runs that work it becomes `redundant` and the new one
