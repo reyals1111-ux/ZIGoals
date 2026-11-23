@@ -5,3 +5,5 @@ export function goalNameHint(name:string):'average'|'count'|null{
  if(/\b(books?|boeken|boek|pages?|pagina'?s|km|kilomet(er|re)s?|miles?|runs?|workouts?|lessons?|lessen|courses?|chapters?|hoofdstukken|marathons?)\b/.test(n))return 'count';
  return null;
 }
+/** Friend-readiness (FR-S-12): "Keep an average instead →" carries the name already typed, so it is not typed again. */
+export const averageHref=(name:string)=>{const n=name.replace(/\s+/g,' ').trim().slice(0,120);return n?`/app/goals/average/new?name=${encodeURIComponent(n)}`:'/app/goals/average/new';};

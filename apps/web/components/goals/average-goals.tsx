@@ -51,10 +51,10 @@ export function AverageGoalCard({goal, ...layout}: LayoutAttrs & {goal: AverageG
 }
 
 /** Creating an average goal, optionally from a library template (its common target, editable). */
-export function AverageGoalForm({templateId}: {templateId?: string}) {
+export function AverageGoalForm({templateId, initialName}: {templateId?: string; initialName?: string}) {
   const t = templateId ? templateById(templateId) : undefined, preset = t?.average;
   const store = useAverageGoals(), extras = useGoalExtras(), router = useRouter(), id = useId();
-  const [name, setName] = useState(t?.title ?? ''), [metric, setMetric] = useState<AverageMetric>(preset?.metric ?? 'sleep-hours');
+  const [name, setName] = useState(t?.title ?? initialName ?? ''), [metric, setMetric] = useState<AverageMetric>(preset?.metric ?? 'sleep-hours');
   const [target, setTarget] = useState(preset && !preset.askTarget ? String(preset.target) : ''), [direction, setDirection] = useState<'at-least' | 'at-most'>(preset?.direction ?? 'at-least');
   const [windowDays, setWindow] = useState<7 | 14 | 30>(preset?.windowDays ?? 7), [unit, setUnit] = useState(preset?.unit ?? AVERAGE_METRICS['sleep-hours'].unit), [error, setError] = useState(''), [targetCheck, setTargetCheck] = useState(''), [targetAsked, setTargetAsked] = useState('');
   // Session AL (DV-184, P-DV-40): a spending cap names the person's currency ("EUR spent a day"), never a bare "spent a day".
