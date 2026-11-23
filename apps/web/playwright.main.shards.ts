@@ -90,6 +90,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'run11-large-goal-collection.spec.ts', 'storage-errors-health.spec.ts', 'today-scene.spec.ts',
     'universe-af.spec.ts', 'webkit-smoke.spec.ts', 'zigi-help-settings.spec.ts', 'zigi-robustness.spec.ts',
     'zigi-settings-reserve.spec.ts',
+    'grok53/ai/l7-fifth-answers.spec.ts', // moved from shard 6 (runs 2018 and 2020: shard 6 took 60 min both times; this file 13.2 worker-min there)
   ],
   // Shard 4, 69.7 worker-min (the larger measured per file).
   [
@@ -138,11 +139,11 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'av-update.spec.ts', 'av2-money-paid-early.spec.ts', 'av2-notes-cards.spec.ts', 'av2-notes-save.spec.ts',
     'av2-planned-day.spec.ts', 'av2-r5-keep-weights.spec.ts', 'av2-r6-sleep.spec.ts', 'av2-revb2a-periods.spec.ts',
     'av2-task-look.spec.ts', 'av2-water-day.spec.ts', 'av2-zigi-hello.spec.ts', 'data-safety-x.spec.ts',
-    'goal-source-allocation.spec.ts', 'grok53/ai/l7-fifth-answers.spec.ts', 'grok53/chain/c-bn-22-puzzle-log.spec.ts',
+    'goal-source-allocation.spec.ts', 'grok53/chain/c-bn-22-puzzle-log.spec.ts',
     'grok53/chain/pr-036-040-earn-dated.spec.ts', 'grok53/goals/dv-204-header-actions.spec.ts',
     'grok53/health/gap-071-072-sleep-csv.spec.ts', 'grok53/hud/hud-look.spec.ts',
     'grok53/markets/l1-pass4-markets.spec.ts', 'grok53/settings/bn-019-no-503-on-settings.spec.ts',
-    'grok53/today/al-third-today.spec.ts', 'honesty-banners.spec.ts', 'hydration-zone.spec.ts',
+    'grok53/today/al-third-today.spec.ts', 
     'journeys/j07-wallet-chain.spec.ts', 'journeys/j11-keyboard-names.spec.ts', 'nova-stage-am2.spec.ts',
     'portfolio-v2.spec.ts', 'qa-decisions.spec.ts', 'remember-device.spec.ts', 'revb1-delete-versions.spec.ts',
     'revb1-erase-stores.spec.ts', 'run11-food-unknown.spec.ts', 'run11-observation-import.spec.ts', 'run9-1.spec.ts',
@@ -243,6 +244,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'run11-measurements.spec.ts', 'themes.spec.ts', 'ui-evidence.spec.ts', 'unified-goals.spec.ts',
     'wiring-goals.spec.ts', 'wiring-habits.spec.ts', 'zigi-composer-switch.spec.ts', 'zigi-context-pack.spec.ts',
     'zigi-plans-af.spec.ts',
+    'honesty-banners.spec.ts', // moved from shard 6 (runs 2018 and 2020: shard 6 took 60 min both times; this file 19.3 worker-min there)
   ],
   // Shard 12, 69.7 worker-min (the larger measured per file).
   [
@@ -306,6 +308,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'landing.spec.ts', 'life-review-values-ai.spec.ts', 'nova-compose-ar.spec.ts', 'nova-setup.spec.ts',
     'revb1-note-reminders.spec.ts', 'rewards-sweep.spec.ts', 'slogan-gap-af.spec.ts',
     'staking-validator-guard-af.spec.ts', 'switch-more-ak.spec.ts', 'zigi-knock.spec.ts',
+    'hydration-zone.spec.ts', // moved from shard 6 (runs 2018 and 2020: shard 6 took 60 min both times; this file 7.3 worker-min there)
   ],
   // Shard 15, 69.6 worker-min (the larger measured per file).
   [
