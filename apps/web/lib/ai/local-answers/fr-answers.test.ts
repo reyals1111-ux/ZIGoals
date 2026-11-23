@@ -5,6 +5,8 @@ import {habitDataSchema, type HabitData} from '../../habits';
 import {yesterdaysOpen} from '../../habits-yesterday';
 import {healthGroupIn, withHealthGroup} from '../../vault/w-homes';
 import {setDisplayLocale} from '../../visual-format';
+import {runTool} from '../tools/registry';
+import {firstSeries, seriesSummary} from '../viz';
 import {tasksSchema} from '../../tasks/schema';
 import {linkedSoFar} from '../tools/habits';
 import type {ToolSources} from '../tools/env';
@@ -229,6 +231,24 @@ describe('FR-TJ-5: a watched Bitcoin address is read (view only), never "no BTC"
   test('without a linked wallet the older answers stand', () => {
     store({});
     expect(ask('How much BTC do I have?', zigiEnv(freshAll())).text).toMatch(/^You have no BTC recorded in Wealth/);
+    // fr-recheck (FR-TJ-5): the Dutch net-worth answer too, unchanged without a linked wallet.
+    for (const [who, env] of both(freshAll)) expect(ask('Wat is mijn vermogen?', env).text, who).toBe('Er wordt nog niets gevolgd bij Wealth.');
+  });
+  // Session AV lane 2 (fr-recheck, FR-TJ-5): "Wat is mijn vermogen?" said "Er wordt nog niets gevolgd bij Wealth." beside a
+  // linked wallet that "What is my net worth?" names; the Dutch answer reads it the same way (view only, no value).
+  test('Dutch net worth names the linked wallet, view only, as the English one does (NOVA and ZIGi)', () => {
+    store(WALLETS);
+    for (const [who, env] of both(freshAll)) {
+      inDutch(() => {
+        const nl = ask('Wat is mijn vermogen?', env).text;
+        expect(nl, who).toBe('Er wordt bij Wealth geen bezitting met een prijs gevolgd, dus er is geen totaal. Je gekoppelde wallets bevatten 0,18234271 BTC in je gekoppelde wallet “Bitcoin address” (alleen bekijken, gelezen di 17 nov 11:30 UTC); zonder prijs ervan op dit apparaat is er geen waarde om op te tellen.');
+        expect(nl, who).not.toMatch(/niets gevolgd/);
+      });
+      expect(ask('Wat is mijn vermogen?', env).text, who).toContain('Je gekoppelde wallets bevatten 0,18234271 BTC');
+      expect(ask('What is my net worth?', env).text, who).toContain('Your linked wallets hold 0.18234271 BTC');
+    }
+    // The Showcase keeps its own answer: its record has no linked wallets (fr-wallets.ts), so nothing is added there.
+    expect(ask('Wat is mijn vermogen?', novaEnv(showcaseAll())).text).not.toMatch(/gekoppelde wallet/);
   });
 });
 
@@ -271,6 +291,31 @@ describe('FR-TJ-4 and FR-S-20: one number format per answer: Dutch for a Dutch a
     expect(ask('hoeveel weeg ik', env).text).toContain('73,48 kg');
     expect(ask('hoeveel heb ik deze maand uitgegeven', env).text).toMatch(/€\s435,59/);
     expect(ask('How much water did I drink this week?', env).text).toContain('3,100 mL');
+  });
+  // Session AV lane 2 (fr-recheck, FR-TJ-4): two figures were still en-US in a comma locale: a nutrient's total ("Protein
+  // yesterday … 137.6 g") and the water chart's caption ("5,750 mL in all … 1,250 mL") under the Dutch and the en-NL answer.
+  const captions = (q: string, env: ReturnType<typeof novaEnv>) => { const r = ask(q, env).reply, calls = 'calls' in r ? r.calls : []; const series = firstSeries(calls.map(c => runTool(c.tool, c.args, env))); return series ? seriesSummary(series) : ''; };
+  const usFigures = (t: string) => EN_IN_COMMA.map(re => re.exec(t.replace(/\d{4}-\d{2}-\d{2}/g, ''))?.[0]).filter(Boolean);
+  test('en-NL and nl-NL: a nutrient total and the water caption in the display locale (NOVA and ZIGi)', () => {
+    for (const locale of ['en-NL', 'nl-NL']) {
+      setDisplayLocale(locale);
+      for (const [who, env] of both(showcaseAll)) {
+        const protein = ask('How much protein did I eat yesterday?', env).text;
+        expect(protein, `${locale} ${who}`).toMatch(/^Protein yesterday \(.+\): 137,6 g from 4 diary entries\.$/);
+        expect(usFigures(protein), `${locale} ${who}`).toEqual([]);
+        for (const q of ['How much protein did I eat today?', 'How much protein did I eat this week?', 'Hoeveel eiwit heb ik gisteren gegeten?']) expect(usFigures(ask(q, env).text), `${locale} ${who} ${q}`).toEqual([]);
+      }
+      for (const [who, env] of both(sanneAll)) for (const q of ['Hoeveel water heb ik deze week gedronken?', 'How much water did I drink this week?']) {
+        const caption = captions(q, env);
+        expect(caption, `${locale} ${who} ${q}`).toContain('5.750 mL in all');
+        expect(caption, `${locale} ${who} ${q}`).toContain('the most 1.250 mL');
+        expect(usFigures(`${ask(q, env).text} ${caption}`), `${locale} ${who} ${q}`).toEqual([]);
+      }
+    }
+    setDisplayLocale('en-US');
+    // en-US keeps its own way, caption and figure alike.
+    expect(captions('How much water did I drink this week?', novaEnv(sanneAll()))).toContain('5,750 mL in all');
+    expect(ask('How much protein did I eat yesterday?', novaEnv(showcaseAll())).text).toMatch(/: 137\.6 g from 4 diary entries\.$/);
   });
   test('en-US: every Dutch answer of the corpus holds no en-US figure (record names aside)', () => {
     const bad: string[] = [], env = novaEnv(showcaseAll());

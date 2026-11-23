@@ -801,6 +801,9 @@ function healthIntent(env: ToolEnv, q: string, habitNamed = false): HealthAnswer
   if (HEALTH.diary.test(q)) return found => diaryAnswer(env, found);
   return null;
 }
+/** Session AV lane 2 (fr-recheck, FR-TJ-4): a nutrient tool's text ("137.6 g", "unknown (52.5 g known; 3 of 4 entries known)",
+ * "120 g a day") with each figure in the answer's number locale (localQty): "137,6 g" in en-NL and nl-NL, unchanged in en-US. */
+const nutrientFigures = (text: unknown) => String(text ?? '').replace(/(?<![\d.,])\d+(?:\.\d+)?(?![\d.,])/g, figure => localQty(figure));
 function nutrientAnswer(env: ToolEnv, q: string, nutrient: NutrientName, found: DayRange[]): LocalReply {
   const {label, unit} = NUTRIENTS[nutrient], target = W.target.test(q);
   const range = found[0] ?? defaultRange(env.healthDay, target ? 'the last 7 days' : 'today');
@@ -808,17 +811,17 @@ function nutrientAnswer(env: ToolEnv, q: string, nutrient: NutrientName, found: 
   const d = dataOf(r.result), when = span({...range, label: range.label}, env.healthDay);
   if (target) {
     const goal = (d.yourTargets as Record<string, string> | string);
-    if (typeof goal === 'string' || !goal[nutrient]) return {kind: 'answer', text: `You haven't set a daily ${label} target in Health, so there is nothing to compare. ${capital(label)} ${when}: ${d.overall[nutrient]}.`, calls: [r.record]};
+    if (typeof goal === 'string' || !goal[nutrient]) return {kind: 'answer', text: `You haven't set a daily ${label} target in Health, so there is nothing to compare. ${capital(label)} ${when}: ${nutrientFigures(d.overall[nutrient])}.`, calls: [r.record]};
     const rows = d.perDay as Record<string, unknown>[], key = `${nutrient}_vs_your_target`;
     const at = rows.filter(row => row[key] === 'at or above your target').length, below = rows.filter(row => row[key] === 'below your target').length, unknown = rows.filter(row => typeof row[key] === 'string' && (row[key] as string).startsWith('unknown')).length;
     const without = (d.daysInRange as number) - rows.length;
-    return {kind: 'answer', text: lines(`Your ${label} target is ${goal[nutrient]}. ${capital(when)}:`, [`At or above it on ${plural(at, 'day')}`, below > 0 && `Below it on ${plural(below, 'day')}`, unknown > 0 && `Unknown on ${plural(unknown, 'day')} (some entries don't say how much ${label} they have)`, without > 0 && `${plural(without, 'day')} without diary entries`]), calls: [r.record]};
+    return {kind: 'answer', text: lines(`Your ${label} target is ${nutrientFigures(goal[nutrient])}. ${capital(when)}:`, [`At or above it on ${plural(at, 'day')}`, below > 0 && `Below it on ${plural(below, 'day')}`, unknown > 0 && `Unknown on ${plural(unknown, 'day')} (some entries don't say how much ${label} they have)`, without > 0 && `${plural(without, 'day')} without diary entries`]), calls: [r.record]};
   }
   if (W.average.test(q)) {
     const rows = (d.perDay as Record<string, string>[]).map(row => row[nutrient]!).filter(v => /^\d/.test(v)), known = rows.map(v => Number(v.replace(/[^\d.]/g, '')));
     return {kind: 'answer', text: rows.length ? lines(`On average ${n(known.reduce((s, v) => s + v, 0) / known.length, 1)} ${unit} of ${label} a day ${when}, over the ${plural(known.length, 'day')} whose entries all say.`, [(d.daysWithEntries as number) > known.length && `${plural((d.daysWithEntries as number) - known.length, 'day')} with an unknown amount ${(d.daysWithEntries as number) - known.length === 1 ? 'is' : 'are'} not counted`]) : `No day ${when} has a complete ${label} total.`, calls: [r.record]};
   }
-  return {kind: 'answer', text: `${capital(label)} ${when}: ${d.overall[nutrient]}${d.entries ? ` from ${plural(d.entries, 'diary entry', 'diary entries')}` : ''}.`, calls: [r.record]};
+  return {kind: 'answer', text: `${capital(label)} ${when}: ${nutrientFigures(d.overall[nutrient])}${d.entries ? ` from ${plural(d.entries, 'diary entry', 'diary entries')}` : ''}.`, calls: [r.record]};
 }
 const capital = (s: string) => `${s[0]!.toUpperCase()}${s.slice(1)}`;
 function waterAnswer(env: ToolEnv, q: string, found: DayRange[]): LocalReply {

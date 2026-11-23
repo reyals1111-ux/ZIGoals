@@ -16,6 +16,7 @@ import {periodFor} from './track';
 import type {Exact, ExactWidget, Query} from './types';
 import {DEBT_PLANNER_WHERE, DEBT_PLANNER_WHERE_NL, debtFreeMonth, debtMoney, debtView, type DebtCurrencyView} from '../../tools/f9-debt';
 import {countdownWords, payoffMonth, type PlanResult} from '../../../debt-planner/plan';
+import {watchedHoldings, watchedWords} from '../fr-wallets';
 
 /**
  * Session AS (ADR-042, Part 1): money, exactly, from the money log, the budgets, the bills and Wealth's own totals. Every
@@ -165,9 +166,14 @@ export function netWorthAnswer(q: Query, env: ToolEnv): Exact | null {
   const amount = (text: string) => { const i = text.lastIndexOf(' '); return i > 0 ? formatCurrencyAmount(text.slice(0, i), text.slice(i + 1)) : text; };
   const per = r.ok ? (r.data.perCurrency as {currency: string; netWorth: string; assets: string; debts: string; holdingsWithAValue: string; accounts: number}[] | undefined) ?? [] : [];
   const out = (text: string, facts: Record<string, unknown>): Exact => ({kind: 'answer', text, facts: {about: 'networth', ask: q.ask, ...facts}, widgets: q.period || q.ask === 'trend' || q.ask === 'compare' ? [{id: 'net-worth-river', ...(q.period ? {period: q.period} : {}), fallback: 'net-worth-history'}, {id: 'net-worth'}] : [{id: 'net-worth'}, {id: 'net-worth-river', fallback: 'net-worth-history'}], query: q, source: t(lang, 'Wealth on this device', 'Wealth op dit apparaat')});
+  const tot = totalsR.ok ? (totalsR.data.totals as {currency: string; total: string}[] | undefined) ?? [] : [];
+  // Session AV lane 2 (fr-recheck, FR-TJ-5): with no priced holding, a linked (watched) wallet's coins are said as the English
+  // net-worth answer says them (engine.ts wealthTotal; lib/ai/local-answers/fr-wallets.ts): view only, the last balance this
+  // device read, no value without a price. Read-only: nothing is fetched, signed or changed.
+  const watched = tot.length ? [] : watchedHoldings(env, null), them = watched.length === 1;
+  const walletLine = watched.length ? t(lang, ` Your linked wallets hold ${watchedWords(watched, 'en', env.habitDay)}; with no price for ${them ? 'it' : 'them'} on this device there is no value to add up.`, ` Je gekoppelde wallets bevatten ${watchedWords(watched, 'nl', env.habitDay)}; zonder prijs ${them ? 'ervan' : 'ervoor'} op dit apparaat is er geen waarde om op te tellen.`) : '';
   if (!per.length) {
-    const tot = totalsR.ok ? (totalsR.data.totals as {currency: string; total: string}[] | undefined) ?? [] : [];
-    if (!tot.length) return out(t(lang, 'Nothing is tracked on Wealth yet.', 'Er wordt nog niets gevolgd bij Wealth.'), {tracked: 0});
+    if (!tot.length) return out(watched.length ? t(lang, 'No holding with a price is tracked in Wealth, so there is no total.', 'Er wordt bij Wealth geen bezitting met een prijs gevolgd, dus er is geen totaal.') + walletLine : t(lang, 'Nothing is tracked on Wealth yet.', 'Er wordt nog niets gevolgd bij Wealth.'), {tracked: 0});
     return out(t(lang, `Tracked wealth: ${listWords(tot.map(x => amount(`${x.total} ${x.currency}`)), 'en')}. No accounts or debts are kept, so this is your holdings alone.`, `Gevolgd vermogen: ${listWords(tot.map(x => amount(`${x.total} ${x.currency}`)), 'nl')}. Er zijn geen rekeningen of schulden vastgelegd, dus dit zijn alleen je bezittingen.`), {totals: tot});
   }
   const sorted = [...per].sort((a, b) => Number(b.netWorth.split(' ')[0]) - Number(a.netWorth.split(' ')[0])), lead = sorted[0]!, unknown = r.ok && typeof r.data.holdingsWithoutAValue === 'number' ? r.data.holdingsWithoutAValue : 0;
@@ -176,7 +182,7 @@ export function netWorthAnswer(q: Query, env: ToolEnv): Exact | null {
   // trend gets today's figure and says where its movement is shown, never a guessed change.
   const span = q.period ? resolvePeriod(q.period, env.habitDay) : null;
   const moved = span || q.ask === 'trend' || q.ask === 'compare' ? t(lang, ` That is today's figure; how it moved${span ? ` ${periodWords(span, 'en', env.habitDay)}` : ''} is on the net worth river beside this answer.`, ` Dat is het bedrag van vandaag; hoe het veranderde${span ? ` ${periodWords(span, 'nl', env.habitDay)}` : ''} staat op de vermogensrivier naast dit antwoord.`) : '';
-  return out(t(lang, `Net worth: ${amount(lead.netWorth)}${debts}${rest.length ? `; and ${listWords(rest, 'en')}, each currency on its own` : ''}.${unknown ? ` ${unknown} ${unknown === 1 ? 'holding has' : 'holdings have'} no known value and ${unknown === 1 ? 'is' : 'are'} not in it.` : ''}`, `Nettovermogen: ${amount(lead.netWorth)}${debts}${rest.length ? `; en ${listWords(rest, 'nl')}, elke valuta apart` : ''}.${unknown ? ` ${unknown} ${unknown === 1 ? 'bezitting heeft' : 'bezittingen hebben'} geen bekende waarde en ${unknown === 1 ? 'zit' : 'zitten'} er niet in.` : ''}`) + moved, {perCurrency: per, withoutValue: unknown});
+  return out(t(lang, `Net worth: ${amount(lead.netWorth)}${debts}${rest.length ? `; and ${listWords(rest, 'en')}, each currency on its own` : ''}.${unknown ? ` ${unknown} ${unknown === 1 ? 'holding has' : 'holdings have'} no known value and ${unknown === 1 ? 'is' : 'are'} not in it.` : ''}`, `Nettovermogen: ${amount(lead.netWorth)}${debts}${rest.length ? `; en ${listWords(rest, 'nl')}, elke valuta apart` : ''}.${unknown ? ` ${unknown} ${unknown === 1 ? 'bezitting heeft' : 'bezittingen hebben'} geen bekende waarde en ${unknown === 1 ? 'zit' : 'zitten'} er niet in.` : ''}`) + walletLine + moved, {perCurrency: per, withoutValue: unknown});
 }
 
 /**
