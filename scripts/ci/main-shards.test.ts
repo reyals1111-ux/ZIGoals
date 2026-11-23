@@ -1,4 +1,5 @@
 // Session AU ([TIER 3] (CI), ADR-044 D-CI): the main browser suite's shard lists cover every selected spec exactly once.
+// Session AV lane 2 ([TIER 3] (CI), owner follow-up 7): twenty lists.
 import {existsSync} from 'node:fs';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -8,13 +9,13 @@ import {MAIN_SHARDS, MAIN_SHARD_MINUTES, mainShardMatch, mainSpecFiles, partitio
 const TESTS = fileURLToPath(new URL('../../apps/web/tests', import.meta.url));
 
 describe('main shard lists', () => {
-  test('every main-suite spec under apps/web/tests is in exactly one of the fourteen lists', () => {
+  test('every main-suite spec under apps/web/tests is in exactly one of the twenty lists', () => {
     const files = mainSpecFiles(TESTS);
     expect(files.length).toBeGreaterThan(0);
     // The failure lists each problem with its fix, e.g. "… is a main-suite spec in no shard list: add it to shard 2's …".
     expect(partitionProblems(files), partitionProblems(files).join('\n')).toEqual([]);
-    expect(MAIN_SHARDS).toHaveLength(14);
-    expect(MAIN_SHARD_MINUTES).toHaveLength(14);
+    expect(MAIN_SHARDS).toHaveLength(20);
+    expect(MAIN_SHARD_MINUTES).toHaveLength(20);
     for (const list of MAIN_SHARDS) expect(list.length).toBeGreaterThan(0);
     expect([...MAIN_SHARDS.flat()].sort()).toEqual(files);
   });
@@ -37,17 +38,17 @@ describe('main shard lists', () => {
   });
 
   test('MAIN_SHARD selects only its own files, anchored to tests/', () => {
-    const [first] = mainShardMatch('1/14', TESTS);
+    const [first] = mainShardMatch('1/20', TESTS);
     const name = MAIN_SHARDS[0]![0]!;
     expect(first!.test(`/x/apps/web/tests/${name}`)).toBe(true);
     expect(first!.test(`/x/apps/web/tests/x${name}`)).toBe(false);
     expect(first!.test(`C:\\x\\apps\\web\\tests\\${name.split('/').join('\\')}`)).toBe(true);
-    const all = MAIN_SHARDS.map((_, i) => mainShardMatch(`${i + 1}/14`, TESTS));
+    const all = MAIN_SHARDS.map((_, i) => mainShardMatch(`${i + 1}/20`, TESTS));
     for (const f of mainSpecFiles(TESTS)) {
       const hits = all.filter(rs => rs.some(r => r.test(`/x/apps/web/tests/${f}`))).length;
       expect(hits, `${f} matches ${hits} shards`).toBe(1);
     }
-    expect(() => mainShardMatch('15/14', TESTS)).toThrow(/expected n\/14/);
-    expect(() => mainShardMatch('1/12', TESTS)).toThrow(/expected n\/14/);
+    expect(() => mainShardMatch('21/20', TESTS)).toThrow(/expected n\/20/);
+    expect(() => mainShardMatch('1/14', TESTS)).toThrow(/expected n\/20/);
   });
 });
