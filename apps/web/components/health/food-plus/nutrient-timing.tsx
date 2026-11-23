@@ -1,5 +1,6 @@
 'use client';
 import {useId, useState} from 'react';
+import {NebulaFlow} from '../../nebula-flow';
 import type {HealthData} from '../../../lib/health';
 import {dailyData, healthZone} from '../../../lib/health-daily';
 import {FOOD_PLUS} from '../../../lib/food-plus/schema';
@@ -28,7 +29,7 @@ export default function NutrientTiming({data, today}: {data: HealthData; today: 
   const perDay = (v: number) => formatNumber(v / n.scale / Math.max(1, t.daysWithTimes), {maximumFractionDigits: n.scale === 1 ? 0 : 1});
   const top = Math.max(0, ...t.parts.map(p => p[key]));
   return <section className="panel food-plus-card" aria-labelledby={`${id}-title`} id="health-nutrient-timing">
-    <p className="eyebrow">NUTRIENT TIMING</p><h2 id={`${id}-title`}>When you eat</h2>
+    <p className="eyebrow">NUTRIENT TIMING</p><h2 id={`${id}-title`}><NebulaFlow identity="nutrient-timing-title">When you eat</NebulaFlow></h2>
     <div className="food-plus-row">
       <fieldset className="health-quick-macros"><legend>Days</legend><div className="food-plus-row">{RANGES.map(r => <label key={r.days} className="food-plus-choice"><input type="radio" name={`${id}-days`} checked={days === r.days} onChange={() => setDays(r.days)}/> {r.label}</label>)}</div></fieldset>
       <label className="field"><span>Nutrient</span><select value={key} onChange={e => setKey(e.target.value as TimingKey)}>{NUTRIENTS.map(x => <option key={x.key} value={x.key}>{x.label}</option>)}</select></label>

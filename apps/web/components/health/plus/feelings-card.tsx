@@ -1,5 +1,6 @@
 'use client';
 import {useMemo, useState} from 'react';
+import {NebulaFlow} from '../../nebula-flow';
 import type {HealthData} from '../../../lib/health';
 import {ENERGY} from '../../../lib/energy/schema';
 import {SYMPTOMS} from '../../../lib/symptoms/schema';
@@ -26,7 +27,7 @@ export default function FeelingsCard({data, today}: {data: HealthData; today: st
   const options = useMemo(() => measureOptions(src), [src]);
   if (!energy.loaded || !symptoms.loaded) return null;
   return <>
-    <section className="av2-feelings" aria-labelledby="av2-feelings-title"><p className="eyebrow">Your usual: the last 365 days</p><h2 id="av2-feelings-title">How you felt</h2>
+    <section className="av2-feelings" aria-labelledby="av2-feelings-title"><p className="eyebrow">Your usual: the last 365 days</p><h2 id="av2-feelings-title"><NebulaFlow identity="av2-feelings-title">How you felt</NebulaFlow></h2>
       {trends.ready.length > 0 && <ul className="av2-feelings-list">{trends.ready.map(t => <li key={t.id}><span className="ap-trend-arrow" aria-hidden="true">{DIRECTION_WORDS[t.direction].arrow}</span><div>
         <p><strong>{t.label}: {DIRECTION_WORDS[t.direction].words}</strong></p>
         <p>Last 90 days: {num(t.recent.value)} of {t.scale} ({formatNumber(t.recent.days)} days answered). Your usual: {num(t.usual.value)} of {t.scale} ({formatNumber(t.usual.days)} days).</p>
@@ -50,7 +51,7 @@ function WeekGraph({src, options, today, chosen, save}: {src: Parameters<typeof 
   };
   const fmt = (o: MeasureOption, v: number | null) => v === null ? 'no record' : o.id === 'steps' ? formatNumber(Math.round(v)) : o.id.startsWith('habit:') ? `${Math.round(v)}%` : num(v);
   const W = 300, H = 56, pad = 6;
-  return <section className="av2-graph" aria-labelledby="av2-graph-title"><p className="eyebrow">The same twelve weeks</p><h2 id="av2-graph-title">Week by week</h2>
+  return <section className="av2-graph" aria-labelledby="av2-graph-title"><p className="eyebrow">The same twelve weeks</p><h2 id="av2-graph-title"><NebulaFlow identity="av2-graph-title">Week by week</NebulaFlow></h2>
     {rows.length === 0 ? <p>Choose up to {GRAPH_MAX} measures below to see them side by side.</p> : <ul className="av2-graph-rows">{rows.map(({o, w}) => {
       const vals = w.map(x => x.value).filter((v): v is number => v !== null), lo = vals.length ? Math.min(...vals) : 0, hi = vals.length ? Math.max(...vals) : 1, span = hi - lo || 1;
       const x = (i: number) => pad + i * (W - 2 * pad) / Math.max(1, w.length - 1), y = (v: number) => H - pad - (v - lo) / span * (H - 2 * pad);

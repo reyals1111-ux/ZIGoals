@@ -28,6 +28,8 @@
 /* The format bar under the entry's words: wraps at 320 px, every button 44 px tall. */
 .journal-format { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 4px 0 8px; }
 .journal-format button, .journal-format select { min-height: 44px; min-width: 44px; font-size: 0.95rem; }
+/* Session AV lane 2 (polish4): a field is 16 px on a phone, so iOS never zooms into it (the rule above set 0.95rem). */
+@media (max-width: 900px) { .journal-format select { font-size: 16px; } }
 .journal-format-hl { display: inline-flex; gap: 4px; align-items: center; }
 .journal-format-swatch { display: inline-block; width: 14px; height: 14px; margin-inline-end: 6px; border-radius: 4px; vertical-align: -2px; background: var(--hl); }
 .journal-format-b { font-weight: 700; }

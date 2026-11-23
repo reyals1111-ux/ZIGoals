@@ -1,5 +1,6 @@
 'use client';
 import {dayLoadWords, viewLoad} from '../../lib/tasks/minutes';
+import {NebulaFlow} from '../nebula-flow';
 import Link from 'next/link';
 import {Fragment, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode} from 'react';
 import {PageHeader} from '../page-header';
@@ -448,7 +449,7 @@ export function TasksPage() {
           line={r => <span><span dir="auto">{r.task.title}</span> · {r.task.time ? `${formatClock(r.task.time)}` : 'today'}{r.task.due && r.task.due !== today ? ` · ${formatDate(r.task.due, {weekday: true, year: false})}` : ''}</span>} />
         <p className="fine">Reminders show here and on Today while the app is open. On your device’s notifications only when notifications are switched on in Settings.</p>
       </section>}
-      {filesOpen && <section className="panel tasks-files-panel" aria-labelledby="tasks-files-title"><h2 id="tasks-files-title">Files</h2>
+      {filesOpen && <section className="panel tasks-files-panel" aria-labelledby="tasks-files-title"><h2 id="tasks-files-title"><NebulaFlow identity="tasks-files-title">Files</NebulaFlow></h2>
         <LoadBoundary label="Files"><Suspense fallback={<p className="fine">Opening…</p>}><FilesView titles={new Map(record.tasks.map(t => [t.id, t.title]))} onOpenTask={openTaskFromFiles}/></Suspense></LoadBoundary>
         <button type="button" className="quiet" onClick={() => setFilesOpen(false)}>Close</button></section>}
       {dropNote && <p className="fine" role="status">{dropNote}</p>}

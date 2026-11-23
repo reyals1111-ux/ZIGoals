@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import {NebulaFlow} from '../../nebula-flow';
 import {useId, useState} from 'react';
 import type {HealthData} from '../../../lib/health';
 import {NOTIFY_PREFS, typeOn} from '../../../lib/notify/prefs';
@@ -27,7 +28,7 @@ export default function WeighInCard({data, today}: {data: HealthData; today: str
   };
   const valid = /^\d\d:\d\d$/.test(w.time) && (w.repeat !== 'weekdays' || !!w.weekdays), quiet = inQuiet(w.time, quietHours(plan.data)), loggedToday = weighedInOn(data, today);
   return <section className="panel r3-weigh-in" aria-labelledby={`${id}-title`}>
-    <p className="eyebrow">A GENTLE NUDGE</p><h2 id={`${id}-title`}>Weigh-in reminder</h2>
+    <p className="eyebrow">A GENTLE NUDGE</p><h2 id={`${id}-title`}><NebulaFlow identity="weigh-in-title">Weigh-in reminder</NebulaFlow></h2>
     <p>{saved ? <><strong>{weighInWords(saved, formatClock)}</strong>{loggedToday && weighInDueOn(saved, today) ? '. A weight is logged today, so today’s reminder stays quiet.' : '.'}</> : 'Off. Choose when you like to weigh in; the reminder is skipped on a day a weight is already logged, and never says a weight.'}</p>
     <fieldset className="r3-choices"><legend>How often</legend>
       {([['daily', 'Every day'], ['weekdays', 'On chosen days'], ['monthly', 'Once a month']] as const).map(([value, label]) => <label key={value} className="r3-choice"><input type="radio" name={`${id}-repeat`} value={value} checked={w.repeat === value} onChange={() => set({repeat: value, ...(value === 'weekdays' && !w.weekdays ? {weekdays: 1} : {}), ...(value === 'monthly' && !w.day ? {day: 1} : {})})}/><span>{label}</span></label>)}

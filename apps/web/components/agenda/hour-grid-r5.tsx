@@ -102,7 +102,7 @@ export function EventTravel({r5, item}: {r5: HourR5; item: DayItem}) {
       <label className="field"><span>Travel before (minutes)</span><input inputMode="numeric" list={`${id}-l`} value={value} placeholder="20" aria-invalid={bad || undefined} aria-describedby={`${id}-n`} onChange={e => setValue(e.target.value)} /></label>
       <datalist id={`${id}-l`}>{TRAVEL_CHOICES.map(c => <option key={c} value={c} />)}</datalist>
       <small id={`${id}-n`} className={bad ? 'tasks-field-error' : 'fine'} role={bad ? 'alert' : undefined}>{bad ? `Whole minutes from 1 to ${MAX_TRAVEL}.` : 'You type it; no route is looked up. Empty: no travel.'}</small>
-      <button type="submit" className="secondary">Keep</button>
+      <button type="submit" className="secondary">Save</button>
       <button type="button" className="quiet" onClick={() => setOpen(false)}>Cancel</button>
     </form>}
   </>;

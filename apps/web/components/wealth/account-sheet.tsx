@@ -48,7 +48,7 @@ export default function AccountSheet({accounts, account: a, today}: {accounts: A
     <form className="wealth-sheet-form" onSubmit={saveOptions} aria-label={`${a.name}: share and group`}>
       <label className="field"><span>Your share (%) — empty: all of it</span><input inputMode="decimal" autoComplete="off" value={share} placeholder="50" onChange={e => setShareText(e.target.value)}/></label>
       <label className="field"><span>Your group — optional</span><input maxLength={40} value={group} placeholder="Home" onChange={e => setGroupText(e.target.value)}/></label>
-      <button type="submit" className="secondary">Keep</button>
+      <button type="submit" className="secondary">Save</button>
     </form>
     {debt && properties.length > 0 && <label className="field"><span>Secured on</span><select value={s.secures?.[a.id] ?? ''} onChange={e => save(r => linkMortgage(r, a.id, e.target.value || null), e.target.value ? `${a.name} is linked to ${properties.find(p => p.id === e.target.value)?.name}: its equity shows on that row.` : `${a.name} is no longer linked.`)}><option value="">Not linked to a property</option>{properties.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>}
     <label className="field"><span>Remind me to update it</span><select value={s.every?.[a.id] ?? ''} onChange={e => save(r => setEvery(r, a.id, (e.target.value || null) as 'month' | null), e.target.value ? `${a.name}: due for an update every ${e.target.value}.` : `${a.name}: no update reminder.`)}><option value="">Never</option><option value="month">Every month</option><option value="quarter">Every quarter</option></select></label>

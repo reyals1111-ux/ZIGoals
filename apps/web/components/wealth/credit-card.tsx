@@ -67,7 +67,7 @@ function CardFields({account: a, today, sheet}: {account: Account; today: string
     <label className="field"><span>Credit limit ({a.currency})</span><input inputMode="decimal" autoComplete="off" value={limit} placeholder="2000" onChange={e => setLimit(e.target.value)}/></label>
     <label className="field"><span>Statement day (1–31)</span><input inputMode="numeric" autoComplete="off" value={statement} placeholder="5" onChange={e => setStatement(e.target.value.replace(/\D/g, '').slice(0, 2))}/></label>
     <label className="field"><span>Payment due day (1–31)</span><input inputMode="numeric" autoComplete="off" value={due} placeholder="25" onChange={e => setDue(e.target.value.replace(/\D/g, '').slice(0, 2))}/></label>
-    <button type="submit" className="secondary">Keep</button>
+    <button type="submit" className="secondary">Save</button>
     {bills.loaded && !bills.unreadable && (has ? <p className="fine" ref={done} tabIndex={-1}>A payment reminder is in Upcoming bills.</p>
       : bill ? <button type="button" className="quiet" onClick={remind}>Add a payment reminder on {formatDate(bill.nextDue)}</button>
       : <p className="fine">{state.dueDay ? 'With a balance owed, a payment reminder can be added for the due day.' : 'Keep a due day to add a payment reminder.'}</p>)}

@@ -112,7 +112,8 @@ export function RoutineImport({onImport}: {onImport: (s: WorkoutShare) => boolea
     const r = readRoutineFile(await file.text());
     if (r.ok) setShare(r.share); else setError(r.error);
   }
-  return <section className="av2-import" aria-labelledby={`${id}-title`}>
+  // Session AV lane 2 (polish4): this tool stays in English inside the library's Dutch, so it says so (lang="en").
+  return <section className="av2-import" lang="en" aria-labelledby={`${id}-title`}>
     <h4 id={`${id}-title`}>Add a routine someone shared</h4>
     <label className="field"><span>Workout routine file (.json)</span><input type="file" accept=".json,application/json" onChange={e => void read(e.target.files?.[0])}/></label>
     {error && <p role="alert" className="av2-problem">{error}</p>}

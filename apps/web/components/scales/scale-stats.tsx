@@ -18,8 +18,8 @@ export default function ScaleStats({rec, scales, today}: {rec: Pick<Scales, 'day
   const [chosen, setChosen] = useState(scales[0]?.id ?? ''), [span, setSpan] = useState<StatSpan>(30), id = useId();
   const scale = scales.find(s => s.id === chosen) ?? scales[0];
   if (!scale) return <p className="fine">Add a scale above, rate it on a few days, and its statistics show here.</p>;
-  const st = scaleStats(rec, scale.id, today, span), W = 320, H = 90, L = 18, days = span;
-  const x = (d: string) => L + (days <= 1 ? (W - L) / 2 : dayDiff(st.from, d) / (days - 1) * (W - L - 6)), y = (v: number) => 8 + (5 - v) / 4 * (H - 24);
+  const st = scaleStats(rec, scale.id, today, span), W = 320, H = 82, L = 6, days = span; // Session AV lane 2 (polish4): axis words are HTML (14 px), not SVG text
+  const x = (d: string) => L + (days <= 1 ? (W - L) / 2 : dayDiff(st.from, d) / (days - 1) * (W - L - 6)), y = (v: number) => 8 + (5 - v) / 4 * (H - 16);
   const most = Math.max(1, ...st.counts);
   return <div className="scale-stats">
     <div className="scale-stats-pick">
@@ -30,11 +30,14 @@ export default function ScaleStats({rec, scales, today}: {rec: Pick<Scales, 'day
     {st.rated ? <>
       <p>{st.rated} of {days} days rated · average {formatNumber(st.average!)} of 5 · lowest {st.low}, highest {st.high}{st.mostly ? ` · most often ${st.mostly} (${valueWords(scale, st.mostly)})` : ''}.</p>
       <ul className="scale-stats-levels" aria-label={`How often each level came, last ${span} days`}>{[5, 4, 3, 2, 1].map(l => { const n = st.counts[l - 1] ?? 0; return <li key={l}><span>{l} · {valueWords(scale, l)}</span><span className="scale-stats-bar" aria-hidden="true"><span style={{width: `${Math.round(n / most * 100)}%`}}/></span><strong>{n} {n === 1 ? 'day' : 'days'}</strong></li>; })}</ul>
+      <div className="scale-stats-plot">
+      <span className="scale-stats-y" aria-hidden="true">{[5, 3, 1].map(v => <span key={v} style={{top: `${y(v) / H * 100}%`}}>{v}</span>)}</span>
       <svg className="scale-stats-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${scale.name}, each rated day from ${formatDate(st.from, {year: false})} to ${formatDate(st.to, {year: false})}: ${st.points.slice(-12).map(p => `${formatDate(p.date, {year: false})} ${p.value}`).join(', ')}${st.points.length > 12 ? ` (the latest 12 of ${st.points.length})` : ''}.`}>
-        {[1, 3, 5].map(v => <g key={v}><line x1={L} x2={W} y1={y(v)} y2={y(v)} className="scale-stats-grid"/><text x={L - 4} y={y(v) + 4} textAnchor="end">{v}</text></g>)}
+        {[1, 3, 5].map(v => <line key={v} x1={L} x2={W} y1={y(v)} y2={y(v)} className="scale-stats-grid"/>)}
         {st.points.map(p => <circle key={p.date} cx={x(p.date)} cy={y(p.value)} r={3} className="scale-stats-dot"><title>{formatDate(p.date, {year: false})}: {p.value}</title></circle>)}
-        <text x={L} y={H - 2}>{formatDate(st.from, {year: false})}</text><text x={W} y={H - 2} textAnchor="end">{formatDate(st.to, {year: false})}</text>
       </svg>
+      <p className="scale-stats-x" aria-hidden="true"><span>{formatDate(st.from, {year: false})}</span><span>{formatDate(st.to, {year: false})}</span></p>
+      </div>
     </> : <p>No rating in the last {span} days. Rate {scale.name} on the Journal page or in ZIGi’s check-in; skipped days stay unknown.</p>}
   </div>;
 }

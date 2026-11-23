@@ -29,7 +29,7 @@ for (const theme of THEMES) test(`${theme}: subcategory, paid with, a saved entr
   await form.getByLabel('Note — optional').fill('Corner café');
   await form.getByRole('button', {name: 'Keep as a saved entry'}).click();
   await form.getByLabel('Name of the saved entry').fill('Coffee');
-  await form.getByRole('button', {name: 'Keep it'}).click();
+  await form.getByRole('button', {name: 'Add to saved entries'}).click(); // polish4: the button's name (deliberate)
   // Session AV lane 2 (CI run 2007; deliberate): the form's extras now speak through Spending's one status line, just under
   // the form (Spending had a status line per tool at once); the same words, announced there (stricter than text anywhere).
   await expect(box.getByRole('status').filter({hasText: 'Kept as a saved entry: Coffee'})).toHaveText('Kept as a saved entry: Coffee. It is one tap beside Log spending.');
