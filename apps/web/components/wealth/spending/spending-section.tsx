@@ -89,7 +89,7 @@ function SpendingBody({showcase = false, space}: {showcase?: boolean; space: Mon
   const [budgetDraft, setBudgetDraft] = useState<string | null>(null);
   // Session AV lane 2 (money): the entry's own marks in the form, and the search fold opened from a category (drill-down).
   const [paidWith, setPaidWith] = useState<PaidWith | ''>(''), [sub, setSub] = useState('');
-  const [leftOut, setLeftOut] = useState(false), [tax, setTax] = useState(false), [spread, setSpread] = useState(1), [ownDraft, setOwnDraft] = useState(''), [ownNote, setOwnNote] = useState('');
+  const [leftOut, setLeftOut] = useState(false), [tax, setTax] = useState(false), [spread, setSpread] = useState(1), [ownDraft, setOwnDraft] = useState('');
   const [drill, setDrill] = useState<{category?: string; from: string; to: string; n: number} | null>(null), searchFold = useRef<HTMLDetailsElement>(null);
   // Session AK RB (RELEASE_REVIEW_2 R2-8): the entry form and the weekly budget open from their buttons (an empty Wealth
   // showed both forms in full). Once open the entry form stays open for the next entry; a receipt draft opens it.
@@ -147,8 +147,10 @@ function SpendingBody({showcase = false, space}: {showcase?: boolean; space: Mon
   };
   const share = room ? Math.max(0, Math.min(1, room.spent / Math.max(1, room.budget))) : 0, r = 46, circumference = 2 * Math.PI * r;
   const categories = useMemo(() => categoryChoices(log.data, kind), [log.data, kind]);
-  const addOwn = () => { setOwnNote(''); try { const name = ownDraft.trim().replace(/\s+/g, ' '); log.update(current => addOwnCategory(current, kind, name)); setCategory(name); setOwnDraft(''); setOwnNote(`${name} added to your categories.`); } catch (e) { setOwnNote(e instanceof Error ? e.message : 'This could not be saved on this device.'); } };
-  const removeOwn = (name: string) => { try { log.update(current => removeOwnCategory(current, kind, name)); if (category === name) setCategory(categories[0]!); setOwnNote(`${name} removed from the choices; entries that use it keep it.`); } catch { setOwnNote('This could not be saved on this device.'); } };
+  // Session AV lane 2 (CI run 2007): your own categories speak through Spending's one live region (and a refusal through
+  // the form's alert), not a second status line of their own inside the fold — Spending had two status lines at once.
+  const addOwn = () => { setProblem(''); try { const name = ownDraft.trim().replace(/\s+/g, ' '); log.update(current => addOwnCategory(current, kind, name)); setCategory(name); setOwnDraft(''); setStatus(`${name} added to your categories.`); } catch (e) { setStatus(''); setProblem(e instanceof Error ? e.message : 'This could not be saved on this device.'); } };
+  const removeOwn = (name: string) => { setProblem(''); try { log.update(current => removeOwnCategory(current, kind, name)); if (category === name) setCategory(categories[0]!); setStatus(`${name} removed from the choices; entries that use it keep it.`); } catch { setStatus(''); setProblem('This could not be saved on this device.'); } };
   const ownList = (kind === 'expense' ? log.data.own?.expense : log.data.own?.income) ?? [];
   const bulk = (ids: ReadonlySet<string>, action: BulkAction) => {
     const at = new Date().toISOString();
@@ -240,7 +242,7 @@ function SpendingBody({showcase = false, space}: {showcase?: boolean; space: Mon
         </div>
         <CalcHint value={amount} id={`${id}-calc`}/>
         <fieldset className="spending-cats"><legend>Category</legend>{ordered.recent > 0 && <span className="fine spending-recent-note">Your most used lately come first.</span>}{withOwn(ordered.chips, editing?.category).map(c => <label key={c} className="spending-chip"><input type="radio" name={`${id}-cat`} checked={formCategory === c} onChange={() => { setCategory(c); setSub(''); }}/><span>{c}</span></label>)}</fieldset>
-        <Suspense fallback={null}><FormExtras log={log.data} update={log.update} category={formCategory} sub={sub} setSub={setSub} paidWith={paidWith} setPaidWith={setPaidWith} draft={{kind, amount: readAmount(amount), currency: editing?.currency ?? chosen, note: note.trim()}} editing={!!editing} keepPlace={keepPlace} onPayee={(payee, c) => { setNote(payee); if (c && !hidden.has(c.toLowerCase()) && categories.includes(c)) { setCategory(c); setSub(''); } }}/></Suspense>
+        <Suspense fallback={null}><FormExtras say={setStatus} log={log.data} update={log.update} category={formCategory} sub={sub} setSub={setSub} paidWith={paidWith} setPaidWith={setPaidWith} draft={{kind, amount: readAmount(amount), currency: editing?.currency ?? chosen, note: note.trim()}} editing={!!editing} keepPlace={keepPlace} onPayee={(payee, c) => { setNote(payee); if (c && !hidden.has(c.toLowerCase()) && categories.includes(c)) { setCategory(c); setSub(''); } }}/></Suspense>
         <label className="field"><span>Note — optional</span><input ref={noteField} maxLength={200} value={note} onChange={e => setNote(e.target.value)} placeholder="Lunch with Sam"/></label>
         {/* Session AV (owner follow-up 1, F-CATEGORY-SUGGEST): the category this payee or note had before, offered, never chosen for you. */}
         {suggested && suggested.category !== formCategory && !hidden.has(suggested.category.toLowerCase()) && <p className="fine spending-suggest" role="status">Before, “{suggested.payee ?? note.trim()}” was {suggested.category}{suggested.times > 1 ? ` (${suggested.times} times)` : ''}. <button type="button" className="text-link" onClick={() => { setCategory(suggested.category); noteField.current?.focus(); /* Session AV (q2 rank 22): the hint goes, so focus returns to the note */ }}>Use {suggested.category}</button></p>}
@@ -249,7 +251,6 @@ function SpendingBody({showcase = false, space}: {showcase?: boolean; space: Mon
           <p className="fine">Add a category of your own for {kind === 'expense' ? 'spending' : 'money received'}; it is offered here, in budgets and in To review.</p>
           <div className="spending-own-row"><label className="field"><span>New category</span><input value={ownDraft} maxLength={40} autoComplete="off" placeholder={kind === 'expense' ? 'Pets' : 'Side job'} onChange={e => setOwnDraft(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addOwn(); } }}/></label><button type="button" className="secondary" onClick={addOwn}>Add category</button></div>
           {ownList.length > 0 && <ul className="spending-own-list">{ownList.map(c => <li key={c}><span>{c}</span><button type="button" className="text-link" aria-label={`Remove ${c} from your categories`} onClick={() => removeOwn(c)}>Remove</button></li>)}</ul>}
-          <p className="fine" role="status">{ownNote}</p>
           {ownOpen && <Suspense fallback={null}><CategoryMore log={log.data} update={log.update} kind={kind} onArchived={name => { if (category === name) setCategory(categoryChoices(log.data, kind).find(c => c !== name) ?? category); }}/></Suspense>}
         </details>
         {editing && editing.kind === 'expense' && !showcase && !business && <Suspense fallback={null}><ShareFold key={editing.id} entry={log.data.entries.find(x => x.id === editing.id) ?? editing} log={log.data} update={log.update} onDone={setStatus}/></Suspense>}
