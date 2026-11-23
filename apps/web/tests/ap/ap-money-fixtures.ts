@@ -1,4 +1,5 @@
 import {expect, type Page} from '@playwright/test';
+import {openPhoneRow} from '../phone-length-folds';
 import {hydrated, offlineApi} from '../ah-helpers';
 import {openDeskFold} from '../ao/folds';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../../lib/dashboard-settings';
@@ -26,11 +27,23 @@ export const readRecord = async <T>(page: Page, key: string) => JSON.parse((awai
 /** Wealth → Spending, then one view of "Your money over time". */
 export async function openInsight(page: Page, view: 'This month vs last' | 'Where income went' | 'Month by month' | 'Categories over a year' | 'Top payees' | 'Your usual pace' | 'Age of money' | 'Tags' | /* Session AV lane 2, round 3 */ 'Needs, wants and saving' | 'What changed' | 'Beside your habits' | /* Session AV lane 2, round 4 */ 'A calendar of the month' | 'Saved searches') {
   await page.goto('/app/wealth'); await hydrated(page);
+  // Session AV lane 2 (fix2011; deliberate): on a phone Spending's later parts are one row, "More about your money"
+  // (tests/phone-length-folds.ts: there and closed on a phone, absent at 1440); it is opened, then checked as before.
+  await openPhoneRow(page, 'More about your money', spending(page));
   await expect(spending(page).getByRole('heading', {name: 'Your money over time'})).toBeVisible();
   const button = spending(page).getByRole('group', {name: 'Show'}).getByRole('button', {name: view, exact: true});
   await button.click();
   await expect(button).toHaveAttribute('aria-pressed', 'true');
   return spending(page).locator('.money-insights-panel');
+}
+/** Session AV lane 2 (fix2011; deliberate): after a computer-sized page is made phone-sized, "More about your money" is a
+ *  closed row again (its parts mount anew, as every phone row's do), so the view is opened again, as a person would. */
+export async function reopenInsight(page: Page, view: Parameters<typeof openInsight>[1]) {
+  const row = spending(page).locator('.phone-fold-toggle').filter({hasText: 'More about your money'});
+  if (await row.count() && await row.getAttribute('aria-expanded') !== 'true') await row.click();
+  const button = spending(page).getByRole('group', {name: 'Show'}).getByRole('button', {name: view, exact: true});
+  if (await button.getAttribute('aria-pressed') !== 'true') await button.click();
+  await expect(button).toHaveAttribute('aria-pressed', 'true');
 }
 /** A Wealth section that folds to a row (Budgets by category, Upcoming bills), opened. */
 export async function openWealthSection(page: Page, anchor: 'budgets' | 'bills', label: 'Budgets by category' | 'Upcoming bills') {
