@@ -755,7 +755,7 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
     {listening && <p className="ai-voice-live" aria-hidden="true">{talk.snapshot?.final || talk.snapshot?.interim ? <>{talk.snapshot.final}{talk.snapshot.final && talk.snapshot.interim ? ' ' : ''}<span className="ai-voice-interim">{talk.snapshot.interim}</span></> : <span className="ai-voice-interim">Listening… speak now{talk.lang.startsWith('nl') ? ' (Nederlands)' : ''}</span>}</p>}
     <p className="ai-sr-only" role="status" aria-live="polite">{listening ? 'Listening…' : ''}</p>
     {!listening && talk.snapshot?.error && <p className="ai-card-error" role="alert">{talk.snapshot.error}</p>}
-    {talk.highlight && !listening && <p className="ai-note ai-voice-hint" role="status">Tap the mic to talk. <button type="button" className="text-link" onClick={talk.dismissHighlight}>OK</button></p>}
+    {/* Session AV lane 2 (CI run 2014): never "Tap the mic" where there is no speech recognition; that line says what works instead. */}{talk.highlight && !talk.unavailable && !listening && <p className="ai-note ai-voice-hint" role="status">Tap the mic to talk. <button type="button" className="text-link" onClick={talk.dismissHighlight}>OK</button></p>}
     {talk.unavailable && <p className="ai-note ai-voice-hint" role="status">{talk.reason} Use your keyboard’s dictation (the mic on the iPhone keyboard), or type. <button type="button" className="text-link" onClick={talk.dismissUnavailable}>OK</button></p>}
     {(chips || !local) && <div className="ai-composer-modes">
       {chips}
