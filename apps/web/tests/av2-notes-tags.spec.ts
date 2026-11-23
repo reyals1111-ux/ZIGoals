@@ -24,8 +24,8 @@ for (const theme of THEMES) test(`${theme}: tags in the text, nested, and a focu
   await page.goto('/app/notes?view=notes'); await hydrated(page);
   const list = page.locator('section[aria-labelledby="note-list-title"]');
   const fold = list.locator('details.note-tags-fold');
-  await expect(fold.locator('summary')).toHaveText(/Tags\s*· 2 tags and 1 nested/);
-  await fold.locator('summary').click();
+  await expect(fold.locator(':scope > summary')).toHaveText(/Tags\s*· 2 tags and 1 nested/);
+  await fold.locator(':scope > summary').click();
   const tags = fold.getByRole('list', {name: 'Tags'});
   await expect(tags.getByRole('button')).toHaveText([/#home\s*1 note/, /#work\s*2 notes/, /#meetings\s*1 note/]);
   // Focus on #work: the list keeps its two notes (one nested), and says so.
