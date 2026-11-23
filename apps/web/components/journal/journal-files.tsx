@@ -1,5 +1,5 @@
 'use client';
-import {Suspense, lazy, useRef, useState} from 'react';
+import {Suspense, lazy, useEffect, useRef, useState} from 'react';
 import {LoadBoundary} from '../load-boundary';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {JOURNAL} from '../../lib/journal/schema';
@@ -59,6 +59,14 @@ export default function JournalFiles() {
   const journal = useDeviceRecord(JOURNAL), input = useRef<HTMLInputElement>(null), importButton = useRef<HTMLButtonElement>(null);
   const [plan, setPlan] = useState<JournalImportPlan | null>(null), [media, setMedia] = useState<Map<string, Uint8Array>>(new Map());
   const [busy, setBusy] = useState(''), [said, setSaid] = useState(''), [problem, setProblem] = useState('');
+  // Fix2011 (CI run 2011): focus moves to the plan's Import button once the plan has rendered and the reading is done
+  // (a frame after the read could come before React committed the plan, or while the button was still disabled).
+  const focusPlan = useRef(false);
+  useEffect(() => {
+    if (!plan || busy || !focusPlan.current) return;
+    focusPlan.current = false;
+    importButton.current?.focus();
+  }, [plan, busy]);
   if (!journal.loaded) return <p className="fine">Loading…</p>;
   const pick = async (list: FileList | null) => {
     const files = [...(list ?? [])]; if (!files.length) return;
@@ -66,8 +74,7 @@ export default function JournalFiles() {
     try {
       const read = await readPicked(files);
       const next = planJournalImport(journal.data, read.files, {today: localDate(), zone: Intl.DateTimeFormat().resolvedOptions().timeZone, skipped: read.skipped});
-      setMedia(read.media); setPlan(next);
-      requestAnimationFrame(() => importButton.current?.focus());
+      focusPlan.current = true; setMedia(read.media); setPlan(next);
     } catch (e) { setProblem(e instanceof ZipError || e instanceof Error ? e.message : 'These files could not be read.'); }
     finally { setBusy(''); }
   };
