@@ -801,6 +801,24 @@ UNCHANGED: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudf
   to the panel whose action it reports ("one live status region per section"), and folding them into one would move a
   message away from the control that caused it. Recorded, not changed.
 
+## D-CI2016 and D-CI-SHARDS20 — run 2016, the update stall, and twenty shards (owner follow-up 7)
+- **Run 2016 (`f5f172e9`, both rebalances).** Checks, Alpha gate, integration, the a11y shards, the four WebKit shards
+  (`zigi-voice-z` green) and 12 main shards green. Main shard 10 cancelled at 60 min (112 worker-min on a slow runner);
+  main shard 5 red on `j04-offline` (both attempts).
+- **D-CI2016-J04 — Carried, two attempts used.** The journey's update step: after "Reload" the waiting worker (the newer
+  build) stays `installed` and never takes over, so the page's `load` does not come within 20 s. Reproduced locally on
+  the production build (2 of 6, then 3 of 8, 1 of 10 with a probe). The probe (a copy of the journey, not committed) logged
+  the registration every 0.5 s after the tap: in the stuck runs no `controllerchange` and no state change for the whole
+  25 s; in the others the takeover and the load in under 2.5 s. Attempt 1 (`e15abe45`, TIER 3 PWA): the old worker's
+  offline warm-up ends once a newer worker waits — right on its own, kept, but the stall stayed (3 of 8). Attempt 2
+  (`0e03a2a4`): reload 3 s after the tap anyway — the new worker still did not take over after the load (2 of 30, now at
+  the controller check), so its premise was wrong; reverted (`d4b03d7f`). Lane 2 changed only notification wording in
+  `public/sw.js` (no timer, no long `waitUntil`); the journey's update step was seen failing before (run 1701). Next
+  session: read the old worker's in-flight events with the DevTools protocol (ServiceWorker domain) while it is stuck.
+  For a friend: the "Reload" tap can do nothing for a while; closing the tab and opening it again lets the update in.
+- **D-CI-SHARDS20 (TIER 3 CI, the owner's decision).** Main shards 14 → 20, each list at most 70 worker-min by the largest
+  measured minutes per file (runs 2013, 2014, 2016): **1,393 worker-min per run**. Lists measure 69.6–69.7.
+
 ## Follow-ups 2 and 3 — decisions and measurements
 
 - **D-FU2-1a (food Worker, TIER 3 Workers, `0dc926b5`).** Cause measured: a slot was reserved on time but its request
