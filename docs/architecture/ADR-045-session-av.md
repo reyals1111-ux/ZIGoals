@@ -816,6 +816,13 @@ UNCHANGED: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudf
   `public/sw.js` (no timer, no long `waitUntil`); the journey's update step was seen failing before (run 1701). Next
   session: read the old worker's in-flight events with the DevTools protocol (ServiceWorker domain) while it is stuck.
   For a friend: the "Reload" tap can do nothing for a while; closing the tab and opening it again lets the update in.
+- **Run 2019 (`7fc6f563`, 20 shards and the route-walk split).** Every browser job green on the first attempt but one:
+  main shard 13, `j04-offline` (D-CI2016-J04). WebKit (27.4–34.7 min, `zigi-alive` and `zigi-voice-z` green), a11y, Alpha
+  gate and integration green; `run11-route-mobile-acceptance` green in its two parts. No main shard cancelled: 18 of 20
+  took 25.1–39.9 min, the two that started last 52.3 and 53.4. Checks red on one cause seen for the first time: all
+  15,583 unit tests passed, then Vitest reported an unhandled `EnvironmentTeardownError` ("Closing rpc while
+  onUserConsoleLog was pending", attributed to `habit-card-render.test.ts`, which Vitest says need not be its source).
+  Not reproduced locally (alone, and with teardown held 4 s: no console output); recorded, not chased.
 - **D-CI2016-J04, the cause measured (run 2019 red on it again; no third fix, by the two-attempt rule).** A probe with
   Chromium's own service-worker reporting (DevTools protocol, `ServiceWorker.workerVersionUpdated`; 12 runs, 3 stuck):
   after the tap the old worker is stopped for the takeover; in the runs that work it becomes `redundant` and the new one
