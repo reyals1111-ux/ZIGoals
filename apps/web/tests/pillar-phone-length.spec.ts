@@ -59,7 +59,7 @@ test('Wealth at 390×844: "Log spending" is on the first screen and opens the fo
   await page.clock.setFixedTime(FIXED_TIME);
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
   await page.goto('/app/wealth'); await hydrated(page);
-  const quick = page.locator('.wealth-heading').getByRole('button', {name: 'Log spending', exact: true});
+  const quick = page.locator('.wealth-summary').getByRole('button', {name: 'Log spending', exact: true}); // (deliberate) under the total now, so the total stays on a short phone's first screen; still on the first 844 px, still opens the form
   await expect(quick).toBeVisible();
   const box = (await quick.boundingBox())!;
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
