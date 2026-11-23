@@ -8,6 +8,15 @@ import {ShowcaseControls, useShowcase} from '../showcase-controls';
  */
 export const TRY_PAGES = 'The Showcase switches on every page (Earn, Markets, Staking, Chess, Journey and more) so you can see them all. Your own ZIGoals starts with fewer pages, and shows only the ones you switch on under Your pages & buttons.';
 export const OPEN_PAGES = 'The Showcase shows every page. Your own ZIGoals keeps the pages you chose: when you return to your data, its menu is yours again.';
+/**
+ * Session AV lane 2 (fr-layout, FR-TJ-11): the way to the Showcase from Settings' first screen, on a person's own profile.
+ * "Load Showcase Demo" stays where DV-262 put it, at the foot of Your app (y 19,027 on a phone, 5,900 at 1440, with no
+ * Settings section of its own on a computer); this jumps there, and the jump opens the group that holds it.
+ */
+export function ShowcaseDoor() {
+  const active = useShowcase();
+  return active ? null : <a className="text-link settings-showcase-door" href="#showcase">Try the Showcase Demo ↓</a>;
+}
 export function ShowcaseSlot({at}: {at: 'top' | 'bottom'}) {
   const active = useShowcase();
   if ((at === 'top') !== active) return null;

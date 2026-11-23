@@ -29,3 +29,6 @@
 .settings-page .settings-fold-quick button { min-height: 44px; font-size: 15px; }
 /* Session AP (UX review, Minor): "A day counts as done at" is a short choice; its select does not span the whole card. */
 .settings-page .day-goal-setting select { max-width: 22rem; }
+/* Session AV lane 2 (fr-layout, FR-TJ-11): Help & feedback and the way to the Showcase Demo share the header's link row. */
+.settings-head-links { display: flex; flex-wrap: wrap; align-items: center; gap: 0 20px; }
+.settings-showcase-door { display: inline-flex; align-items: center; min-height: 44px; }
