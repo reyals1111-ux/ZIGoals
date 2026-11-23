@@ -31,7 +31,7 @@ export function SleepCard(layout: LayoutAttrs) {
       <PastDayLine date={day.date} today={day.today}>{dayAsleep ? <>{formatMinutes(dayAsleep.minutes)} asleep that night</> : 'no night logged'} · <Link className="text-link" href={`/app/health?view=sleep&date=${day.date}`}>{dayAsleep ? 'Edit it in Sleep →' : 'Log this night →'}</Link></PastDayLine>
       {!day.past && <SleepTonight store={store} onDone={setNote}/>}
       {note && <p role="status">{note}</p>}
-      {!day.past && <LoadBoundary quiet><Suspense fallback={null}><HealthR4 part="sleep-tip" today={store.today}/></Suspense></LoadBoundary>}
+      {!day.past && <LoadBoundary quiet><Suspense fallback={null}><HealthR4 part="sleep-tip" today={store.today} say={setNote}/></Suspense></LoadBoundary>}
       <Link className="text-link" href="/app/health?view=sleep">Open Sleep →</Link>
     </>}
   </section>;
