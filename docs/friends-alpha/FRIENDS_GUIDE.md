@@ -79,10 +79,10 @@ Each one has a Help entry under "What's new". Today shows a one-time "What's new
 
 ## 7. New since then: your whole life, and ZIGi
 
-ZIGoals grew from goals, habits, health and wealth into one place for most of your day. All of it is optional, and you can hide any page you don't use (**Settings → Your pages & buttons**):
+ZIGoals grew from goals, habits, health and wealth into one place for most of your day. All of it is optional, and you can hide any page you don't use (**Settings → Your pages & buttons**; on a phone the row is **Pages & start page**):
 
 - **Sleep and Meditation** in Health: log a night or tap "I'm going to bed" and "I woke up"; time a session or follow the breathing circle; calm focus sounds made in your browser.
-- **Bring your data with you:** **Settings → Switch to ZIGoals** reads exports from Apple Health, Fitbit / Google Health, Samsung Health, Oura and Loop Habit Tracker on your device, with a preview and one-tap undo.
+- **Bring your data with you:** **Settings → Switch to ZIGoals** (on a phone: **Import from other apps**) reads exports from Apple Health, Fitbit / Google Health, Samsung Health, Oura and Loop Habit Tracker on your device, with a preview and one-tap undo.
 - **Devices:** a Bluetooth heart-rate monitor or scale in Chrome or Edge (not on iPhone).
 - **Goals and habits:** milestones and "On track?" for goals; challenges and stacks for habits; an optional evening wrap-up on Today.
 - **Wealth and Portfolio:** accounts, debts and net worth per currency, on your device; Portfolio with charts from your own transactions and dated prices. A price that is missing stays "unknown", never zero.
@@ -92,17 +92,17 @@ ZIGoals grew from goals, habits, health and wealth into one place for most of yo
 ## 8. New in this release: ZIGi's new face, and talking to ZIGi
 
 - **A calmer ZIGi.** One header line with small buttons (new chat, expand, pop out, and "⋯" for History, Customize, Settings, Meet ZIGi, Help and Music). A new chat is one greeting and the message box; ideas are behind **Suggestions**. Cards you added or declined fold into one line, with Undo while it lasts.
-- **Talk to ZIGi, in English or Dutch.** Tap the microphone, or hold it while you speak; you can also hold ZIGi's button on any page. ZIGi sends when you stop (you can turn that off) and reads its answer aloud; the mute button and your quiet hours keep it silent. Your browser does the listening: Safari may send the audio to Apple, Chrome to Google (or keeps it on the device where it can), and ZIGoals says which before you start. Nothing goes through ZIGoals, and audio is never kept. No microphone in your browser? Use your keyboard's dictation key.
+- **Talk to ZIGi, in English or Dutch.** Tap the microphone, or hold it while you speak; on a computer you can also hold ZIGi's button on any page. ZIGi sends when you stop (you can turn that off) and reads its answer aloud; the mute button and your quiet hours keep it silent. Your browser does the listening: Safari may send the audio to Apple, Chrome to Google (or keeps it on the device where it can), and ZIGoals says which before you start. Nothing goes through ZIGoals, and audio is never kept. No microphone in your browser? Use your keyboard's dictation key.
 - **Delete a habit for good.** Archive it, then **Delete for good…** and type its name. You have ten seconds to undo. Its check-ins and notes go; on your other devices it disappears too.
 - **Your units and numbers.** Weight in lb and water in fl oz everywhere you see them, if you choose them in Health. Big amounts are grouped ("300,000 ZIG").
-- **On a phone:** one status line at the top ("Demo · no real money") opens the full notices; a compact goal card; ZIGi is the one floating button (Music moved into ZIGi's "⋯" menu and More).
+- **On a phone:** one status line at the top ("Demo · no real money") opens the full notices; a compact goal card. A phone has no floating buttons: ZIGi and Music open from **Apps & extras** in the top bar (the squares icon), and the Checklist has its own button there.
 - **Help is last** in the menu, and **Send feedback** is at the bottom of every page.
 - **ZIGoals AI · powered by Claude** (invited friends, when we switch it on): ZIGi without your own AI. Each person has their own allowance (messages and dollars a day and a month), shown in Settings. Your messages and the records ZIGi attaches pass through our server to Anthropic, which writes the answer; nothing is stored or logged, and Health only goes if you allow it. Until we switch it on, you won't see it.
 
 ## 8b. New in this release: everything travels, and nothing is lost
 
 - **More of your records sync, encrypted:** goal plans and areas, sub-goals and stories, average goals, calculator scenarios, the Life review focus, Today's cards, habit extras, routines and the game; accounts and debts too. Settings → Sync → "Also sync my extras" turns them off on a device.
-- **Restore from a backup:** Settings → Your data → choose a ZIP made by "Export everything". You see what it holds, choose per part to merge or replace, confirm, and can undo.
+- **Restore from a backup:** Settings → Your data → **Restore from a backup** (on a phone, the Settings row **Your data & restore**), then choose a ZIP made by "Export everything". You see what it holds, choose per part to merge or replace, confirm, and can undo.
 - **Point & tell:** Settings → Help & diagnostics → "Show the Point & tell button". Tap the pin, then the part of a page you mean, and write what you think; copy, download or email your notes.
 - **Vitamins** A, C, D, E, K, B12 and folate in Health, from a food's label; unknown stays unknown.
 - **Amounts your way:** type "3,250.50" or "3.250,50"; a new goal starts in euros if your phone is set to a euro country.
@@ -163,7 +163,7 @@ All optional, all on your device. Help explains each one.
 
 - **Your first five.** After the short setup, Today shows five small steps: Today itself, a goal, a habit, a meal and a money record. Each one ticks itself once you add it. Tap **Not now, hide this** whenever you like.
 - **My day ends at** (Settings → Your app). For night owls: habits, the Checklist and streaks count for the day until the time you choose, from midnight to 6:00.
-- **A day counts as done at N** (Settings → Your app → Checklist). Off means every dot, as before. At 4, a six-dot day counts once four dots are lit ("4 of 6"). It applies from today on; past days keep their rule.
+- **A day counts as done at N** (Settings → Your app, under the Checklist button switch; on a phone: Settings → **Pages & start page**, just below Your pages & buttons). Off means every dot, as before. At 4, a six-dot day counts once four dots are lit ("4 of 6"). It applies from today on; past days keep their rule.
 - **Perfect days** in Habits: the days every habit due was done, month by month, in words.
 - **Net worth by source**, day by day, in Wealth's "Your wealth over time". A day ZIGoals wasn't opened stays a gap; nothing is filled in.
 - **252 templates:** 130 goals and 122 habits, searchable from the goal creator and the habit form.
@@ -184,13 +184,14 @@ Questions to try (typos and Dutch are fine):
 - **how many habits did I miss this week** · **which habit do I skip most this month** · **show my habit streaks**
 - **which days did I forget to meditate this month** · **on which weekday do I miss habits most**
 - **how is my health** · **is my weight going down** · **water this week vs last week** (Health questions need Health
-  shared with NOVA: NOVA → Permissions)
+  shared with NOVA: NOVA → Permissions → Allow Health)
 - **what did I spend this month** · **did I spend more than last month** · **what is my next bill**
 - **which goals are behind** · **which tasks are overdue** · **what is my journal streak** · **did I focus today**
 - **what can you answer** lists the kinds of question NOVA answers.
 
-Want to see it full first? **Settings → Load Showcase Demo** fills the app with example data (labelled as examples,
-kept in that tab only); **Exit Showcase** brings your own data back.
+Want to see it full first? Settings → **Try the Showcase Demo** (at the top of Settings) → **Load Showcase Demo** fills
+the app with example data (labelled as examples, kept in that tab only); **Return to my data**, in the same place, brings
+your own data back.
 
 **Build your own NOVA** (NOVA → **Brain setup**): a step-by-step guide to give NOVA a brain you choose. A model on your own
 computer first (Ollama, LM Studio or llama.cpp: your messages stay on that computer), or your own key for a cloud AI
@@ -220,8 +221,9 @@ Before you got the Alpha, five made-up people used it for a week each, on a phon
 is fixed:
 
 - **A meal in words:** Log a meal → **Just describe it**. Calories stay unknown, never zero. "Your first five" ticks it.
-- **Health in NOVA and ZIGi:** one button, **NOVA → Permissions → Allow Health**, instead of three switches. Their
-  "Health is off" replies have a button that takes you there, and ZIGi answers Dutch questions in Dutch.
+- **Health in NOVA and ZIGi:** one button, **NOVA → Permissions → Allow Health**, instead of three switches; it is the
+  first thing in Permissions. Their "Health is off" replies have a button that takes you there (on a phone, Settings →
+  **NOVA, the command center** → **What NOVA can see** opens it too), and ZIGi answers Dutch questions in Dutch.
 - **Night owls:** with "My day ends at" set, Today, Habits, the Checklist, streaks and Tasks all agree on which day it is
   after midnight. NOVA answers "what day is it?" by your day.
 - **Goals:** a sleep, steps or reading goal is pointed to the right kind, not saved as an amount of money.
@@ -245,7 +247,7 @@ A two-minute start: [First week with ZIGoals](FIRST_WEEK.md).
 - **Check categories before an import.** The bank-file and CSV preview shows each row's category and lets you change it.
 - **NOVA at a computer:** a Health question asked while Health is closed now has "Open NOVA → Permissions" right under the
   star, one tap to Allow Health.
-- **A question a day in your Journal**, above an empty entry ("Use this question" or "Another question").
+- **A question a day in your Journal**, under an empty entry box ("Use this question" or "Another question").
 - **What your bills come to in a year**, beside a typical month on Wealth → Upcoming bills (an estimate).
 - Small things: a day still to come in the Agenda shows no "(0 done)"; "Refresh prices" appears once something is priced;
   a goal with nothing going in shows no "$0.00 a month"; Tasks' filter appears once you have a task.
@@ -313,8 +315,9 @@ A two-minute start: [First week with ZIGoals](FIRST_WEEK.md).
 
 - **NOVA answers from your own records only.** It doesn't know why something happened (it says so), and it checks off one
   Checklist item at a time; tick several on the Checklist itself.
-- **Some records stay on the device when you restore a backup:** AI settings and keys, display choices, Earn progress
-  and the staking journal (Help → Known limitations). Everything you record in Goals, Habits, Health, Wealth, Tasks,
+- **Some records stay on the device when you restore a backup:** AI settings and keys (Allow Health included: allow it
+  again after a restore), display choices such as the theme, watched wallet addresses, Earn progress and the staking
+  journal (Help → Known limitations; the restore's preview lists them under "Never restored"). Everything you record in Goals, Habits, Health, Wealth, Tasks,
   Notes and the Journal comes back.
 
 **Update, 20 Nov 2026 (Session AU):**
