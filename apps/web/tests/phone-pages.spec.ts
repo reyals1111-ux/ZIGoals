@@ -63,15 +63,18 @@ test('Settings on a phone: a grouped list under the title goes to every section;
  // Session AK X1 (RELEASE_REVIEW R4, deliberate): the wallet, network and contract rows became one "Wallet & network
  // (advanced)" row, shown once the chain is chosen (lib/chain-choice.ts); a new device has none of them, so 23.
  // Session AK G2 (RELEASE_REVIEW_2 R2-4, deliberate): the ZIGi group is "Your assistant", with a row for NOVA's settings: 24.
- /* Session AO (owner decision 13 Nov and C-DVG-22, deliberate): Appearance's own row and "My day ends at" (24 → 25; Motion & display became Appearance's row) */const rows=list.getByRole('link');expect(await rows.count()).toBe(25);
+ /* Session AO (owner decision 13 Nov and C-DVG-22, deliberate): Appearance's own row and "My day ends at" (24 → 25; Motion & display became Appearance's row) */const rows=list.getByRole('link');
+ // (fr-layout; deliberate) FR-L-7: "Your data & restore" opens Settings → Your data at Restore from a backup (25 → 26).
+ expect(await rows.count()).toBe(26);
  await expect(list.getByRole('link',{name:'Wallet & network (advanced)',exact:true})).toHaveCount(0);
  // Session AL (COPY_AUDIT, deliberate): DV-262/DV-266 — Music, Links and Chess in "Extras"; the Showcase tour last, in "Try it". Still 24 rows.
  // Session AO (owner decision 13 Nov, deliberate): Appearance is the first group (theme, motion, display; #appearance moved
  // out of Your app unchanged).
  expect(await list.getByRole('heading',{level:2}).allTextContents()).toEqual(['Appearance','Data & privacy','Your app','Your areas','Extras','Account & devices','Your assistant','Help & diagnostics','Try it']);
  await expect(list.getByRole('link',{name:'Show the welcome again',exact:true})).toHaveAttribute('href','/app/welcome');
+ await expect(list.getByRole('link',{name:'Your data & restore',exact:true})).toHaveAttribute('href','/app/settings/data#restore');
  for(const link of await rows.all()){
-  const href=(await link.getAttribute('href'))!;if(href==='/app/welcome')continue;expect(href).toMatch(/^#[a-z-]+$/);
+  const href=(await link.getAttribute('href'))!;if(href==='/app/welcome'||href==='/app/settings/data#restore'){expect((await link.boundingBox())!.height,href).toBeGreaterThanOrEqual(44);continue;}expect(href).toMatch(/^#[a-z-]+$/);
   await expect(page.locator(href),href).toHaveCount(1);
   const box=(await link.boundingBox())!;expect(box.height,href).toBeGreaterThanOrEqual(44);
  }

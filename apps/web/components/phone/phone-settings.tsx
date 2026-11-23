@@ -19,6 +19,9 @@ const GROUPS: { title: string; rows: [label: string, note: string, target: strin
   ] },
   { title: "Data & privacy", rows: [
     ["Backups & restore", "Encrypted backup and copies of each area", "private-vault"], // Session AL third pass (DV-261)
+    // Session AV lane 2 (fr-layout, FR-L-7, FR-S-18): the documented path "Settings → Your data → Restore from a backup" as
+    // a row; its link card sat about 5,700 px down the phone's Settings, and "Backups & restore" is the encrypted backup.
+    ["Your data & restore", "Restore an Export everything ZIP; what each part holds", "/app/settings/data#restore"],
     ["Privacy & storage", "What stays in this browser", "privacy"],
     ["Export everything", "Optional: one readable ZIP of all your records", "export-everything"],
     ["Import from other apps", "Apple Health, Samsung, Oura, Loop", "switch-import"],
@@ -76,7 +79,7 @@ export function PhoneSettingsList({ chain = true }: { chain?: boolean }) {
       <ul>
         {group.rows.filter(([, , target]) => chain || !CHAIN_ROWS.has(target)).map(([label, note, target]) => {
           const content = <><span className="phone-settings-copy"><strong>{label}</strong><small>{note}</small></span><span className="phone-settings-chevron" aria-hidden="true"><AppIcon name="back" size={18} /></span></>;
-          // Section rows jump within the page; the welcome row opens its own page (phones only, by the owner's choice).
+          // Section rows jump within the page; the welcome row and Your data open their own pages (phones only, by the owner's choice).
           return <li key={`${target}:${label}`}>{target.startsWith("/") ? <Link href={target} aria-label={label}>{content}</Link> : <a href={`#${target}`} aria-label={label}>{content}</a>}</li>;
         })}
       </ul>

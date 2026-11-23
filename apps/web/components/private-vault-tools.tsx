@@ -1,5 +1,6 @@
 'use client';
 import {useEffect,useState} from 'react';
+import Link from 'next/link';
 import {ACCOUNT_CHANGE,getAccountGeneration} from '../lib/account-session';
 import {usePlatform} from './platform/use-platform';
 import {useHabits} from './habits/use-habits';
@@ -65,7 +66,7 @@ export function PrivateVaultTools(){
   return '';
  }
  const inShowcase=showcaseOn;
- return <section className="panel" id="private-vault"><p className="eyebrow">PRIVATE RECOVERY</p><h2>Keep a protected copy.</h2>{/* Session AH Part 3 (DS8, L-006, M-004): in the Showcase these work only on your own data, said before a tap. */}{inShowcase&&<p className="notice">Encrypted backups and storage upgrades work on your own records, not the Showcase’s examples. Exit the Showcase to use them.</p>}
+ return <section className="panel" id="private-vault"><p className="eyebrow">PRIVATE RECOVERY</p><h2>Keep a protected copy.</h2>{/* Session AV lane 2 (fr-layout, FR-MAX-10, FR-TJ-15): the phone's "Backups & restore" row lands here, so the ZIP's restore is named where a friend looks for it. */}<p className="fine">Restoring an Export everything ZIP? <Link className="text-link" href="/app/settings/data#restore">Your data → Restore from a backup</Link>.</p>{/* Session AH Part 3 (DS8, L-006, M-004): in the Showcase these work only on your own data, said before a tap. */}{inShowcase&&<p className="notice">Encrypted backups and storage upgrades work on your own records, not the Showcase’s examples. Exit the Showcase to use them.</p>}
   <p>Encrypted downloads use a separate recovery secret generated on this device. Email access cannot recover a lost secret. Your active local records remain readable to this browser profile.</p>
   <label className="checkbox"><input type="checkbox" checked={healthConsent} onChange={e=>setHealthConsent(e.target.checked)}/>Include my Health records in this encrypted download.</label>
   <button className="secondary" disabled={busy||inShowcase} onClick={()=>void run(makeBackup)}>Prepare encrypted backup</button>
