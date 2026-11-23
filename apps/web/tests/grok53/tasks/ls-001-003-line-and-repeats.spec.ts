@@ -1,4 +1,5 @@
 import {expect, test} from '@playwright/test';
+import {moreViews} from '../../fr-layout-helpers';
 import {DAY, freshTasks, record, storedTasks, task, toast} from './helpers';
 
 /**
@@ -24,6 +25,8 @@ for (const width of [1280, 375]) test(`LS-001/LS-046/P-LS-03 at ${width}: "Pay r
   const s = await storedTasks(page);
   expect(s!.projects).toMatchObject([{name: 'Home'}]);
   expect(s!.tasks[0]!.projectId).toBe(s!.projects![0]!.id);
+  // (fr-layout; deliberate) on a phone the view sits behind "More views" (FR-L-5): opened first, the same check after.
+  await moreViews(page);
   await expect(page.getByRole('navigation', {name: 'Task views'}).getByRole('button', {name: /^Home/})).toBeVisible();
 
   await field.fill('call mum tomorrow 6pm');

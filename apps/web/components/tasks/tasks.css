@@ -83,6 +83,18 @@
   .tasks-layout > .tasks-nav h3 { margin: 6px 0 2px; }
   .tasks-layout > .tasks-nav .tasks-nav-area h4 { margin: 4px 0 2px; }
 }
+/* Session AV lane 2 (fr-layout, FR-L-5, FR-MAX-2, FR-S-7, FR-TJ-8): on a phone, Plan and views, Projects, Labels, Priority
+   and Saved filters fold behind the "More views" chip at the end of the first row, so "New task" is on the first screen
+   (it stood at y 966–1,296 under every row). Wider screens keep every row and never show the chip. */
+.tasks-nav-more { display: grid; gap: 4px; min-width: 0; }
+.tasks-nav-more-item { display: none; }
+@media (max-width: 700px) {
+  .tasks-layout > .tasks-nav .tasks-nav-more-item { display: block; }
+  .tasks-layout > .tasks-nav .tasks-nav-more { gap: 0; }
+  .tasks-layout > .tasks-nav .tasks-nav-more:not([data-open]) { display: none; }
+  /* and 16 px less air above and below the views (the page's and the layout's 18 px gaps, 10 here): y 713 → 697 */
+  .tasks-page, .tasks-page > .tasks-layout { row-gap: 10px; }
+}
 @media (min-width: 701px) and (max-width: 900px) { .tasks-layout > .tasks-nav { order: 1; } .tasks-layout .tasks-smart-add > .tasks-smart-help { margin-bottom: 12px; } }
 .tasks-nav h3 { margin: 12px 0 2px; font-size: 14px; font-weight: 650; color: var(--text-secondary, var(--muted)); }
 .tasks-nav-item { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 6px 12px; border-radius: 12px; border: 1px solid transparent; background: transparent; color: inherit; font: inherit; text-align: start; cursor: pointer; }
