@@ -35,6 +35,6 @@ describe('Session AV (F-BUDGET-TARGETS)', () => {
     const en = ask('how is my groceries budget', novaEnv(showcaseAll())).text, nl = ask('hoe staat mijn budget voor boodschappen', novaEnv(showcaseAll())).text;
     expect(en).toContain('Groceries: spent 187.10 EUR (62.90 EUR left); target 300.00 EUR by 2026-12: 62.90 EUR set aside, 237.10 EUR a month from next month (on track)');
     // Session AV lane 2 (Dutch dates, deliberate): the Dutch answer writes the month the Dutch way, "december 2026" (was "Dec 2026").
-    expect(nl).toContain('doel €300.00 uiterlijk december 2026: €62.90 opzij, €237.10 per maand vanaf volgende maand, op schema');
+    expect(nl).toContain('doel € 300,00 uiterlijk december 2026: € 62,90 opzij, € 237,10 per maand vanaf volgende maand, op schema');
   });
 });
