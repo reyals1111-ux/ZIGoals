@@ -13,9 +13,12 @@ import {BILL_CADENCES, type BillCadence, type BillsRecord} from './schema';
  */
 export type BillCandidate = {
   key: string; title: string; payee: string; category: string; currency: string;
-  /** The middle (median) amount, a decimal string, and in cents. */
+  /**
+   * The middle (median) amount, a decimal string, and in cents. Session AV lane 2 (fr-money, FR-L-1): when the price
+   * stepped (an earlier steady amount, then a later one), the latest amount paid instead, never a median nobody paid.
+   */
   amount: string; amountCents: number;
-  /** True when the amounts differ by more than 1 % (an energy bill), so the amount is "about". */
+  /** True when the amounts differ by more than 1 % (an energy bill), so the amount is "about"; false for a clean price step. */
   variable: boolean;
   cadence: BillCadence; occurrences: number; firstDate: string; lastDate: string; nextDue: string;
   /** 0–1, from the count, how regular the gaps are and how close the amounts are. */
@@ -30,6 +33,22 @@ export const MIN_OCCURRENCES = 3, AMOUNT_TOLERANCE = 0.05, MIN_REGULAR_SHARE = 0
  * (the series is then "variable" and its confidence lower).
  */
 export const STEP_TOLERANCE = 0.25;
+/**
+ * Session AV lane 2 (fr-money, FR-L-1 and FR-L-2, the friend-readiness walk's Lina): a price step is an earlier steady
+ * amount followed by a later steady amount (each within 1 % of itself), in date order. €15.00, €15.00, €17.50, €17.50 is
+ * a step; three grocery trips of €61.30, €48.75 and €55.10 are not — they are a shop, not a bill. The ±25 % pass takes
+ * only a step, and only on a monthly or longer cadence; a weekly series must keep a steady amount (within 1 %).
+ */
+export const STEADY_TOLERANCE = 0.01;
+const steady = (values: readonly number[]) => values.length > 0 && values.every(v => Math.abs(v - values[0]!) <= values[0]! * STEADY_TOLERANCE);
+/** True when the amounts (oldest first) are one steady amount, then another steady amount. */
+export function isPriceStep(amounts: readonly number[]): boolean {
+  for (let i = 1; i < amounts.length; i++) {
+    const before = amounts.slice(0, i), after = amounts.slice(i);
+    if (steady(before) && steady(after) && Math.abs(after[0]! - before[0]!) > before[0]! * STEADY_TOLERANCE) return true;
+  }
+  return false;
+}
 const NOISE = new Set(['bv', 'b.v', 'nv', 'ltd', 'inc', 'llc', 'gmbh', 'sa', 'sepa', 'incasso', 'payment', 'betaling', 'direct', 'debit', 'machtiging', 'ref', 'the', 'via', 'pos', 'card', 'kaart', 'showcase', 'data']);
 /** "NETFLIX.COM 123*ABC" and "Netflix" read the same: lower case, no codes, letters only, noise words out, the first three words. */
 export function normalisePayee(text: string | undefined): string {
@@ -44,6 +63,12 @@ const titleOf = (e: MoneyEntry) => (e.note?.split(' · ')[0]?.trim() || e.catego
 const median = (values: readonly number[]) => { const s = [...values].sort((a, b) => a - b), mid = Math.floor(s.length / 2); return s.length % 2 ? s[mid]! : Math.round((s[mid - 1]! + s[mid]!) / 2); };
 const within = (value: number, centre: number) => Math.abs(value - centre) <= centre * AMOUNT_TOLERANCE;
 
+/** The entries oldest first, one per date (a same-day duplicate: the first logged). */
+function oneADay(list: readonly MoneyEntry[]): MoneyEntry[] {
+  const byDate = new Map<string, MoneyEntry>();
+  for (const e of [...list].sort((a, b) => a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt))) if (!byDate.has(e.date)) byDate.set(e.date, e);
+  return [...byDate.values()];
+}
 function cadenceOf(gaps: readonly number[]): {cadence: BillCadence; regular: number} | null {
   if (!gaps.length) return null;
   const middle = median(gaps);
@@ -68,26 +93,27 @@ export function detectBills(entries: readonly MoneyEntry[], today: string): Bill
     // The amount most entries sit around (ties: the most recent), then the entries within ±5 % of it.
     let best = -1, centre = 0;
     list.forEach((_, i) => { const c = amounts[i]!, n = amounts.filter(a => within(a, c)).length; if (n >= best) { best = n; centre = c; } });
-    let members = list.filter((_, i) => within(amounts[i]!, centre));
-    if (members.length < MIN_OCCURRENCES) { const mid = median(amounts); if (amounts.every(a => Math.abs(a - mid) <= mid * STEP_TOLERANCE)) members = [...list]; }
+    let members = list.filter((_, i) => within(amounts[i]!, centre)), stepPass = false;
+    if (members.length < MIN_OCCURRENCES) { const mid = median(amounts); if (amounts.every(a => Math.abs(a - mid) <= mid * STEP_TOLERANCE)) { members = [...list]; stepPass = true; } }
     // One payment per date: a same-day duplicate does not make a series.
-    const byDate = new Map<string, MoneyEntry>();
-    for (const e of members.sort((a, b) => a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt))) if (!byDate.has(e.date)) byDate.set(e.date, e);
-    const series = [...byDate.values()];
+    const series = oneADay(members);
     if (series.length < MIN_OCCURRENCES) continue;
+    const seriesCents = series.map(e => cents(e.amount)), middle = median(seriesCents), stepped = isPriceStep(seriesCents);
+    if (stepPass && !stepped) continue;
     const gaps = series.slice(1).map((e, i) => daysBetween(series[i]!.date, e.date));
     const found = cadenceOf(gaps);
     if (!found || found.regular < MIN_REGULAR_SHARE) continue;
+    if (found.cadence === 'weekly' && (stepPass || !(steady(seriesCents) || stepped))) continue;
     const last = series[series.length - 1]!;
     if (daysBetween(last.date, today) > CADENCE_DAYS[found.cadence].max * 2) continue;
-    const seriesCents = series.map(e => cents(e.amount)), middle = median(seriesCents);
     const spread = middle ? (Math.max(...seriesCents) - Math.min(...seriesCents)) / middle : 0;
+    const amountCents = stepped ? seriesCents[seriesCents.length - 1]! : middle;
     const confidence = Math.round((0.4 * Math.min(1, (series.length - 2) / 4) + 0.4 * found.regular + 0.2 * Math.max(0, 1 - spread / (2 * AMOUNT_TOLERANCE))) * 100) / 100;
     const [currency, category] = groupKey.split('|') as [string, string];
     const payee = groupKey.slice(currency.length + category.length + 2);
     out.push({
       key: `${groupKey}|${found.cadence}`.slice(0, 200), title: titleOf(last), payee, category, currency,
-      amount: fromCents(middle), amountCents: middle, variable: spread > 0.01, cadence: found.cadence, occurrences: series.length,
+      amount: fromCents(amountCents), amountCents, variable: !stepped && spread > STEADY_TOLERANCE, cadence: found.cadence, occurrences: series.length,
       firstDate: series[0]!.date, lastDate: last.date,
       // The first step after the last payment that is today or later (a payment made today: the next one).
       nextDue: dueOnOrAfter(last.date, found.cadence, last.date >= today ? addLocalDays(today, 1) : today),
