@@ -75,6 +75,27 @@ test('Wealth at 390×844: "Log spending" is on the first screen and opens the fo
   await page.waitForURL('**/app/wealth#spending');
   await expect(form).toBeInViewport();
   await expect(form.getByLabel('Amount', {exact: true})).toBeFocused();
+  // Session AV lane 2 (fr-recheck, FR-L-4): in the Showcase the button sat under the total's whole block (counts, scope,
+  // prices, net worth): y 1,000 at 390 (the tab bar starts at 779) and 902 at 1440 (fold 900). Stricter: on a phone it ends
+  // above the tab bar, on a desktop inside the first 900 px, with the Showcase loaded; the total's figure stays above it.
+  await openSettings(page);
+  await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
+  await page.waitForURL('**/app');
+  for (const [width, height] of [[390, 844], [1440, 900]] as const) {
+    await page.setViewportSize({width, height});
+    await page.goto('/app/wealth'); await hydrated(page);
+    await expect(quick).toBeVisible();
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+    const shown = (await quick.boundingBox())!, figure = (await page.locator('.wealth-hero-total strong').first().boundingBox())!;
+    const tabs = width < 700 ? (await page.locator('.phone-tabbar').boundingBox())! : null;
+    const fold = tabs ? Math.min(tabs.y, 779) : 900;
+    console.log(`FR_L4 showcase ${width}: log ${Math.round(shown.y)}–${Math.round(shown.y + shown.height)}, figure ${Math.round(figure.y)}–${Math.round(figure.y + figure.height)}, fold ${Math.round(fold)}`);
+    expect(shown.y + shown.height, `Showcase ${width}×${height}: Log spending ends on the first screen`).toBeLessThanOrEqual(fold);
+    expect(figure.y + figure.height, `Showcase ${width}×${height}: the total's figure stays above Log spending`).toBeLessThanOrEqual(shown.y);
+  }
+  await quick.click();
+  await expect(form).toBeInViewport();
+  await expect(form.getByLabel('Amount', {exact: true})).toBeFocused();
 });
 
 /**
