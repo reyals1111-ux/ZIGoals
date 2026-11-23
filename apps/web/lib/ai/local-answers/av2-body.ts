@@ -225,9 +225,9 @@ function trainingStreak(a: Asked): LocalReply | null {
   if (!(en || nl) || !isQuestion(a)) return null;
   const shut = closed(a.env, 'health'); if (shut) return shut;
   const s = weekStreak(logOf(a), a.env.healthDay, pausesIn(a)), lang = a.lang;
-  if (!s.current) return answer(say(lang, `No week in a row yet: a workout this week starts one.${s.best ? ` Your longest run was ${s.best} weeks.` : ''}`, `Nog geen week op rij: een workout deze week begint er een.${s.best ? ` Je langste reeks was ${s.best} weken.` : ''}`), CALLS);
-  return answer(say(lang, `${s.current} ${s.current === 1 ? 'week' : 'weeks'} in a row with at least one workout${s.thisWeek ? ', this week included' : ' (this week has none yet, so it still counts)'}; your longest run is ${s.best} weeks. Health → Workouts → Calendar shows the month and the year.`,
-    `${s.current} ${s.current === 1 ? 'week' : 'weken'} op rij met minstens één workout${s.thisWeek ? ', deze week meegeteld' : ' (deze week nog geen, dus hij telt nog)'}; je langste reeks is ${s.best} weken. Health → Workouts → Calendar toont de maand en het jaar.`), CALLS);
+  if (!s.current) return answer(say(lang, `No week in a row yet: a workout this week starts one.${s.best ? ` Your longest run was ${s.best} ${s.best === 1 ? 'week' : 'weeks'}.` : ''}`, `Nog geen week op rij: een workout deze week begint er een.${s.best ? ` Je langste reeks was ${s.best} ${s.best === 1 ? 'week' : 'weken'}.` : ''}`), CALLS);
+  return answer(say(lang, `${s.current} ${s.current === 1 ? 'week' : 'weeks'} in a row with at least one workout${s.thisWeek ? ', this week included' : ' (this week has none yet, so it still counts)'}; your longest run is ${s.best} ${s.best === 1 ? 'week' : 'weeks'}. Health → Workouts → Calendar shows the month and the year.`,
+    `${s.current} ${s.current === 1 ? 'week' : 'weken'} op rij met minstens één workout${s.thisWeek ? ', deze week meegeteld' : ' (deze week nog geen, dus hij telt nog)'}; je langste reeks is ${s.best} ${s.best === 1 ? 'week' : 'weken'}. Health → Workouts → Calendar toont de maand en het jaar.`), CALLS);
 }
 /** "how many days did I train this year", "hoeveel dagen heb ik dit jaar getraind": the year view's count. */
 function trainingDaysYear(a: Asked): LocalReply | null {

@@ -145,6 +145,12 @@ describe('the calendar (LEDGER #118)', () => {
     expect(text(ask('how many days did I train this year'))).toMatch(/^\d+ days with a workout in 2026/);
     expect(text(ask('what is my workout streak', freshAll()))).toContain('No week in a row yet');
   });
+  test('one week is "1 week", never "1 weeks" (friend-readiness FR-TJ-17)', () => {
+    const s = showcaseAll(), w = s.ak!.workouts!, last = [...w.workouts].sort((x, y) => y.date.localeCompare(x.date))[0]!;
+    const one = {...s, ak: {...s.ak!, workouts: {...w, workouts: [last]}}};
+    expect(text(ask('how many weeks in a row have I trained', one))).toMatch(/^1 week in a row with at least one workout.*; your longest run is 1 week\. /);
+    expect(text(ask('hoeveel weken op rij heb ik getraind', one))).toMatch(/^1 week op rij met minstens één workout.*; je langste reeks is 1 week\. /);
+  });
 });
 
 describe('progress analytics (LEDGER #117)', () => {
