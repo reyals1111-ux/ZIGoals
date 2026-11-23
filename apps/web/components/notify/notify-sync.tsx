@@ -136,14 +136,8 @@ export function NotifySync() {
   if (!waiting && !newer) return null;
   const reload = () => {
     if (!waiting) { window.location.reload(); return; }
-    // Session AV lane 2 ([TIER 3] (PWA), CI run 2016, j04-offline): the page reloads when the new worker takes over, or
-    // after 3 s at the latest. Chromium sometimes held the waiting worker's takeover for 25 s and more after skipWaiting
-    // (1 in 10 locally, the old worker still busy), and the tapped Reload did nothing; the load lets it take over.
-    let gone = false;
-    const go = () => { if (gone) return; gone = true; window.location.reload(); };
-    navigator.serviceWorker?.addEventListener('controllerchange', go, {once: true});
+    navigator.serviceWorker?.addEventListener('controllerchange', () => window.location.reload(), {once: true});
     waiting.postMessage({type: 'zigoals:sw-reload'});
-    window.setTimeout(go, 3000);
   };
   return <div className="sw-update" role="status"><span>A new version of ZIGoals is ready. Your records are saved on this device.</span><button type="button" className="primary" onClick={reload}>Reload</button><button type="button" className="quiet" onClick={() => { setWaiting(null); setNewer(false); }}>Later</button></div>;
 }
