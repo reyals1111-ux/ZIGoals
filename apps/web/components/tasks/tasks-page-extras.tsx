@@ -27,21 +27,22 @@ export function BulkBar({count, total, projects, onDone, onLevel, onDue, onMove,
     <strong>{formatNumber(count)} selected</strong>
     {count < total && <button type="button" className="text-link" onClick={onAll}>Select all {formatNumber(total)}</button>}
     <button type="button" className="secondary" onClick={onDone}>Done</button>
-    <label className="field"><span>Priority</span><select value="" onChange={e => { if (e.target.value) onLevel(Number(e.target.value) as TaskLevel); }}><option value="">Set…</option>{([1, 2, 3, 4] as const).map(l => <option key={l} value={l}>P{l}</option>)}</select></label>
+    <label className="field"><span id={`${id}-level`}>Priority</span><select aria-labelledby={`${id}-level`} value="" onChange={e => { if (e.target.value) onLevel(Number(e.target.value) as TaskLevel); }}><option value="">Set…</option>{([1, 2, 3, 4] as const).map(l => <option key={l} value={l}>P{l}</option>)}</select></label>
     <button type="button" className="quiet" onClick={() => onDue('today')}>Due today</button>
     <button type="button" className="quiet" onClick={() => onDue('tomorrow')}>Due tomorrow</button>
-    {today && <span className="tasks-bulk-group" role="group" aria-labelledby={`${id}-day`}>
+    {/* Session AV lane 2 (fixb6): each group has its own name, so it never shares one with the field inside it; each select is named by its own word. */}
+    {today && <span className="tasks-bulk-group" role="group" aria-label="Pick a day">
       <label className="field"><span id={`${id}-day`}>Any day</span><input type="date" value={day} onChange={e => setDay(e.target.value)} /></label>
       <button type="button" className="quiet" disabled={!day} onClick={() => { if (day) { onDue(day); setDay(''); } }}>Set the day</button>
       <button type="button" className="quiet" onClick={() => onDue(null)}>No day</button>
     </span>}
-    <label className="field"><span>Move to</span><select value="" onChange={e => { if (e.target.value) onMove(e.target.value === 'inbox' ? null : e.target.value); }}><option value="">Choose…</option><option value="inbox">Inbox</option>{projects.filter(p => !p.archived).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
-    {labels && onLabel && <span className="tasks-bulk-group" role="group" aria-labelledby={`${id}-label`}>
+    <label className="field"><span id={`${id}-move`}>Move to</span><select aria-labelledby={`${id}-move`} value="" onChange={e => { if (e.target.value) onMove(e.target.value === 'inbox' ? null : e.target.value); }}><option value="">Choose…</option><option value="inbox">Inbox</option>{projects.filter(p => !p.archived).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
+    {labels && onLabel && <span className="tasks-bulk-group" role="group" aria-label="Labels">
       <label className="field"><span id={`${id}-label`}>Add a label</span><input value={label} list={`${id}-labels`} maxLength={41} placeholder="@errand" aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-error` : undefined}
         onChange={e => { setLabel(e.target.value); setError(''); }} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addLabel(); } }} /></label>
       <datalist id={`${id}-labels`}>{labels.all.map(l => <option key={l} value={l} />)}</datalist>
       <button type="button" className="quiet" disabled={!label.trim()} onClick={addLabel}>Add</button>
-      {labels.carried.length > 0 && <label className="field"><span>Take off a label</span><select value="" onChange={e => { if (e.target.value) onLabel(e.target.value, false); }}><option value="">Choose…</option>{labels.carried.map(l => <option key={l} value={l}>@{l}</option>)}</select></label>}
+      {labels.carried.length > 0 && <label className="field"><span id={`${id}-off`}>Take off a label</span><select aria-labelledby={`${id}-off`} value="" onChange={e => { if (e.target.value) onLabel(e.target.value, false); }}><option value="">Choose…</option>{labels.carried.map(l => <option key={l} value={l}>@{l}</option>)}</select></label>}
       {error && <small id={`${id}-error`} className="tasks-field-error" role="alert">{error}</small>}
     </span>}
     <button type="button" className="quiet" onClick={onRemove}>Remove</button>

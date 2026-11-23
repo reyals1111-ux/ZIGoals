@@ -180,6 +180,9 @@
 .tasks-main .tasks-column .task { grid-template-columns: auto auto minmax(0, 1fr); grid-template-areas: "select done title" "select done meta" "actions actions actions" "sub sub sub"; }
 .tasks-bulk { display: flex; flex-wrap: wrap; align-items: end; gap: 6px 10px; padding: 8px 12px; border-radius: 14px; border: 1px solid var(--cyan); position: sticky; top: 72px; z-index: 2; background: var(--surface, var(--panel, rgba(10, 12, 30, .92))); }
 .tasks-bulk button, .tasks-bulk select { min-height: 44px; }
+/* Session AV lane 2 (fixb6): on a phone (or a short window) the bar wraps to most of the screen's height; held at the top it
+   covered every row below it, so another task could not be seen or chosen. There it stays where it is in the page. */
+@media (max-width: 767px), (max-height: 600px) { .tasks-bulk { position: static; } }
 .tasks-bulk strong { align-self: center; }
 /* Session AV lane 2 (r6-plan, LEDGER #391): any day, and a label added or taken off, kept together as small groups. */
 .tasks-bulk-group { display: inline-flex; flex-wrap: wrap; align-items: end; gap: 6px 8px; max-width: 100%; }

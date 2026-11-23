@@ -41,7 +41,8 @@ for (const theme of THEMES) test(`${theme}: the screen cover comes back after a 
   expect(JSON.parse((await stored(page)).lock!).hash).toBe(JSON.parse(lockBefore!).hash);
   // Never: hidden an hour, still open.
   await away.selectOption('');
-  await visibility(page, 'hidden'); await page.clock.fastForward('61:00'); await visibility(page, 'visible');
+  // (fixb6; deliberate) one hour and a minute written as 01:01:00: Playwright refuses '61:00' as an invalid mm:ss.
+  await visibility(page, 'hidden'); await page.clock.fastForward('01:01:00'); await visibility(page, 'visible');
   await expect(cover).toHaveCount(0);
   await page.setViewportSize({width: 320, height: 720});
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);

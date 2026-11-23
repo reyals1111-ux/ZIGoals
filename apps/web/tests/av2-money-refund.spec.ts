@@ -23,9 +23,13 @@ for (const theme of THEMES) test(`${theme}: a refund lowers its category and its
   const section = spending(page);
   await section.getByRole('button', {name: 'Log spending'}).click();
   const form = section.getByRole('form', {name: 'Log spending or income'});
-  await form.getByRole('radiogroup', {name: 'Kind'}).getByText('Refund', {exact: true}).click();
+  // (fixb6; deliberate) the chips' radios sit over their words (a click there still chooses), so a click on the word's
+  // span is caught by the radio; choose the radio by its role and name, as the other money specs do, and check it took.
+  const refund = form.getByRole('radiogroup', {name: 'Kind'}).getByRole('radio', {name: 'Refund', exact: true});
+  await refund.check(); await expect(refund).toBeChecked();
   await form.getByLabel('Amount').fill('30');
-  await form.locator('fieldset.spending-cats').getByText('Groceries', {exact: true}).click();
+  const groceries = form.locator('fieldset.spending-cats').getByRole('radio', {name: 'Groceries', exact: true});
+  await groceries.check(); await expect(groceries).toBeChecked();
   await expect(form.locator('.money-refund-of')).toContainText('A refund lowers Groceries: its spending, its budget and this month’s figures. It is never counted as money received.');
   await form.getByLabel('The purchase it refunds — optional').selectOption(bought.id);
   const findings = await axe(page, form);

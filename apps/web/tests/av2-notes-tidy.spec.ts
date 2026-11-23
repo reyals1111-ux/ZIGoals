@@ -82,7 +82,11 @@ for (const theme of THEMES) {
     await merge.getByRole('button', {name: /Merge into “Fictional Italy”/}).click();
     await expect(page).toHaveURL(/note=n-b/);
     await expect.poll(async () => (await stored(page)).trash?.map((n: {id: string}) => n.id)).toEqual(['n-a']);
-    await expect.poll(async () => (await stored(page)).notes.find((n: {id: string}) => n.id === 'n-b').body).toBe('The trip. See [[Fictional Italy#Fictional Rome]].\n\n## Fictional Rome\n\nColosseum. #trip');
+    // (fixb6; deliberate) Rome's Budget 300 and Booked Yes differ from Italy's own (100, No), so #407 keeps them as lines
+    // under its heading ("nothing is lost", lib/notes/merge.ts); the spec had left them out. Still the whole body, exactly,
+    // and Italy keeps its own values.
+    await expect.poll(async () => (await stored(page)).notes.find((n: {id: string}) => n.id === 'n-b').body).toBe('The trip. See [[Fictional Italy#Fictional Rome]].\n\n## Fictional Rome\n\nColosseum. #trip\n\nProperties it had:\n- Budget: 300\n- Booked: Yes');
+    expect((await stored(page)).notes.find((n: {id: string}) => n.id === 'n-b').props).toEqual(expect.arrayContaining([{k: 'Budget', t: 'number', v: 100}, {k: 'Booked', t: 'tick', v: false}]));
     await page.locator('.aa-toast').getByRole('button', {name: /Undo/}).first().click();
     await expect.poll(async () => (await stored(page)).notes.length).toBe(4);
     await expect.poll(async () => (await stored(page)).trash).toBeUndefined();

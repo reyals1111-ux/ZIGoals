@@ -38,7 +38,7 @@ export default function ExerciseOwn({exercise, w, unit, change, today}: {exercis
     change(x => setExerciseDefaults(x, exercise.id, d), `${exercise.name}: ${defaultsWords(d)} when you add it with no earlier sets.`);
   }
   return <div className="r6-exercise-own">
-    <p><button type="button" className="secondary r6-star" aria-pressed={star} onClick={() => change(x => setFavouriteExercise(x, exercise.id, !star), star ? `${exercise.name} is no longer a favourite.` : `${exercise.name} is a favourite: it comes first when you add an exercise.`)}><span className="r6-star-mark" aria-hidden="true">{star ? '★' : '☆'}</span> Favourite<span className="sr-only">: {exercise.name}</span></button></p>
+    <p>{/* Session AV lane 2 (fixb6): named "Favourite: <name>" as one string, like the picker's star (a hidden span read as "Favourite : Squat"). */}<button type="button" className="secondary r6-star" aria-pressed={star} aria-label={`Favourite: ${exercise.name}`} onClick={() => change(x => setFavouriteExercise(x, exercise.id, !star), star ? `${exercise.name} is no longer a favourite.` : `${exercise.name} is a favourite: it comes first when you add an exercise.`)}><span className="r6-star-mark" aria-hidden="true">{star ? '★' : '☆'}</span> Favourite</button></p>
     {h && <section aria-labelledby={`${id}-bests`}>
       <h4 id={`${id}-bests`}>Your bests and their days</h4>
       {shown(h, h.measure).length ? <ul className="r6-bests">{shown(h, h.measure).map(k => <li key={k}>{LABELS[k]}: <strong>{valueText(k, h[k]!, unit)}</strong>{h.bestDays[k] ? ` · ${formatDate(h.bestDays[k]!)}` : ''}</li>)}</ul>

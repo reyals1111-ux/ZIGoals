@@ -11,7 +11,7 @@ import {HEALTH_STORAGE_KEY} from '../lib/health';
  * 320. Fictional sessions; /api offline.
  */
 test.use({timezoneId: 'UTC'});
-const session = (day: string, clock: string, i: number) => ({id: `health_med-r6-${String(i).padStart(4, '0')}`, startedAt: `${day}T${clock}:00.000Z`, seconds: 600, kind: 'manual', timeZone: 'UTC', source: 'manual', createdAt: `${day}T${clock}:00.000Z`, updatedAt: `${day}T${clock}:00.000Z`});
+const session = (day: string, clock: string, i: number) => ({id: `health_med-r6-${String(i).padStart(5, '0')}` /* (fixb6; deliberate) ids need 8+ characters after health_med- */, startedAt: `${day}T${clock}:00.000Z`, seconds: 600, kind: 'manual', timeZone: 'UTC', source: 'manual', createdAt: `${day}T${clock}:00.000Z`, updatedAt: `${day}T${clock}:00.000Z`});
 const sessions = [session(back(3), '08:00', 1), session(back(2), '08:00', 2), session(back(1), '08:00', 3), session(TODAY, '01:00', 4)];
 for (const theme of THEMES) test(`${theme}: the meditation day, consistency and several days`, async ({page, isMobile}) => {
   await applyTheme(page, theme);
