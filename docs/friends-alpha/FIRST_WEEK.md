@@ -47,7 +47,7 @@ so ticking things off at 1:30 still counts for "today".
 ## Day 7: keep a copy
 
 Settings → **Export everything** makes a readable file of your records on your device. Keep it somewhere private; it can
-be restored later (Settings → Your data → Restore from a backup; on a phone, the Settings row **Your data & restore**
+be restored later (Settings → Your data → Restore from a backup; on a phone, the Settings row **Restore a backup**
 opens it). Once you have added a good amount since your last copy,
 Today offers the same backup in one tap (at most every two weeks; "Not now" waits, and you can turn it off).
 

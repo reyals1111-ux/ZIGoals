@@ -34,7 +34,7 @@ const AREA_LABEL: Record<(typeof PAGE_AREAS)[number], string> = {today: 'Today',
 
 export function DataHealthView() {
   const [read, setRead] = useState<Read | null>(null);
-  // Session AV lane 2 (fr-layout, FR-L-7): /app/settings/data#restore (the phone's "Your data & restore", the export's and the
+  // Session AV lane 2 (fr-layout, FR-L-7): /app/settings/data#restore (the phone's "Restore a backup", the export's and the
   // vault's links, the page's own jump) lands on Restore once this view has drawn; the sections render after the page.
   useHashArrival(() => ({}));
   // Session AV (Part 4b, KL-2): a copy made from Today's card, or marked with "I saved a copy today", keeps its day; shown here.

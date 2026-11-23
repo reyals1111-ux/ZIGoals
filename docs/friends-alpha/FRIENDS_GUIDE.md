@@ -102,7 +102,7 @@ ZIGoals grew from goals, habits, health and wealth into one place for most of yo
 ## 8b. New in this release: everything travels, and nothing is lost
 
 - **More of your records sync, encrypted:** goal plans and areas, sub-goals and stories, average goals, calculator scenarios, the Life review focus, Today's cards, habit extras, routines and the game; accounts and debts too. Settings → Sync → "Also sync my extras" turns them off on a device.
-- **Restore from a backup:** Settings → Your data → **Restore from a backup** (on a phone, the Settings row **Your data & restore**), then choose a ZIP made by "Export everything". You see what it holds, choose per part to merge or replace, confirm, and can undo.
+- **Restore from a backup:** Settings → Your data → **Restore from a backup** (on a phone, the Settings row **Restore a backup**), then choose a ZIP made by "Export everything". You see what it holds, choose per part to merge or replace, confirm, and can undo.
 - **Point & tell:** Settings → Help & diagnostics → "Show the Point & tell button". Tap the pin, then the part of a page you mean, and write what you think; copy, download or email your notes.
 - **Vitamins** A, C, D, E, K, B12 and folate in Health, from a food's label; unknown stays unknown.
 - **Amounts your way:** type "3,250.50" or "3.250,50"; a new goal starts in euros if your phone is set to a euro country.
