@@ -21,6 +21,7 @@
 | CI runs 2012–2023 | A goal name in a link's URL (Alpha gate) `01858ef3`; restore link out of the header art `8f8b3341`; theme sheets `9af2bcbd`; ZIGi's two voice hints `f5f172e9`; route walk and layout walk in two parts `51b05c43`, `0efdc7fa`; specs to deliberate friend-readiness wording | see ADR-045 D-CI2012–2023 |
 | Shards (follow-up 7) | Main browser shards 14 → 20 (`60b65190`), then files that slowed each other moved (`3d491fef`, `1e41ab6b`) | TIER 3 CI |
 | j04-offline (follow-up 8) | The router's prefetch woke the old worker mid-takeover; the page's requests now wait until the new worker controls the page (`1116646f`), with a 5-s "Almost there" note; proof spec `6132b166` | TIER 3 PWA |
+| Run 2025 (final-head re-check) | ZIGi not set up rests at "attention" even when the set-up ask came during the greeting (`c98f0deb`, unit test); zigi-alive:54 waits for the stored flag's write (`76883e08`, same values) | — |
 | Ledger and docs | LEDGER rounds 2–6 verdicts `e5b01ff6`; ADR-045 records, follow-ups 5–8 verbatim | |
 
 ## Tier 3, in plain words (risk → rollback)
@@ -38,7 +39,7 @@ Every changed assertion is marked `deliberate` in its spec with the reason; of 6
 - `j04-offline`'s takeover: 45 local takeovers on the production build, 0 stuck (before the fix: 2–3 stuck in every 6–12).
 
 ## Carried (each with its cause in ADR-045)
-FR-TJ-7 on the phone (the accepted Habits baseline); 15 friend-readiness Minors; round 7 (31 rows, next session); WebKit's slow Settings hydration (`zigi-voice-z:199`, `zigi-alive:54`); one Vitest teardown error (run 2019, not reproduced).
+FR-TJ-7 on the phone (the accepted Habits baseline); 15 friend-readiness Minors; round 7 (31 rows, next session); WebKit's slow Settings hydration (`zigi-voice-z:199`); desktop `zigi-states:75`'s greeting missed 3 of 12 locally (cause not found, D-CI2025); one Vitest teardown error (run 2019, not reproduced).
 
 ## Owner list
 1. Merge PR #109 (merge commit), then deploy the private-sync Worker from `main` (`workers/private-sync`, OWNER_STEPS.md "Lane 2").
@@ -47,7 +48,7 @@ FR-TJ-7 on the phone (the accepted Habits baseline); 15 friend-readiness Minors;
 4. The next Manual Alpha deployment from `main` when you choose (docs/deployment/MANUAL_ALPHA_WORKFLOW.md).
 
 ## CI on the final head
-**Safe to merge now: yes.** [Run 2024](https://github.com/reyals1111-ux/ZIGoals/actions/runs/45282084291) on `12b04b94` (the last code commit): all 32 jobs green on the first attempt, no re-run; main shards 26.7–43.3 min, WebKit 21.0–40.1, a11y 12.6–28.6. Later commits are docs only. Runs 2006–2023 are read job by job at their cause in ADR-045 (D-CI2006 … D-CI2016-J04). The suite: 1,393 worker-minutes per run over 20 main shards.
+**Safe to merge now: set by the Milestone quality run on this head** (the run after run 2025, on the commit after `76883e08`): yes only if it is green on the first attempt, apart from registered known intermittents that pass on their one re-run, each named. PR #109's description gives the verdict once that run is over; nothing is pushed after it. Before it: [run 2025](https://github.com/reyals1111-ux/ZIGoals/actions/runs/45292105248) on `4781e004` (docs only) was red, WebKit shard 2: `zigi-voice-z:199` on both attempts, then `zigi-states:200` on both attempts of the re-run, a set-up ask lost while the greeting played, fixed in the app (`c98f0deb`, D-CI2025); `zigi-alive:54`'s stored-flag read now waits for the write (`76883e08`). [Run 2024](https://github.com/reyals1111-ux/ZIGoals/actions/runs/45282084291) on `12b04b94` was all 32 jobs green on the first attempt. Runs 2006–2025 are read job by job at their cause in ADR-045. The suite: 1,393 worker-minutes per run over 20 main shards.
 
 ## Known CI intermittents (this session)
 None registered. `j04-offline`'s update stall (D-CI2016-J04) was fixed at its measured cause (follow-up 8) and is green; still recorded without failing the final run: WebKit's slow Settings hydration (`zigi-voice-z:199`, `zigi-alive:54`, D-CI1991), `zigi-browser-agents:126` (runs 2012, 2022; 24 of 24 locally), one Vitest teardown error (run 2019).

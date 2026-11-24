@@ -25,7 +25,7 @@ Lane 2's own state is kept in this file's "Lane 2 — state" section on that bra
   to build next session), the friend-readiness pass (FRIEND_READINESS.md), 20 main CI shards (owner follow-up 7) and the
   update takeover fixed at its cause with a fallback note (owner follow-up 8). ADR-045's lane 2 closing table has the
   counts, the CI history and the suite's size (1,393 worker-minutes per run).
-  **Safe to merge now: yes (CI run 2024 on `12b04b94`, every job green on the first attempt; re-runs: none).** Later
+  **Safe to merge now: set by the Milestone quality run on this head** (the run after run 2025, on the commit after `76883e08`): yes only if it is green on the first attempt, apart from registered known intermittents that pass on their one re-run, each named. PR #109's description gives the verdict once that run is over; nothing is pushed after it. Run 2025 on `4781e004` was red (D-CI2025 in ADR-045; cause fixed in `c98f0deb`).
   commits are docs only. Owner steps after merge: deploy the private-sync Worker from `main`; redeploy the food Worker
   ("never early", OWNER_STEPS.md 9e); the market price policy before 30 Nov 16:00 UTC (OWNER_STEPS.md step 6).
   Next session: round 7 (LEDGER.md #432–#464), WebKit's slow Settings hydration, the 15 Carried friend-readiness Minors.
