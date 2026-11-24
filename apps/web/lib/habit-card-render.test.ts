@@ -25,17 +25,20 @@ function Cards({ data }: { data: HabitData }) {
 }
 let root: Root, container: HTMLDivElement;
 beforeEach(() => { vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true); renders.clear(); container = document.createElement("div"); document.body.append(container); root = createRoot(container); });
+// Session AV lane 2 (CI run 2027, checks): the full card's lazy parts finish loading inside the render's act, not after it;
+// React's "not wrapped in act" warning then came after the file ended (Vitest: "Closing rpc while onUserConsoleLog was pending").
+const lazyParts = () => new Promise(resolve => setTimeout(resolve, 100));
 afterEach(async () => { await act(async () => root.unmount()); container.remove(); });
 
 test("one check-in among 45 habits re-renders exactly one card", async () => {
   const first = reparse(ids.reduce((data, id, i) => createHabit(data, input(`Habit ${i + 1}`), at, id), emptyHabitData()));
-  await act(async () => root.render(createElement(Cards, { data: first })));
+  await act(async () => { root.render(createElement(Cards, { data: first })); await lazyParts(); });
   expect(renders.size).toBe(45);
   renders.clear();
 
   // A save is parsed again in full, as the store does; sharing keeps the 44 unchanged habit objects.
   const next = shareHabitData(first, reparse(logHabitValue(first, ids[7]!, today, 1, {}, at)));
-  await act(async () => root.render(createElement(Cards, { data: next })));
+  await act(async () => { root.render(createElement(Cards, { data: next })); await lazyParts(); });
   expect([...renders]).toEqual([["Habit 8", 1]]);
   expect(container.querySelector(`#habit-${ids[7]} .habit-count`)?.textContent).toContain("1 / 1");
 });
