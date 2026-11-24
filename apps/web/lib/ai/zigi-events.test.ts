@@ -111,4 +111,15 @@ it('Session X-Local Phase 2 (P2.5): ZIGi on but not set up asks for attention at
   expect(transition('attention', 'idle', context)).toBe('idle');
   expect(transition('idle', 'connected', context)).toBeNull();
 });
-
+it('Session AV lane 2 (CI run 2025, zigi-states:200): an ask for set-up that comes while the greeting plays is kept: the greeting ends at attention, and set up, ZIGi rests at idle', () => {
+  const notSetUp = {open: false, greetedToday: true, setup: true}, setUp = {open: false, greetedToday: true, setup: false};
+  // The ask itself is not taken over a one-shot (as before) …
+  expect(transition('greeting', 'attention', notSetUp)).toBeNull();
+  // … but ZIGi's rest while not set up is attention, so the greeting (or any one-shot) ends there.
+  expect(restState(notSetUp)).toBe('attention');
+  expect(transition('attention', 'idle', notSetUp)).toBe('attention');
+  expect(restState({...notSetUp, offline: true})).toBe('offline');
+  // Set up: the rest is idle again.
+  expect(transition('attention', 'connected', setUp)).toBe('idle');
+  expect(restState(setUp)).toBe('idle');
+});

@@ -22,9 +22,11 @@ export const TRANSIENT_MS: Partial<Record<ZigiState, number>> = Object.fromEntri
 export const SLEEPY_AFTER_MS = 90_000;
 /** The tab's own note of the day ZIGi last greeted; the greeting shows once a day, on the first open (sessionStorage: nothing persists beyond the tab). */
 export const GREETED_KEY = 'zigoals:ai:greeted:v1';
-export type ZigiContext = {open: boolean; greetedToday: boolean; offline?: boolean};
+export type ZigiContext = {open: boolean; greetedToday: boolean; offline?: boolean; setup?: boolean};
 /** Where ZIGi rests between events: idle, or offline while the device is. */
-export const restState = (context: ZigiContext): ZigiState => context.offline ? 'offline' : 'idle';
+// Session AV lane 2 (CI run 2025, zigi-states:200): ZIGi not set up rests at "attention", also when the ask came while a
+// one-shot (the greeting) played and was not taken then; set up, it rests at idle.
+export const restState = (context: ZigiContext): ZigiState => context.offline ? 'offline' : context.setup ? 'attention' : 'idle';
 /** The state an event leads to, from the current state and context; `null` means the event changes nothing. */
 export function transition(current: ZigiState, event: ZigiEvent, context: ZigiContext): ZigiState | null {
   switch (event) {
@@ -69,9 +71,9 @@ const today = () => new Date().toISOString().slice(0, 10);
 function greetedToday(): boolean { try { return window.sessionStorage.getItem(GREETED_KEY) === today(); } catch { return false; } }
 function markGreeted(): void { try { window.sessionStorage.setItem(GREETED_KEY, today()); } catch { /* the tab's storage refused; ZIGi greets again next time */ } }
 // One machine per page: its timers live here, so a remount (React's development double effects) never loses them.
-let open = false, offline = false, rest: number | null = null, sleepy: number | null = null, listenAfter = false;
+let open = false, offline = false, setup = false, rest: number | null = null, sleepy: number | null = null, listenAfter = false;
 const clear = (id: number | null) => { if (id) window.clearTimeout(id); return null; };
-const context = (): ZigiContext => ({open, greetedToday: greetedToday(), offline});
+const context = (): ZigiContext => ({open, greetedToday: greetedToday(), offline, setup});
 function armSleepy(): void {
   sleepy = clear(sleepy);
   if (open) sleepy = window.setTimeout(() => { sleepy = null; const next = transition(zigiState.get(), 'sleepy', context()); if (next) zigiState.set(next); }, SLEEPY_AFTER_MS);
@@ -79,6 +81,7 @@ function armSleepy(): void {
 function handle(event: ZigiEvent): void {
   if (event === 'open') open = true; else if (event === 'close') open = false;
   if (event === 'offline') offline = true; else if (event === 'online') offline = false;
+  if (event === 'attention') setup = true; else if (event === 'connected') setup = false;
   // Phase 2 (P2.5, found by the states spec): the composer takes focus the moment the panel opens, so "listening" was
   // replacing the greeting in the same frame and the greeting never showed. The greeting plays out; listening follows it.
   if (event === 'listening' && zigiState.get() === 'greeting' && rest !== null) { listenAfter = true; armSleepy(); return; }
