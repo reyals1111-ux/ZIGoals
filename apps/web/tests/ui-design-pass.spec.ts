@@ -396,6 +396,9 @@ test.describe('Part 3: liquid glass',()=>{
   await page.goto('/app/health');const field=page.getByLabel('Water amount',{exact:true});await expect(field).toBeVisible();
   // Its card fits the screen, so only the typing rule keeps it still.
   expect(await field.evaluate(e=>e.closest<HTMLElement>('.panel')!.getBoundingClientRect().height<=Math.max(900,innerHeight*1.25))).toBe(true);
+  // Session AV lane 2 (CI run 2026, both attempts): the Showcase's own drinks load in their own part and take their row between
+  // the buttons and this field a moment after the page answers; the keyboard step waits for that row, so Tab comes back here.
+  await expect(page.getByRole('group',{name:'Your drinks, one tap each'})).toBeVisible();
   await field.focus();await page.keyboard.press('Shift+Tab');await page.keyboard.press('Tab');await expect(field).toBeFocused();
   expect(await field.evaluate(e=>e.matches(':focus-visible')&&e.closest('[data-glass-hover]')===null)).toBe(true);
   const star=page.locator('.sidebar-star');
