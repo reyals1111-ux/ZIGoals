@@ -72,7 +72,8 @@ test('one control: the chevron sits centred below the circle in a 44 px target; 
   expect(t.x + t.width).toBeGreaterThanOrEqual(viewport.width - 1);
   expect(t.width).toBeGreaterThanOrEqual(44); expect(t.height).toBeGreaterThanOrEqual(44);
   if (isMobile) { const tabs = (await page.locator('.phone-tabbar').boundingBox())!; expect(t.y + t.height).toBeLessThanOrEqual(tabs.y + 1); }
-  expect((await stored(page, AI_SETTINGS_KEY))?.launcherHidden).toBe(true);
+  // The record is written by the validated updater, loaded only on the tap (ADR-012 part A), so a moment after the UI changed.
+  await expect.poll(async () => (await stored(page, AI_SETTINGS_KEY))?.launcherHidden).toBe(true);
   // Hidden stays hidden on the next visit, with the tab there to bring ZIGi back; the focus lands on ZIGi.
   await page.reload();
   await expect(edgeTab(page)).toBeVisible();
@@ -81,7 +82,7 @@ test('one control: the chevron sits centred below the circle in a 44 px target; 
   await expect(launcher(page)).toBeVisible();
   await expect(edgeTab(page)).toHaveCount(0);
   await expect(openButton(page)).toBeFocused();
-  expect((await stored(page, AI_SETTINGS_KEY))?.launcherHidden).toBe(false);
+  await expect.poll(async () => (await stored(page, AI_SETTINGS_KEY))?.launcherHidden).toBe(false);
 });
 
 test('keyboard and pointer: the chevron says what it does, and the edge tab works from the keyboard', async ({page, isMobile}) => {

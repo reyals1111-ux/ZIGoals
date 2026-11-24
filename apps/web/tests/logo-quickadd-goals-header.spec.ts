@@ -9,7 +9,8 @@ async function showcase(page:Page){
 }
 // Session AK G2 (RELEASE_REVIEW_2 R2-13, deliberate): the most frequent first, and Note is one of the sheet's own rows.
 // Session AL (P-LS-04, DV-163b, deliberate): a Task row after Note, the sheet's way into Tasks.
-const OPTIONS=['Health entry','Habit','Note','Task','Contribution','Goal','Asset'];
+// Session AV lane 2 (fr-money, FR-L-4, fd7eba80; deliberate, as strict): a Spending row after Habit, Lina's daily action.
+const OPTIONS=['Health entry','Habit','Spending','Note','Task','Contribution','Goal','Asset'];
 
 test('the Today hero Quick add is the primary action and opens the same Quick add options',async({page,isMobile})=>{
  await showcase(page);

@@ -3,7 +3,8 @@ import type {RevocationCheck} from '../lib/vault/revocation-check';
 import {forgetPushOnThisDevice} from '../lib/push/device';
 import {forgetAiAccount} from '../lib/ai/account';
 import {forgetZigiFace} from '../lib/z-device-forget';
-import {createContext,useCallback,useContext,useEffect,useRef,useState,type ReactNode} from 'react';
+import {useCallback,useEffect,useLayoutEffect,useRef,useState,type ReactNode} from 'react';
+import {publishVaultControls,type ExtrasStatus,type SectionSync} from './vault-context';
 import * as z from 'zod';
 import type {ConflictReview,Choices} from '../lib/vault/conflict-review';
 import type {ForwardReview} from '../lib/vault/forward-recovery';
@@ -20,6 +21,7 @@ import {synchronize,cloudSnapshot,SyncJournal,OlderVaultError,OlderCloudError,ty
 import {reconcileOnce} from '../lib/vault/reconcile-once';
 import {accountTransport} from '../lib/vault/account-transport';
 import type {StepUp} from '../lib/vault/step-up';
+import {stopsExtras,type ExtrasChoiceSectionName} from '../lib/vault/extras-keys';
 // Session Z-Cloud Part 5 (A6): the step-up code loads when one of the five actions runs or a secret is entered.
 const stepUpModule=()=>import('../lib/vault/step-up');
 // Session Z-Cloud Part 5 (A7): the note that lets Export everything copy a deleted account's records loads when needed.
@@ -35,11 +37,9 @@ import {ACCOUNTS_KEY,MILESTONE_DATES_KEY} from '../lib/w-device-keys';
 const financeHomes=()=>import('../lib/finance-homes-store');
 const FINANCE_HOMES_DEVICE_KEYS:readonly string[]=[ACCOUNTS_KEY,MILESTONE_DATES_KEY];
 const extrasModule=()=>import('../lib/vault/extras-sync');
-import type {ExtrasOutcome} from '../lib/vault/extras-sync';
 /** Session AB-Cloud Part 2 (ADR-023 C1–C5): what the extras' last run said, for Settings → Sync. */
 /** Session AD item 11 (ADR-026): one section's last sync in this session, and whether it brought another device's changes in. */
-export type SectionSync={at:string;merged:boolean};
-export type ExtrasStatus={state:'off'}|{state:'synced';outcomes:ExtrasOutcome[];at:string}|{state:'error';message:string}|{state:'removed'}|{state:'deleted-elsewhere'};
+export type {SectionSync,ExtrasStatus} from './vault-context';
 import {ZIGI_STORE_EVENT} from '../lib/ai/store/keys';
 import {plainErrorMessage} from '../lib/plain-error';
 type Session={account:string;generation:number;key:CryptoKey;manifest:VaultManifest;health:boolean;device:DeviceBinding|null};
@@ -47,18 +47,12 @@ type Sealed={key:CryptoKey;sealed:SealedRoot;deviceKey:CryptoKey;forgets:number|
 type Generated=Awaited<ReturnType<typeof createVault>>&{operation:string};
 type AttachPreview={plan:AttachPlan;generation:number};
 type RotationKeys=Awaited<ReturnType<typeof createVault>>;
-type Controls={conflictReview:ConflictReview|null;prepareConflict:()=>Promise<void>;confirmConflict:(choices:Choices)=>Promise<void>;cancelConflict:()=>void;forwardReview:ForwardReview|null;prepareForward:()=>Promise<void>;confirmForward:()=>Promise<void>;cancelForward:()=>void;domainReview:DomainReview|null;prepareDomain:(kind:DomainReview['kind'],domain:Domain)=>Promise<void>;confirmDomain:(secret?:string)=>Promise<void>;cancelDomain:()=>void;eraseAccount:(identity:boolean,secret:string)=>Promise<{deleted:boolean;providerDeleted?:boolean;providerPending?:boolean}|null>;rotationKeys:RotationKeys|null;stagedRotation:VaultManifest|null;prepareRotation:()=>Promise<void>;resumeRotation:(secret:string)=>Promise<void>;finishRotation:(secret:string)=>Promise<void>;abortRotation:()=>Promise<void>;cancelRotation:()=>void;attachPreview:AttachPreview|null;prepareAttach:(domains:Domain[])=>Promise<void>;confirmAttach:()=>Promise<void>;cancelAttach:()=>void;authenticated:(id:string)=>Promise<void>;forget:()=>void;prepare:()=>Promise<void>;enroll:(remember?:boolean)=>Promise<void>;unlock:(secret:string,remember?:boolean)=>Promise<void>;stepUp:(secret:string)=>Promise<StepUp|undefined>;remembered:boolean;deviceNote:string;forgetDevice:()=>Promise<void>;lockNow:()=>void;registerAccess:()=>()=>void;accessEpoch:number;sync:()=>Promise<void>;preparePendingRecovery:()=>Promise<void>;pendingRecovery:{file:string;recovery:string}|null;clearPendingRecovery:()=>void;setHealth:(value:boolean)=>void;health:boolean;healthAsk:boolean;vaultGone:'missing'|'older'|null;startOver:()=>Promise<void>;accessDenied:(code:AccountDenial['denied'])=>Promise<void>;account:string|null;manifest:VaultManifest|null|undefined;generated:Generated|null;cancel:()=>void;busy:boolean;opened:boolean;message:string;error:string;last:string;portfolio:PortfolioStatus|null;syncPortfolioNow:(choice?:'keep-device'|'keep-cloud')=>Promise<void>;deletePortfolioCloud:()=>Promise<void>;extras:ExtrasStatus|null;setExtrasEnabled:(on:boolean)=>Promise<void>;removeExtrasCloud:()=>Promise<void>;sections:Partial<Record<Domain,SectionSync>>;portfolioAt:string};
-const Context=createContext<Controls|null>(null);
+export type Controls={conflictReview:ConflictReview|null;prepareConflict:()=>Promise<void>;confirmConflict:(choices:Choices)=>Promise<void>;cancelConflict:()=>void;forwardReview:ForwardReview|null;prepareForward:()=>Promise<void>;confirmForward:()=>Promise<void>;cancelForward:()=>void;domainReview:DomainReview|null;prepareDomain:(kind:DomainReview['kind'],domain:Domain)=>Promise<void>;confirmDomain:(secret?:string)=>Promise<void>;cancelDomain:()=>void;eraseAccount:(identity:boolean,secret:string)=>Promise<{deleted:boolean;providerDeleted?:boolean;providerPending?:boolean}|null>;rotationKeys:RotationKeys|null;stagedRotation:VaultManifest|null;prepareRotation:()=>Promise<void>;resumeRotation:(secret:string)=>Promise<void>;finishRotation:(secret:string)=>Promise<void>;abortRotation:()=>Promise<void>;cancelRotation:()=>void;attachPreview:AttachPreview|null;prepareAttach:(domains:Domain[])=>Promise<void>;confirmAttach:()=>Promise<void>;cancelAttach:()=>void;authenticated:(id:string)=>Promise<void>;forget:()=>void;prepare:()=>Promise<void>;enroll:(remember?:boolean)=>Promise<void>;unlock:(secret:string,remember?:boolean)=>Promise<void>;stepUp:(secret:string)=>Promise<StepUp|undefined>;remembered:boolean;deviceNote:string;forgetDevice:()=>Promise<void>;lockNow:()=>void;registerAccess:()=>()=>void;accessEpoch:number;sync:()=>Promise<void>;preparePendingRecovery:()=>Promise<void>;pendingRecovery:{file:string;recovery:string}|null;clearPendingRecovery:()=>void;setHealth:(value:boolean)=>void;health:boolean;healthAsk:boolean;vaultGone:'missing'|'older'|null;startOver:()=>Promise<void>;accessDenied:(code:AccountDenial['denied'])=>Promise<void>;account:string|null;manifest:VaultManifest|null|undefined;generated:Generated|null;cancel:()=>void;busy:boolean;opened:boolean;message:string;error:string;last:string;portfolio:PortfolioStatus|null;syncPortfolioNow:(choice?:'keep-device'|'keep-cloud')=>Promise<void>;deletePortfolioCloud:()=>Promise<void>;extras:ExtrasStatus|null;setExtrasEnabled:(on:boolean)=>Promise<void>;removeExtrasCloud:(section?:ExtrasChoiceSectionName)=>Promise<void>;sections:Partial<Record<Domain,SectionSync>>;portfolioAt:string};
 /** The provider's controls, for the Settings panel (components/vault-sync-panel.tsx, Session X Part 5b). */
-export function useVaultControls(){return useContext(Context);}
-/** Refusals of the Health consent checkbox; the checkbox is described by the error while one is shown. */
-export const HEALTH_HELD_REFUSAL='Health is kept locally after cloud deletion. Use Review restoring local section before enabling transfers.',HEALTH_UNVERIFIED_REFUSAL='Health permission could not be verified. Transfers remain off.';
-/** Remember this device (ADR-008, owner decision M1): the choice, and what it means, always shown together. */
-export const REMEMBER_LABEL='Remember on this device — don’t use on shared computers',REMEMBER_NOTE='ZIGoals then opens your account records here without the recovery secret, also after a restart; anyone who can use this browser on this device can open them too. Forget this device in Settings at any time; locking also forgets it.';
-/** Session Y Part 5 (B4): what a Health restore says instead of turning Health sync on. */
-export const HEALTH_RESTORE_ASK='Your Health section on this device is approved for a new cloud copy. Health sync stays off in this tab until you tick “Sync my Health records with this account” below; until then your Health records stay on this device.';
-/** Session Y Part 5 (B6, B3): what the person reads when the cloud's vault is gone or older than this device's record. */
-export const VAULT_MISSING='Your account had encrypted sync on this device, but the cloud has no vault for it now. Nothing was changed on this device. This can happen when the sync service was restored from an earlier copy, so try again later. If the vault stays missing, you can start a new one below.',VAULT_OLDER='The vault in the cloud is older than the one this device last synced with, so nothing was applied. Your records on this device were not changed. This can happen when the sync service was restored from an earlier copy, or a new vault was made on another device after that, so try again later. If it stays like this, you can re-link this device below.';
+import {HEALTH_HELD_REFUSAL,HEALTH_UNVERIFIED_REFUSAL,VAULT_MISSING,REMEMBER_DAYS,REMEMBER_EXPIRED_NOTE,DENIED_REVOKED,DENIED_DELETED} from '../lib/vault/vault-words';
+export {HEALTH_HELD_REFUSAL,HEALTH_UNVERIFIED_REFUSAL,REMEMBER_LABEL,REMEMBER_NOTE,HEALTH_RESTORE_ASK,VAULT_MISSING,VAULT_OLDER,REMEMBER_DAYS,REMEMBER_EXPIRED_NOTE,DENIED_REVOKED,DENIED_DELETED} from '../lib/vault/vault-words';
+// Session AV lane 2 (A45-1, TIER 3 sync): the hooks live in vault-context.ts, so pages that read them never load this engine.
+export {useVaultControls,useVaultStatus} from './vault-context';
 /** True when this device's sync journal shows an earlier vault for the account. */
 // Held sections alone are not an earlier vault: a start-over carries them into the fresh journal (below).
 const hadVault=(state:SyncState)=>state.revision>0||state.headRevision>0||!!state.headDigest||state.epoch!==undefined||Object.keys(state.base).length>0||!!state.pending;
@@ -67,11 +61,14 @@ const freshJournal=():SyncState=>({version:1,base:{},revision:0,headRevision:0,h
  * Session Z-Cloud Part 5 (A6, ADR-019 C35): a remembered device opens without the secret for 30 days from the day it was
  * remembered, then asks for it once (ticking Remember again starts a new 30 days).
  */
-export const REMEMBER_DAYS=30,REMEMBER_EXPIRED_NOTE='remember-expired';
-/** Session Y Part 5 (A7): what a remembered device says when the server ended it. */
-export const DENIED_REVOKED='This device is no longer remembered because its session was signed out on another device. Your records on this device were not changed; unlocking again needs the recovery secret.',DENIED_DELETED='Your cloud copy was deleted; this device keeps its records. It is no longer remembered, and Export everything still makes a copy of what it kept.';
 const NOT_FORGOTTEN='This device could not be forgotten. Close other ZIGoals tabs and try again, or clear this site’s data in your browser settings.';
-export function VaultSyncProvider({children}:{children:ReactNode}){
+/**
+ * Session AV lane 2 (A45-1, TIER 3 sync): the engine renders nothing; it publishes its controls to vault-context.ts after
+ * each render (a layout effect, before the browser paints), and null when it unmounts. The app layout loads it as its own
+ * chunk while the app hydrates (vault-sync-lazy.tsx); `VaultSyncProvider` keeps the earlier shape for tests.
+ */
+export function VaultSyncProvider({children}:{children:ReactNode}){return <><VaultSyncEngine/>{children}</>;}
+export function VaultSyncEngine(){
  const [account,setAccount]=useState<string|null>(null),[manifest,setManifest]=useState<VaultManifest|null>(),[generated,setGenerated]=useState<Generated|null>(null),[health,setHealthState]=useState(false),[healthAsk,setHealthAsk]=useState(false),[vaultGone,setVaultGone]=useState<'missing'|'older'|null>(null),[busy,setBusy]=useState(false),[opened,setOpened]=useState(false),[message,setMessage]=useState('Account sync is locked.'),[error,setError]=useState(''),[last,setLast]=useState('');
  const [conflictReview,setConflictReview]=useState<ConflictReview|null>(null);
  const [forwardReview,setForwardReview]=useState<ForwardReview|null>(null);
@@ -90,11 +87,16 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
  // which check identity on load themselves; `verified` is the account that panel last verified.
  const [remembered,setRemembered]=useState(false),[deviceNote,setDeviceNote]=useState(''),[accessEpoch,setAccessEpoch]=useState(0);
  const manualLock=useRef(false),reopening=useRef(false),retryAt=useRef(0),access=useRef(0),verified=useRef<string|null>(null),reopenRef=useRef<(reason:'load'|'focus'|'expiry')=>Promise<void>>(async()=>{});
+ // Session AV lane 2 (TIER 3 sync): the Health choice this tab had when another tab's sign-in (or a token expiry) locked it.
+ // Health consent is each tab's own ("Turning this off stops Health transfers on this tab"); the remembered record holds the
+ // choice of whichever tab set it last, so a reopen in this tab never turns on Health that was off here. In memory only: a
+ // reload or a new tab starts from the remembered choice, as before. Cleared when this tab opens a vault or signs out.
+ const lockedHealth=useRef<{account:string;health:boolean}|null>(null);
  // A local edit during a running sync is not in that sync's snapshot: remember it and schedule one follow-up sync when the sync finishes.
  const syncing=useRef(false),followUp=useRef(false),scheduleRef=useRef<()=>void>(()=>{});
  // The automatic sync that is running now (if any), and whether a person's action is waiting for it to end.
  const automaticRun=useRef<Promise<void>|null>(null),waiting=useRef(false);
- function forget(){setHealthAsk(false);setVaultGone(null);running.current=null;followUp.current=false;setBusy(false);setPortfolio(null);setExtras(null);setConflictReview(null);setForwardReview(null);setDomainReview(null);setRotationKeys(null);setStagedRotation(null);setAttachPreview(null);setPendingRecovery(null);session.current=null;auto.current=false;setOpened(false);setGenerated(null);setManifest(undefined);setAccount(null);setHealthState(false);setMessage('Account sync is locked.');setLast('');setSections({});setPortfolioAt('');setError('');
+ function forget(){lockedHealth.current=null;setHealthAsk(false);setVaultGone(null);running.current=null;followUp.current=false;setBusy(false);setPortfolio(null);setExtras(null);setConflictReview(null);setForwardReview(null);setDomainReview(null);setRotationKeys(null);setStagedRotation(null);setAttachPreview(null);setPendingRecovery(null);session.current=null;auto.current=false;setOpened(false);setGenerated(null);setManifest(undefined);setAccount(null);setHealthState(false);setMessage('Account sync is locked.');setLast('');setSections({});setPortfolioAt('');setError('');
   // Sign-out forgets every remembered device on this browser; its server session is revoked too, so nothing it held can open again.
   verified.current=null;setRemembered(false);setDeviceNote('');void forgetDevices().catch(()=>setDeviceNote(NOT_FORGOTTEN));}
  function selectionFence(id:string,generation:number){if(isShowcase()||getAccountScope()!==id||getAccountGeneration()!==generation)throw Error('Account selection changed. No result was applied.');}
@@ -149,10 +151,12 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
   else{try{key=await openDeviceRoot(record.key,record.sealed,id,m);}catch{await drop();fence();return false;}fence();binding=await migrateDevice(record,key);}
   fence();
   // The remembered Health choice (M1 e) passes the same check as ticking the box: not while Health is held after deletion.
-  const consent=record.health&&!await healthHeld(id);fence();
+  // A tab that had Health off when another tab locked it keeps it off (lockedHealth above); the record is left as it is.
+  const held=record.health&&await healthHeld(id);fence();
+  const kept=lockedHealth.current,own=kept?.account!==id.toLowerCase()||kept.health,consent=record.health&&!held&&own;
   if(!await stillRemembered(binding).catch(()=>false)){fence();setRemembered(false);return false;}fence();
   open(id,key,m,consent,binding);setDeviceNote('');
-  if(record.health&&!consent)void rememberHealth(binding,false).catch(()=>{});
+  if(held)void rememberHealth(binding,false).catch(()=>{});
   return true;
  }
  /**
@@ -171,7 +175,7 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
   return bindingOf(record);
  }
  async function healthHeld(id:string){try{return !!(await new SyncJournal(id).read()).heldDomains?.includes('health');}catch{return true;}}
- function open(id:string,key:CryptoKey,m:VaultManifest,consent:boolean,device:DeviceBinding|null=null){unlockAccount();const generation=getAccountGeneration();session.current={account:id,generation,key,manifest:m,health:consent,device};auto.current=true;idle.current=Date.now();manualLock.current=false;setOpened(true);setAccount(id);setManifest(m);setHealthState(consent);setGenerated(null);setRemembered(!!device);setMessage('Vault unlocked. Preparing account sync…');}
+ function open(id:string,key:CryptoKey,m:VaultManifest,consent:boolean,device:DeviceBinding|null=null){unlockAccount();lockedHealth.current=null;const generation=getAccountGeneration();session.current={account:id,generation,key,manifest:m,health:consent,device};auto.current=true;idle.current=Date.now();manualLock.current=false;setOpened(true);setAccount(id);setManifest(m);setHealthState(consent);setGenerated(null);setRemembered(!!device);setMessage('Vault unlocked. Preparing account sync…');}
  /** One decryption with the recovery secret that also seals the root for this device (before it is wiped). */
  async function sealForDevice(m:VaultManifest,secret:string,id:string):Promise<Sealed>{const forgets=await forgetCount().catch(()=>null),deviceKey=await createDeviceKey(),{key,sealed}=await unlockVaultForDevice(m,secret,id,deviceKey);return {key,sealed,deviceKey,forgets};}
  /** Remembers this device for the vault just opened. The vault is open either way: a failure only means the secret is asked for next time. */
@@ -222,7 +226,8 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
    const bases=m.indexedDbBases(selected.account);
    const outcomes=await m.syncExtras({transport:m.extrasTransport(selected.account,fence),key:selected.key,manifest:selected.manifest,storage,bases,fence,health:selected.health&&!held.includes('health')});fence();
    // Removed from the cloud on another device ("Remove from the cloud"): this device stops too and keeps its records.
-   if(outcomes.some(o=>o.state==='deleted'&&o.section!=='health')){m.writeExtrasChoice(storage,{...m.readExtrasChoice(storage),enabled:false});await bases.clear();setExtras({state:'deleted-elsewhere'});return;}
+   // Session AV lane 2 (sync): of the six sections but Health (as before); a chosen section removed alone stops only itself.
+   if(outcomes.some(stopsExtras)){m.writeExtrasChoice(storage,{...m.readExtrasChoice(storage),enabled:false});await bases.clear();setExtras({state:'deleted-elsewhere'});return;}
    setExtras({state:'synced',outcomes,at:formatTime(new Date())});
   }catch(error){fence();if(error instanceof m.ExtrasChangedDuringSync){followUp.current=true;return;}setExtras({state:'error',message:plainErrorMessage(error, 'Extras sync was not confirmed. Your records on this device were preserved.')});}
  }
@@ -233,7 +238,9 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
   if(!session.current)return;
   await guarded(async()=>{const {selected,fence}=portfolioSession();await withStorageLock(`zigoals:account-sync:${selected.account}`,async()=>{fence();await runExtras(selected,fence);});});
  }
- async function removeExtrasCloud(){await guarded(async()=>{const {selected,fence}=portfolioSession();await withStorageLock(`zigoals:account-sync:${selected.account}`,async()=>{fence();const storage=getAppStorage(),m=await extrasModule();
+ /** Session AV lane 2 (sync; TIER 3 (sync)): with a chosen section named, only that section's copy is deleted; the other extras go on. */
+ async function removeExtrasCloud(section?:ExtrasChoiceSectionName){await guarded(async()=>{const {selected,fence}=portfolioSession();await withStorageLock(`zigoals:account-sync:${selected.account}`,async()=>{fence();const storage=getAppStorage(),m=await extrasModule();
+  if(section){try{await m.deleteExtrasSection({transport:m.extrasTransport(selected.account,fence),manifest:selected.manifest,storage,bases:m.indexedDbBases(selected.account),fence},section);fence();await runExtras(selected,fence);}catch(error){fence();setExtras({state:'error',message:plainErrorMessage(error,'That encrypted copy was not deleted.')});}return;}
   try{await m.deleteExtrasCopies({transport:m.extrasTransport(selected.account,fence),manifest:selected.manifest,storage,bases:m.indexedDbBases(selected.account),fence});fence();setExtras({state:'removed'});}
   catch(error){fence();setExtras({state:'error',message:plainErrorMessage(error, 'The extras’ encrypted copy was not deleted.')});}});});}
  async function sync(automatic=false){await guarded(async()=>{
@@ -413,6 +420,7 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
    // the device then reopens at once, refreshing the token as Settings does.
    const device=session.current?.device??null,code=accessChanged?takeAccessDenial(detail!.account):null,expired=accessChanged&&!!device&&code==='SIGN_IN_REQUIRED';
    if(device&&deniesDevice(code)){setRemembered(false);void dropDevice(device).catch(()=>{});}
+   if(session.current)lockedHealth.current={account:session.current.account.toLowerCase(),health:session.current.health};
    setHealthAsk(false);setVaultGone(null);running.current=null;setBusy(false);session.current=null;auto.current=false;setPortfolio(null);setConflictReview(null);setForwardReview(null);setDomainReview(null);setRotationKeys(null);setStagedRotation(null);setAttachPreview(null);setPendingRecovery(null);setOpened(false);setGenerated(null);setManifest(undefined);setAccount(null);setHealthState(false);setError(accessChanged&&!expired?'Account access changed. Sign in and unlock again.':'');setLast('');setSections({});setPortfolioAt('');setMessage('Account sync is locked.');if(expired)void reopenRef.current('expiry');}};
   const schedule=()=>{clearTimeout(debounce);if(document.hidden||running.current||!auto.current||!session.current)return;debounce=setTimeout(()=>{if(!document.hidden&&auto.current&&session.current)void syncRef.current();},1000);};
   scheduleRef.current=schedule;
@@ -433,8 +441,10 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
   window.addEventListener(ACCOUNT_CHANGE,change);window.addEventListener('zigoals:private-change',edited);window.addEventListener(ZIGI_STORE_EVENT,homeEdited);window.addEventListener('focus',schedule);window.addEventListener('online',schedule);document.addEventListener('visibilitychange',schedule);window.addEventListener('pointerdown',activity);window.addEventListener('keydown',activity);
   window.addEventListener('focus',focused);document.addEventListener('visibilitychange',shown);
   if(!isShowcase())void readDevices().then(records=>{if(records.length)setRemembered(true);},()=>{});
-  void reopenRef.current('load');
-  return()=>{running.current=null;session.current=null;clearTimeout(debounce);clearInterval(interval);window.removeEventListener(ACCOUNT_CHANGE,change);window.removeEventListener('zigoals:private-change',edited);window.removeEventListener(ZIGI_STORE_EVENT,homeEdited);window.removeEventListener('focus',schedule);window.removeEventListener('online',schedule);document.removeEventListener('visibilitychange',schedule);window.removeEventListener('pointerdown',activity);window.removeEventListener('keydown',activity);window.removeEventListener('focus',focused);document.removeEventListener('visibilitychange',shown);};
+  // Session AV lane 2 (A45-1, TIER 3 sync): one task later, so a Settings panel shown with the engine has registered its
+  // own account check first (it registers once the engine's controls are published), as when the panel was the provider's child.
+  const loadCheck=setTimeout(()=>{void reopenRef.current('load');},0);
+  return()=>{clearTimeout(loadCheck);running.current=null;session.current=null;clearTimeout(debounce);clearInterval(interval);window.removeEventListener(ACCOUNT_CHANGE,change);window.removeEventListener('zigoals:private-change',edited);window.removeEventListener(ZIGI_STORE_EVENT,homeEdited);window.removeEventListener('focus',schedule);window.removeEventListener('online',schedule);document.removeEventListener('visibilitychange',schedule);window.removeEventListener('pointerdown',activity);window.removeEventListener('keydown',activity);window.removeEventListener('focus',focused);document.removeEventListener('visibilitychange',shown);};
  },[]);
  // Session AD item 12 (ADR-026, Q-SYNC-05, owner amendment 4): the revocation check (lib/vault/revocation-check.ts) loads
  // only once this browser holds a remembered record, runs only while the page is visible, sends only the existing status
@@ -446,7 +456,8 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
  const revocation=useRef<Promise<RevocationCheck|null>|null>(null);
  useEffect(()=>{if(isShowcase())return;if(revocation.current){void revocation.current.then(check=>check?.refresh());return;}if(!remembered)return;revocation.current=import('../lib/vault/revocation-check').then(m=>m.watchRevocation(code=>deniedRef.current(code),()=>reopening.current),()=>null);},[remembered]);
  useEffect(()=>()=>{const loaded=revocation.current;revocation.current=null;void loaded?.then(check=>check?.stop());},[]);
- return <Context.Provider value={{conflictReview,prepareConflict,confirmConflict,cancelConflict,forwardReview,prepareForward,confirmForward,cancelForward,domainReview,prepareDomain,confirmDomain,cancelDomain,eraseAccount,rotationKeys,stagedRotation,prepareRotation,resumeRotation,finishRotation,abortRotation,cancelRotation,attachPreview,prepareAttach,confirmAttach,cancelAttach,authenticated,forget,prepare,enroll,unlock,stepUp,remembered,deviceNote,forgetDevice,lockNow,registerAccess,accessEpoch,sync,preparePendingRecovery,pendingRecovery,clearPendingRecovery:()=>setPendingRecovery(null),setHealth,health,healthAsk,vaultGone,startOver,accessDenied,account,manifest,generated,cancel:()=>setGenerated(null),busy,opened,message,error,last,portfolio,syncPortfolioNow,deletePortfolioCloud,extras,setExtrasEnabled,removeExtrasCloud,sections,portfolioAt}}>{children}</Context.Provider>;
+ const controls:Controls={conflictReview,prepareConflict,confirmConflict,cancelConflict,forwardReview,prepareForward,confirmForward,cancelForward,domainReview,prepareDomain,confirmDomain,cancelDomain,eraseAccount,rotationKeys,stagedRotation,prepareRotation,resumeRotation,finishRotation,abortRotation,cancelRotation,attachPreview,prepareAttach,confirmAttach,cancelAttach,authenticated,forget,prepare,enroll,unlock,stepUp,remembered,deviceNote,forgetDevice,lockNow,registerAccess,accessEpoch,sync,preparePendingRecovery,pendingRecovery,clearPendingRecovery:()=>setPendingRecovery(null),setHealth,health,healthAsk,vaultGone,startOver,accessDenied,account,manifest,generated,cancel:()=>setGenerated(null),busy,opened,message,error,last,portfolio,syncPortfolioNow,deletePortfolioCloud,extras,setExtrasEnabled,removeExtrasCloud,sections,portfolioAt};
+ useLayoutEffect(()=>{publishVaultControls(controls);});
+ useLayoutEffect(()=>()=>publishVaultControls(null),[]);
+ return null;
 }
-/** Public status only; keys, recovery material and private records never leave the provider. */
-export function useVaultStatus(){const c=useContext(Context);return {opened:c?.opened??false,busy:c?.busy??false,message:c?.message??'',error:c?.error??'',last:c?.last??'',account:c?.account??null};}

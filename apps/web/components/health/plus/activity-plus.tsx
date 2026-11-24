@@ -1,5 +1,5 @@
 'use client';
-import {useMemo} from 'react';
+import {Suspense, lazy, useMemo, useState} from 'react';
 import type {HealthData} from '../../../lib/health';
 import {dailyData} from '../../../lib/health-daily';
 import {weightText} from '../../../lib/health-units';
@@ -13,13 +13,19 @@ import {useHealthGoals} from '../../health-goals/use-health-goals';
 import {useWorkouts} from '../workouts/use-workouts';
 import {ArtNote} from '../../illustrations/art-note';
 import './plus.css';
+// Session AV lane 2 (LEDGER #66, #67): mood, energy and symptoms against your usual, and the week-by-week graph; loaded when opened.
+const FeelingsCard = lazy(() => import('./feelings-card'));
 
 /**
  * Session AP (features 3 and 4), in Health → Activity: "Your orbits" from the person's own goals (steps, active minutes,
  * workout days; no calories) and the 90-day against 365-day trends. Everything is derived on view; nothing is stored.
  */
 export default function ActivityPlus({data, today}: {data: HealthData; today: string}) {
-  return <><OrbitsCard data={data} today={today}/><TrendsCard data={data} today={today}/></>;
+  return <><OrbitsCard data={data} today={today}/><TrendsCard data={data} today={today}/><FeelingsFold data={data} today={today}/></>;
+}
+function FeelingsFold({data, today}: {data: HealthData; today: string}) {
+  const [open, setOpen] = useState(false);
+  return <details className="panel av2-feelings-fold" onToggle={e => setOpen((e.currentTarget as HTMLDetailsElement).open)}><summary style={{minHeight: 44, display: 'flex', alignItems: 'center', cursor: 'pointer'}}>How you felt, and week by week</summary>{open && <Suspense fallback={<p className="fine">Opening…</p>}><FeelingsCard data={data} today={today}/></Suspense>}</details>;
 }
 
 export function OrbitsCard({data, today}: {data: HealthData; today: string}) {

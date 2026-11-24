@@ -13,6 +13,7 @@ import {MONEY_LOG} from '../../lib/money-log/schema';
 import {JOURNAL} from '../../lib/journal/schema';
 import {PILLAR_LABEL, thisDay, type DayPillar} from '../../lib/notes/this-day';
 import {localDate} from '../../lib/local-date';
+import {formatDate} from '../../lib/visual-format';
 import './this-day-strip.css';
 
 /**
@@ -22,7 +23,7 @@ import './this-day-strip.css';
  * daily note, on its own chunk.
  */
 const MARK: Partial<Record<DayPillar, 'goals' | 'habits' | 'health' | 'wealth'>> = {habits: 'habits', health: 'health', wealth: 'wealth', goals: 'goals'};
-export default function ThisDayStrip({day, exclude = [], title = 'This day'}: {day: string; /** Session AV (F-JOURNAL-DAY): pillars left out (the Journal leaves out its own entries). */ exclude?: readonly DayPillar[]; title?: string}) {
+export default function ThisDayStrip({day, exclude = [], title = 'This day', readBack}: {day: string; /** Session AV (F-JOURNAL-DAY): pillars left out (the Journal leaves out its own entries). */ exclude?: readonly DayPillar[]; title?: string; /** Session AV lane 2 (r6-notes; LEDGER #402): the day this day's note was read back, a quiet mark. */ readBack?: string}) {
   const view = usePagesView(), habits = useHabits(), health = useHealth(), platform = usePlatform();
   const workouts = useDeviceRecord(WORKOUTS), money = useDeviceRecord(MONEY_LOG), journal = useDeviceRecord(JOURNAL);
   const loaded = habits.loaded && health.loaded && platform.loaded && workouts.loaded && money.loaded && journal.loaded;
@@ -41,6 +42,7 @@ export default function ThisDayStrip({day, exclude = [], title = 'This day'}: {d
   const kept = items.filter(i => !exclude.includes(i.pillar));
   return <section className="note-this-day" aria-labelledby={`this-day-${day}`}>
     <h3 id={`this-day-${day}`} className="note-this-day-title">{title}</h3>
+    {readBack && <p className="fine note-this-day-read">Read back on {formatDate(readBack, {weekday: true})}.</p>}
     {!loaded ? <p className="fine">Reading this day…</p> : kept.length ? <ul className="note-this-day-list">
       {kept.map(item => <li key={item.id}><Link href={item.href} className="note-day-chip" data-pillar={MARK[item.pillar]}>
         {MARK[item.pillar] ? <PillarMark pillar={MARK[item.pillar]!} size={14}/> : <span className="note-day-dot" aria-hidden="true"/>}

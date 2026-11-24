@@ -1,4 +1,5 @@
 import {parse} from '../quick-add/parse';
+import {expenseCategory} from '../money-log/category';
 import type {QuickAddContext, QuickAddKnown} from '../quick-add/types';
 
 /**
@@ -47,13 +48,20 @@ function fromQuickAdd(r: QuickAddKnown): Record<string, unknown> | null {
     case 'activity': return null;
   }
 }
+/**
+ * Session AV lane 2 (fr-money, FR-L-15, the friend-readiness walk's Lina): "boodschappen 23,10" was not understood while
+ * "€8,40 koffie" was. A price (two decimals, no unit after it) beside a word the money log files under a category
+ * (lib/money-log/category.ts: "boodschappen" is Groceries) is spending too, as with "€".
+ */
+const PRICE = /(?:^|\s)\d+[.,]\d{2}(?=\s|$)(?!\s*(?:kg|km|lb|mi|l|ml|liter|uur|u|h|min|minuten|minutes|glazen|glas|glasses|stappen|steps|kcal)\b)/i;
+const priced = (t: string) => PRICE.test(t) && expenseCategory(undefined, t.replace(PRICE, ' ')) !== 'Other';
 function readItem(text: string, ctx: QuickLogContext, lang: 'en' | 'nl'): QuickLogItem {
   const t = text.trim(), lower = t.toLowerCase();
   // A contribution to a goal by its name ("put 50 in Holiday fund", "50 euro naar Holiday fund").
   const c = CONTRIBUTE.exec(t);
   if (c) { const goal = ctx.goals.find(g => g.toLowerCase() === c[2]!.trim().toLowerCase()) ?? ctx.goals.find(g => c[2]!.toLowerCase().includes(g.toLowerCase())); if (goal) return {text: t, action: {kind: 'prefill-contribution', goal, amount: num(c[1]!), day: day(t)}}; }
   // Money spent: an expense card once the expense log exists; until then, said plainly.
-  if (SPENT.test(t) || /^(?:€|\$)\s*\d|^\d+(?:[.,]\d{1,2})?\s*(?:€|eur|euro|dollars?)\b/i.test(t)) {
+  if (SPENT.test(t) || /^(?:€|\$)\s*\d|^\d+(?:[.,]\d{1,2})?\s*(?:€|eur|euro|dollars?)\b/i.test(t) || priced(t)) {
     const m = MONEY.exec(t), amount = m ? num(m[1]!) : NaN;
     if (!ctx.expenses) return {text: t, action: null, why: lang === 'nl' ? 'uitgaven kun je hier nog niet loggen' : 'spending cannot be logged here yet'};
     if (!(amount > 0)) return {text: t, action: null, why: lang === 'nl' ? 'noem het bedrag' : 'say the amount'};

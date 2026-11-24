@@ -1,6 +1,7 @@
 import {addLocalDays} from '../local-date';
 import {openTasks, taskState} from '../tasks/engine';
 import {taskSchema, tasksSchema, type Task, type Tasks} from '../tasks/schema';
+import {isOutOfPlay} from '../tasks/focus';
 
 /**
  * Session AK (BUILD list 2 #14, lane G1a): "What's moving to tomorrow" in the evening wrap-up. The tasks still open on
@@ -9,7 +10,8 @@ import {taskSchema, tasksSchema, type Task, type Tasks} from '../tasks/schema';
  * streak; the Checklist is not touched. Pure steps on `zigoals:tasks:v1`; each returns the record to write.
  */
 export function wrapUpTasks(rec: Tasks, today: string): Task[] {
-  return openTasks(rec, today).filter(t => { const s = taskState(t, today); return s === 'today' || s === 'overdue'; });
+  // Session AV lane 2 (r6-plan, review B6M-10): never a task of a project on hold, nor one waiting its turn.
+  return openTasks(rec, today).filter(t => { const s = taskState(t, today); return (s === 'today' || s === 'overdue') && !isOutOfPlay(rec, t, today); });
 }
 const replace = (rec: Tasks, id: string, change: (t: Task) => Record<string, unknown>): Tasks => {
   if (!rec.tasks.some(t => t.id === id)) throw new Error('That task is no longer on this device.');

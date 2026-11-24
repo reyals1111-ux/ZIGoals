@@ -11,6 +11,7 @@ import { useHealth } from "./use-health";
 import { useJournalZone } from "../use-journal-zone";
 import { useDeviceZone } from "../use-device-zone";
 import { GlassBar } from "../progress/glass-progress";
+import { useDayTargets } from "./food-plus/use-day-targets";
 import "./health.css";
 import { formatDate, formatNumber } from "../../lib/visual-format";
 
@@ -22,6 +23,8 @@ export function HealthToday() {
   const journal = useJournalZone().zone, zone = dailyData(data).preferences.timezone ?? journal, device = useDeviceZone();
   const summary = loaded ? dailyHealthSummary(data, today) : null;
   const weight = latestWeightObservation(data,today);
+  // Session AV lane 2 (food, LEDGER #88, #97): this weekday's own calorie target where set (Health → Targets by weekday).
+  const targetKcal = useDayTargets(data.targets, today).targets.kcal;
   return <section className="panel health-today" aria-label="Today's health">
     <div className="health-section-heading"><div><p className="eyebrow">HEALTH · PRIVATE</p><h2>Your daily balance.</h2></div><span className="health-symbol" aria-hidden="true">↗</span></div>
     {loaded && !error && zone && device && zone !== device && <p className="fine health-today-zone">Today in {zone}</p>}
@@ -34,10 +37,10 @@ export function HealthToday() {
       <p className="fine health-today-meals" title={mealsLoggedLine(data, today)}>{mealsLoggedLine(data, today)}</p>
       {/* Session AL fourth pass (PR-088): Today's card reads as Health's own summary: a partial day shows what is known with a
           "+" ("200+ kcal known so far"), never "Unknown kcal logged"; each macro is the number with a small partial line. */}
-      <div className="health-today-value" data-body-figure="">{summary.nutrients.kcal !== null ? <><strong>{formatNutrient(summary.nutrients.kcal)}</strong><span>kcal logged{data.targets.kcal ? ` / ${formatNumber(data.targets.kcal)} target` : ""}</span></> : summary.knownNutrients.kcal !== null ? <><strong>{formatNutrient(summary.knownNutrients.kcal)}+</strong><span>kcal known so far{data.targets.kcal ? ` / ${formatNumber(data.targets.kcal)} target` : ""}</span></> : <><strong><span aria-hidden="true">—</span><span className="sr-only">Unknown</span></strong><span>calories not given by these entries</span></>}</div>
-      {data.targets.kcal && summary.nutrients.kcal!==null && <GlassBar data-body-figure="" identity="health-today-kcal" className="health-today-meter" role="progressbar" aria-label="Today's calorie target" aria-valuemin={0} aria-valuemax={data.targets.kcal} aria-valuenow={Math.min(data.targets.kcal, summary.nutrients.kcal)} value={summary.nutrients.kcal / data.targets.kcal}/>}
+      <div className="health-today-value" data-body-figure="">{summary.nutrients.kcal !== null ? <><strong>{formatNutrient(summary.nutrients.kcal)}</strong><span>kcal logged{targetKcal ? ` / ${formatNumber(targetKcal)} target` : ""}</span></> : summary.knownNutrients.kcal !== null ? <><strong>{formatNutrient(summary.knownNutrients.kcal)}+</strong><span>kcal known so far{targetKcal ? ` / ${formatNumber(targetKcal)} target` : ""}</span></> : <><strong><span aria-hidden="true">—</span><span className="sr-only">Unknown</span></strong><span>calories not given by these entries</span></>}</div>
+      {targetKcal && summary.nutrients.kcal!==null && <GlassBar data-body-figure="" identity="health-today-kcal" className="health-today-meter" role="progressbar" aria-label="Today's calorie target" aria-valuemin={0} aria-valuemax={targetKcal} aria-valuenow={Math.min(targetKcal, summary.nutrients.kcal)} value={summary.nutrients.kcal / targetKcal}/>}
       {summary.nutrients.kcal===null&&<p className="fine">{nutritionSummaryText(summary,"kcal","kcal")}</p>}<div className="health-today-macros">{([["Protein", "proteinMg"], ["Carbs", "carbsMg"], ["Fat", "fatMg"]] as const).map(([label, key]) => { const all = summary.nutrients[key], known = summary.knownNutrients[key], c = summary.coverage[key]; return <span key={key}><strong data-body-figure="">{all !== null ? `${formatMacroGrams(all)} g` : known !== null ? `${formatMacroGrams(known)}+ g` : <><span aria-hidden="true">—</span><span className="sr-only">Unknown</span></>}</strong>{label}{data.targets[key] ? ` / ${formatHealthGrams(data.targets[key]!)} g` : ""}{all === null && <small className="health-macro-partial"> · Partial · {c.known} of {c.total} entries</small>}</span>; })}</div>
-    </> : <p>{data.targets.kcal ? "Your targets are ready. Add your first meal for today." : "Make room for feeling good. Set your own targets and log your first meal."}</p>}
+    </> : <p>{targetKcal ? "Your targets are ready. Add your first meal for today." : "Make room for feeling good. Set your own targets and log your first meal."}</p>}
     {loaded && !error && <div className="health-today-extra">{weight && <span data-body-figure="">{weightReadingText(weight.grams, dailyData(data).preferences.weightUnit) /* fifth pass (N-MO-14): as entered */} · {formatDate(weight.date)}</span>}{summary && summary.steps > 0 && <span>{formatNumber(summary.steps)} steps today</span>}</div>}
     <Link href="/app/health" className="text-link">Open Health →</Link>
   </section>;

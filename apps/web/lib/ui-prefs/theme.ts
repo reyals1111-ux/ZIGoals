@@ -1,6 +1,7 @@
 import {UI_PREFS_KEY} from '../ab-design-keys';
 import {uiPrefsSchema, type UiPrefs} from './schema';
 import {THEME_SHEETS} from './theme-sheets';
+import {applyDarkStyle, readDarkStyle} from './dark-style';
 
 /**
  * Session AD (Part 3, ADR-026 F4/F5): the theme is a device display choice, like Motion Off. It lives in this device's own
@@ -44,6 +45,8 @@ const SHEET_WAIT_MS = 1500;
 export function applyTheme(theme: Theme, doc: Document = document): Promise<void> {
   const root = doc.documentElement;
   if (theme === 'nebula') delete root.dataset.theme; else root.dataset.theme = theme;
+  // Session AV lane 2 (LEDGER #34, N6 #191): Dark's chosen style comes and goes with Dark.
+  try { applyDarkStyle(readDarkStyle(doc.defaultView?.localStorage ?? null), doc); } catch { /* the theme applies all the same */ }
   const href = theme === 'nebula' ? null : THEME_SHEETS[theme];
   let link = doc.getElementById(LINK_ID) as HTMLLinkElement | null;
   if (!href) { link?.remove(); return Promise.resolve(); }

@@ -19,6 +19,46 @@ and one TIER 3 (CI) shard-list repack (`9c24050c`, ADR-045 D-CI2002; run 2003 on
 with a merge commit, edits the shared registries, builds once per batch and pushes. No PR until the owner merges #108.
 Lane 2's own state is kept in this file's "Lane 2 — state" section on that branch.
 
+## Lane 2 — state (owner follow-up 4; keep current at every batch)
+- **Owner follow-up 6 (finish) rules now** (ADR-045). Alpha #58 = run 61 from `main` `1c1b5953`: version `f2729d28-e9db-436f-a66a-67922cf5d924`, rollback `e0bc17f3-27c0-4900-aa55-416f20ece6f6` (#57), VERIFIED (3 reads), live prices VERIFIED, market policy ends 2026-11-30T16:00Z, archive SHA-256 `ef1aee3b…0a18e578`. Frozen readers #37–#58.
+- **Done (23 Nov, 23:50 UTC).** Lane 2 is complete: rounds 1–6 built (LEDGER.md: 408 built, 25 Carried, 31 round-7 rows
+  to build next session), the friend-readiness pass (FRIEND_READINESS.md), 20 main CI shards (owner follow-up 7) and the
+  update takeover fixed at its cause with a fallback note (owner follow-up 8). ADR-045's lane 2 closing table has the
+  counts, the CI history and the suite's size (1,393 worker-minutes per run).
+  **Safe to merge now: set by the Milestone quality run on this head** (the run after run 2026, on the final head): yes only if it is green on the first attempt, apart from registered known intermittents that pass on their one re-run, each named. PR #109's description gives the verdict once that run is over; nothing is pushed after it. Run 2025 on `4781e004` was red (D-CI2025 in ADR-045; cause fixed in `c98f0deb`).
+  commits are docs only. Owner steps after merge: deploy the private-sync Worker from `main`; redeploy the food Worker
+  ("never early", OWNER_STEPS.md 9e); the market price policy before 30 Nov 16:00 UTC (OWNER_STEPS.md step 6).
+  Next session: round 7 (LEDGER.md #432–#464), WebKit's slow Settings hydration, the 15 Carried friend-readiness Minors.
+- Branch `feature/session-av-2` from #108's frozen head `807f247e`; LEDGER.md first (`fbeb3e54`). No PR until #108 merges.
+  A push here starts no CI (`ci.yml`: push to main, pull_request): push after every integrated batch, local checks first.
+- Done (lead): A45-1 (the account-sync engine out of every page's first scripts, TIER 3 sync `a88abeb8`…`2d270bd9`:
+  every page but Settings 13–36 kB lighter; all 16 sync browser files green except `sign-in-codes-browser`, 2 of 2 alone,
+  1 red in a full loaded run — watch it); CR-19 (`8a23eab9`); ten more competitors in COMPETITORS.md and LEDGER.md
+  #176–#222 (`6926408c`).
+- Pushed: batch 1 (`a3402096`) and batch 2 (`23100b66`: money, body, food, habits and mind part 2, sync, ledger
+  remainders, round 2, Minors 70 of 79, restore-media, Dutch dates, loose ends; reviews b2a/b2b fixed; 572 of 574 specs —
+  av2-backup-folder needs CI's real Chrome; unit green apart from load timeouts; frozen readers 21 of 21; weights inside).
+- Pushed: batch 3 (`331465aa`: round 3 + fixes, polish 1, fixb3/fixb3c, phone lengths; specs green on build dbf1f2a2,
+  unit green but the sandbox's pre-run11 pnpm check, frozen readers 39 of 39 in three files, weights inside).
+- Batch 4 (`lane2/batch4`, /home/user/zg-b4, `c434151b` with batch 3 merged): round 4 + reviews D–G, polish 2; unit
+  green, frozen readers 39/39, build c434151b green, weights inside (Settings 525.8/531). Specs running (58 files).
+  Next: fix failures, merge into feature/session-av-2, push.
+- Batch 5 (`lane2/batch5`, /home/user/zg-b5): round 5 (#348–#390) all five branches merged with reviews H–L, Help (43),
+  corpus, shards, themes. Next after batch 4: merge batch 4 in, full unit, lint, frozen readers, build, specs, push.
+- Batch 6 (`lane2/batch6`, /home/user/zg-b6, `3caddd6c`): round 6 (#391–#431) r6-plan (review M fixed), r6-notes
+  (review N fixed), r6-money, r6-body merged; answers wired, 41 corpus intents (none changed), Help (41), What's new,
+  15 specs in shards, themes, r6-body keys and the lock-away display key registered (TIER 3). Review O (r6-money: 4
+  Blockers) and P (r6-body: 1 Blocker) being fixed on their branches → merge again, then full checks.
+- Round 7 research (10 more apps → ledger rows #432+) running → scratchpad ledger-r7.md, then builders.
+- For the final STATUS entry: the rollback limits in r4-mind, r4-notes and r5-notes registries (an older build's 30-day
+  photo sweep does not know the extra photos).
+- Owner items from lane 2: the private-sync Worker deploy (OWNER_STEPS.md); the visit report's two symptom charts;
+  #245 automatic recording; #41 passkey; a bundled reading font (#263); the Showcase examples the Minors left; Health →
+  Activity's older "About N kcal used — an estimate" for manual activities (against "no calorie expenditure is estimated"?); the
+  Showcase's maintenance estimate needs 10 weigh-ins (it has 7).
+- Scripts (scratchpad): batch.sh (typecheck + build of HEAD in zg-wt; then start :3101 as its own background task),
+  add_help.py (Help + static.ts), extract_help.py (Q/A from a registry), add_shards.sh (new specs to the suggested shard).
+
 ## Follow-ups 2 and 3 — state (keep current)
 - Done: FU2/FU3 recorded; 1a food Worker (`0dc926b5`); 1b fixes (habits-routines, o3, voice hint 44 px, sanne one
   button, oneline wider name; zigi-voice-z and account-browser Carried after two attempts, ADR-045 D-FU2-1b); L-9 and

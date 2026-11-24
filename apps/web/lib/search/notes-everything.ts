@@ -80,7 +80,9 @@ export async function readEverythingSources(pillars?: readonly EverythingPillar[
   const attempt = async (p: EverythingPillar, fn: () => Promise<void> | void) => { if (!want(p)) return; try { await fn(); } catch { miss(p); } };
   await attempt('notes', async () => {
     const notes = readDeviceRecord(storage, NOTES); if (notes.unreadable) miss('notes'); else sources.notes = notes.data.notes;
-    const {JOURNAL} = await import('../journal/schema'); const j = readDeviceRecord(storage, JOURNAL); if (j.unreadable) miss('notes'); else sources.journal = j.data.entries;
+    // Session AV lane 2 (review B3C-14): a letter still folded away is not searched by its words until its day.
+    const [{JOURNAL}, {unsealed}, {localDate}] = await Promise.all([import('../journal/schema'), import('../journal/letters'), import('../local-date')]);
+    const j = readDeviceRecord(storage, JOURNAL); if (j.unreadable) miss('notes'); else sources.journal = unsealed(j.data.entries, localDate());
   });
   await attempt('habits', async () => { const {HABITS_KEY, habitDataSchema} = await import('../habits'); const h = await readPrivate(storage, HABITS_KEY, habitDataSchema); if (h === null) miss('habits'); else sources.habits = (h?.habits ?? []).map(x => ({id: x.id, title: x.title, category: x.category, description: x.description})); });
   await attempt('health', async () => {

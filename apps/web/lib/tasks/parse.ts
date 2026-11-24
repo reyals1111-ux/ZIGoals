@@ -17,7 +17,7 @@ import {LABEL_PATTERN, type Recur, type TaskLevel} from './schema';
  * Every piece it took is returned as a span (start, end, kind) so the add field can highlight it, and any span can be
  * kept as plain text (`keep`), as Todoist offers. Pure: `today` is passed in.
  */
-export type SpanKind = 'date' | 'time' | 'recur' | 'priority' | 'project' | 'label' | 'deadline' | 'minutes';
+export type SpanKind = 'date' | 'time' | 'recur' | 'priority' | 'project' | 'label' | 'deadline' | 'minutes' | 'reminder';
 export type ParseSpan = {start: number; end: number; kind: SpanKind; text: string};
 export type ParsedTask = {
   title: string; due?: string; time?: string; level?: TaskLevel; project?: string; labels: string[]; recur?: Recur;
@@ -25,12 +25,17 @@ export type ParsedTask = {
   deadline?: string;
   /** Session AV (F-TASK-MINUTES): "for 30 min", "45 minuten", "for 1h30" — how long it takes. */
   minutes?: number;
+  /**
+   * Session AV lane 2 (tasks, LEDGER #3; Todoist's "!" reminders): "!2h", "!30m", "!1d" remind that long before the task's
+   * time (its day at 09:00 when it has no time); "!18:30" reminds at that clock time on its day (today when none). Up to three.
+   */
+  reminders?: {before: number; at?: string}[];
   spans: ParseSpan[];
 };
 export const PARSE_MAX = 500;
 
 type Tok = {text: string; low: string; start: number; end: number};
-const TOKEN = /[#@][\p{L}\p{N}_\-/]+|[pP][1-4](?![\p{L}\p{N}])|!{1,3}[1-4]?(?![\p{L}\p{N}])|\d{4}-\d{2}-\d{2}|\d{1,2}[:.]\d{2}\s?(?:am|pm|a\.m\.|p\.m\.)?|\d+(?:st|nd|rd|th|e)\b|\d+\s?(?:am|pm|a\.m\.|p\.m\.)|\d+|[\p{L}]+(?:['’][\p{L}]+)?!?|\S/gu;
+const TOKEN = /![0-9]{1,4}\s?(?:m|min|mins|h|hr|hrs|u|d|w)(?![\p{L}\p{N}])|!(?:[01]?\d|2[0-3])[:.][0-5]\d(?![\p{N}])|[#@][\p{L}\p{N}_\-/]+|[pP][1-4](?![\p{L}\p{N}])|!{1,3}[1-4]?(?![\p{L}\p{N}])|\d{4}-\d{2}-\d{2}|\d{1,2}[:.]\d{2}\s?(?:am|pm|a\.m\.|p\.m\.)?|\d+(?:st|nd|rd|th|e)\b|\d+\s?(?:am|pm|a\.m\.|p\.m\.)|\d+|[\p{L}]+(?:['’][\p{L}]+)?!?|\S/gu;
 function tokenize(text: string): Tok[] {
   const out: Tok[] = [];
   for (const m of text.matchAll(TOKEN)) {
@@ -62,7 +67,7 @@ const DUTCH: Record<string, string> = {
   dagelijks: 'daily', wekelijks: 'weekly', maandelijks: 'monthly', jaarlijks: 'yearly',
   werkdag: 'weekday', werkdagen: 'weekdays', doordeweeks: 'weekdays', weekenden: 'weekends',
   tot: 'until', keer: 'times', en: 'and', op: 'on', om: 'at', de: 'the', het: 'the', voor: 'by', vanaf: 'from',
-  eerste: 'first', tweede: 'second', derde: 'third', vierde: 'fourth', vijfde: 'fifth', laatste: 'last',
+  eerste: 'first', tweede: 'second', derde: 'third', vierde: 'fourth', vijfde: 'fifth', laatste: 'last', voorlaatste: 'penultimate',
   een: 'a', twee: 'two', drie: 'three', vier: 'four', vijf: 'five', zes: 'six', zeven: 'seven', acht: 'eight', negen: 'nine', tien: 'ten', elf: 'eleven', twaalf: 'twelve',
   middag: 'noon', middernacht: 'midnight', uur: "o'clock",
   zondag: 'sunday', maandag: 'monday', dinsdag: 'tuesday', woensdag: 'wednesday', donderdag: 'thursday', vrijdag: 'friday', zaterdag: 'saturday',
@@ -234,6 +239,9 @@ export function parseTaskLine(input: string, today: string, {keep = []}: {keep?:
     const partTime = DAY_PART_TIMES[toks[j]!.text.toLowerCase()];
     if (partTime && interval === 1) return finish({len: j + 1 - i, recur: {every: 'day', interval: 1}, time: partTime});
     if (UNITS[u]) { recur = {every: UNITS[u]!, interval}; j++; }
+    // Session AV lane 2 (r6-plan, LEDGER #398; OmniFocus): "every last workday", "every second-to-last Friday" (a month's).
+    else if (workdayAt(j)) { const w = workdayAt(j)!; recur = {every: 'month', interval, workday: w.which}; j += w.len; j += ofTheMonth(j); }
+    else if (fromEndAt(j) && WEEKDAYS[at(j + fromEndAt(j)!.len) ?? ''] !== undefined) { const f = fromEndAt(j)!; recur = {every: 'month', interval, fromEnd: {n: f.n, weekday: WEEKDAYS[at(j + f.len)!]!}}; j += f.len + 1; j += ofTheMonth(j); }
     else if (u === 'weekday' || u === 'weekdays' || u === 'workday' || u === 'workdays') { recur = {every: 'week', interval: 1, weekdays: [1, 2, 3, 4, 5]}; j++; }
     else if (u === 'weekend' || u === 'weekends') { recur = {every: 'week', interval: 1, weekdays: [6, 0]}; j++; }
     else if (WEEKDAYS[u] !== undefined) {
@@ -266,6 +274,8 @@ export function parseTaskLine(input: string, today: string, {keep = []}: {keep?:
       if (recur.every === 'month' && v && /^\d{1,2}(st|nd|rd|th|e)?$/.test(v) && dayNum(v)! >= 1 && dayNum(v)! <= 31) { recur.monthDay = dayNum(v)!; j = k + 1; j += ofTheMonth(j); }
       else if (recur.every === 'month' && v && ORDINALS[v] !== undefined && WEEKDAYS[at(k + 1) ?? ''] !== undefined) { recur.nth = {n: ORDINALS[v]!, weekday: WEEKDAYS[at(k + 1)!]!}; j = k + 2; j += ofTheMonth(j); }
       else if (recur.every === 'month' && v === 'last' && at(k + 1) === 'day') { recur.monthDay = -1; j = k + 2; }
+      else if (recur.every === 'month' && workdayAt(k)) { const w = workdayAt(k)!; recur.workday = w.which; j = k + w.len; j += ofTheMonth(j); }
+      else if (recur.every === 'month' && fromEndAt(k) && WEEKDAYS[at(k + fromEndAt(k)!.len) ?? ''] !== undefined) { const f = fromEndAt(k)!; recur.fromEnd = {n: f.n, weekday: WEEKDAYS[at(k + f.len)!]!}; j = k + f.len + 1; j += ofTheMonth(j); }
       else if (recur.every === 'week' && v && WEEKDAYS[v] !== undefined) {
         const days: number[] = []; let m = k;
         while (at(m) !== undefined && (WEEKDAYS[at(m)!] !== undefined || ((at(m) === 'and' || at(m) === ',') && WEEKDAYS[at(m + 1) ?? ''] !== undefined))) { if (WEEKDAYS[at(m)!] !== undefined && !days.includes(WEEKDAYS[at(m)!]!)) days.push(WEEKDAYS[at(m)!]!); m++; }
@@ -276,6 +286,25 @@ export function parseTaskLine(input: string, today: string, {keep = []}: {keep?:
       }
     }
     return finish({len: j - i, recur});
+    /** "second-to-last", "second last", "next-to-last", "penultimate" (Dutch "voorlaatste") at k: its length and n (2–5). */
+    function fromEndAt(k: number): {len: number; n: number} | null {
+      const w = at(k);
+      if (w === 'penultimate') return {len: 1, n: 2};
+      const n = w === 'next' ? 2 : w && ORDINALS[w] !== undefined && ORDINALS[w]! >= 2 ? ORDINALS[w]! : 0;
+      if (!n) return null;
+      let m = k + 1; if (at(m) === '-') m++;
+      if (at(m) === 'to') { m++; if (at(m) === '-') m++; }
+      return at(m) === 'last' ? {len: m + 1 - k, n} : null;
+    }
+    /** "last workday", "last weekday", "last working day", "first business day" (Dutch "laatste werkdag") at k. */
+    function workdayAt(k: number): {len: number; which: 'first' | 'last'} | null {
+      const w = at(k), which = w === 'last' ? 'last' : w === 'first' || w === '1st' ? 'first' : null;
+      if (!which) return null;
+      const u = at(k + 1);
+      if (u === 'weekday' || u === 'workday') return {len: 2, which};
+      if ((u === 'working' || u === 'business') && at(k + 2) === 'day') return {len: 3, which};
+      return null;
+    }
     /** "of the month", "of each month", the Dutch "van de maand" / "van elke maand": how many tokens it takes at k. */
     function ofTheMonth(k: number) { return (at(k) === 'of' || toks[k]?.text.toLowerCase() === 'van') && (at(k + 1) === 'the' || at(k + 1) === 'each' || at(k + 1) === 'every') && at(k + 2) === 'month' ? 3 : 0; }
     function yearStart(m: number, d: number) { const y = Number(today.slice(0, 4)), here = `${y}-${pad(m)}-${pad(d <= daysInMonth(y, m) ? d : daysInMonth(y, m))}`; return here >= today ? here : `${y + 1}-${pad(m)}-${pad(Math.min(d, daysInMonth(y + 1, m)))}`; }
@@ -330,6 +359,11 @@ export function parseTaskLine(input: string, today: string, {keep = []}: {keep?:
     if (kept.has(w.start)) return null;
     if (w.low.startsWith('#') && w.low.length > 1) { const name = w.text.slice(1).replace(/[_/]+/g, ' ').trim(); return name ? {len: 1, kind: 'project', apply: o => { o.project = name.slice(0, 60); }} : null; }
     if (w.low.startsWith('@') && w.low.length > 1 && (i === 0 || toks[i - 1]!.end < w.start)) { const name = w.text.slice(1).replace(/\//g, ''); return LABEL_PATTERN.test(name) ? {len: 1, kind: 'label', apply: o => { if (!o.labels.some(l => l.toLowerCase() === name.toLowerCase())) o.labels.push(name); }} : null; }
+    // Session AV lane 2 (LEDGER #3): "!2h" (before the task's time) and "!18:30" (at a clock time on its day).
+    const rel = /^!(\d{1,4})\s?(m|min|mins|h|hr|hrs|u|d|w)$/.exec(w.low);
+    if (rel) { const n = Number(rel[1]), unit = rel[2]!, before = n * (unit.startsWith('m') ? 1 : unit === 'd' ? 1440 : unit === 'w' ? 10_080 : 60); if (before <= 40_320) return {len: 1, kind: 'reminder', apply: o => { (o.reminders ??= []).push({before}); }}; }
+    const abs = /^!(\d{1,2})[:.](\d{2})$/.exec(w.low);
+    if (abs) return {len: 1, kind: 'reminder', apply: o => { (o.reminders ??= []).push({before: 0, at: `${pad(Number(abs[1]))}:${abs[2]}`}); }};
     const p = /^p([1-4])$/.exec(w.low) ?? /^!([1-4])$/.exec(w.low);
     if (p) return {len: 1, kind: 'priority', apply: o => { o.level = Number(p[1]) as TaskLevel; }};
     if (/^!{1,3}$/.test(w.low) && (i === toks.length - 1 || toks[i + 1]!.start > w.end) && (i === 0 || toks[i - 1]!.end < w.start)) return {len: 1, kind: 'priority', apply: o => { o.level = w.low.length >= 2 ? 1 : 2; }};
@@ -346,12 +380,22 @@ export function parseTaskLine(input: string, today: string, {keep = []}: {keep?:
     return null;
   };
   const seen = new Set<SpanKind>();
+  // Friend-readiness (FR-MAX-13, known M-11): a day right after "about" or "regarding" (Dutch "over het/de") is what the task
+  // is about, not when it is due: "Email Sam about the weekend" keeps its words and gets no day.
+  const topic = (i: number) => {
+    const raw = (k: number) => toks[k]?.text.toLowerCase();
+    let from = i;
+    while (from > 0 && !used[from - 1] && LEADS.has(toks[from - 1]!.low)) { if (raw(from - 1) === 'over' && (raw(from) === 'het' || raw(from) === 'de')) return true; from--; }
+    return from > 0 && (raw(from - 1) === 'about' || raw(from - 1) === 'regarding');
+  };
   for (let i = 0; i < toks.length; i++) {
     if (used[i]) continue;
     const found = tryAt(i);
+    if (found?.kind === 'date' && topic(i)) { i += found.len - 1; continue; }
     // One of each: a second day or a second repeat stays text (the first one wins).
     if (!found || (seen.has(found.kind) && (found.kind === 'date' || found.kind === 'time' || found.kind === 'recur' || found.kind === 'priority' || found.kind === 'project' || found.kind === 'deadline' || found.kind === 'minutes'))) continue;
     // A date token that a span starting with it would only half cover ("the" alone) is not taken.
+    if (found.kind === 'reminder' && (out.reminders?.length ?? 0) >= 3) continue;
     found.apply(out); take(i, found.len, found.kind); seen.add(found.kind);
     i += found.len - 1;
   }
@@ -360,6 +404,12 @@ export function parseTaskLine(input: string, today: string, {keep = []}: {keep?:
   else if (out.recur && out.due) out.due = firstDue(out.recur, out.due);
   // A time without a day is today's (or tomorrow's when that time has passed is not known here: today, shown as such).
   if (out.time && !out.due) out.due = today;
+  // Session AV lane 2 (LEDGER #3): a "!18:30" reminder is on the task's day (today when it has none); "!2h" needs a day,
+  // so a line with only that is planned for today, as a time alone is.
+  if (out.reminders) {
+    if (!out.due && out.reminders.some(r => !r.at)) out.due = today;
+    out.reminders = out.reminders.map(r => r.at ? {before: 0, at: `${out.due ?? today}T${r.at}`} : r);
+  }
   // The title: the text with every taken span cut out, spaces tidied.
   let title = '', last = 0;
   for (const s of [...out.spans].sort((a, b) => a.start - b.start)) { title += text.slice(last, s.start) + ' '; last = s.end; }

@@ -107,13 +107,15 @@ test('ZIGi’s Health-closed reply follows the question’s language, with one b
   }
   const habit = ask('Welke dag heb ik mijn water gemist?', shut());
   expect(habit.kind).toBe('answer');
-  expect(habit.text).toBe('Drink water: geen gemiste dag deze maand (Sun, Nov 1 t/m Tue, Nov 17). Overgeslagen (telt niet als gemist): Sun, Nov 1 en Tue, Nov 10. Vandaag staat nog open.');
+  // Session AV lane 2 (Dutch dates, deliberate): the Dutch answer writes its days the Dutch way (was "(Sun, Nov 1 t/m Tue, Nov 17) … Sun, Nov 1 en Tue, Nov 10").
+  expect(habit.text).toBe('Drink water: geen gemiste dag deze maand (zo 1 nov t/m di 17 nov). Overgeslagen (telt niet als gemist): zo 1 nov en di 10 nov. Vandaag staat nog open.');
   expect(habit.text).not.toMatch(/\bml\b|\bmL\b|Health/);
   expect(HEALTH_CLOSED_NL).toContain('Settings → ZIGi · your companion → Privacy & data: “Health page data” en “Include Health”');
 });
 test('NOVA: the same replies name NOVA → Permissions (its chat makes that the one button) and carry no card of their own', () => {
   // Session AU (R-12, deliberate): the water log's own target ("mijn waterdoel") for the habit's own word, as above.
-  for (const [q, says] of [['Welke dag heb ik mijn waterdoel gemist?', 'Zet Health aan in NOVA → Permissions.'], ['How much water did I drink yesterday?', 'Turn on Health in NOVA → Permissions.'], ['can you see my health', 'Turn on Health in NOVA → Permissions.'], ['how was my week', 'Health is allowed in NOVA → Permissions.']] as const) {
+  // Session AV lane 2 (fr-answers; deliberate, FR-TJ-1): the reply names the one button, Allow Health, in the same place, as strictly.
+  for (const [q, says] of [['Welke dag heb ik mijn waterdoel gemist?', 'Tik op Allow Health in NOVA → Permissions: één tik opent Health (de knop'], ['How much water did I drink yesterday?', 'Tap Allow Health in NOVA → Permissions: one tap opens Health (the button'], ['can you see my health', 'Tap Allow Health in NOVA → Permissions: one tap opens Health (the button'], ['how was my week', 'Health is allowed in NOVA → Permissions.']] as const) {
     const a = ask(q, NOVA_NO_HEALTH()), parsed = parseReply(a.text);
     expect(a.text, q).toContain(says);
     expect(parsed.proposals.filter(p => p.kind === 'open-page'), q).toEqual([]);

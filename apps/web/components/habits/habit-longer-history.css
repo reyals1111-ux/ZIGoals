@@ -1,0 +1,26 @@
+/* Session AV lane 2 (habits; LEDGER #187, #190): a habit's longer history. Theme variables only. */
+.habit-longer-fold > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.habit-longer { display: grid; gap: 10px; min-width: 0; padding-top: 6px; }
+.habit-longer h4 { margin: 6px 0 0; font-size: 1rem; }
+.habit-longer p { margin: 0; }
+.habit-longer-chart { width: 100%; max-width: 640px; height: auto; }
+/* Session AV lane 2 (polish4): the axis words beside and under the chart, 14 px at every width (they were SVG text that
+   shrank with the chart, about 6 px on a phone). */
+.habit-longer-plot { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 6px; max-width: 640px; }
+.habit-longer-plot > .habit-longer-chart { grid-column: 2; grid-row: 1; max-width: none; }
+.habit-longer-y { grid-column: 1; grid-row: 1; position: relative; min-width: 3.2ch; font-size: 14px; line-height: 1; color: var(--text-secondary, var(--muted)); font-variant-numeric: tabular-nums; }
+.habit-longer-y > span { position: absolute; right: 0; transform: translateY(-50%); }
+.habit-longer .habit-longer-x { grid-column: 2; grid-row: 2; display: flex; justify-content: space-between; gap: 8px; margin: 2px 0 0; font-size: 14px; color: var(--text-secondary, var(--muted)); }
+.habit-longer-grid { stroke: var(--line); }
+.habit-longer-line { fill: none; stroke: var(--cyan); stroke-width: 2; }
+.habit-longer-dot { fill: var(--cyan); }
+.habit-longer-table > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+.habit-longer table { border-collapse: collapse; font-size: .9375rem; }
+.habit-longer th, .habit-longer td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--line); }
+.habit-longer-units { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.habit-longer-units label { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; }
+.habit-longer-scroll { max-width: 100%; overflow-x: auto; }
+.habit-longer-weekdays td { text-align: center; min-width: 2.2em; background: color-mix(in srgb, var(--cyan) calc(var(--share, 0) * 45%), transparent); }
+.habit-longer-weekdays td[data-empty] { color: var(--muted); }
+.habit-longer-weekdays th[scope=row] { white-space: nowrap; }
+@media (forced-colors: active) { .habit-longer-line { stroke: CanvasText; } .habit-longer-dot { fill: CanvasText; } .habit-longer-weekdays td { background: none; } }

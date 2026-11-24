@@ -1,0 +1,20 @@
+/* Session AV lane 2, round 2 (money): saved-entry chips, the form's subcategory and paid with, the month by method. Theme variables only. */
+.quick-saved{display:grid;gap:6px;margin:4px 0 8px}
+.quick-saved-title{margin:0}
+.quick-saved-list{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.quick-chip{min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line,rgba(140,160,220,.35));background:color-mix(in srgb,var(--violet,#8b7cff) 12%,transparent);color:inherit;font:inherit;font-size:15px;cursor:pointer;max-width:100%;overflow-wrap:anywhere}
+.quick-chip:hover{border-color:var(--violet,#8b7cff)}
+.quick-chip:focus-visible{outline:2px solid var(--cyan,#6fd3ff);outline-offset:2px}
+.quick-saved-arrange{display:inline-flex;flex-wrap:wrap;align-items:center;gap:4px;font-size:15px}
+.quick-saved-arrange button{min-height:44px;min-width:44px}
+.quick-form{display:grid;gap:8px}
+.quick-subs{border:0;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.quick-subs legend{font-size:14px;margin-bottom:4px}
+.quick-subs-own{flex-basis:100%;font-size:14px}
+.quick-subs-own summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
+.quick-keep{justify-self:start;min-height:44px}
+.quick-keep-row{align-items:end}
+.quick-month{display:grid;gap:4px;margin-top:6px}
+.quick-month p{margin:0;overflow-wrap:anywhere}
+@media (prefers-reduced-motion:reduce){.quick-chip{transition:none}}
+:root[data-motion="off"] .quick-chip{transition:none}

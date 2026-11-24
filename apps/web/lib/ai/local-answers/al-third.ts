@@ -7,7 +7,7 @@ import {text as clean} from '../tools/format';
 import {runTool} from '../tools/registry';
 import type {ToolOk} from '../tools/types';
 import type {LocalReply, ToolCallRecord} from './engine';
-import {dayText, n, plural} from './words';
+import {dayText, n, nlDayText, plural} from './words';
 
 /**
  * Session AL third pass (lane L7; P14-B's open findings, Lisbon LA-008/LA-047, P-LA-10/11): three asks the device got
@@ -100,7 +100,7 @@ export function weeklyRecapReply(text: string, env: ToolEnv | null, lang: Lang):
   if (!r.result.ok) return {kind: 'answer', calls: [r.record], text: `${r.result.refusal} ${say(lang, 'The Life review shows the week from your records too.', 'Het Life review toont de week ook uit je gegevens.')}` + card};
   const d = (r.result as ToolOk).data as Data, year = env.habitDay.slice(0, 4);
   const w = env.weekly ? reviewWindow(env.weekly.weekday, env.habitDay) : null;
-  const head = w ? say(lang, `Your week, ${dayText(w.weekStart, year)} to ${dayText(w.weekEnd, year)} (your weekly review's week), from your records on this device:`, `Je week, ${dayText(w.weekStart, year)} tot ${dayText(w.weekEnd, year)} (de week van je weekoverzicht), uit je gegevens op dit apparaat:`)
+  const head = w ? say(lang, `Your week, ${dayText(w.weekStart, year)} to ${dayText(w.weekEnd, year)} (your weekly review's week), from your records on this device:`, `Je week, ${nlDayText(w.weekStart, year)} tot ${nlDayText(w.weekEnd, year)} (de week van je weekoverzicht), uit je gegevens op dit apparaat:`)
     : say(lang, 'Your week, from your records on this device:', 'Je week, uit je gegevens op dit apparaat:');
   const lines: string[] = [];
   if (env.areas.habits) {
@@ -115,7 +115,7 @@ export function weeklyRecapReply(text: string, env: ToolEnv | null, lang: Lang):
   else if (health.length) lines.push(`Health: ${health.map(l => clean(lang === 'nl' ? nlHealth(l) : l, 80)).join(' · ')}`);
   else lines.push(say(lang, 'Health: nothing recorded', 'Health: niets vastgelegd'));
   if (env.areas.goals) lines.push(say(lang, `Goals: ${plural(Number(d.goalContributions ?? 0), 'contribution')}`, `Doelen: ${n(Number(d.goalContributions ?? 0), 0)} ${Number(d.goalContributions) === 1 ? 'bijdrage' : 'bijdragen'}`));
-  if (typeof d.busiestDay === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d.busiestDay)) lines.push(say(lang, `Busiest day: ${dayText(d.busiestDay, year)}`, `Drukste dag: ${dayText(d.busiestDay, year)}`));
+  if (typeof d.busiestDay === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d.busiestDay)) lines.push(say(lang, `Busiest day: ${dayText(d.busiestDay, year)}`, `Drukste dag: ${nlDayText(d.busiestDay, year)}`));
   const intention = typeof d.lastIntention === 'string' && d.lastIntention !== 'none written' ? clean(d.lastIntention, 200) : null;
   return {kind: 'answer', calls: [r.record], text: [head, ...lines.map(l => `• ${l}`),
     ...(intention ? [say(lang, `Your intention from last week: “${intention}”`, `Je voornemen van vorige week: “${intention}”`)] : []),

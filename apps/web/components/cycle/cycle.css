@@ -13,3 +13,45 @@
 .cycle-recent summary, .cycle-actions button { min-height: 44px; }
 .cycle-recent summary { display: flex; align-items: center; cursor: pointer; }
 .cycle-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+/* Session AV lane 2 (r3-plan, LEDGER #262): the opt-in, and the cycle day on the Day Timeline and the Agenda. */
+.cycle-plan-choice { display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: 15px; }
+.cycle-plan-choice input { width: 20px; height: 20px; }
+.cycle-on-plan-line { margin: 0; font-size: 15px; overflow-wrap: anywhere; }
+.agenda-cycle { margin: 12px 0; padding: 4px 0 0; border-top: 1px solid var(--line); }
+.agenda-cycle h3 { margin: 8px 0 4px; font-size: 16px; }
+.cycle-on-plan-list { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 4px; font-size: 15px; }
+/* Session AV lane 2 (r5-body; LEDGER #379–#383): Your cycles, a cycle at a glance and What you track. Theme tokens only; no motion. */
+.cycle-fold-part > div { margin-top: 8px; }
+.cycle-history, .cycle-glance, .cycle-words { display: grid; gap: 10px; min-width: 0; font-size: 15px; }
+.cycle-stats { display: grid; gap: 6px; margin: 0; }
+.cycle-stats div { display: grid; gap: 2px; }
+.cycle-stats dt { font-weight: 600; }
+.cycle-stats dd { margin: 0; overflow-wrap: anywhere; }
+.cycle-view { display: flex; gap: 6px; flex-wrap: wrap; }
+.cycle-view button, .cycle-leave, .cycle-word-actions button, .cycle-add-word button { min-height: 44px; min-width: 44px; }
+.cycle-history-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.cycle-history-list li, .cycle-words-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 8px; padding: 4px 0; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.cycle-history-list li > span, .cycle-word-name { flex: 1 1 12em; min-width: 0; }
+.cycle-table-wrap, .cycle-glance-wrap { overflow-x: auto; max-width: 100%; border: 1px solid var(--line); border-radius: 12px; position: relative; } /* fixb5: position makes the wrap the containing block of the cells' sr-only words (position: absolute), so its scroll clips them and they no longer widen the page */
+.cycle-table-wrap:focus-visible, .cycle-glance-wrap:focus-visible { outline: 2px solid var(--accent, currentColor); outline-offset: 2px; }
+.cycle-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.cycle-table th, .cycle-table td { padding: 4px 6px; text-align: start; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.cycle-glance-table { border-collapse: separate; border-spacing: 2px; font-size: 14px; }
+.cycle-glance-table th { padding: 2px 4px; font-weight: 600; white-space: nowrap; text-align: center; }
+.cycle-glance-table tbody th { text-align: start; }
+.cycle-cell { width: 26px; min-width: 26px; height: 28px; text-align: center; border: 1px solid var(--line); border-radius: 6px; font-weight: 600; }
+.cycle-cell.is-none { border-style: dashed; opacity: .5; }
+.cycle-cell[data-flow="light"] { background: color-mix(in srgb, var(--violet) 18%, transparent); }
+.cycle-cell[data-flow="medium"] { background: color-mix(in srgb, var(--violet) 34%, transparent); }
+.cycle-cell[data-flow="heavy"] { background: color-mix(in srgb, var(--violet) 52%, transparent); }
+.cycle-dot { font-style: normal; }
+.cycle-choices { border: 1px solid var(--line); border-radius: 14px; padding: 8px 10px; margin: 0; display: grid; gap: 4px; min-width: 0; }
+.cycle-words-title { margin: 4px 0 0; font-size: 16px; }
+.cycle-words-list { list-style: none; margin: 0; padding: 0; }
+.cycle-words-list li[data-hidden] .cycle-word-name { opacity: .7; }
+.cycle-word-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+.cycle-add-word { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
+.cycle-add-word .field { flex: 1 1 14em; min-width: 0; }
+.cycle-add-word input { min-height: 44px; }
+.cycle-glance .field select { min-height: 44px; max-width: 100%; }
+@media (forced-colors: active) { .cycle-cell[data-flow] { forced-color-adjust: none; background: Highlight; color: HighlightText; } }

@@ -1,0 +1,10 @@
+/* Session AV lane 2 (bodymind-r2; LEDGER #231): "Write it out", the page that is never saved. Theme tokens only; the
+   fade on "Let it go" runs only when motion is allowed (the component checks reduced motion and Motion Off) and is off
+   under prefers-reduced-motion here too. */
+.write-it-out { display: grid; gap: 8px; min-width: 0; }
+.write-it-out-page { inline-size: 100%; box-sizing: border-box; min-block-size: 160px; font: inherit; font-size: 16px; line-height: 1.5; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface, transparent); color: var(--text); resize: vertical; transition: opacity 600ms ease, filter 600ms ease; }
+.write-it-out-page[data-fading] { opacity: 0; filter: blur(2px); }
+@media (prefers-reduced-motion: reduce) { .write-it-out-page { transition: none; } }
+.write-it-out-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.write-it-out-actions button { min-height: 44px; }
+.write-it-out-closing { margin: 0; font-size: 15px; font-style: italic; color: var(--text-strong, var(--text)); min-height: 1.5em; }

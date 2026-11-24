@@ -15,7 +15,10 @@ for (const theme of THEMES) test(`${theme}: two good things saved as one entry a
   await page.goto('/app/journal'); await settle(page);
   const fold = page.locator('details.good-things-fold');
   await expect(fold.locator('summary')).toContainText('Three good things · None this month yet');
-  // Session AV (1c, q4 #4, deliberate): the fold is open at the top of Write (it was closed below "Save entry").
+  // Session AV (1c, q4 #4, deliberate): the fold is at the top of Write (it was below "Save entry").
+  // (fr-layout; deliberate) FR-TJ-9: it starts folded, one line, so "Today's entry" is on the first screen; one tap opens it.
+  await expect(fold).not.toHaveAttribute('open');
+  await fold.locator('summary').click();
   await expect(fold).toHaveAttribute('open', '');
   expect(await page.evaluate(() => { const f = document.querySelector('details.good-things-fold'), w = document.querySelector('form[aria-label="Write in your journal"]'); return !!f && !!w && !!(f.compareDocumentPosition(w) & Node.DOCUMENT_POSITION_FOLLOWING); })).toBe(true);
   const form = page.getByRole('form', {name: 'Three good things'});

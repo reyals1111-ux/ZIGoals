@@ -134,11 +134,12 @@ describe('bill changes: the latest payment of a bill found in the money log agai
   const key = `EUR|Subscriptions|${normalisePayee('Music')}|monthly`;
   const bills = (origin: 'detected' | 'manual') => billsSchema.parse({version: 1, dismissed: [], bills: [{id: 'b1', title: 'Music · SHOWCASE DATA', amount: '9.99', currency: 'EUR', cadence: 'monthly', nextDue: '2026-12-03', origin, ...(origin === 'detected' ? {matchKey: key} : {}), category: 'Subscriptions', createdAt: '2026-09-01T08:00:00.000Z'}]});
   const pays = log([entry('p1', 'expense', '9.49', '2026-09-03', 'Subscriptions', 'EUR', 'Music'), entry('p2', 'expense', '9.49', '2026-10-03', 'Subscriptions', 'EUR', 'Music'), entry('p3', 'expense', '9.99', '2026-11-03', 'Subscriptions', 'EUR', 'Music')]);
-  it('a rise is said with both amounts and the month of the earlier payment', () => {
+  // (fr-money; deliberate) FR-L-18: "since" is the month of the first payment at the new price (€9.99 from November).
+  it('a rise is said with both amounts and the month the new price began', () => {
     const c = billChangesCard(bills('detected'), pays, DAY);
     expect([c.state, c.bills, c.fromLog]).toEqual(['live', 1, 1]);
     expect(c.lines[0]).toMatchObject({id: 'b1', direction: 'up'});
-    expect(c.lines[0]!.words).toMatch(/^went up by .*0\.50 since Oct 2026 \(.*9\.49 then, .*9\.99 now\)$/);
+    expect(c.lines[0]!.words).toMatch(/^went up by .*0\.50 since Nov 2026 \(.*9\.49 then, .*9\.99 now\)$/);
   });
   it('a bill written by hand has no payments to compare; no bill at all teaches', () => {
     // Session AU (ADR-044 D-SHOWCASE, deliberate): bills found in the money log but not confirmed count too now (as Wealth →
@@ -148,7 +149,7 @@ describe('bill changes: the latest payment of a bill found in the money log agai
     expect([none.state, none.fromLog, none.lines]).toEqual(['none', 0, []]);
     const found = billChangesCard(bills('manual'), pays, DAY);
     expect([found.state, found.fromLog, found.lines.length]).toEqual(['live', 1, 1]);
-    expect(found.lines[0]!.words).toMatch(/^went up by .*0\.50 since Oct 2026 \(.*9\.49 then, .*9\.99 now\)$/);
+    expect(found.lines[0]!.words).toMatch(/^went up by .*0\.50 since Nov 2026 \(.*9\.49 then, .*9\.99 now\)$/);
     expect(billChangesRows(none)[0]![1]).toMatch(/None of your bills came from the money log/);
     // Session AU (deliberate, as above): "empty" is no bill kept and none found in the log; a series found in the log alone is live.
     expect(billChangesCard(billsSchema.parse({version: 1, bills: [], dismissed: []}), {...pays, entries: []}, DAY).state).toBe('empty');

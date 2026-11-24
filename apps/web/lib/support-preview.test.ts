@@ -3,7 +3,8 @@ import {afterEach,beforeEach,expect,test,vi} from 'vitest';
 import {act,createElement} from 'react';
 import {createRoot,type Root} from 'react-dom/client';
 const state=vi.hoisted(()=>({account:'private-account-sentinel',opened:false,busy:false,error:'private-error-sentinel',last:'private-last-sentinel',message:'private-message-sentinel'}));
-vi.mock('../components/vault-sync-controls',()=>({useVaultStatus:()=>state}));
+// Session AV lane 2 (A45-1: the hook moved to vault-context.ts, deliberate; the same mock of the same hook)
+vi.mock('../components/vault-context',()=>({useVaultStatus:()=>state}));
 import {ConnectionDiagnostics} from '../components/connection-diagnostics';
 let root:Root,container:HTMLDivElement;const clipboard=vi.fn();
 beforeEach(()=>{vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:clipboard.mockReset().mockResolvedValue(undefined)}});container=document.createElement('div');document.body.append(container);root=createRoot(container);});

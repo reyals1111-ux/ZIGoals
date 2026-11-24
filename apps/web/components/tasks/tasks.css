@@ -6,7 +6,7 @@
 .task-meta { grid-area: meta; display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; opacity: .8; }
 .task .text-link { grid-area: remove; }
 .task-overdue .task-meta { opacity: 1; color: var(--warning, #e8a33d); }
-.task-chip { padding: 0 8px; border-radius: 999px; border: 1px solid currentColor; font-size: 12px; }
+.task-chip { padding: 0 8px; border-radius: 999px; border: 1px solid currentColor; font-size: 14px; } /* Session AV lane 2 (P-37): copy at 14 px */
 .tasks-add { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; }
 .tasks-add .field { min-width: 140px; flex: 1 1 140px; }
 
@@ -58,16 +58,44 @@
 /* ---- Session AL (Part 8): Tasks at Todoist/TickTick level ------------------------------------------------------- */
 .tasks-page { width: min(1180px, 100%); }
 .tasks-links { display: flex; flex-wrap: wrap; gap: 4px 16px; }
-.tasks-links button.text-link { min-height: 44px; font-size: 16px; }
+.tasks-links button.text-link { min-height: 44px; min-width: 44px; justify-content: center; font-size: 16px; } /* polish4: 44 × 44 */
 .tasks-layout { display: grid; grid-template-columns: minmax(200px, 240px) minmax(0, 1fr); gap: 18px; align-items: start; }
 @media (max-width: 900px) { .tasks-layout { grid-template-columns: minmax(0, 1fr); } }
 .tasks-nav { display: grid; gap: 4px; min-width: 0; position: sticky; top: 84px; }
-@media (max-width: 900px) { .tasks-nav { position: static; } .tasks-nav ul { display: flex; flex-wrap: wrap; gap: 6px; } .tasks-nav-item { width: auto; } }
 .tasks-nav ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
-/* Session AL (A10-11): in one column (768 px) the 545 px of views (Inbox … Priority) stood above the list, so the first
-   task began at about y 1,500 of 1,024. The list comes first and its views follow it, as on a phone (globals.css orders
-   the phone's navs last); nothing is removed, and the page's source (and Tab) order is unchanged. */
-@media (max-width: 900px) { .tasks-layout > .tasks-nav { order: 1; } }
+/* Session AL (A10-11) put the views after the list in one column, because they stood there as 545 px of full-width rows.
+   Session AV lane 2 (P-4, deliberate): the cause was that the wrap rule below came before `.tasks-nav ul {display: grid}`
+   and `.tasks-nav-item {width: 100%}` and lost to them. With the rule winning, the views are compact chips that wrap, and
+   they stand above the list again, as the source and Tab order have them, so This week, Table, Calendar, Timeline and
+   Insights are found without scrolling past every task. Computers keep the side column.
+   Session AV lane 2 (fixb3c): `order: 0` because globals.css gives every `nav` `order: 3` below 700 px (the phone's
+   header nav), which still put the views after the list in the built app. Chips 10 px at the sides with 4 px gaps and
+   headings 6 px apart, so three views share a row at 390 and the block stays compact once the counts load (553 px
+   measured in the Showcase before, under the spec's 520 after); every chip keeps its 44 px height. Between 701 and
+   900 px (a tablet in one column) the list stays first, as Session AL A10-11 pins (the first task on the first screen
+   at 768, tests/grok53/release/a10-life.spec.ts): with the views above it the first task began at y 1,395 of 1,024; with
+   them after it, its title still ended 1 px under the screen, so the smart-add help keeps 12 px below it there, not 20. */
+@media (max-width: 900px) {
+  .tasks-layout > .tasks-nav { position: static; gap: 0; order: 0; }
+  .tasks-layout > .tasks-nav ul { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tasks-layout > .tasks-nav .tasks-nav-item { width: auto; padding: 6px 10px; border-radius: 999px; }
+  .tasks-layout > .tasks-nav .tasks-nav-item:not([aria-current=page]) { border-color: var(--line, rgba(128, 128, 160, .3)); }
+  .tasks-layout > .tasks-nav h3 { margin: 6px 0 2px; }
+  .tasks-layout > .tasks-nav .tasks-nav-area h4 { margin: 4px 0 2px; }
+}
+/* Session AV lane 2 (fr-layout, FR-L-5, FR-MAX-2, FR-S-7, FR-TJ-8): on a phone, Plan and views, Projects, Labels, Priority
+   and Saved filters fold behind the "More views" chip at the end of the first row, so "New task" is on the first screen
+   (it stood at y 966–1,296 under every row). Wider screens keep every row and never show the chip. */
+.tasks-nav-more { display: grid; gap: 4px; min-width: 0; }
+.tasks-nav-more-item { display: none; }
+@media (max-width: 700px) {
+  .tasks-layout > .tasks-nav .tasks-nav-more-item { display: block; }
+  .tasks-layout > .tasks-nav .tasks-nav-more { gap: 0; }
+  .tasks-layout > .tasks-nav .tasks-nav-more:not([data-open]) { display: none; }
+  /* and 16 px less air above and below the views (the page's and the layout's 18 px gaps, 10 here): y 713 → 697 */
+  .tasks-page, .tasks-page > .tasks-layout { row-gap: 10px; }
+}
+@media (min-width: 701px) and (max-width: 900px) { .tasks-layout > .tasks-nav { order: 1; } .tasks-layout .tasks-smart-add > .tasks-smart-help { margin-bottom: 12px; } }
 .tasks-nav h3 { margin: 12px 0 2px; font-size: 14px; font-weight: 650; color: var(--text-secondary, var(--muted)); }
 .tasks-nav-item { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 6px 12px; border-radius: 12px; border: 1px solid transparent; background: transparent; color: inherit; font: inherit; text-align: start; cursor: pointer; }
 .tasks-nav-item small { font-size: 14px; color: var(--text-secondary, var(--muted)); overflow-wrap: anywhere; }
@@ -164,7 +192,13 @@
 .tasks-main .tasks-column .task { grid-template-columns: auto auto minmax(0, 1fr); grid-template-areas: "select done title" "select done meta" "actions actions actions" "sub sub sub"; }
 .tasks-bulk { display: flex; flex-wrap: wrap; align-items: end; gap: 6px 10px; padding: 8px 12px; border-radius: 14px; border: 1px solid var(--cyan); position: sticky; top: 72px; z-index: 2; background: var(--surface, var(--panel, rgba(10, 12, 30, .92))); }
 .tasks-bulk button, .tasks-bulk select { min-height: 44px; }
+/* Session AV lane 2 (fixb6): on a phone (or a short window) the bar wraps to most of the screen's height; held at the top it
+   covered every row below it, so another task could not be seen or chosen. There it stays where it is in the page. */
+@media (max-width: 767px), (max-height: 600px) { .tasks-bulk { position: static; } }
 .tasks-bulk strong { align-self: center; }
+/* Session AV lane 2 (r6-plan, LEDGER #391): any day, and a label added or taken off, kept together as small groups. */
+.tasks-bulk-group { display: inline-flex; flex-wrap: wrap; align-items: end; gap: 6px 8px; max-width: 100%; }
+.tasks-bulk-group input { min-height: 44px; max-width: 100%; }
 .tasks-reminders ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .tasks-reminders li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; overflow-wrap: anywhere; }
 .tasks-reminders .text-link { min-height: 44px; }
@@ -202,6 +236,10 @@
 .tasks-done-bars rect{fill:var(--cyan, #6fd3ff);opacity:.75}
 .tasks-done-bars rect.tasks-done-today{opacity:1}
 .tasks-done-axis{display:flex;justify-content:space-between;margin:0}
+/* Session AV lane 2 (minors, q1 #6): the daily goal as a dashed line across the bars, with its key in the words below. */
+.tasks-done-bars .tasks-done-goal{stroke:var(--text, currentColor);stroke-width:1.5;stroke-dasharray:5 4;opacity:.8}
+.tasks-done-goal-words{margin:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tasks-done-goal-key{display:inline-block;width:20px;border-top:2px dashed var(--text, currentColor);opacity:.8}
 .tasks-done-weeks{display:flex;flex-wrap:wrap;gap:6px 16px;list-style:none;margin:0;padding:0;font-size:15px}
 .tasks-done-table summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
 .tasks-done-table table{border-collapse:collapse;font-size:15px}
@@ -234,3 +272,33 @@
 .tasks-done-count { margin: 4px 0 8px; font-size: 15px; color: var(--text-secondary, var(--muted)); }
 .tasks-done-days{display:grid;grid-template-columns:repeat(14,1fr);margin:2px 0 0;font-size:14px;line-height:1.2;text-align:center;color:var(--text-secondary, var(--muted))}
 .tasks-done-days [data-today]{font-weight:700;color:inherit}
+/* Session AV lane 2 (tasks, LEDGER #8, #27): the editor's background switch and its comments. */
+.task-editor-check { display: flex; align-items: center; gap: 8px; min-height: 44px; flex: 1 1 100%; font-size: 15px; }
+.task-editor-check input { width: 20px; height: 20px; flex: none; }
+/* Review b1 #14: the task's timer in its editor. */
+.task-timer { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; flex: 1 1 100%; font-size: 15px; }
+.task-timer button { min-height: 44px; }
+.task-timer p { flex: 1 1 100%; margin: 0; }
+.task-editor-comments { display: flex; flex-wrap: wrap; gap: 8px; flex: 1 1 100%; align-items: flex-end; }
+.task-editor-comments .field { flex: 1 1 240px; }
+.task-comments { list-style: none; margin: 0; padding: 0; flex: 1 1 100%; display: grid; gap: 6px; font-size: 15px; overflow-wrap: anywhere; }
+.task-comments li { display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+.task-comments a { color: var(--accent, inherit); text-decoration: underline; }
+/* Session AV lane 2 (rest, LEDGER #33): a task's earlier versions, a fold in the editor. */
+.task-versions-fold { flex: 1 1 100%; min-width: 0; }
+.task-versions-fold > summary, .task-versions-list summary { min-height: 44px; display: list-item; padding: 10px 0; box-sizing: border-box; cursor: pointer; overflow-wrap: anywhere; font-size: 15px; }
+.task-versions-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.task-version-words { margin: 4px 0; font-size: 15px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.task-versions-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.task-versions-actions button { min-height: 44px; }
+/* Session AV lane 2 (LEDGER #20, #28): projects under their area in the nav, and the area choice over the list. */
+.tasks-nav-area h4 { margin: 8px 0 2px; font-size: 14px; color: var(--text-secondary, var(--muted)); overflow-wrap: anywhere; }
+.tasks-area-pick { flex: 0 1 200px; min-width: 0; }
+.task-editor-paused { flex: 1 1 100%; margin: 0; font-size: 15px; }
+/* Session AV lane 2 (fix2011): the editor's one note about the repeat holds "Paused until" and the repeat's record. */
+.task-editor-paused { display: grid; gap: 4px; min-width: 0; }
+.task-editor-paused p { margin: 0; overflow-wrap: anywhere; }
+.task-editor-paused small { color: var(--text-secondary, var(--muted)); font-size: 14px; }
+/* Session AV lane 2 (tasks-r2, LEDGER #225): "Print this list" under the list. */
+.tasks-print-line { margin: 8px 0 0; }
+.tasks-print-line button { min-height: 44px; font-size: 16px; }

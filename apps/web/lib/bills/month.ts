@@ -1,7 +1,7 @@
 import {addLocalDays} from '../local-date';
 import {cents} from '../money-log/engine';
 import type {MoneyEntry} from '../money-log/schema';
-import {daysBetween, dueDatesBetween, dueOnOrAfter, stepDue} from './cadence';
+import {addMonths, CADENCE_DAYS, daysBetween, dueDatesBetween, dueOnOrAfter, stepDue} from './cadence';
 import {AMOUNT_TOLERANCE, normalisePayee} from './detect';
 import type {Bill, BillsRecord} from './schema';
 
@@ -33,18 +33,54 @@ export function monthDueDates(anchor: string, cadence: Bill['cadence'], from: st
   }
   return [...out].sort();
 }
-export function billsThisMonth(record: BillsRecord, entries: readonly MoneyEntry[], today: string): {lines: MonthBill[]; totals: MonthTotals[]} {
+/**
+ * Session AV lane 2, round 5 (money; PocketSmith's "fix this bill", LEDGER #386): a bill paid early. An expense whose
+ * payee and category are the bill's own match words (`matchKey`: `currency|category|payee|cadence`, as a confirmed
+ * candidate keeps them, or as "Paid early?" learned them) also counts as the payment from up to 14 days before the due
+ * date (6 for a weekly bill), not only within 4 days of it.
+ */
+export const EARLY_DAYS = 14, EARLY_DAYS_WEEKLY = 6;
+export const earlyDays = (cadence: Bill['cadence']) => cadence === 'weekly' ? EARLY_DAYS_WEEKLY : EARLY_DAYS;
+/** An entry's match words as a bill keeps them (without the cadence): `currency|category|payee`. */
+export const entryMatchKey = (e: Pick<MoneyEntry, 'currency' | 'category' | 'note'>) => `${e.currency}|${e.category}|${normalisePayee(e.note) || normalisePayee(e.category)}`;
+/** The due date one step before `due` on the bill's own steps from its anchor (the 31st stays the month's last day). */
+export function previousDue(anchor: string, cadence: Bill['cadence'], due: string): string {
+  const months = CADENCE_DAYS[cadence].months, guess = cadence === 'weekly' ? Math.round(daysBetween(anchor, due) / 7)
+    : Math.round(((Number(due.slice(0, 4)) - Number(anchor.slice(0, 4))) * 12 + Number(due.slice(5, 7)) - Number(anchor.slice(5, 7))) / months);
+  for (const k of [guess, guess - 1, guess + 1]) if (stepDue(anchor, cadence, k) === due) return stepDue(anchor, cadence, k - 1);
+  return cadence === 'weekly' ? addLocalDays(due, -7) : addMonths(due, -months);
+}
+/**
+ * Review b5k #1: an early payment belongs to this due date only when it lies outside the previous due date's own window
+ * (more than 4 days after it) and is closer to this date than to that one — so a payment can satisfy one due date only,
+ * even when the previous date fell in last month and its line is not built here.
+ */
+export function earlyFits(b: Pick<Bill, 'nextDue' | 'cadence'>, e: Pick<MoneyEntry, 'date'>, due: string): boolean {
+  const before = daysBetween(e.date, due);
+  if (before < 0 || before > earlyDays(b.cadence)) return false;
+  const after = daysBetween(previousDue(b.nextDue, b.cadence, due), e.date);
+  return after > MATCH_DAYS && before < after;
+}
+const learned = (b: Bill, e: MoneyEntry, due: string) => !!b.matchKey && b.matchKey.startsWith(`${entryMatchKey(e)}|`) && earlyFits(b, e, due);
+/** This month's bill dates with the entry each one matched (by line: `billId|due`). */
+export function monthMatches(record: BillsRecord, entries: readonly MoneyEntry[], today: string): {lines: MonthBill[]; matched: Map<string, string>} {
   const first = `${today.slice(0, 7)}-01`, last = addLocalDays(dueOnOrAfter(first, 'monthly', addLocalDays(first, 1)), -1);
-  const used = new Set<string>(), lines: MonthBill[] = [];
+  const used = new Set<string>(), lines: MonthBill[] = [], matched = new Map<string, string>();
   for (const b of record.bills) {
     const amount = cents(b.amount), payee = normalisePayee(b.title);
     for (const due of monthDueDates(b.nextDue, b.cadence, first, last, today)) {
-      const hit = entries.find(e => e.kind === 'expense' && !used.has(e.id) && e.currency === b.currency && Math.abs(daysBetween(due, e.date)) <= MATCH_DAYS
-        && Math.abs(cents(e.amount) - amount) <= amount * AMOUNT_TOLERANCE && ((!!payee && payeeOf(e) === payee) || (!!b.category && e.category === b.category && payeeOf(e) === normalisePayee(e.category))));
-      if (hit) used.add(hit.id);
+      const near = (e: MoneyEntry) => e.kind === 'expense' && !used.has(e.id) && e.currency === b.currency && Math.abs(cents(e.amount) - amount) <= amount * AMOUNT_TOLERANCE;
+      const hit = entries.find(e => near(e) && Math.abs(daysBetween(due, e.date)) <= MATCH_DAYS
+        && ((!!payee && payeeOf(e) === payee) || (!!b.category && e.category === b.category && payeeOf(e) === normalisePayee(e.category))))
+        ?? entries.find(e => near(e) && learned(b, e, due));
+      if (hit) { used.add(hit.id); matched.set(`${b.id}|${due}`, hit.id); }
       lines.push({billId: b.id, title: b.title, due, cents: amount, currency: b.currency, state: hit ? 'seen' : due <= today ? 'passed' : 'coming'});
     }
   }
+  return {lines, matched};
+}
+export function billsThisMonth(record: BillsRecord, entries: readonly MoneyEntry[], today: string): {lines: MonthBill[]; totals: MonthTotals[]} {
+  const {lines} = monthMatches(record, entries, today);
   lines.sort((a, b) => a.due.localeCompare(b.due) || a.title.localeCompare(b.title));
   const totals = new Map<string, MonthTotals>();
   for (const l of lines) {

@@ -40,3 +40,17 @@ export function chooseDayEnd(current: DayEnds, endsAt: number, now = new Date())
 /** "midnight", "1:00" … "6:00", as the setting's choices read. */
 export const dayEndLabel = (minutes: number) => minutes === 0 ? 'Midnight' : `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')}`;
 
+
+/**
+ * Friend-readiness (FR-MAX-8): the status line after a choice, saying when it takes effect. Owner rule 1 keeps the day in
+ * progress under the end it started with, so a later end chosen at 01:30 changes nothing tonight; the line now says so
+ * instead of only "Your day now ends at 3:00." (`zone` null: this device's clock, as Settings shows it).
+ */
+export function dayEndStatus(previous: DayEnds, endsAt: number, now = new Date(), zone: string | null = null): string {
+  if (endsAt === previous.endsAt) return endsAt === 0 ? 'Your day ends at midnight.' : `Your day ends at ${dayEndLabel(endsAt)}.`;
+  const label = endsAt === 0 ? 'midnight' : dayEndLabel(endsAt), before = previous.endsAt === 0 ? 'midnight' : dayEndLabel(previous.endsAt);
+  if (dayUnder(previous.endsAt, now, zone) === dayUnder(endsAt, now, zone)) return endsAt === 0 ? 'Your day ends at midnight.' : `Your day now ends at ${label}.`;
+  return endsAt > previous.endsAt
+    ? `Your day now ends at ${label}, from tonight on: today already started at ${before}, so it keeps that start.`
+    : `Your day ends at ${label} once the day in progress ends, at ${before}.`;
+}

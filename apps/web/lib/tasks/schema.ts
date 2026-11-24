@@ -1,5 +1,6 @@
 import * as z from 'zod';
 import type {DeviceRecordSpec} from '../device-record';
+import {TASK_LOOK_COLOURS, TASK_LOOK_GLYPHS} from './look';
 
 /**
  * Session AI (B3 competitor gap: tasks with a priority and a due date; TIER 3 (stored format)). One-off things to do,
@@ -60,13 +61,46 @@ export const recurSchema = z.looseObject({
   /** Occurrences left, this one included. */
   left: z.number().int().min(1).max(999).optional().catch(undefined),
   text: z.string().max(120).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r4-plan, LEDGER #305; Motion's repeat window; TIER 3 (stored format), additive and optional): the
+   * repeat floats — once a week or once a month, any day of it. Written with `every` week (on Sunday, the week's last day)
+   * or month (on its last day) and `interval` 1, so an older build reads it as that fixed repeat; it keeps `flex` untouched.
+   */
+  flex: z.enum(['week', 'month']).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r6-plan, LEDGER #398; OmniFocus's "next to last" weekday; TIER 3 (stored format), additive and
+   * optional): `fromEnd` a weekday counted from the month's end — n 2 the second-to-last, up to 5 (the last one stays `nth`
+   * -1); `workday` the month's first or last working day (Monday to Friday). An older build drops an `nth` it cannot read, so
+   * these never go in `nth`: each is written beside a plain `monthDay` (the first occurrence's day; the last working day:
+   * -1, the first: 1) that an older build follows, keeping these untouched. This build reads them before `nth` and `monthDay`.
+   */
+  fromEnd: z.looseObject({n: z.number().int().min(2).max(5), weekday: z.number().int().min(0).max(6)}).optional().catch(undefined),
+  workday: z.enum(['first', 'last']).optional().catch(undefined),
 });
 export type Recur = z.infer<typeof recurSchema>;
-export const reminderSchema = z.looseObject({before: z.number().int().min(0).max(40_320)});
+/**
+ * Session AV lane 2 (tasks, LEDGER #3; Todoist's custom reminder; TIER 3 (stored format), additive and optional): `at` is
+ * a reminder at a date and time of its own ("YYYY-MM-DDTHH:MM", the device's wall clock), apart from the task's day.
+ * `before` stays (0 for such a reminder), so an older build still reads the reminder as "at the time" of a dated task.
+ */
+export const REMINDER_AT = /^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d$/;
+export const reminderSchema = z.looseObject({before: z.number().int().min(0).max(40_320), at: z.string().regex(REMINDER_AT).optional().catch(undefined)});
 export type TaskReminder = z.infer<typeof reminderSchema>;
 
+/**
+ * Session AV lane 2 (r3-plan, LEDGER #259; Structured's Energy Monitor): how much a task asks of the person — restful
+ * (gives some back), neutral, light, medium or heavy. Words only; lib/tasks/energy-load.ts turns them into the day's total.
+ */
+export const TASK_ENERGY = ['restful', 'neutral', 'light', 'medium', 'heavy'] as const;
+export type TaskEnergy = (typeof TASK_ENERGY)[number];
 /** Session AV (F-TASK-MINUTES): the longest a task can be said to take, a whole day. */
 export const MAX_TASK_MINUTES = 1440;
+/** Session AV lane 2 (r4-plan, LEDGER #303, #304): a long task's smallest piece, and how many tasks one can wait for. */
+export const MIN_CHUNK = 15, MAX_CHUNK = 240, MAX_AFTER = 3;
+/** Session AV lane 2 (r5-plan, LEDGER #350, #353, #354): a task's states, the longest travel before it, the longest place. */
+export const TASK_STATES = ['doing', 'cancelled'] as const;
+export const MAX_TRAVEL = 600, PLACE_MAX = 200;
+const ID = /^[A-Za-z0-9_-]{1,80}$/;
 export const taskSchema = z.looseObject({
   id,
   title: z.string().trim().min(1).max(TASK_TITLE_MAX),
@@ -115,12 +149,135 @@ export const taskSchema = z.looseObject({
    * this build cannot read is dropped on read; older builds keep it untouched (the object is loose) and ignore it.
    */
   snooze: z.looseObject({of: z.number().int().min(0), until: z.number().int().min(0), before: z.number().int().min(0).max(40_320).optional().catch(undefined)}).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (tasks; Sunsama, Things, Todoist; TIER 3 (stored format), additive and optional, each dropped on
+   * read when it cannot be read; older builds keep them untouched (the object is loose) and do not show them):
+   * `spent` the minutes actually worked on it (the timer, planned vs actual); `early` start-early days (it shows in Today
+   * that many days before its day); `parallel` a background task (not added to the day's load); `objective` the week
+   * objective it serves (`objectives` on the record); `comments` short notes in time order (text and links, this device).
+   */
+  spent: z.number().int().min(0).max(100_000).optional().catch(undefined),
+  early: z.number().int().min(1).max(60).optional().catch(undefined),
+  parallel: z.literal(true).optional().catch(undefined),
+  objective: id.optional().catch(undefined),
+  comments: tolerantArray(z.looseObject({id, at: z.iso.datetime({offset: true}), text: z.string().trim().min(1).max(1000)}), 50),
+  /**
+   * Session AV lane 2 (tasks-r2, LEDGER #229; Any.do's custom fields; TIER 3 (stored format), additive and optional): the
+   * task's values of its project's own fields, by field id — text (≤ 200), a number, a day, one of the field's choices, or
+   * a tick. A value this build cannot read is dropped on read (never the task); older builds keep `fields` untouched.
+   */
+  fields: z.preprocess(v => {
+    if (!v || typeof v !== 'object' || Array.isArray(v)) return undefined;
+    const kept = Object.entries(v).filter(([k, x]) => /^[A-Za-z0-9_-]{1,80}$/.test(k) && ((typeof x === 'string' && x.length >= 1 && x.length <= FIELD_TEXT_MAX) || (typeof x === 'number' && Number.isFinite(x)) || x === true)).slice(0, 20);
+    return kept.length ? Object.fromEntries(kept) : undefined;
+  }, z.record(z.string(), z.union([z.string(), z.number(), z.literal(true)])).optional()),
+  /**
+   * Session AV lane 2 (r3-plan; TIER 3 (stored format), additive and optional, each dropped on read when it cannot be read;
+   * older builds keep them untouched (the object is loose) and do not show them):
+   * `look` (LEDGER #257, Structured's task icons and colours) a symbol and a named colour from the habit-look set, shown
+   * beside the title; `energy` (LEDGER #259, Structured's Energy Monitor) how much the task asks, for the day's total.
+   */
+  look: z.looseObject({glyph: z.enum(TASK_LOOK_GLYPHS), colour: z.enum(TASK_LOOK_COLOURS)}).optional().catch(undefined),
+  energy: z.enum(TASK_ENERGY).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r4-plan; Motion; TIER 3 (stored format), additive and optional, each dropped on read when it cannot
+   * be read; older builds keep them untouched (the object is loose) and do not use them):
+   * `chunk` (LEDGER #303, Motion's chunks) the smallest piece, 15–240 minutes, Plan my day and Plan my week place a long
+   * task in; `after` (LEDGER #304, Motion's blockers) up to three tasks it waits for, by id (one no longer on the list, done,
+   * repeating or itself is not waited for: lib/tasks/engine.ts waitingFor); `afterHours` (LEDGER #301, Motion's schedules)
+   * placed in the evening hours of the planning record rather than the working hours.
+   */
+  chunk: z.number().int().min(MIN_CHUNK).max(MAX_CHUNK).optional().catch(undefined),
+  after: z.preprocess(v => { if (!Array.isArray(v)) return undefined; const ids = [...new Set(v.filter(x => typeof x === 'string' && ID.test(x)))].slice(0, MAX_AFTER); return ids.length ? ids : undefined; }, z.array(z.string()).optional()),
+  afterHours: z.literal(true).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r5-plan; Akiflow, Logseq; TIER 3 (stored format), additive and optional, each dropped on read when it
+   * cannot be read; older builds keep them untouched (the object is loose) and do not show them):
+   * `state` (LEDGER #350, Logseq's DOING and CANCELED) "doing" — begun at `at` — or "cancelled" — closed at `at` without
+   * being done. A cancelled task also carries `doneAt`, so an older build shows it as finished, never as open; this build
+   * keeps it out of the done chart, the daily goal and its streak (lib/tasks/task-state.ts);
+   * `plan` (LEDGER #349, Akiflow's This week and This month) a task with no day planned for a week (`of`, a day of it) or a
+   * month (`of`, its first day); it means nothing once the task has a day (lib/tasks/plan-bucket.ts);
+   * `block` (LEDGER #348, Akiflow's time slots) the time block (`zigoals:task-plan:v1` `blocks`) it is dropped into, on its day;
+   * `travel` (LEDGER #353) the minutes of travel before its time, typed by the person (nothing is looked up);
+   * `place` (LEDGER #354) a written place, an address or a link (nothing is looked up), written as the LOCATION of the .ics export.
+   */
+  state: z.looseObject({kind: z.enum(TASK_STATES), at: z.iso.datetime({offset: true})}).optional().catch(undefined),
+  plan: z.looseObject({kind: z.enum(['week', 'month']), of: day}).refine(p => p.kind !== 'month' || p.of.endsWith('-01')).optional().catch(undefined),
+  block: id.optional().catch(undefined),
+  travel: z.number().int().min(1).max(MAX_TRAVEL).optional().catch(undefined),
+  place: z.string().trim().min(1).max(PLACE_MAX).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r6-plan, LEDGER #393; OmniFocus's sequential action groups; TIER 3 (stored format), additive and
+   * optional): its subtasks are done in order — only the first open one is available, the next waits for it
+   * (lib/tasks/engine.ts orderAhead). An older build keeps it untouched and shows every subtask as before.
+   */
+  inOrder: z.literal(true).optional().catch(undefined),
 });
+/**
+ * Session AV lane 2 (tasks-r2, LEDGER #228; Any.do's automations; TIER 3 (stored format), additive and optional): a rule on a
+ * project — when a task is added, enters a section or is done, then set its priority, add a label, plan it for today, mark
+ * it done, move it to a section or create the next one (lib/tasks/rules.ts runs them). Each field is dropped on read when
+ * it cannot be read, and a rule that cannot be read is dropped (never the project); older builds keep `rules` untouched.
+ */
+export const RULE_WHEN = ['added', 'section', 'done'] as const;
+export const RULE_THEN = ['level', 'label', 'today', 'done', 'move', 'next'] as const;
+export const MAX_RULES = 10;
+export const ruleSchema = z.looseObject({
+  id, when: z.enum(RULE_WHEN), section: id.optional().catch(undefined), then: z.enum(RULE_THEN),
+  level: z.number().int().min(1).max(4).optional().catch(undefined), label: z.string().regex(LABEL_PATTERN).optional().catch(undefined),
+  to: id.optional().catch(undefined), title: z.string().trim().min(1).max(TASK_TITLE_MAX).optional().catch(undefined), days: z.number().int().min(0).max(365).optional().catch(undefined),
+});
+/**
+ * Session AV lane 2 (tasks-r2, LEDGER #229; Any.do's custom fields; TIER 3 (stored format), additive and optional): a field a
+ * project adds to its tasks (text, number, date, a choice from a list, a tick), up to five. Read tolerantly: a field that
+ * cannot be read is dropped (never the project); older builds keep `fields` untouched.
+ */
+export const FIELD_KINDS = ['text', 'number', 'date', 'choice', 'tick'] as const;
+export const MAX_FIELDS = 5, FIELD_NAME_MAX = 40, FIELD_TEXT_MAX = 200, MAX_FIELD_OPTIONS = 12;
+export const fieldDefSchema = z.looseObject({
+  id, name: z.string().trim().min(1).max(FIELD_NAME_MAX), kind: z.enum(FIELD_KINDS),
+  options: z.preprocess(v => Array.isArray(v) ? [...new Set(v.filter(x => typeof x === 'string' && x.trim() && x.trim().length <= FIELD_NAME_MAX).map(x => (x as string).trim()))].slice(0, MAX_FIELD_OPTIONS) : undefined, z.array(z.string()).optional()),
+});
+/** Session AV lane 2 (r6-plan, LEDGER #395, #397): the longest review interval in weeks; label groups and their size. */
+export const MAX_REVIEW_WEEKS = 52, MAX_LABEL_GROUPS = 20, LABEL_GROUP_MAX = 12, LABEL_GROUP_NAME_MAX = 40;
+/**
+ * Session AV lane 2 (r6-plan, LEDGER #397; OmniFocus's mutually exclusive tags; TIER 3 (stored format), additive and
+ * optional): a named group of labels ("Where": home, office, errand) of which a task carries one at a time. A label that
+ * cannot be read is dropped, a group that cannot be read is dropped (never the record); older builds keep `labelGroups`
+ * untouched and treat the labels as free words, as before.
+ */
+export const labelGroupSchema = z.looseObject({
+  id, name: z.string().trim().min(1).max(LABEL_GROUP_NAME_MAX),
+  labels: z.preprocess(v => Array.isArray(v) ? [...new Set(v.filter(x => typeof x === 'string' && LABEL_PATTERN.test(x)))].slice(0, LABEL_GROUP_MAX) : undefined, z.array(z.string()).min(1)),
+});
+export type LabelGroup = z.infer<typeof labelGroupSchema>;
 export const projectSchema = z.looseObject({
   id, name: z.string().trim().min(1).max(PROJECT_NAME_MAX), colour: z.enum(TASK_COLOURS).catch('grey'),
   order: z.number().finite().catch(0), archived: z.boolean().optional().catch(undefined), view: z.enum(['list', 'board']).optional().catch(undefined),
+  /** Session AV lane 2 (tasks, LEDGER #20, #12, #28; Things' Areas, TickTick's folders; TIER 3 (stored format), additive): the area it sits in. */
+  areaId: id.optional().catch(undefined),
+  rules: tolerantArray(ruleSchema, MAX_RULES),
+  fields: tolerantArray(fieldDefSchema, MAX_FIELDS),
+  /**
+   * Session AV lane 2 (r6-plan; OmniFocus; TIER 3 (stored format), additive and optional, each dropped on read when it cannot
+   * be read; older builds keep them untouched (the object is loose) and show the project's tasks as before):
+   * `hold` (LEDGER #392, On Hold) the project is set aside from `since`, until the day `until` (none: until resumed); its tasks
+   * leave Today, Upcoming, the matrix, the plans and the reminders meanwhile and come back by themselves on `until`;
+   * `inOrder` (LEDGER #393, sequential projects) only the first open task is available, the next waits for it;
+   * `review` (LEDGER #395, Review) the project comes up for review every `every` weeks after `last`, the day it was reviewed.
+   */
+  hold: z.looseObject({since: day, until: day.optional().catch(undefined)}).optional().catch(undefined),
+  inOrder: z.literal(true).optional().catch(undefined),
+  review: z.looseObject({every: z.number().int().min(1).max(MAX_REVIEW_WEEKS), last: day.optional().catch(undefined)}).optional().catch(undefined),
 });
-export const sectionSchema = z.looseObject({id, projectId: id, name: z.string().trim().min(1).max(PROJECT_NAME_MAX), order: z.number().finite().catch(0)});
+/** Session AV lane 2 (tasks, LEDGER #20): `archived` puts a finished section away as a block, its tasks with it. */
+export const sectionSchema = z.looseObject({id, projectId: id, name: z.string().trim().min(1).max(PROJECT_NAME_MAX), order: z.number().finite().catch(0), archived: z.literal(true).optional().catch(undefined)});
+/** Session AV lane 2 (tasks, LEDGER #20, #12, #28): an Area (a folder, a context) that groups projects. */
+export const areaSchema = z.looseObject({id, name: z.string().trim().min(1).max(PROJECT_NAME_MAX), order: z.number().finite().catch(0)});
+/** Session AV lane 2 (tasks, LEDGER #22, #23; Sunsama's weekly objectives): an objective for the week that starts on `week` (a Monday). */
+export const objectiveSchema = z.looseObject({id, week: day, title: z.string().trim().min(1).max(TASK_TITLE_MAX), doneAt: z.iso.datetime({offset: true}).optional().catch(undefined), goal: z.string().max(120).optional().catch(undefined)});
+export const MAX_AREAS = 30, MAX_OBJECTIVES = 200;
 export const filterSchema = z.looseObject({id, name: z.string().trim().min(1).max(PROJECT_NAME_MAX), query: z.string().trim().min(1).max(200)});
 /**
  * Session AL (security delta review B, SB-3; TIER 3 (stored format), no shape change): a task whose parent is itself,
@@ -153,12 +310,19 @@ export const tasksSchema = z.looseObject({
   sections: tolerantArray(sectionSchema, MAX_SECTIONS),
   labelColors: z.preprocess(v => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).filter(([k, c]) => LABEL_PATTERN.test(k) && (TASK_COLOURS as readonly unknown[]).includes(c)).slice(0, 200)) : undefined, z.record(z.string(), z.enum(TASK_COLOURS)).optional()),
   filters: tolerantArray(filterSchema, MAX_FILTERS),
+  // Session AV lane 2 (tasks; TIER 3 (stored format), additive): areas above projects and the week objectives.
+  areas: tolerantArray(areaSchema, MAX_AREAS),
+  objectives: tolerantArray(objectiveSchema, MAX_OBJECTIVES),
+  // Session AV lane 2 (r6-plan, LEDGER #397; TIER 3 (stored format), additive): label groups, one label of each on a task.
+  labelGroups: tolerantArray(labelGroupSchema, MAX_LABEL_GROUPS),
 }).transform(breakParentLoops);
 export type Task = z.infer<typeof taskSchema>;
 export type Tasks = z.infer<typeof tasksSchema>;
 export type Project = z.infer<typeof projectSchema>;
 export type Section = z.infer<typeof sectionSchema>;
 export type SavedFilter = z.infer<typeof filterSchema>;
+export type Area = z.infer<typeof areaSchema>;
+export type Objective = z.infer<typeof objectiveSchema>;
 export const emptyTasks = (): Tasks => ({version: 1, tasks: []});
 export const TASKS: DeviceRecordSpec<Tasks> = {key: TASKS_KEY, schema: tasksSchema, empty: emptyTasks};
 

@@ -1,4 +1,4 @@
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, test, vi} from 'vitest';
 import {restState, SLEEPY_AFTER_MS, TRANSIENT_MS, stateForEvent, transition, type ZigiEvent} from '../../components/zigi/events';
 import {localEvent} from './zigi-reactions';
 import {streakMilestone, STREAK_MILESTONES} from './actions/milestone';
@@ -111,4 +111,37 @@ it('Session X-Local Phase 2 (P2.5): ZIGi on but not set up asks for attention at
   expect(transition('attention', 'idle', context)).toBe('idle');
   expect(transition('idle', 'connected', context)).toBeNull();
 });
+it('Session AV lane 2 (CI run 2025, zigi-states:200): an ask for set-up that comes while the greeting plays is kept: the greeting ends at attention, and set up, ZIGi rests at idle', () => {
+  const notSetUp = {open: false, greetedToday: true, setup: true}, setUp = {open: false, greetedToday: true, setup: false};
+  // The ask itself is not taken over a one-shot (as before) …
+  expect(transition('greeting', 'attention', notSetUp)).toBeNull();
+  // … but ZIGi's rest while not set up is attention, so the greeting (or any one-shot) ends there.
+  expect(restState(notSetUp)).toBe('attention');
+  expect(transition('attention', 'idle', notSetUp)).toBe('attention');
+  expect(restState({...notSetUp, offline: true})).toBe('offline');
+  // Set up: the rest is idle again.
+  expect(transition('attention', 'connected', setUp)).toBe('idle');
+  expect(restState(setUp)).toBe('idle');
+});
 
+describe('the signal bus (Session AV lane 2, D-CI2025)', () => {
+  test('a watcher (the celebration layer) neither takes the signals sent before the controller listens nor stops them waiting', async () => {
+    vi.resetModules();
+    const {zigiSignals} = await import('../../components/zigi/bus');
+    const watched: string[] = [], controlled: string[] = [];
+    const stopWatch = zigiSignals.watch(s => watched.push(s.type));
+    zigiSignals.emit('user_opened_panel');
+    expect(watched).toEqual(['user_opened_panel']);
+    const stop = zigiSignals.on(s => controlled.push(s.type));
+    expect(controlled).toEqual(['user_opened_panel']);
+    zigiSignals.emit('user_closed_panel');
+    expect(controlled).toEqual(['user_opened_panel', 'user_closed_panel']);
+    expect(watched).toEqual(['user_opened_panel', 'user_closed_panel']);
+    stop(); stop(); stopWatch();
+    // With no controller listening, signals wait again (a few), and the next controller gets them once.
+    zigiSignals.emit('assistant_listening');
+    const again: string[] = [];
+    zigiSignals.on(s => again.push(s.type));
+    expect(again).toEqual(['assistant_listening']);
+  });
+});

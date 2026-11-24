@@ -1,6 +1,6 @@
 import type {MoneyEntry} from '../money-log/schema';
-import {minorUnits} from '../money-split/parts';
 import {MAX_TAGGED_ENTRIES, MAX_TAGS_PER_ENTRY, MAX_TAG_LENGTH, moneyTagsSchema, tagText, type MoneyTags} from './schema';
+import {countedCents, countedKind, inFigures} from '../money-log/counted';
 
 /**
  * Session AP (owner-approved): tags on money entries, pure (lib/money-tags/schema.ts holds the record). Every reader goes
@@ -48,16 +48,39 @@ export function allTags(record: MoneyTags, entries: readonly MoneyEntry[]): TagC
 /** The log's entries that carry the tag (the log's own order). */
 export const withTag = (entries: readonly MoneyEntry[], record: MoneyTags, tag: string) => entries.filter(e => tagsOf(record, e.id).includes(tag));
 export type TagTotal = {tag: string; currency: string; spent: number; received: number; entries: number};
-/** Totals per tag and currency, from `from` to `to` (both included), biggest spending first. An entry counts whole under each of its tags. */
+/**
+ * Totals per tag and currency, from `from` to `to` (both included), biggest spending first. An entry counts under each of
+ * its tags by Wealth → Spending's rule (lib/money-log/counted.ts `countedCents`, Session AV lane 2 loose ends): nothing
+ * for an entry left out of the figures or either side of a transfer, the person's own share of a shared cost, income whole.
+ */
 export function tagTotals(entries: readonly MoneyEntry[], record: MoneyTags, from: string, to: string): TagTotal[] {
   const by = new Map<string, TagTotal>();
   for (const e of entries) {
+    if (!inFigures(e)) continue; // Session AV lane 2 (money): left out and transfers. Round 6 (#425): a refund lowers spent
     if (e.date < from || e.date > to) continue;
+    const counted = countedCents(e); // Session AV lane 2 (loose ends): my share of a shared cost
     for (const tag of tagsOf(record, e.id)) {
       const k = `${tag}\u0000${e.currency}`, row = by.get(k) ?? {tag, currency: e.currency, spent: 0, received: 0, entries: 0};
-      if (e.kind === 'income') row.received += minorUnits(e.amount); else row.spent += minorUnits(e.amount);
+      if (countedKind(e) === 'income') row.received += counted; else row.spent += counted;
       row.entries++; by.set(k, row);
     }
   }
   return [...by.values()].sort((a, b) => b.spent - a.spent || b.received - a.received || a.tag.localeCompare(b.tag) || a.currency.localeCompare(b.currency));
+}
+
+/**
+ * Session AV lane 2, round 3 (money; Simplifi's imports keep tags, LEDGER #299): the tags a CSV carried (Monarch's Tags,
+ * Copilot's tags, Mint's Labels), set on the entries an import made — `indexes[i]` is the file row of `entries[i]`. An
+ * entry's own tags, if any, are kept first. Returns the record and how many entries got tags.
+ */
+export function withImportTags(record: MoneyTags, entries: readonly {id: string}[], indexes: readonly number[], rows: readonly {index: number; tags?: readonly string[]}[], liveIds: ReadonlySet<string>): {record: MoneyTags; tagged: number} {
+  const byIndex = new Map(rows.map(r => [r.index, r.tags ?? []]));
+  let next = record, tagged = 0;
+  entries.forEach((e, i) => {
+    const tags = byIndex.get(indexes[i]!) ?? [];
+    if (!tags.length) return;
+    const all = [...new Set([...tagsOf(next, e.id), ...tags])].slice(0, MAX_TAGS_PER_ENTRY);
+    next = setEntryTags(next, e.id, all, new Set([...liveIds, e.id])); tagged++;
+  });
+  return {record: next, tagged};
 }

@@ -14,7 +14,9 @@
  *   local time ("08:00 wherever you are", as a habit's time is) with a DURATION. Events are TRANSPARENT: they never mark
  *   the person busy.
  */
-export type IcsEvent = {id: string; date: string; time?: string | null; minutes?: number; summary: string; description?: string};
+/** Session AV lane 2 (r5-plan, LEDGER #354): `location` a task's written place (an address or a link), as LOCATION. */
+export type IcsEvent = {id: string; date: string; time?: string | null; minutes?: number; summary: string; description?: string; location?: string};
+export const MAX_LOCATION = 200;
 export const MAX_ICS_EVENTS = 2000, MAX_SUMMARY = 200, MAX_DESCRIPTION = 500;
 export const ICS_PRODID = '-//ZIGoals//Agenda export//EN';
 const DAY = /^\d{4}-\d{2}-\d{2}$/, CLOCK = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
@@ -69,6 +71,7 @@ export function buildIcs(events: readonly IcsEvent[], {stamp, name = 'ZIGoals ag
     } else lines.push(`DTSTART;VALUE=DATE:${compactDay(e.date)}`, `DTEND;VALUE=DATE:${compactDay(nextDay(e.date))}`);
     lines.push(`SUMMARY:${escapeText(clip(e.summary.trim(), MAX_SUMMARY))}`);
     if (e.description?.trim()) lines.push(`DESCRIPTION:${escapeText(clip(e.description.trim(), MAX_DESCRIPTION))}`);
+    if (e.location?.trim()) lines.push(`LOCATION:${escapeText(clip(e.location.trim(), MAX_LOCATION))}`);
     lines.push('TRANSP:TRANSPARENT', 'END:VEVENT');
   }
   lines.push('END:VCALENDAR');

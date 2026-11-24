@@ -27,10 +27,12 @@ const text = (s: string) => s.replace(/<[^>]+>/g, ' ').replace(/&#x27;|&rsquo;/g
 
 describe('Your money over time', () => {
   // Session AV (follow-up 1, F-VS-LAST and F-INCOME-FLOW, deliberate): "This month vs last" and "Where income went" first.
-  test('the container lists eight views and opens none until asked (each view is its own chunk)', () => {
+  // Session AV lane 2 (round 3 money adds "Needs, wants and saving", "What changed" and "Beside your habits", LEDGER #295, #297, #296; deliberate): every view named, the count exact.
+  // Session AV lane 2 (round 4 money adds "A calendar of the month" and "Saved searches", LEDGER #338, #344, deliberate): every view still named, the count exact (13).
+  test('the container lists thirteen views and opens none until asked (each view is its own chunk)', () => {
     const out = html(createElement(SpendingInsights, {entries: [], today: TODAY}));
-    for (const label of ['This month vs last', 'Where income went', 'Month by month', 'Categories over a year', 'Top payees', 'Your usual pace', 'Age of money', 'Tags']) expect(out).toContain(`>${label}</button>`);
-    expect(out.match(/aria-pressed="false"/g)).toHaveLength(8);
+    for (const label of ['A calendar of the month', 'This month vs last', 'Where income went', 'Month by month', 'Categories over a year', 'Top payees', 'Your usual pace', 'Age of money', 'Tags', 'Needs, wants and saving', 'What changed', 'Beside your habits', 'Saved searches']) expect(out).toContain(`>${label}</button>`);
+    expect(out.match(/aria-pressed="false"/g)).toHaveLength(13);
   });
   test('month by month: a table beside the chart, a gap row, per currency', () => {
     const entries = [e('2026-08-01', '100.00', 'Salary', 'income'), e('2026-08-02', '40.00'), e('2026-11-02', '10.00'), e('2026-11-03', '3.00', 'Fun', 'expense', undefined, 'USD')];
@@ -84,7 +86,8 @@ describe('Ready to assign and bill price changes', () => {
   test('a price change reads "went up by X since <month>"', () => {
     const entries = ['2026-08-03', '2026-09-03', '2026-10-03'].map(d => e(d, '12.99', 'Subscriptions', 'expense', 'Netflix')).concat(e('2026-11-03', '13.49', 'Subscriptions', 'expense', 'Netflix'));
     const out = text(html(createElement(PriceChanges, {bills: [], candidates: detectBills(entries, TODAY), entries, today: TODAY})));
-    expect(out).toContain('Netflix went up by €0.50 since Oct 2026 (€12.99 then, €13.49 now).');
+    // (fr-money; deliberate) FR-L-18: "since" is the month of the first payment at the new price (€13.49 from 3 Nov).
+    expect(out).toContain('Netflix went up by €0.50 since Nov 2026 (€12.99 then, €13.49 now).');
     expect(html(createElement(PriceChanges, {bills: [], candidates: [], entries, today: TODAY}))).toBe('');
   });
 });

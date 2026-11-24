@@ -1,3 +1,60 @@
+# Session AV lane 2 (continued) — "ALPHA QUALITY", finished (ADR-045) (2026-11-22/23, `feature/session-av-2`, Draft [PR #109](https://github.com/reyals1111-ux/ZIGoals/pull/109) "Session AV (continued)"; complete, not merged, not deployed)
+
+**Base:** `main` `1c1b5953` ([PR #108](https://github.com/reyals1111-ux/ZIGoals/pull/108) merged; merged into this branch with a merge commit, `76217a38`). **Rules (owner):** follow-ups 4–8, verbatim in `docs/architecture/ADR-045-session-av.md`; the decisions and the lane 2 closing table are there too.
+
+## Part 0 — records (23 Nov)
+- **PR #108** merged into `main` as `1c1b5953` (parents `836534c3` and `807f247e`).
+- **Alpha #58** = Manual Alpha deployment run 61 (22 Nov, about 23:55 Brussels), source `1c1b5953ebadb45c8afd228fd64f2d38bfd6cd00`: version `f2729d28-e9db-436f-a66a-67922cf5d924`, rollback `e0bc17f3-27c0-4900-aa55-416f20ece6f6` (#57); **VERIFIED** after 3 reads, live prices **VERIFIED** (owner); market policy period ends 2026-11-30T16:00:00Z; build archive SHA-256 `ef1aee3bcfad982d902e944065d38a1f8534b6f328c3d778bfdded4f0a18e578`.
+- **Frozen readers** are #37–#58 from now on (`scripts/frozen-readers.mjs`: #58 = `1c1b5953`).
+
+| Alpha | Manual Alpha run | source | version | rollback to | verified |
+|---|---|---|---|---|---|
+| #58 | 61 (22 Nov) | `1c1b5953` | `f2729d28-e9db-436f-a66a-67922cf5d924` | `e0bc17f3-27c0-4900-aa55-416f20ece6f6` (#57) | yes, 3 reads; live prices yes |
+| #57 | [60](https://github.com/reyals1111-ux/ZIGoals/actions/runs/44616699114) (19 Nov) | `836534c3` | `e0bc17f3-27c0-4900-aa55-416f20ece6f6` | `064ff8bc-8cc3-4ae7-8be4-783225ae75dd` (#56) | yes, 4 reads; live prices yes |
+
+## Parts, commits and evidence (`git log 1c1b5953..HEAD`; merge commits only, never rebased)
+| Part | What | Commits / merges |
+|---|---|---|
+| Lane 2 batches 1–6 | Rounds 1–6 of LEDGER.md (464 rows: 408 built, 25 Carried with causes, 31 round-7 rows to build next session, none unwired); fresh-agent reviews per batch, every Blocker and Major fixed (QUALITY.md) | batch heads `a3402096`, `23100b66`, `331465aa`, `e5ea884e`, `9db304c9` |
+| CI runs 2006–2011 | 4 GB type-check heap (TIER 3 CI `73e75d67`); older specs meeting lane 2's screens fixed at the cause | `0f85a830`, `9e089bdf`, `1ef1abb5`, `a6570b4b` |
+| Friend-readiness (follow-up 6, step 3) | 4 persona walks: 1 Blocker, 33 Majors, 41 Minors; all Blockers and Majors fixed; fresh re-check 30 Fixed / 4 Partly, three Partly then fixed | merges `586c8703`, `b612b0af`, `b4fddd8e`, `ac58eac8`, `ed454d25`; FRIEND_READINESS.md `e17eef23`, `2a7655ff` |
+| CI runs 2012–2023 | A goal name in a link's URL (Alpha gate) `01858ef3`; restore link out of the header art `8f8b3341`; theme sheets `9af2bcbd`; ZIGi's two voice hints `f5f172e9`; route walk and layout walk in two parts `51b05c43`, `0efdc7fa`; specs to deliberate friend-readiness wording | see ADR-045 D-CI2012–2023 |
+| Shards (follow-up 7) | Main browser shards 14 → 20 (`60b65190`), then files that slowed each other moved (`3d491fef`, `1e41ab6b`) | TIER 3 CI |
+| j04-offline (follow-up 8) | The router's prefetch woke the old worker mid-takeover; the page's requests now wait until the new worker controls the page (`1116646f`), with a 5-s "Almost there" note; proof spec `6132b166` | TIER 3 PWA |
+| Run 2025 (final-head re-check) | ZIGi not set up rests at "attention" even when the set-up ask came during the greeting (`c98f0deb`, unit test); zigi-alive:54 waits for the stored flag's write (`76883e08`, same values); the first-open greeting is no longer lost to an early tap (`8a00d9f5`, unit test) | — |
+| Run 2026 | ui-design-pass:385's keyboard step waits for the water card's late own-drinks row (`0297ed8e`); the update recovery is in place within 1.5 s of a page opening (`486e0c80`) and av-update's setup waits for a settled page (`a6928297`); the WebKit slow-load class registered (D-CI2026) | TIER 3 PWA (`486e0c80`) |
+| Run 2027 | habit-card-render.test waits for the card's lazy parts inside act: the run 2019 teardown error, found and fixed (`ed0235f4`) | — |
+| Ledger and docs | LEDGER rounds 2–6 verdicts `e5b01ff6`; ADR-045 records, follow-ups 5–8 verbatim | |
+
+## Tier 3, in plain words (risk → rollback)
+- **Stored formats** (about 60 commits): every change additive and optional; frozen readers #37–#58 22 of 22 PASS (1,005 records). Rollback: revert the commit; old records still read.
+- **PWA** (worker reminders, the warm-up, the takeover hold and its note): the old worker's warm-up ends once a newer one waits (`e15abe45`); "Reload" holds the page's requests until the takeover (`1116646f`). Rollback: revert; the update then waits as before.
+- **Sync** (journal, money and workouts extras in the encrypted sync; the A45-1 engine split; a locked tab's Health choice `805c8866`): the owner deploys the private-sync Worker from `main` after merge (OWNER_STEPS.md). Rollback: revert; sections not synced stay on the device.
+- **CI** (6 GB heap; 20 main shards and their lists): no test, assertion or timeout changed. Rollback: revert.
+- **Auth: the device lock** (lock again after a while away, `c8875f22`). Rollback: revert.
+
+## Tests and assertions changed (deliberate; none weakened)
+Every changed assertion is marked `deliberate` in its spec with the reason; of 64 audited under follow-up 6, two were narrower and both were restored. Splits keep every visit and check (`run11-route-mobile-acceptance`, `ui-evidence` unlocked layouts).
+
+## Evidence
+- Production builds (`PUBLIC_ALPHA_UNDEPLOYED`): every touched spec green on its last build; every route within budget (tightest Settings 521.4 of 531 kB); unit 15,580+ passed; typecheck and lint clean.
+- `j04-offline`'s takeover: 45 local takeovers on the production build, 0 stuck (before the fix: 2–3 stuck in every 6–12).
+
+## Carried (each with its cause in ADR-045)
+FR-TJ-7 on the phone (the accepted Habits baseline); 15 friend-readiness Minors; round 7 (31 rows, next session); the water card's own drinks row arrives a moment after the page answers (D-CI2026).
+
+## Owner list
+1. Merge PR #109 (merge commit), then deploy the private-sync Worker from `main` (`workers/private-sync`, OWNER_STEPS.md "Lane 2").
+2. Redeploy the food Worker with its "never early" fix (OWNER_STEPS.md 9e).
+3. The market price policy before 30 Nov 16:00 UTC (OWNER_STEPS.md step 6).
+4. The next Manual Alpha deployment from `main` when you choose (docs/deployment/MANUAL_ALPHA_WORKFLOW.md).
+
+## CI on the final head
+**Safe to merge now: set by the Milestone quality run on this head** (the run after run 2028, on the final head): yes only if it is green on the first attempt, apart from registered known intermittents that pass on their one re-run, each named. PR #109's description gives the verdict once that run is over; nothing is pushed after it. Before it: [run 2028](https://github.com/reyals1111-ux/ZIGoals/actions/runs/45327249511) on `ea7023ff`: 30 of 32 jobs green on the first attempt; red on main shard 17 (`nova-dashboard:210`, NOVA's slow start on a loaded runner, now registered, D-CI2028) and main shard 10 (`earn-guide-zigi:54`, the popup that never came, second sighting since CI 1937, recorded). [Run 2027](https://github.com/reyals1111-ux/ZIGoals/actions/runs/45318878594) on `e0506b06`: 31 of 32 jobs green on the first attempt; the checks job red on the Vitest teardown error (React's late act warning from `habit-card-render.test.ts`), fixed in `ed0235f4`, D-CI2027. [Run 2026](https://github.com/reyals1111-ux/ZIGoals/actions/runs/45309204137) on `1af15cff` was red on main shard 15 (`ui-design-pass:385`, fixed in `0297ed8e`), main shard 6 (`av-update:38`: the update recovery's own file loaded too late on a busy page, fixed in the app, `486e0c80`, TIER 3 PWA) and WebKit shard 2 (`zigi-alive:137`, the registered WebKit slow-load class), D-CI2026. [Run 2025](https://github.com/reyals1111-ux/ZIGoals/actions/runs/45292105248) on `4781e004` (docs only) was red, WebKit shard 2: `zigi-voice-z:199` on both attempts, then `zigi-states:200` on both attempts of the re-run, a set-up ask lost while the greeting played, fixed in the app (`c98f0deb`, D-CI2025); `zigi-alive:54`'s stored-flag read now waits for the write (`76883e08`); a ZIGi tap before the alive chunk loaded lost the first-open greeting (the celebration layer took the bus's early queue), fixed in `8a00d9f5`. [Run 2024](https://github.com/reyals1111-ux/ZIGoals/actions/runs/45282084291) on `12b04b94` was all 32 jobs green on the first attempt. Runs 2006–2028 are read job by job at their cause in ADR-045. The suite: 1,393 worker-minutes per run over 20 main shards.
+
+## Known CI intermittents (this session)
+**Registered (one job re-run each):** NOVA's slow start on a loaded runner, D36 (`nova-dashboard:210` desktop, `p3-nova-polish` ND-1; main shards; ADR-045 D-CI2028: the requests took 0.2 s, the start 4.8 s; two fixes so far, then carried); the WebKit desktop slow load: ZIGi's launcher or Settings' lazy ZIGi body is later than 5 s on the CI runner (`zigi-voice-z:199`, `zigi-alive:54`, `zigi-alive:137`; WebKit shard 2; ADR-045 D-CI1932, D-CI1991, D-CI2026, two fixes so far, then carried; CI_INTERMITTENTS.md). `j04-offline`'s update stall (D-CI2016-J04) was fixed at its measured cause (follow-up 8) and is green; recorded, not registered: `zigi-browser-agents:126` (runs 2012, 2022; 24 of 24 locally).
+
 # Session AV — "ALPHA QUALITY" (ADR-045) (2026-11-20/21, `feature/session-au-dress-rehearsal`, Draft [PR #108](https://github.com/reyals1111-ux/ZIGoals/pull/108) "Session AU + AV"; complete, not merged, not deployed)
 **Base:** Session AU's head `3ea87dff` on `main` `836534c3` (already merged in; `main` did not move). **Rules (owner):** the brief, one approved plan with nine amendments, and owner follow-up 1 (21 Nov), all verbatim in `docs/architecture/ADR-045-session-av.md` (decisions, D-BUILD, closing table). Resume file: `docs/handoff/AV_RESUME.md`.
 

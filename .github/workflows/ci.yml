@@ -113,12 +113,17 @@ jobs:
     # about 4 min of setup), so the slowest keeps about 20 min of the 60. The config checks that every main-suite spec
     # is in exactly one list (so does `pnpm test`); a new spec is named with the list to add it to. The a11y suite keeps
     # --shard=n/3. No test is dropped, skipped or loosened, and the limit stays.
+    # Session AV lane 2 ([TIER 3] (CI), owner follow-up 7, ADR-045 D-CI-SHARDS20): the suite grew to about 1,230
+    # worker-minutes and runner speed varied about 30% between runs, so on slow runners lists of about 110 worker-minutes
+    # reached the 60 (runs 2012 and 2014). Owner decision: more lists, not a longer limit. Twenty main shards, each list
+    # packed to at most 40 min on the slowest runner measured in runs 2013-2016. The run now has about 31 jobs, so it runs
+    # in two waves. The limit, the two workers, the a11y and WebKit shards and every test stay as they were.
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         suite: [main]
-        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
         include:
           - {suite: a11y, shard: 1}
           - {suite: a11y, shard: 2}
@@ -166,7 +171,7 @@ jobs:
           if [ "${{ matrix.suite }}" = a11y ]; then
             export A11Y_SWEEP=only; SHARD_ARG=--shard=${{ matrix.shard }}/3
           else
-            export A11Y_SWEEP=skip MAIN_SHARD=${{ matrix.shard }}/14; SHARD_ARG=
+            export A11Y_SWEEP=skip MAIN_SHARD=${{ matrix.shard }}/20; SHARD_ARG=
           fi
           env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test --workers=2 $SHARD_ARG --reporter=line,json --output=/tmp/zigoals-web-results
       - name: Flaky tests (passed only on their retry)

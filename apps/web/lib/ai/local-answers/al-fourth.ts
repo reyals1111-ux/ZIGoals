@@ -6,7 +6,7 @@ import type {ToolOk} from '../tools/types';
 import {summaries} from '../tools/goals';
 import {latestHabitRule, type Habit} from '../../habits';
 import {addLocalDays} from '../../local-date';
-import {formatDate} from '../../visual-format';
+import {formatDate, formatNumber} from '../../visual-format';
 import {checklistToday} from '../proactive/brief-sources';
 import {shortName, listNames} from '../proactive/calm';
 import {quickCommand} from '../quick-commands/commands';
@@ -18,7 +18,7 @@ import {amount, plural} from './words';
 import {checklistWeek} from './exact/day';
 import {namesNonGoal} from './exact/lexicon';
 import {PRICE_CHANGE} from './exact/money';
-import {dayWords} from './exact/period';
+import {dayIn, nlDate} from './exact/period';
 import {actionSchema} from '../actions/schema';
 import {memoryCategory} from './al-more';
 import {ADVICE_REPLIES, DO_WITH_LINE, doWithAsk, isMoneyThing} from '../safety-guard';
@@ -143,7 +143,7 @@ export function checklistAnswer(question: string, env: ToolEnv, lang: Lang): Loc
     // in the same day words, with every day whose dots were all lit counted as a perfect orbit.
     const week = checklistWeek(env, lang, q.toLowerCase(), list ? {total: list.total, done: list.done} : null);
     if (week) return {kind: 'answer', text: week.text, calls};
-    const from = addLocalDays(env.checklist.date, -6), kept = days.filter(([d]) => d >= from && d < env.checklist!.date), perfect = kept.filter(([, s]) => s.perfect || (s.total > 0 && s.done >= s.total)).length, day = (d: string) => dayWords(d, env.checklist!.date);
+    const from = addLocalDays(env.checklist.date, -6), kept = days.filter(([d]) => d >= from && d < env.checklist!.date), perfect = kept.filter(([, s]) => s.perfect || (s.total > 0 && s.done >= s.total)).length, day = (d: string) => dayIn(lang, d, env.checklist!.date);
     return {kind: 'answer', text: say(lang, `This week on your Checklist (${kept.length} earlier ${kept.length === 1 ? 'day' : 'days'} kept): ${kept.map(([d, s]) => `${day(d)} ${s.done} of ${s.total}`).join(', ') || 'no earlier day kept yet'}${kept.length ? `; ${plural(perfect, 'perfect orbit')}` : ''}. Today so far: ${list?.done ?? 0} of ${list?.total ?? 0}.`, `Deze week op je Checklist: ${kept.map(([d, s]) => `${day(d)} ${s.done} van ${s.total}`).join(', ') || 'nog geen eerdere dag bewaard'}. Vandaag: ${list?.done ?? 0} van ${list?.total ?? 0}.`), calls};
   }
   if (!list || !list.total) return {kind: 'answer', text: say(lang, `Your Checklist has no dots today yet.${hidden}${healthHidden} Add one with “add … to my checklist”, or open the Checklist.`, `Je Checklist heeft vandaag nog geen stippen.${hidden}${healthHidden}`) + open('checklist'), calls};
@@ -341,7 +341,7 @@ export function fourthFirst(question: string, env: ToolEnv | null, lang: Lang, p
   if (saveBy || (WANT_SAVE_AND_SPEND.test(q) && /\bspend\b/i.test(q))) {
     const raw = saveBy ? saveBy[1]!.replace(/\s/g, '') : '', european = /^\d{1,3}(?:\.\d{3})+$/.test(raw), value = raw ? Number(european ? raw.replace(/\./g, '') : raw.replace(/,(?=\d{3}\b)/g, '').replace(',', '.')) * (/^(?:k|thousand)$/i.test(saveBy?.[2] ?? '') ? 1000 : 1) : NaN;
     const by = saveBy?.[3]?.trim();
-    const what = Number.isFinite(value) && value > 0 ? say(lang, `Saving ${new Intl.NumberFormat('en-GB').format(value)}${by ? ` by ${by}` : ''}`, `${new Intl.NumberFormat('nl-NL').format(value)} sparen${by ? ` voor ${by}` : ''}`) : say(lang, 'Saving', 'Sparen');
+    const what = Number.isFinite(value) && value > 0 ? say(lang, `Saving ${formatNumber(value)}${by ? ` by ${by}` : ''}`, `${new Intl.NumberFormat('nl-NL').format(value)} sparen${by ? ` voor ${by}` : ''}`) : say(lang, 'Saving', 'Sparen');
     return {kind: 'answer', text: say(lang, `${what} is a goal. Open the goal form below: give it a name, the amount${by ? ' and the date' : ''}; nothing is saved until you create it, and no money moves.${/\bspend\b/i.test(q) ? ' Spending is logged in Wealth → Spending when it happens, not ahead.' : ''}`, `${what} is een doel. Open het doelformulier hieronder: geef het een naam, het bedrag${by ? ' en de datum' : ''}; er wordt niets opgeslagen tot je het aanmaakt.`) + fence({kind: 'open-page', page: 'goals', view: 'new-goal'}), calls: []};
   }
   const want = GOAL_WANT.exec(q);
@@ -375,7 +375,7 @@ export function fourthFirst(question: string, env: ToolEnv | null, lang: Lang, p
   const alert = /\b(?:alert|notify|tell|ping|warn)\s+me\s+(?:when|if)\s+(btc|eth|sol|zig|bitcoin|ether|ethereum|solana)\s+(?:hits|reaches|goes (?:above|over|below|under)|is (?:above|over|below|under)|drops (?:below|under)|crosses)\s+(?:[$€]\s?)?(\d+(?:[.,]\d+)?)\s*(k)?\s*(usd|eur|dollars?|euros?)?/i.exec(q);
   if (alert) {
     const sym = ({bitcoin: 'BTC', ether: 'ETH', ethereum: 'ETH', solana: 'SOL'} as Record<string, string>)[alert[1]!.toLowerCase()] ?? alert[1]!.toUpperCase(), price = Number(alert[2]!.replace(',', '.')) * (alert[3] ? 1000 : 1), below = /\b(?:below|under|drops)\b/i.test(q);
-    return {kind: 'answer', text: say(lang, `A price alert for ${sym} ${below ? 'below' : 'above'} ${new Intl.NumberFormat('en-GB').format(price)} ${/eur/i.test(alert[4] ?? '') ? 'EUR' : 'USD'}, kept on this device and checked when prices are read; added only when you add it. Information, never advice: nothing is bought or sold.`, `Een prijsalarm voor ${sym}, pas toegevoegd als je het toevoegt. Informatie, nooit advies.`) + fence({kind: 'create-price-alert', coin: sym, direction: below ? 'below' : 'above', price, currency: /eur/i.test(alert[4] ?? '') ? 'EUR' : 'USD'}), calls: []};
+    return {kind: 'answer', text: say(lang, `A price alert for ${sym} ${below ? 'below' : 'above'} ${formatNumber(price)} ${/eur/i.test(alert[4] ?? '') ? 'EUR' : 'USD'}, kept on this device and checked when prices are read; added only when you add it. Information, never advice: nothing is bought or sold.`, `Een prijsalarm voor ${sym}, pas toegevoegd als je het toevoegt. Informatie, nooit advies.`) + fence({kind: 'create-price-alert', coin: sym, direction: below ? 'below' : 'above', price, currency: /eur/i.test(alert[4] ?? '') ? 'EUR' : 'USD'}), calls: []};
   }
   return null;
 }
@@ -620,7 +620,8 @@ function goalAsk(env: ToolEnv, said: string, q: string, lang: Lang): LocalReply 
   const d = dataOf(r.result), date = d.targetDate && d.targetDate !== 'none' ? d.targetDate : null, projected = typeof d.plan === 'object' && d.plan.projectedCompletion && d.plan.projectedCompletion !== 'unknown' ? d.plan.projectedCompletion : null;
   const head = say(lang, `${clean(goal.name, 60)}: ${money(d.now)} of ${money(d.target)} (${d.progress}); ${money(d.remaining)} to go.`, `${clean(goal.name, 60)}: ${money(d.now)} van ${money(d.target)} (${d.progress}); nog ${money(d.remaining)}.`);
   // Release review AL (RR-4): dates in the goal page's format; the pace forecast is the page's own, said as such.
-  const day = (v: unknown) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v) ? formatDate(v.slice(0, 10)) : String(v);
+  // Session AV lane 2 (Dutch dates, R5): the same days the Dutch way in a Dutch answer ("16 apr 2027").
+  const day = (v: unknown) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v) ? lang === 'nl' ? nlDate(v.slice(0, 10), null) : formatDate(v.slice(0, 10)) : String(v);
   const when = date ? say(lang, ` Target date: ${day(date)}.`, ` Streefdatum: ${day(date)}.`) : say(lang, ' No target date is set.', ' Er is geen streefdatum.');
   const proj = projected ? say(lang, ` With your plan: about ${day(projected)}.`, ` Met je plan: rond ${day(projected)}.`) : /\bwhen\b/i.test(q) ? say(lang, ' With no plan, there is no projected date (unknown).', ' Zonder plan is er geen verwachte datum.') : '';
   const pace = typeof d.paceForecast === 'object' && d.paceForecast?.state === 'estimate' ? say(lang, ` ${d.paceForecast.headline} (the pace forecast from your recorded progress; an estimate).`, ` In dit tempo: rond ${day(d.paceForecast.date)} (een schatting).`) : '';

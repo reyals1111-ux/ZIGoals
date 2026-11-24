@@ -149,8 +149,10 @@ test('BN-182/D-228/C-BN-24: Chess plays a game against the computer on this devi
   await expect(game.getByText('No moves yet.')).toBeVisible();
   await game.getByRole('button', {name: 'Resign'}).click();
   await expect(game.getByRole('status')).toHaveText('Resigned. The computer won.');
-  // Nothing about the game is stored or sent.
-  expect(await page.evaluate(() => Object.keys(localStorage).filter(k => /chess-computer|computer-game/.test(k)))).toEqual([]);
+  // Session AV lane 2 (BL-10: games against the engine are kept on this device and counted by level, deliberate): nothing
+  // is sent, and the one key holds only the count — the resigned game is no longer kept (was: no key at all).
+  expect(await page.evaluate(() => Object.keys(localStorage).filter(k => /chess-computer|computer-game/.test(k)))).toEqual(['zigoals:chess-computer:v1']);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('zigoals:chess-computer:v1')!))).toEqual({version: 1, tally: {easy: {won: 0, lost: 1, drawn: 0}}});
 });
 
 test('PR-108/PR-009/BUG-037/D-085: the Showcase chess before 07:00 shows no time later than now, and every rating is grouped', async ({page}) => {

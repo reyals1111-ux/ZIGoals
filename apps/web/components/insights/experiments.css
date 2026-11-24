@@ -16,3 +16,8 @@
 :root .experiment-card { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--pillar-health) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent); }
 .experiments-new { background: radial-gradient(at 100% 0, color-mix(in srgb, var(--pillar-health) 9%, transparent), transparent 60%); }
 .experiment-note > summary:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; border-radius: 8px; }
+/* Session AV lane 2 (LEDGER #64): more outcomes per experiment. */
+.experiments-more { display: grid; gap: 8px; margin-top: 8px; min-width: 0; }
+.experiments-more-list { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; font-size: .9375rem; overflow-wrap: anywhere; }
+.experiments-more summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+.experiments-more-pick { border: 0; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0 12px; }

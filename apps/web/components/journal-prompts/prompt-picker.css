@@ -10,7 +10,13 @@
 .prompt-picker-note { font-style: italic; }
 /* Session AV (F-OWN-TEMPLATES): the person's own templates and the form that makes one. */
 .prompt-picker-own { display: grid; gap: 4px; }
-.prompt-picker-own .text-link { justify-self: start; min-height: 44px; }
+.prompt-picker-own .text-link { justify-self: start; min-height: 44px; min-width: 44px; justify-content: center; } /* polish4: 44 × 44 */
 .prompt-picker-make { min-height: 44px; justify-self: start; }
 .prompt-picker-form { display: grid; gap: 8px; }
 .prompt-picker-form-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+/* Session AV lane 2 (journal; LEDGER #39): "Start new entries here" under each template (the default template). */
+.prompt-picker-list > li { display: grid; gap: 2px; align-content: start; }
+.prompt-picker-default { justify-self: start; min-height: 44px; }
+.prompt-picker-default[aria-pressed="true"] { font-weight: 650; }
+/* Session AV lane 2 (r3-notes; LEDGER #266, #269): the second list, grids and look-backs. */
+.prompt-picker-more-title { margin: 8px 0 0; font-size: 15px; }

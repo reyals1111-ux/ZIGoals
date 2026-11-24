@@ -1,5 +1,8 @@
 import {addDays, inQuiet, toMinutes, wallClock, weekdayBit, weekdayOf, zonedInstant} from './zone';
-import {eveningTime, morningTime, typeOn, type NotifyPrefs} from './prefs';
+import {eveningTime, moodTimes, morningTime, typeOn, type NotifyPrefs} from './prefs';
+import type {EnergyInput} from './energy-items';
+import {spacedTimes} from '../habit-reminder-words';
+import type {HabitPartsInput} from './habit-parts';
 
 /**
  * Session AK Part 2 (ADR-036 Q3, A1, A2): the notification plan of this device, pure. From what the page already knows
@@ -9,7 +12,7 @@ import {eveningTime, morningTime, typeOn, type NotifyPrefs} from './prefs';
  * one-off wake minutes, and minutes to skip. The registration never carries a name, a kind, a count or an amount, and
  * the snapshot keeps an amount (a contribution or a bill) only where names are allowed.
  */
-export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown';
+export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown' | 'journal' | 'money' | 'meal' | 'mood' | 'energy' | 'planDay' | 'weighIn' | 'habitPart';
 export type PlanItem = {at: number; kind: ItemKind; id: string; label?: string; detail?: string; href: string; actionable: boolean};
 export type Snapshot = {v: 1; written: number; zone: string; labels: boolean; quiet: {from: string; to: string}; items: PlanItem[]; summary: {date: string; done: number; total: number}; prices: PriceWatch[]};
 export type PriceWatch = {alertId: string; coin: string; currency: 'USD' | 'EUR'; direction: 'above' | 'below'; price: string; label?: string; request: unknown};
@@ -20,8 +23,20 @@ export type PlanInput = {
    * A habit with a reminder time: its weekday mask for the coming week and whether today is already done. `title` only for
    * a habit not linked to Health (ADR-010's rule, security review F4): a Health-linked habit never shows its name.
    */
-  habits: {id: string; title?: string; time: string; weekdays: number; doneToday: boolean}[];
+  habits: {id: string; title?: string; time: string; weekdays: number; doneToday: boolean; routine?: boolean;
+    /**
+     * Session AV lane 2 (health r3; LEDGER #275, Way of Life; TIER 3 (PWA)): the reminder's own words (shown, as the
+     * name is, only where names are allowed; never for a Health-linked habit, which then has none) and up to two more
+     * times a day, each its own wake with the same Done.
+     */
+    words?: string; more?: string[]}[];
   water?: {time: string; toGo: string | null; done: boolean};
+  /**
+   * Session AV lane 2 (health r3; LEDGER #280, Waterllama; TIER 3 (PWA)): the water reminders through the day
+   * (lib/water-spread.ts spreadSlots): each time, today's line ("400 mL to be on pace") and whether today is on pace for it
+   * already (skipped). When present, it stands in for the one water time in the notifications (the Today card keeps it).
+   */
+  waterSpread?: {time: string; detail?: string; done: boolean}[];
   windDown?: {time: string; doneToday: boolean};
   review?: {time: string; weekday: number};
   /** A contribution reminder per day it is due (today and tomorrow): the date, the formatted amount, and whether it is recorded. */
@@ -37,12 +52,75 @@ export type PlanInput = {
    * Session AV (follow-up 1, F-TASK-NOTIFY; Todoist, TickTick, Things): the reminders the person set on open tasks
    * (lib/tasks/reminders.ts reminderInstants): the instant and the task's id; its title only where names are allowed.
    */
-  tasks?: {id: string; title?: string; at: number}[];
+  tasks?: {id: string; title?: string; at: number; /** Session AV lane 2 (LEDGER #31): a reminder written in a note opens its note and has no Done. */ note?: string;
+    /** Session AV lane 2 (r5-plan, LEDGER #353): "Leave by" this time (as shown) before a task or an event; no Done; `href` opens it. */ leave?: string; href?: string}[];
   /**
    * Session AV (1c, q1 #44; TickTick): the mornings a countdown's reminder reaches the device (lib/countdowns/extras.ts
    * countdownWakes): the day, the countdown's id, how many days are left then; its title only where names are allowed.
    */
   countdowns?: {id: string; title?: string; date: string; days: number}[];
+  /**
+   * Session AV lane 2 (journal; LEDGER #40, Day One): the reminder to write the person set in the Journal
+   * (lib/journal/reminder.ts reminderPlanInput): its time and weekdays, the days of the window already written, and the
+   * streak a new entry keeps. Never a word of the journal.
+   */
+  journal?: {time: string; weekdays: number; written: readonly string[]; streak: number};
+  /**
+   * Session AV lane 2 (r3-notes; LEDGER #279, Stoic's letter to open later; TIER 3 (PWA)): the days letters open
+   * (lib/journal/letters.ts letterWakes) — an id and a day only, never a word of the letter; under the journal switch.
+   */
+  letters?: {id: string; date: string}[];
+  /**
+   * Session AV lane 2 (r4-mind; LEDGER #309, Journey's throwbacks; TIER 3 (PWA)): the mornings with a memory in the
+   * Journal's "On this day" (lib/on-this-day/throwback.ts memoryWakes), only when the person switched it on — an id, a
+   * day and how long ago ("a year ago"), never a word of the entry; under the journal switch.
+   */
+  memories?: {id: string; date: string; detail: string}[];
+  /**
+   * Session AV lane 2 (money; Copilot's custom alerts, Rocket Money): a budget near or over its amount, payday tomorrow,
+   * the low-balance line ahead (lib/money-notices.ts moneyWakes) — the day and an id; a title and detail for names-on only.
+   */
+  money?: {id: string; date: string; title?: string; detail?: string}[];
+  /**
+   * Session AV lane 2, round 5 (money; Tiller's Hello Money, LEDGER #384; TIER 3 (PWA)): "Yesterday's money" each morning
+   * (lib/money-log/yesterday.ts morningMoneyWakes), under its own switch, off by default: the day, an id, `plain` — the
+   * count of entries, the only words shown while names are off — and, for names-on only, a title and the detail with
+   * amounts and account names. Never a payee.
+   */
+  moneyMorning?: {id: string; date: string; plain: string; title?: string; detail?: string}[];
+  /**
+   * Session AV lane 2 (food, LEDGER #90; MyFitnessPal): the meal reminders the person switched on in Health, at each meal's
+   * usual time (lib/food-plus/meal-notify.ts mealWakes); the meal's own name only where names are allowed, never food.
+   */
+  meals?: {meal: string; label?: string; time: string; doneToday: boolean}[];
+  /** Session AV lane 2 (LEDGER #180): whether today's mood is already answered (the first check-in then stays quiet). */
+  mood?: {doneToday: boolean};
+  /**
+   * Session AV lane 2 (bodymind-r2; LEDGER #235, #236, Rise): the energy curve's reminders and the plan steps with a
+   * reminder (lib/notify/energy-items.ts energyItems): one-off instants and recurring clock times, each with the app's own
+   * line; an own habit's name only as a label, shown where names are allowed. Never a sleep figure.
+   */
+  energy?: EnergyInput;
+  /**
+   * Session AV lane 2 (r3-plan, LEDGER #256; Structured's morning planning and overdue reminders): the "Plan your day" time
+   * the person set in Tasks (lib/tasks/plan-record.ts `planReminder`), and how many open tasks are overdue on each of the
+   * plan's days (a count only, never a name): one quiet line on the plan-your-day notification, else on the morning one,
+   * instead of a notification per task.
+   */
+  planDay?: {time: string};
+  overdue?: readonly {date: string; count: number}[];
+  /**
+   * Session AV lane 2 (health r3; LEDGER #286, Carb Manager; TIER 3 (PWA)): the weigh-in reminder (lib/weigh-in.ts
+   * weighInPlanInput): its time, its weekday mask (every day or chosen days), a monthly reminder's dates, and whether a
+   * weight is logged today. Never a weight.
+   */
+  weighIn?: {time: string; weekdays: number; dates: string[]; doneToday: boolean};
+  /**
+   * Session AV lane 2 (r5-body; LEDGER #369, Productive; TIER 3 (PWA)): one reminder at the start of each part of the day
+   * (lib/notify/habit-parts.ts habitPartsInput) with how many of its habits are still open; its habits' own reminders are
+   * then not sent. Names only where names are allowed (and never a Health-linked habit's).
+   */
+  habitParts?: HabitPartsInput;
   orbit: {done: number; total: number};
   prices: PriceWatch[];
 };
@@ -52,6 +130,12 @@ export type Plan = {snapshot: Snapshot; registration: Registration; refused: {ki
 /** A copy without its `label` (no name may reach the snapshot without the opt-in). */
 function withoutLabel<T extends {label?: string}>(value: T): Omit<T, 'label'> { const copy = {...value}; delete copy.label; return copy; }
 
+/**
+ * Review b2a #9: where a money notice opens — a budget over or near its amount opens Budgets; a reminded loan, payday
+ * and the low-balance line open Spending (its "Between you and others" and the 60-day forecast live there), as Today's
+ * lines for them do.
+ */
+export const moneyHref = (id: string) => /^money:(?:over|near):/.test(id) ? '/app/wealth?view=budgets' : '/app/wealth#spending';
 export function buildPlan(input: PlanInput): Plan {
   const {now, zone, prefs, quiet, labels} = input, today = wallClock(now, zone).date, until = now + WINDOW_MS;
   const items: PlanItem[] = [], recurring: {m: number; d: number; kind: ItemKind; id: string; done: (date: string) => boolean}[] = [], once = new Map<number, ItemKind>(), refused: Plan['refused'] = [];
@@ -70,14 +154,58 @@ export function buildPlan(input: PlanInput): Plan {
     }
   };
   const EVERY = 127;
-  if (typeOn(prefs, 'habits')) for (const h of input.habits) daily('habit', h.id, h.time, h.weekdays, () => ({label: label(h.title), href: '/app/habits', actionable: true}), date => date === today && h.doneToday);
+  const partCovered = new Set(typeOn(prefs, 'habits') ? input.habitParts?.covered ?? [] : []);
+  if (typeOn(prefs, 'habits')) for (const p of input.habitParts?.parts ?? []) daily('habitPart', `part:${p.part}`, p.time, EVERY, date => { const d = p.days.find(x => x.date === date); return d && d.open > 0 ? {detail: d.detail, label: label(d.names?.join(' · ')), href: '/app/habits', actionable: false} : null; }, date => !(p.days.find(x => x.date === date)?.open));
+  if (typeOn(prefs, 'habits')) for (const h of input.habits.filter(x => !partCovered.has(x.id))) for (const time of spacedTimes(h.time, h.more ?? [])) daily('habit', h.id, time, h.weekdays, () => ({label: label(h.words ?? h.title), href: h.routine ? `/app/habits#routine=${encodeURIComponent(h.id)}&open` : '/app/habits', actionable: true}), date => date === today && h.doneToday);
   // Session AK (F5): never labelled, whatever the names switch says (a supplement or medicine's name is health data).
   if (typeOn(prefs, 'supplements')) for (const s of input.supplements ?? []) daily('supplement', s.id, s.time, s.weekdays, () => ({href: '/app/health', actionable: false}), date => date === today && s.doneToday);
-  if (typeOn(prefs, 'water') && input.water) { const w = input.water; daily('water', 'water', w.time, EVERY, () => ({...(w.toGo ? {detail: `${w.toGo} to go`} : {}), href: '/app/health', actionable: false}), date => date === today && w.done); }
+  // Session AV lane 2 (health r3; LEDGER #280): reminders through the day, each its own wake, quiet once today is on pace
+  // for it; every one keeps the habit of the single reminder (refused inside quiet hours, said on the card). Tomorrow's
+  // carry no line: the pace is today's.
+  if (typeOn(prefs, 'water') && input.waterSpread?.length) for (const [i, w] of input.waterSpread.entries()) daily('water', `water-${i + 1}`, w.time, EVERY, date => ({...(date === today && w.detail ? {detail: w.detail} : {}), href: '/app/health', actionable: false}), date => date === today && w.done);
+  else if (typeOn(prefs, 'water') && input.water) { const w = input.water; daily('water', 'water', w.time, EVERY, () => ({...(w.toGo ? {detail: `${w.toGo} to go`} : {}), href: '/app/health', actionable: false}), date => date === today && w.done); }
   if (typeOn(prefs, 'windDown') && input.windDown) { const w = input.windDown; daily('windDown', 'wind-down', w.time, EVERY, () => ({href: '/app/health?view=sleep', actionable: false}), date => date === today && w.doneToday); }
   if (typeOn(prefs, 'review') && input.review) daily('review', 'review', input.review.time, weekdayBit(input.review.weekday), () => ({href: '/app/review', actionable: false}), () => false);
-  if (typeOn(prefs, 'morning')) daily('morning', 'morning', morningTime(prefs), EVERY, () => ({href: '/app/checklist', actionable: false}), () => false);
+  // Session AV lane 2 (journal; LEDGER #40): the reminder to write, on its weekdays, unless that day already has an entry;
+  // its line keeps the streak ("keeps your 4-day streak"), a count only, never a word of the journal.
+  if (typeOn(prefs, 'journal') && input.journal) { const j = input.journal; daily('journal', 'journal', j.time, j.weekdays & EVERY, () => ({...(j.streak > 0 ? {detail: `keeps your ${j.streak}-day streak`} : {}), href: '/app/journal', actionable: false}), date => j.written.includes(date)); }
+  // Session AV lane 2 (r3-plan, LEDGER #256): "Plan your day" at its own time, opening Plan my day; the overdue count rides on
+  // it, or on the morning orbit when there is no plan-your-day reminder (one line, never one notification per task).
+  const overdueLine = (date: string): {detail?: string} => { const n = input.overdue?.find(o => o.date === date)?.count ?? 0; return n > 0 ? {detail: n === 1 ? '1 task overdue' : `${n} tasks overdue`} : {}; };
+  const planDay = typeOn(prefs, 'planDay') && input.planDay ? input.planDay : null;
+  if (planDay) daily('planDay', 'plan-day', planDay.time, EVERY, date => ({...overdueLine(date), href: '/app/tasks?view=today&plan=1', actionable: false}), () => false);
+  if (typeOn(prefs, 'morning')) daily('morning', 'morning', morningTime(prefs), EVERY, date => ({...(planDay ? {} : overdueLine(date)), href: '/app/checklist', actionable: false}), () => false);
   if (typeOn(prefs, 'evening')) daily('evening', 'evening', eveningTime(prefs), EVERY, () => ({href: '/app/review', actionable: false}), () => false);
+  if (typeOn(prefs, 'meals')) for (const m of input.meals ?? []) daily('meal', `meal:${m.meal}`, m.time, EVERY, () => ({label: label(m.label), href: '/app/health?view=diary', actionable: false}), date => date === today && m.doneToday);
+  // Session AV lane 2 (LEDGER #180, Daylio): the mood check-in opens the mood question (Health's mood card); never a mood
+  // or a name. The first stays quiet once today's mood is answered; a second time asks again (the newer answer wins).
+  if (typeOn(prefs, 'mood')) moodTimes(prefs).forEach((time, i) => daily('mood', i ? 'mood-2' : 'mood', time, EVERY, () => ({href: '/app/health?mood=ask', actionable: false}), date => i === 0 && date === today && !!input.mood?.doneToday));
+  // Session AV lane 2 (bodymind-r2; LEDGER #235, #236): the energy curve's reminders and the plan steps' reminders. An
+  // evening step is a recurring wake at its clock time (quiet once ticked that evening); the curve's and a morning step's
+  // times follow the wake time, so each is a one-off wake, refused inside quiet hours as a task reminder is.
+  if (typeOn(prefs, 'energy') && input.energy) {
+    for (const d of input.energy.daily) daily('energy', d.id, d.time, EVERY, () => ({detail: d.detail, label: label(d.label), href: '/app/health?view=sleep', actionable: false}), date => d.done.includes(date));
+    for (const o of input.energy.once) {
+      if (o.at <= now || o.at > until) continue;
+      const time = wallClock(o.at, zone).time;
+      if (inQuiet(time, quiet)) { refused.push({kind: 'energy', time}); continue; }
+      once.set(Math.floor(o.at / 60000), 'energy');
+      push({at: o.at, kind: 'energy', id: o.id, detail: o.detail, label: label(o.label), href: '/app/health?view=sleep', actionable: false});
+    }
+  }
+  // Session AV lane 2 (health r3; LEDGER #286): the weigh-in reminder — a recurring wake on its weekdays, or a one-off on a
+  // monthly reminder's day (refused inside quiet hours, as a task reminder is); quiet once a weight is logged that day.
+  if (typeOn(prefs, 'weighIn') && input.weighIn) {
+    const w = input.weighIn;
+    if (w.weekdays) daily('weighIn', 'weigh-in', w.time, w.weekdays & EVERY, () => ({href: '/app/health?view=weight', actionable: false}), date => date === today && w.doneToday);
+    for (const date of w.dates) {
+      if (date === today && w.doneToday) continue;
+      if (inQuiet(w.time, quiet)) { refused.push({kind: 'weighIn', time: w.time}); break; }
+      const at = zonedInstant(date, w.time, zone); if (at <= now || at > now + ONCE_AHEAD_DAYS * 86_400_000) continue;
+      once.set(Math.floor(at / 60000), 'weighIn');
+      push({at, kind: 'weighIn', id: `weigh-in@${date}`, href: '/app/health?view=weight', actionable: false});
+    }
+  }
   // One-off wakes: contributions on the days they are due (today, tomorrow), bills on the morning before they are due.
   if (typeOn(prefs, 'contributions')) for (const c of input.contributions) {
     if (c.done || inQuiet(c.time, quiet)) continue;
@@ -98,7 +226,11 @@ export function buildPlan(input: PlanInput): Plan {
     const time = wallClock(t.at, zone).time;
     if (inQuiet(time, quiet)) { refused.push({kind: 'task', time}); continue; }
     once.set(Math.floor(t.at / 60000), 'task');
-    push({at: t.at, kind: 'task', id: `task:${t.id}@${t.at}`, label: label(t.title), href: `/app/tasks#task-${t.id}`, actionable: true});
+    // Session AV lane 2 (r5-plan, LEDGER #353): a "Leave by" wake says the time to leave (never a name without the opt-in);
+    // its id is not a task: id, so Done can never finish the task from it.
+    push(t.leave ? {at: t.at, kind: 'task', id: `leave:${t.id}@${t.at}`, label: label(t.title), detail: `Leave by ${t.leave}`, href: t.href ?? '/app/agenda', actionable: false}
+      : t.note ? {at: t.at, kind: 'task', id: `note:${t.note}@${t.at}`, label: label(t.title), href: `/app/notes?note=${encodeURIComponent(t.note)}`, actionable: false}
+      : {at: t.at, kind: 'task', id: `task:${t.id}@${t.at}`, label: label(t.title), href: `/app/tasks#task-${t.id}`, actionable: true});
   }
   // Session AV (1c, q1 #44): a countdown's reminder wakes at the morning time (the end of quiet hours when the morning is
   // quiet) on the first day of its reminder and on its day, as bills do. Labelled only with names on.
@@ -107,6 +239,38 @@ export function buildPlan(input: PlanInput): Plan {
     const at = zonedInstant(c.date, inQuiet(morningTime(prefs), quiet) ? quiet.to : morningTime(prefs), zone); if (at < now) continue;
     once.set(Math.floor(at / 60000), 'countdown');
     push({at, kind: 'countdown', id: `countdown:${c.id}@${c.date}`, label: label(c.title), detail: c.days === 0 ? 'today' : c.days === 1 ? 'tomorrow' : `in ${c.days} days`, href: '/app', actionable: false});
+  }
+  // Session AV lane 2 (r3-notes; LEDGER #279): a letter that opens today wakes at the morning time of its day (the end of
+  // quiet hours when the morning is quiet), as a countdown does, under the journal switch; never a word of it.
+  if (typeOn(prefs, 'journal')) for (const l of input.letters ?? []) {
+    if (l.date < today || l.date > addDays(today, ONCE_AHEAD_DAYS)) continue;
+    const at = zonedInstant(l.date, inQuiet(morningTime(prefs), quiet) ? quiet.to : morningTime(prefs), zone); if (at < now) continue;
+    once.set(Math.floor(at / 60000), 'journal');
+    push({at, kind: 'journal', id: `${l.id}@${l.date}`, detail: 'a letter you wrote opens today', href: '/app/journal', actionable: false});
+  }
+  // Session AV lane 2 (r4-mind; LEDGER #309): a morning with a memory wakes at the morning time of its day (the end of
+  // quiet hours when the morning is quiet), as a letter does, under the journal switch; it says only how long ago.
+  if (typeOn(prefs, 'journal')) for (const m of input.memories ?? []) {
+    if (m.date < today || m.date > addDays(today, ONCE_AHEAD_DAYS)) continue;
+    const at = zonedInstant(m.date, inQuiet(morningTime(prefs), quiet) ? quiet.to : morningTime(prefs), zone); if (at < now) continue;
+    once.set(Math.floor(at / 60000), 'journal');
+    push({at, kind: 'journal', id: `${m.id}@${m.date}`, detail: m.detail, href: '/app/journal', actionable: false});
+  }
+  // Session AV lane 2 (money): a money notice wakes at the morning time of its day (the end of quiet hours when the morning
+  // is quiet), as a countdown does; its words only with names on.
+  if (typeOn(prefs, 'money')) for (const m of input.money ?? []) {
+    if (m.date < today || m.date > addDays(today, ONCE_AHEAD_DAYS)) continue;
+    const at = zonedInstant(m.date, inQuiet(morningTime(prefs), quiet) ? quiet.to : morningTime(prefs), zone); if (at < now) continue;
+    once.set(Math.floor(at / 60000), 'money');
+    push({at, kind: 'money', id: m.id, label: label(m.title), ...(labels && m.detail ? {detail: m.detail} : {}), href: moneyHref(m.id), actionable: false});
+  }
+  // Session AV lane 2, round 5 (money; LEDGER #384): Yesterday's money wakes at the morning time of its day (the end of quiet
+  // hours when the morning is quiet), as a money notice does; the count alone unless names are allowed.
+  if (typeOn(prefs, 'moneyMorning')) for (const m of input.moneyMorning ?? []) {
+    if (m.date < today || m.date > addDays(today, ONCE_AHEAD_DAYS)) continue;
+    const at = zonedInstant(m.date, inQuiet(morningTime(prefs), quiet) ? quiet.to : morningTime(prefs), zone); if (at < now) continue;
+    once.set(Math.floor(at / 60000), 'money');
+    push({at, kind: 'money', id: m.id, label: label(m.title), detail: labels && m.detail ? m.detail : m.plain, href: '/app/wealth#spending', actionable: false});
   }
   // Owner follow-up 1 (F4; security review F10 R3-F1, R3-F2): a vote reminder wakes at the person's morning time on the
   // day it falls due (a day before voting ends), as bills do — never at a minute derived from the proposal's public end

@@ -15,3 +15,14 @@
 .cash-forecast-events th,.cash-forecast-events td{padding:4px 6px;border-bottom:1px solid var(--line,#25334f);text-align:left;overflow-wrap:anywhere}
 .cash-forecast-events td:last-child{text-align:right;white-space:nowrap}
 .cash-forecast-empty p{margin:0 0 6px}
+/* Session AV lane 2 (money): until payday and the low-balance line. */
+.cash-forecast-extra{display:grid;gap:12px;margin-top:12px}
+.cash-forecast-extra h5{margin:0 0 4px;font-size:16px}
+.cash-forecast-extra p{margin:0}
+.cash-forecast-low-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:8px 12px;align-items:end;margin-top:6px}
+.cash-forecast-low-form input,.cash-forecast-low-form select,.cash-forecast-low-form button{min-height:44px;width:100%;box-sizing:border-box}
+.cash-forecast-low-form .field-error{grid-column:1/-1;margin:0}
+
+/* Session AV lane 2, round 5 (money; LEDGER #388): the Try a change fold (its panel's styles load with its chunk). */
+.money-whatif-fold{margin-top:12px}
+.money-whatif-fold summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600}

@@ -12,6 +12,7 @@ import {BACKUP_REMINDER} from '../../lib/backup-reminder';
 import {visionScope} from '../goals/use-goal-extras';
 import {StorageHealth} from '../storage-health';
 import {SectionHeading} from '../ui/section-heading';
+import {useHashArrival} from '../jump/use-arrival';
 import './data-health.css';
 import '../skeleton/zg-skeleton.css';
 // Session AB-Cloud Part 5 (ADR-023 C22): Restore from a backup, loaded with the page's section, its code with the file.
@@ -33,6 +34,9 @@ const AREA_LABEL: Record<(typeof PAGE_AREAS)[number], string> = {today: 'Today',
 
 export function DataHealthView() {
   const [read, setRead] = useState<Read | null>(null);
+  // Session AV lane 2 (fr-layout, FR-L-7): /app/settings/data#restore (the phone's "Restore a backup", the export's and the
+  // vault's links, the page's own jump) lands on Restore once this view has drawn; the sections render after the page.
+  useHashArrival(() => ({}));
   // Session AV (Part 4b, KL-2): a copy made from Today's card, or marked with "I saved a copy today", keeps its day; shown here.
   const [markedOn, setMarkedOn] = useState<string | null>(null);
   useEffect(() => { try { setMarkedOn(readDeviceRecord(getAppStorage(), BACKUP_REMINDER).data.savedOn ?? null); } catch { setMarkedOn(null); } }, []);
@@ -92,6 +96,8 @@ export function DataHealthView() {
       </dl>
       <p className="fine">Export everything writes nothing on this device, by design, so it keeps no date; your browser&apos;s downloads list shows when you last exported. Restore from a backup, below, reads that ZIP back.</p>
       <div className="dh-actions"><Link className="primary" href="/app/settings#privacy">Export everything or keep a protected copy</Link></div>
+      {/* Session AV lane 2, round 6 (money; Banktivity, LEDGER #430): the check of the money records lives with the money. */}
+      <p className="fine"><Link className="text-link" href="/app/wealth#money-check">Check and tidy your money records on Wealth →</Link></p>
       <Suspense fallback={null}><BackupReminder/></Suspense>
     </section>
     <section className="panel" aria-labelledby="dh-restore" id="restore">

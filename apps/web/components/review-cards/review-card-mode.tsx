@@ -2,7 +2,7 @@
 import {useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent} from 'react';
 import type {DeviceRecordState} from '../ai/use-device-record';
 import {SWIPE_EDGE_PX, SWIPE_LOCK_PX} from '../swipe/use-swipe-actions';
-import {EXPENSE_CATEGORIES, INCOME_CATEGORIES, type MoneyEntry, type MoneyLog} from '../../lib/money-log/schema';
+import type {MoneyEntry, MoneyLog} from '../../lib/money-log/schema';
 import {markForReview, type MoneyReview} from '../../lib/money-review/review';
 import {cardQueue, keyAction, progressWords, swipeAction, type CardAction} from '../../lib/review-cards/queue';
 import {categoriesRecentFirst} from '../../lib/recent-categories/recent';
@@ -11,6 +11,7 @@ import {formatDate} from '../../lib/visual-format';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {money} from '../wealth/money-tools/format';
 import './review-cards.css';
+import {categoryChoices} from '../../lib/money-log/counted';
 
 /**
  * Session AK (BUILD list 2 #9): the review inbox "One at a time". One large card: the payee, the amount, the date and
@@ -32,10 +33,10 @@ export default function ReviewCardMode({log, review, pending, accept, recategori
   const queue = useMemo(() => cardQueue(pending, skipped), [pending, skipped]), current = queue[0] ?? null, today = localDate();
   const chips = useMemo(() => {
     if (!current) return [];
-    const fixed = current.kind === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
+    const fixed = categoryChoices(log.data, current.kind); // Session AV lane 2 (money): with the person's own categories
     const ranked = categoriesRecentFirst(log.data.entries, current.kind, fixed, today).chips.filter(c => c !== current.category);
     return [current.category, ...ranked].slice(0, 6);
-  }, [current, log.data.entries, today]);
+  }, [current, log.data, today]);
   useEffect(() => { card.current?.focus({preventScroll: true}); }, [current?.id]);
 
   const act = (action: CardAction) => {

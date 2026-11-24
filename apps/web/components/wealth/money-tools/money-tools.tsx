@@ -34,7 +34,9 @@ export default function MoneyTools({showcase = false}: {showcase?: boolean}) {
   const pending = useMemo(() => toReview(review.data, log.data.entries).length, [review.data, log.data.entries]);
   const makeRule = useCallback((entry: MoneyEntry) => { setPrefill(ruleFromEntry(entry)); setOpen('rules'); }, []);
   const used = useCallback(() => setPrefill(null), []);
-  const tools: [Tool, string][] = [['review', `To review (${pending})`], ['rules', `Rules (${rules.data.rules.length})`], ['split', 'Split an entry'], ['sheet', 'If something happens to me'], ['forecast', 'Next 60 days'], ['photos', 'Receipt photos']];
+  // Session AV lane 2 (polish 2, P-34): the six tools in three labelled pairs (they wrapped raggedly, mixing purposes). A
+  // count of 0 is read aloud but not shown ("To review (0)" taught nothing on a fresh device).
+  const groups: [string, [Tool, string, number?][]][] = [['Review', [['review', 'To review', pending], ['rules', 'Rules', rules.data.rules.length]]], ['Your entries', [['split', 'Split an entry'], ['photos', 'Receipt photos']]], ['Plan ahead', [['forecast', 'Next 60 days'], ['sheet', 'If something happens to me']]]];
   return <section className="money-tools" aria-labelledby={`${id}-title`}>
     <h3 id={`${id}-title`}>Money tools</h3>
     <div className="money-buffer" role="group" aria-label="Buffer days">
@@ -47,8 +49,11 @@ export default function MoneyTools({showcase = false}: {showcase?: boolean}) {
         </div>)
         : <p className="fine">This cannot be worked out yet. Add a cash or savings account with its balance (What you have → Accounts) and log your spending here; the tile then shows how many days your cash covers.</p>}
     </div>
-    <div className="money-tools-buttons" role="group" aria-label="Money tools">
-      {tools.map(([tool, label]) => <button key={tool} type="button" className="secondary" aria-expanded={open === tool} aria-controls={`${id}-panel`} onClick={() => setOpen(o => o === tool ? null : tool)}>{tool === 'review' && pending > 0 && <span className="money-review-dot" aria-hidden="true"/>}{label}</button>)}
+    <div className="money-tools-groups" role="group" aria-label="Money tools">
+      {groups.map(([name, tools], g) => <div key={name} className="money-tools-group" role="group" aria-labelledby={`${id}-g${g}`}>
+        <p className="money-tools-group-name" id={`${id}-g${g}`}>{name}</p>
+        <div className="money-tools-buttons">{tools.map(([tool, label, count]) => <button key={tool} type="button" className="secondary" aria-expanded={open === tool} aria-controls={`${id}-panel`} onClick={() => setOpen(o => o === tool ? null : tool)}>{tool === 'review' && pending > 0 && <span className="money-review-dot" aria-hidden="true"/>}<span>{label}{count !== undefined && <span className={count ? undefined : 'visually-hidden'}> ({count})</span>}</span></button>)}</div>
+      </div>)}
     </div>
     <div id={`${id}-panel`}>
       <Suspense fallback={<Skeleton label="Loading…" lines={3}/>}>

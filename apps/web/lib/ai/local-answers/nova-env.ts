@@ -25,14 +25,22 @@ export const NOVA_PERMISSIONS = 'NOVA → Permissions';
 /** The panel's name as the app shows it, in a Dutch sentence too (the app's labels are English). */
 export const NOVA_PERMISSIONS_NL = NOVA_PERMISSIONS;
 type Lang = 'en' | 'nl';
-/** Why Health is not read by NOVA here, and the one place to turn it on. */
+/**
+ * Why Health is not read by NOVA here, and the one place to turn it on.
+ * Friend-readiness (FR-S-6): ZIGi's Health gate (`zigoals:ai:v1`) belongs to the device it was given on and is never
+ * restored from a backup (lib/restore/plan.ts), while NOVA's own Health choice is. After a restore onto a new device NOVA
+ * said "Health is on for NOVA, but…", which read as half on: it now says plainly that Health answers are off on this
+ * device and names the one button that turns them on (Allow Health turns on NOVA's choice and the gate together).
+ * Session AV lane 2 (fr-answers; FR-TJ-1): with NOVA's own Health choice off too, the reply names the same one button,
+ * never the three switches to find one by one.
+ */
 export function novaHealthClosed(info: NovaEnvInfo, lang: Lang = 'en'): string {
   if (lang === 'nl') {
-    if (!info.healthScope) return `Health staat uit voor NOVA, dus er wordt niets uit Health gelezen. Zet Health aan in ${NOVA_PERMISSIONS_NL}${info.healthGate ? '' : ', met daar ook Health page data en Include Health (Include Health werkt zodra Health op je Today-pagina staat)'}.`;
-    return `Health staat aan voor NOVA, maar het delen van Health staat uit op dit apparaat, dus er wordt niets uit Health gelezen. Zet in ${NOVA_PERMISSIONS_NL} Health page data en Include Health aan (Include Health werkt zodra Health op je Today-pagina staat).`;
+    if (!info.healthScope) return `Health staat uit voor NOVA, dus er wordt niets uit Health gelezen. Tik op Allow Health in ${NOVA_PERMISSIONS_NL}: één tik opent Health (de knop staat er zodra Health op je Today-pagina staat).`;
+    return `Health-antwoorden staan uit op dit apparaat, dus er wordt hier niets uit Health gelezen; zet ze aan met Allow Health in ${NOVA_PERMISSIONS_NL}.`;
   }
-  if (!info.healthScope) return `Health is off for NOVA, so nothing from Health is read here. Turn on Health in ${NOVA_PERMISSIONS}${info.healthGate ? '' : ', with Health page data and Include Health there (Include Health works once Health is on your Today page)'}.`;
-  return `Health is on for NOVA, but Health sharing is off on this device, so nothing from Health is read here. In ${NOVA_PERMISSIONS}, turn on Health page data and Include Health (Include Health works once Health is on your Today page).`;
+  if (!info.healthScope) return `Health is off for NOVA, so nothing from Health is read here. Tap Allow Health in ${NOVA_PERMISSIONS}: one tap opens Health (the button is there once Health is on your Today page).`;
+  return `Health answers are off on this device, so nothing from Health is read here; turn them on with Allow Health in ${NOVA_PERMISSIONS}.`;
 }
 const AREA_WORDS: Record<string, string> = {Today: 'Today (your agenda, tasks, focus and Checklist)', Goals: 'Goals', Habits: 'Habits', Wealth: 'Wealth'};
 /** An area NOVA → Permissions keeps closed (on this device every other area is open to on-device answers). */

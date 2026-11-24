@@ -39,6 +39,9 @@
       var names = named ? habits.map(function (h) { return h.label; }).filter(Boolean) : [];
       lines.push(names.length === habits.length ? names.slice(0, 3).join(' · ') + (names.length > 3 ? ' and ' + (names.length - 3) + ' more' : '') : plural(habits.length, 'habit due', 'habits due'));
     }
+    // Session AV lane 2 (r5-body; LEDGER #369): one reminder per part of the day, with how many of its habits are open;
+    // their names only where names are allowed.
+    (kinds.habitPart || []).slice(0, 1).forEach(function (p) { lines.push((p.detail || 'Habits still open') + (named && p.label ? ' · ' + p.label : '')); });
     (kinds.water || []).slice(0, 1).forEach(function (w) { lines.push(w.detail ? 'Water: ' + w.detail : 'Time for some water'); });
     var money = kinds.contribution || [];
     if (money.length) lines.push(named && money.every(function (c) { return c.label; }) ? money.slice(0, 2).map(function (c) { return c.label + (c.detail ? ' · ' + c.detail : ''); }).join(' · ') : plural(money.length, 'contribution due', 'contributions due'));
@@ -46,11 +49,36 @@
     if (bills.length) lines.push(named && bills.every(function (b) { return b.label; }) ? bills.slice(0, 2).map(function (b) { return b.label + (b.detail ? ' · ' + b.detail : ''); }).join(' · ') : plural(bills.length, 'bill due tomorrow', 'bills due tomorrow'));
     // Session AV (F-TASK-NOTIFY): task reminders, by name only where names are allowed.
     var taskItems = kinds.task || [];
-    if (taskItems.length) lines.push(named && taskItems.every(function (t) { return t.label; }) ? taskItems.slice(0, 2).map(function (t) { return t.label; }).join(' · ') + (taskItems.length > 2 ? ' and ' + (taskItems.length - 2) + ' more' : '') : plural(taskItems.length, 'task reminder', 'task reminders'));
+    // Session AV lane 2 (r5-plan, LEDGER #353; TIER 3 (PWA)): a "Leave by 8:40" item says its time to leave, also without names.
+    var leaving = taskItems.filter(function (t) { return t.detail && /^leave:/.test(String(t.id || '')); }), reminding = taskItems.filter(function (t) { return leaving.indexOf(t) < 0; });
+    if (leaving.length) lines.push(leaving.slice(0, 2).map(function (t) { return t.detail + (named && t.label ? ' · ' + t.label : ''); }).join(' · ') + (leaving.length > 2 ? ' and ' + (leaving.length - 2) + ' more' : ''));
+    if (reminding.length) lines.push(named && reminding.every(function (t) { return t.label; }) ? reminding.slice(0, 2).map(function (t) { return t.label; }).join(' · ') + (reminding.length > 2 ? ' and ' + (reminding.length - 2) + ' more' : '') : plural(reminding.length, 'task reminder', 'task reminders'));
     // Session AV (1c, q1 #44): countdown reminders, by name only where names are allowed.
     var countdowns = kinds.countdown || [];
     if (countdowns.length) lines.push(named && countdowns.every(function (c) { return c.label; }) ? countdowns.slice(0, 2).map(function (c) { return c.label + (c.detail ? ' · ' + c.detail : ''); }).join(' · ') : plural(countdowns.length, 'countdown reminder', 'countdown reminders'));
+    // Session AV lane 2 (journal; LEDGER #40): the reminder to write, with the streak it keeps (never a word of the journal).
+    // Session AV lane 2 (r3-notes; LEDGER #279): a letter to open later says so on its own line (never its words).
+    (kinds.journal || []).filter(function (j) { return /^letter:/.test(String(j.id || '')); }).slice(0, 1).forEach(function () { lines.push('A letter you wrote opens today'); });
+    // Session AV lane 2 (r4-mind; LEDGER #309): a morning with a memory says only how long ago (never its words).
+    (kinds.journal || []).filter(function (j) { return /^memory:/.test(String(j.id || '')); }).slice(0, 1).forEach(function (j) { lines.push('A memory from ' + (j.detail || 'your journal')); });
+    (kinds.journal || []).filter(function (j) { return !/^(?:letter|memory):/.test(String(j.id || '')); }).slice(0, 1).forEach(function (j) { lines.push('Time to write in your journal' + (j.detail ? ' · ' + j.detail : '')); });
+    // Session AV lane 2 (money): budgets near or over, payday tomorrow, the low-balance line; words only where names are allowed.
+    // Session AV lane 2, round 5 (money; LEDGER #384): Yesterday's money on its own line — the count, and amounts only where
+    // names are allowed (the plan leaves them out otherwise); never a payee.
+    (kinds.money || []).filter(function (m) { return /^money:yesterday:/.test(String(m.id || '')); }).slice(0, 1).forEach(function (m) { lines.push('Yesterday\u2019s money' + (m.detail ? ' \u00b7 ' + m.detail : '')); });
+    var moneyNotes = (kinds.money || []).filter(function (m) { return !/^money:yesterday:/.test(String(m.id || '')); });
+    if (moneyNotes.length) lines.push(named && moneyNotes.every(function (m) { return m.label; }) ? moneyNotes.slice(0, 2).map(function (m) { return m.label + (m.detail ? ' · ' + m.detail : ''); }).join(' · ') : plural(moneyNotes.length, 'money notice: open Wealth', 'money notices: open Wealth'));
+    // Session AV lane 2 (LEDGER #180): the mood check-in; never a mood.
+    if (kinds.mood) lines.push('How does today feel? One tap answers it.');
+    // Session AV lane 2 (bodymind-r2; LEDGER #235, #236): the energy curve's reminders and plan steps, in the app's own words;
+    // an own habit's name only where names are allowed (it is the label); never a sleep figure.
+    (kinds.energy || []).slice(0, 2).forEach(function (e) { lines.push((e.detail || 'A reminder from your energy curve') + (named && e.label ? ' · ' + e.label : '')); });
+    // Session AV lane 2 (health r3; LEDGER #286): the weigh-in reminder; never a weight.
+    if (kinds.weighIn) lines.push('Time to weigh in');
     if (kinds.supplement) lines.push('A reminder you set in Health');
+    // Session AV lane 2 (food, LEDGER #90): a meal's usual time, by its name only where names are allowed; never food.
+    var meals = kinds.meal || [];
+    if (meals.length) lines.push(named && meals.every(function (m) { return m.label; }) ? 'Time for ' + meals.slice(0, 2).map(function (m) { return m.label; }).join(' · ') : 'A meal reminder you set in Health');
     if (kinds.vote) lines.push(plural(kinds.vote.length, 'vote you follow ends within a day', 'votes you follow end within a day'));
     // Session AL sweep 4 (C-DVG-68, C-BN-06): from the positions last read on the device; never a name or an amount.
     if (kinds.unbonding) lines.push('Unstaked ZIG is back in your wallet today');
@@ -58,13 +86,16 @@
     if (kinds.windDown) lines.push('Time to wind down');
     if (kinds.review) lines.push('Your weekly Life review is ready');
     var summary = summaryLine(snapshot);
-    if (kinds.morning) lines.unshift(summary ? 'Good morning. ' + summary : 'Good morning. Your orbit is ready.');
+    // Session AV lane 2 (r3-plan, LEDGER #256): "Plan your day" opens Plan my day; the overdue count is a number, never a name.
+    (kinds.planDay || []).slice(0, 1).forEach(function (p) { lines.unshift('Plan your day' + (p.detail ? ' · ' + p.detail : '')); });
+    var overdue = kinds.morning && kinds.morning[0].detail ? ' ' + kinds.morning[0].detail.charAt(0).toUpperCase() + kinds.morning[0].detail.slice(1) + '.' : '';
+    if (kinds.morning) lines.unshift((summary ? 'Good morning. ' + summary : 'Good morning. Your orbit is ready.') + overdue);
     if (kinds.evening) lines.unshift(summary ? 'Evening wrap-up. ' + summary : 'Evening wrap-up: how did today go?');
     var first = due[0], actionable = habits.concat(taskItems).filter(function (h) { return h.actionable; });
-    var url = kinds.morning ? '/app/checklist' : (first && appPath(first.href)) || '/app';
+    var url = kinds.planDay ? appPath(kinds.planDay[0].href) || '/app/tasks' : kinds.morning ? '/app/checklist' : (first && appPath(first.href)) || '/app';
     if (!lines.length) return {title: 'ZIGoals', body: summary ? summary + ' Nothing is due right now.' : 'Nothing is due right now.', tag: 'zigoals-summary', actions: [], data: {url: '/app', items: []}};
-    var actions = actionable.length ? [{action: 'done', title: 'Done'}, {action: 'snooze', title: 'Snooze 1 h'}] : (kinds.morning || kinds.evening || kinds.review) ? [] : [{action: 'snooze', title: 'Snooze 1 h'}];
-    return {title: 'ZIGoals', body: lines.join(' · ').slice(0, 240), tag: 'zigoals-reminder', actions: actions, data: {url: url, date: snapshot && snapshot.summary ? snapshot.summary.date : null, items: due.filter(function (i) { return i.kind !== 'morning' && i.kind !== 'evening'; }).map(function (i) { return {kind: i.kind, id: i.id, at: i.at}; })}};
+    var actions = actionable.length ? [{action: 'done', title: 'Done'}, {action: 'snooze', title: 'Snooze 1 h'}] : (kinds.morning || kinds.evening || kinds.review || kinds.planDay) ? [] : [{action: 'snooze', title: 'Snooze 1 h'}];
+    return {title: 'ZIGoals', body: lines.join(' · ').slice(0, 240), tag: 'zigoals-reminder', actions: actions, data: {url: url, date: snapshot && snapshot.summary ? snapshot.summary.date : null, items: due.filter(function (i) { return i.kind !== 'morning' && i.kind !== 'evening' && i.kind !== 'planDay'; }).map(function (i) { return {kind: i.kind, id: i.id, at: i.at}; })}};
   }
   // A price alert crossed (the same rule as lib/price-alerts/engine.ts): the quote's integer price over its decimals,
   // compared with the alert's decimal figure, both scaled to 12 decimals.
@@ -177,8 +208,12 @@ async function warmOnce() {
   const order = [...await laterParts(shared)];
   for (const path of WARM_ORDER) if (named.has(path)) order.push(...await laterParts(named.get(path).filter(f => !shared.includes(f))));
   let bytes = 0;
+  // Session AV lane 2 ([TIER 3] (PWA), CI run 2016, j04-offline): a newer worker installing or waiting ends this warm at
+  // once. It keeps its own version's parts after the page reloads, and this worker's long warm (up to WARM_BYTES, one file
+  // after another) no longer holds back the "Reload" the person tapped (measured: 20 s and more on a slow runner).
+  const superseded = () => Boolean(self.registration.installing || self.registration.waiting);
   for (const part of new Set(order)) {
-    if (forgotten || bytes >= WARM_BYTES) break;
+    if (forgotten || bytes >= WARM_BYTES || superseded()) break;
     if (await statics.match(part) || await lazy.match(part)) continue;
     try {
       const response = await fetch(part);
@@ -187,7 +222,7 @@ async function warmOnce() {
       await lazy.put(part, response);
     } catch { return; } // offline again: the next page that settles online asks again
   }
-  if (!forgotten) await lazy.put(WARM_DONE, new Response('', {headers: {'Cache-Control': 'no-store'}}));
+  if (!forgotten && !superseded()) await lazy.put(WARM_DONE, new Response('', {headers: {'Cache-Control': 'no-store'}}));
 }
 self.addEventListener('install', event => {
   // The first worker takes over at once; a later one waits for the page's "Reload" (or for every window to close).

@@ -22,3 +22,25 @@
 .csv-templates button,.csv-saved button{min-height:44px}
 .csv-saved{display:grid;gap:8px}
 .csv-saved-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
+/* Session AV lane 2 (money): rows the bank changed since the last import. */
+.bankfile-changed{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0}
+.bankfile-changed button{min-height:44px}
+/* Session AV lane 2 (fr-money, FR-L-9, the friend-readiness walk's Lina): on a phone the preview table was 473 px in a
+   352 px sideways box, so Category (the column the guide promises) and the end of the caption were off-screen with no hint.
+   There each row stands as a small card: the tick, then date and amount, the payee, the category, the note. The tick and
+   the category say their row in their own names, so no column heading is needed to read them. */
+@media (max-width:560px){
+  .bankfile-table,.bankfile-table tbody,.bankfile-table caption{display:block}
+  .bankfile-table thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .bankfile-table tr{display:grid;grid-template-columns:44px minmax(0,1fr) auto;column-gap:8px;align-items:center;padding:4px 0;border-bottom:1px solid var(--line,rgba(140,160,220,.18))}
+  .bankfile-table td{border-bottom:0;padding:2px 0;min-width:0}
+  .bankfile-table td:first-child{grid-column:1;grid-row:1 / span 4;align-self:start;width:auto}
+  .bankfile-table td:nth-child(2){grid-column:2;grid-row:1}
+  .bankfile-table td:nth-child(3){grid-column:2 / 4;grid-row:2}
+  .bankfile-table td:nth-child(4){grid-column:3;grid-row:1;text-align:right}
+  .bankfile-table td:nth-child(5){grid-column:2 / 4;grid-row:3}
+  .bankfile-table td:nth-child(6){grid-column:2 / 4;grid-row:4}
+  .bankfile-table td:nth-child(6):empty{display:none}
+  .bankfile-payee{min-width:0}
+  .bankfile-category{max-width:100%;min-height:44px}
+}

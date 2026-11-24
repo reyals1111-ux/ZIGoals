@@ -11,7 +11,7 @@ import {EXAMPLES_INTRO_NL, howToReply, noModelReply, questionLanguage} from './n
 const env = () => toolEnv(showcaseSources(), gatesFor(true), 'local');
 const textOf = (r: ReturnType<typeof noModelReply>) => 'text' in r ? r.text : '';
 
-test('a Dutch question gets its introduction in Dutch; the examples stay the English questions the device answers', () => {
+test('a Dutch question gets its introduction in Dutch; the examples are Dutch questions the device answers (fr-answers, FR-S-5; deliberate title)', () => {
   // Session AS (ADR-042 A1, deliberate): with no model, a Dutch question is now answered in Dutch from the records: by
   // NOVA's own overview answers in ZIGi's words where they exist, else by the exact layer (it was the Dutch introduction and English examples). `localAnswer` itself still says none for
   // these (the golden pins nl-question and x-nl-whole are untouched: with a model connected they go to the model, which
@@ -34,6 +34,8 @@ test('a Dutch question gets its introduction in Dutch; the examples stay the Eng
     const r = noModelReply(q, env());
     expect(r, q).toMatchObject({kind: 'examples', text: EXAMPLES_INTRO_NL});
     expect('examples' in r ? r.examples.length : 0, q).toBeGreaterThan(0);
+    // Session AV lane 2 (fr-answers; FR-S-5, deliberate): the examples are Dutch questions now; each must still be answered by
+    // the device's own lookups, exactly as strict as before (owner follow-up 6: no check is loosened).
     for (const example of 'examples' in r ? r.examples : []) expect(localAnswer(example, env()).kind, example).not.toBe('none');
   }
   // Session AL fifth pass (L7-5b; Lisbon N-LA-01, deliberate): an ask nothing matched that is not read as Dutch ("Is de app

@@ -6,6 +6,7 @@ import {taskState} from '../../../tasks/engine';
 import type {Task, Tasks} from '../../../tasks/schema';
 import {formatClock, formatDate, formatMonth, formatWeekday} from '../../../visual-format';
 import type {CalCell, CalState, CalendarView} from './calendar';
+import {isFinished} from '../../../tasks/finished';
 
 /**
  * Session AS (ADR-042 Part 2): tasks as a time axis, a month, ranked bars and a dial. One overdue rule everywhere: the
@@ -54,7 +55,7 @@ export type TaskTimeline = {
 export const TIMELINE_BACK = 21, TIMELINE_AHEAD = 7, TIMELINE_LANES = 5;
 export function taskTimeline(record: Tasks, period: Period, today: string, clock: string | undefined, doneDay: DoneDay): TaskTimeline {
   const load = taskLoad(record, today, clock), overdue = taskOverdue(record, today, clock), floor = addLocalDays(today, -TIMELINE_BACK), to = addLocalDays(today, TIMELINE_AHEAD);
-  const finished = record.tasks.filter(t => t.doneAt).map(t => ({t, day: doneDay(t.doneAt!)})).filter(x => x.day >= period.from && x.day <= period.to);
+  const finished = record.tasks.filter(isFinished /* review B5L-1: a cancelled task is not a finish */).map(t => ({t, day: doneDay(t.doneAt!)})).filter(x => x.day >= period.from && x.day <= period.to);
   const first = [today, ...overdue.rows.map(r => r.due), ...finished.map(x => x.day)].sort()[0]!, from = first < floor ? floor : first;
   const span = Math.max(1, daysBetween(from, to)), at = (day: string) => Math.max(0, Math.min(1, daysBetween(from, day) / span));
   const stack = new Map<string, number>(), lane = (day: string) => { const n = stack.get(day) ?? 0; stack.set(day, n + 1); return Math.min(n, TIMELINE_LANES - 1); };
@@ -89,7 +90,7 @@ export function tasksMonth(record: Tasks, period: Period, today: string, clock: 
   const due = new Map<string, Task[]>(), late = new Map<string, Task[]>(), finished = new Map<string, Task[]>();
   const add = (map: Map<string, Task[]>, day: string, t: Task) => { if (day >= first && day <= last) map.set(day, [...(map.get(day) ?? []), t]); };
   for (const t of record.tasks) {
-    if (t.doneAt) add(finished, doneDay(t.doneAt), t);
+    if (t.doneAt) { if (isFinished(t)) add(finished, doneDay(t.doneAt), t); /* review B5L-1: a cancelled task is neither done nor due */ }
     else if (t.due) add(taskState(t, today, clock) === 'overdue' ? late : due, t.due, t);
   }
   const stateOf = (date: string): CalState => late.has(date) ? 'missed' : due.has(date) ? 'part' : finished.has(date) ? 'done' : date > today ? 'ahead' : 'rest';

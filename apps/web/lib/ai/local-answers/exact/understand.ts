@@ -77,7 +77,8 @@ function parse(folded: string, records: Records): Query | null {
     if (now) { period = now; against = token; ask = 'compare'; }
   }
   // Session AU (D-ETA): a goal named in English is named in Dutch too ("noodfonds" for an Emergency fund).
-  const goalWords = plainWords.flatMap(word => [word, ...(GOAL_SYNONYMS[word] ?? [])]);
+  // Session AV lane 2 (fr-money, FR-L-13): and the other way round — "emergency fund" names a goal called "Noodfonds".
+  const goalWords = [...plainWords.flatMap(word => [word, ...(GOAL_SYNONYMS[word] ?? [])]), ...Object.entries(GOAL_SYNONYMS).flatMap(([nl, en]) => en.every(word => plainWords.includes(word)) ? [nl] : [])];
   const goals = bestNamed(records.goals, g => g.name, goalWords), wholeGoal = goals.one && nameWords(goals.one.name).length >= 2 && nameScore(goals.one.name, goalWords) === 1 ? goals.one : null;
   // A category by its own name, else by the words people use for it in either language ("boodschappen", "supermarket" are
   // Groceries: the money log's own word list, lib/money-log/category.ts), when the person keeps that category.
@@ -129,9 +130,19 @@ function parse(folded: string, records: Records): Query | null {
   if (!ask) ask = shape === 'amount' ? 'total' : phrase || shape === 'list' || shape === 'overview' ? 'status' : domain === 'habits' || HEALTH_MEASURES.has(domain) || domain === 'journal' || domain === 'focus' ? 'done' : 'status';
   return {domain, ask, shape, lang, period, versus: against, weekday, subject, ...(alt ? {alt} : {}), ...(choices ? {choices} : {}), read: folded};
 }
+/**
+ * Session AV lane 2 (fr-money, FR-L-3, the friend-readiness walk's Lina): a Dutch compound of a category and "budget"
+ * ("boodschappenbudget", "boodschappenbudgetten") is read as its two words ("boodschappen budget"), so the budgets answer
+ * reads it as the English "groceries budget" is read. Only when the first part is a category the person keeps, or a word
+ * the money log files under a category (lib/money-log/category.ts); any other compound ("weekbudget") stays as typed.
+ */
+export function splitBudgetCompounds(folded: string, categories: readonly string[]): string {
+  const kept = new Set(categories.map(c => fold(c)));
+  return folded.replace(/\b([a-z]{3,}?)(budget|budgetten)\b/g, (whole, head: string, tail: string) => kept.has(head) || expenseCategory(undefined, head) !== 'Other' ? `${head} ${tail}` : whole);
+}
 /** The `Query` of a question, or null when it is not one the exact layer reads with confidence. */
 export function understand(question: string, records: Records): Query | null {
-  const folded = fold(question);
+  const folded = splitBudgetCompounds(fold(question), records.categories);
   if (!folded || folded.length > 300) return null;
   // A question that also asks for a change ("…, log it", "… and add a glass") is not a lookup: the commas are read as typed.
   if (NOT_A_LOOKUP.mixed.test(question.toLowerCase().replace(/\s+/g, ' '))) return null;

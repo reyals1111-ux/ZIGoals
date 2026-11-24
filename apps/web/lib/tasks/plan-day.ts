@@ -1,5 +1,5 @@
 import {formatDate} from '../visual-format';
-import {deadlineState, openTasks} from './engine';
+import {deadlineState, isLate, openTasks, setAside} from './engine';
 import {taskLevel, type Task, type Tasks} from './schema';
 
 /**
@@ -12,12 +12,13 @@ export const PLAN_DAY_MAX = 5;
 export type PlanWhy = 'overdue' | 'deadline' | 'priority';
 export type PlanSuggestion = {task: Task; why: PlanWhy; words: string};
 const RANK: Record<PlanWhy, number> = {overdue: 0, deadline: 1, priority: 2};
-export function planSuggestions(record: Tasks, today: string, setAside: ReadonlySet<string> = new Set()): PlanSuggestion[] {
+export function planSuggestions(record: Tasks, today: string, notToday: ReadonlySet<string> = new Set()): PlanSuggestion[] {
   const out: PlanSuggestion[] = [];
   for (const task of openTasks(record, today)) {
-    if (task.parentId || setAside.has(task.id) || task.due === today) continue;
+    // Session AV lane 2 (r6-plan, LEDGER #392, #393): never a task of a project on hold, nor one waiting its turn.
+    if (task.parentId || notToday.has(task.id) || task.due === today || setAside(record, task, today)) continue;
     const d = deadlineState(task, today), level = taskLevel(task);
-    if (task.due && task.due < today) out.push({task, why: 'overdue', words: `Was planned for ${formatDate(task.due, {weekday: true, year: false})}`});
+    if (task.due && isLate(task, today)) out.push({task, why: 'overdue', words: `Was planned for ${formatDate(task.due, {weekday: true, year: false})}`});
     else if (d === 'passed' || d === 'today' || d === 'soon') out.push({task, why: 'deadline', words: d === 'passed' ? `Deadline passed on ${formatDate(task.deadline!, {year: false})}` : d === 'today' ? 'Deadline today' : `Deadline ${formatDate(task.deadline!, {weekday: true, year: false})}`});
     else if (!task.due && level <= 2) out.push({task, why: 'priority', words: `Priority ${level}, no day yet`});
   }

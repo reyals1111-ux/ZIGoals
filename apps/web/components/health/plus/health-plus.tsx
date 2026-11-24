@@ -12,15 +12,19 @@ type Perform = (updater: (latest: HealthData) => HealthData, message: string, af
 export type HealthPlusProps =
   | {part: 'activity'; data: HealthData; today: string}
   | {part: 'symptoms'; date: string; today: string}
+  // Session AV lane 2 (LEDGER #60, #62, #63, #68): the evening check-in, in this chunk's map.
+  | {part: 'checkin'; date: string; today: string}
   | {part: 'copy'; data: HealthData; date: string; today: string; perform: Perform}
   // Session AU (ADR-044 F-MEAL): a meal logged in words alone, in this chunk (no new chunk for /app/health to map).
   | {part: 'words'; words: MealWordsProps};
 const ActivityPlus = lazy(() => import('./activity-plus'));
 const SymptomsPanel = lazy(() => import('./symptoms-panel'));
+const EveningCheckin = lazy(() => import('./evening-checkin'));
 const MealCopy = lazy(() => import('./meal-copy'));
 export default function HealthPlus(props: HealthPlusProps) {
   if (props.part === 'activity') return <ActivityPlus data={props.data} today={props.today}/>;
   if (props.part === 'words') return <MealWords {...props.words}/>;
   if (props.part === 'symptoms') return <SymptomsPanel date={props.date} today={props.today}/>;
+  if (props.part === 'checkin') return <EveningCheckin date={props.date} today={props.today}/>;
   return <MealCopy data={props.data} date={props.date} today={props.today} perform={props.perform}/>;
 }

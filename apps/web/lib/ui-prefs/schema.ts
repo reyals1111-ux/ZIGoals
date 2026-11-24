@@ -71,11 +71,28 @@ export const uiPrefsSchema = z.looseObject({
    * never synced; exported, restored and erased with the rest of these preferences.
    */
   look: z.looseObject({
-    font: z.enum(['system', 'inter']).optional().catch(undefined),
+    // Session AV lane 2 (N6 #192; TIER 3 (stored format), additive): three more system fonts. Older builds read them as
+    // System (their enum drops the value on read) and keep the group.
+    // Session AV lane 2 (r3-plan, LEDGER #263; TIER 3 (stored format), additive): "reading", a reading-friendly stack of fonts
+    // the device may have, with wider spacing. Older builds read it as System (their enum drops it) and keep the group.
+    font: z.enum(['system', 'inter', 'serif', 'rounded', 'mono', 'reading']).optional().catch(undefined),
     textSize: z.enum(['standard', 'large']).optional().catch(undefined),
     density: z.enum(['comfortable', 'compact']).optional().catch(undefined),
     glow: z.enum(['full', 'soft']).optional().catch(undefined),
+    /**
+     * Session AV lane 2 (LEDGER #34 Notion's high contrast, N6 #191 Loop's pure black; TIER 3 (stored format), additive and
+     * optional): Dark's style, used whenever Dark is on — "black" (Pure black) or "contrast" (High contrast); absent is
+     * Dark as it is. Older builds keep it untouched (the group is loose) and show Dark.
+     */
+    darkStyle: z.enum(['black', 'contrast']).optional().catch(undefined),
   }).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r5-plan, LEDGER #357; Akiflow's secondary time zone; TIER 3 (stored format), additive and optional):
+   * a second time zone (an IANA name such as "America/New_York") whose hours the Agenda's hour grid and the Day Timeline
+   * show beside the device's own. A value this build cannot read is dropped on read; older builds keep it untouched (the
+   * record is loose) and show one zone. Exported and erased with the rest of these preferences.
+   */
+  secondZone: z.string().regex(/^[A-Za-z][A-Za-z0-9_+-]*(?:\/[A-Za-z0-9_+-]+){0,2}$/).max(64).optional().catch(undefined),
 });
 export type UiPrefs = z.infer<typeof uiPrefsSchema>;
 export const emptyUiPrefs = (): UiPrefs => ({version: 1});

@@ -7,7 +7,8 @@ import {activateAccount, clearAccountSession, unlockAccount} from '../account-se
 
 // Session AK F0 (8.9): "waiting to sync" follows the sync runs, and the line carries a tone for its dot.
 const {status} = vi.hoisted(() => ({status: {opened: false, busy: false, message: '', error: '', last: '', account: null as string | null}}));
-vi.mock('../../components/vault-sync-controls', () => ({useVaultStatus: () => status}));
+// Session AV lane 2 (A45-1: the hook moved to vault-context.ts, deliberate; the same mock of the same hook)
+vi.mock('../../components/vault-context', () => ({useVaultStatus: () => status}));
 (globalThis as unknown as {IS_REACT_ACT_ENVIRONMENT: boolean}).IS_REACT_ACT_ENVIRONMENT = true;
 let root: Root | undefined;
 afterEach(async () => { await act(async () => root?.unmount()); root = undefined; clearAccountSession(); Object.assign(status, {opened: false, busy: false, message: '', error: '', last: '', account: null}); });

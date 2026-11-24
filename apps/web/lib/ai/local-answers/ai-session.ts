@@ -1,4 +1,6 @@
-import {novaEnvInfo} from './nova-env';
+import {watchedHoldings, watchedWords} from './fr-wallets';
+import {localQty} from './words';
+import {novaAreaClosed, novaEnvInfo} from './nova-env';
 import Decimal from 'decimal.js';
 import {briefChatText} from '../proactive/brief';
 import type {ToolEnv} from '../tools/env';
@@ -10,6 +12,8 @@ import type {LocalReply, ToolCallRecord} from './engine';
 import {isNativeZig, quoteIsStale, type MarketQuote} from '../../market-quotes';
 import {ADVICE_REPLIES} from '../safety-guard';
 import {formatDate} from '../../visual-format';
+import {moneyIn} from './av-words';
+import {nlDate, nlDay} from './exact/period';
 import {addLocalDays} from '../../local-date';
 import {habitDay, latestHabitRule, type Habit} from '../../habits';
 
@@ -75,11 +79,13 @@ function onTrackAnswer(lang: Lang, named: string | undefined, env: ToolEnv): Loc
   // function and day format); the plan's completion date is said as the plan's ("With your plan", as the page labels it).
   const day = (v?: string) => v && /^\d{4}-\d{2}-\d{2}/.test(v) ? formatDate(v.slice(0, 10)) : null;
   const pace = d.paceForecast, planDate = day(d.plan?.projectedCompletion), target = day(d.targetDate);
+  // Session AV lane 2 (Dutch dates, R5): the Dutch answer writes the same days the Dutch way ("16 nov 2028").
+  const dayNl = (v?: string) => v && /^\d{4}-\d{2}-\d{2}/.test(v) ? nlDate(v.slice(0, 10), null) : null, planDateNl = dayNl(d.plan?.projectedCompletion), targetNl = dayNl(d.targetDate);
   const paceEn = pace ? pace.state === 'estimate' ? ` ${pace.headline} (the pace forecast from your recorded progress; an estimate, not a promise).` : ` Pace forecast: ${pace.headline}.` : '';
-  const paceNl = pace?.state === 'estimate' && pace.date ? ` In dit tempo: rond ${formatDate(pace.date)} (de tempovoorspelling uit je vastgelegde voortgang; een schatting, geen belofte).` : '';
+  const paceNl = pace?.state === 'estimate' && pace.date ? ` In dit tempo: rond ${nlDate(pace.date, null)} (de tempovoorspelling uit je vastgelegde voortgang; een schatting, geen belofte).` : '';
   const en = `${d.name}: ${d.progress ?? '—'}${d.now && d.target ? ` (${d.now} of ${d.target})` : ''}.${status ? ` Against your plan: ${status}.` : ''}${paceEn}${planDate ? ` With your plan: about ${planDate}.` : ''}${target ? ` Target date: ${target}.` : ''}`;
   const nlStatus = status?.replace(/^ahead by/, 'voor met').replace(/^behind by/, 'achter met').replace(/^on track$/, 'op schema').replace(/^ahead$/, 'voor').replace(/^behind$/, 'achter');
-  const nl = `${d.name}: ${d.progress ?? '—'}${d.now && d.target ? ` (${d.now} van ${d.target})` : ''}.${nlStatus ? ` Ten opzichte van je plan: ${nlStatus}.` : ''}${paceNl}${planDate ? ` Met je plan: rond ${planDate}.` : ''}${target ? ` Doeldatum: ${target}.` : ''}`;
+  const nl = `${d.name}: ${d.progress ?? '—'}${d.now && d.target ? ` (${d.now} van ${d.target})` : ''}.${nlStatus ? ` Ten opzichte van je plan: ${nlStatus}.` : ''}${paceNl}${planDateNl ? ` Met je plan: rond ${planDateNl}.` : ''}${targetNl ? ` Doeldatum: ${targetNl}.` : ''}`;
   return {kind: 'answer', text: say(lang, en, nl), calls: [goals.record, g.record]};
 }
 function worstHabitAnswer(lang: Lang, env: ToolEnv): LocalReply {
@@ -126,6 +132,9 @@ export function priceAnswer(lang: Lang, asset: string, env: ToolEnv, q = ''): Lo
     if (coin && coin.price !== 'no price') lines.push(say(lang, `Portfolio “${pf.portfolio}”: ${coin.price}.`, `Portfolio “${pf.portfolio}”: ${coin.price}.`));
   }
   // Session AU (REHEARSAL R-7): with no price on this device, said plainly, with Markets to open; never a price of its own.
+  // Session AV lane 2 (fr-answers; FR-TJ-5): a linked (watched) wallet holding the coin is named, view only; its value stays unknown without a price.
+  const watched = watchedHoldings(env, symbol);
+  if (!lines.length && watched.length) return {kind: 'answer', text: say(lang, `${symbol}: your linked wallets hold ${watchedWords(watched, 'en', env.habitDay)}. No ${symbol} price has reached Markets on this device, so its value is unknown here: I read prices only where the app already has them. Markets shows the price with its source and time.`, `${symbol}: je gekoppelde wallets bevatten ${watchedWords(watched, 'nl', env.habitDay)}. Er is nog geen ${symbol}-prijs in Markten op dit apparaat, dus de waarde is hier onbekend: ik lees prijzen alleen waar de app ze al heeft. Markten toont de prijs met bron en tijd.`), calls};
   if (!lines.length) return {kind: 'answer', text: say(lang, `${symbol} is not tracked in Wealth or Portfolio and no ${symbol} price has reached Markets on this device, so I give none: I read prices only where the app already has them. Markets shows the price with its source and time.`, `${symbol} staat niet in Vermogen of Portfolio en er is op dit apparaat geen ${symbol}-prijs bij Markten binnengekomen, dus ik noem er geen: ik lees prijzen alleen waar de app ze al heeft. Markten toont de prijs met de bron en het tijdstip.`) + `\n\n\`\`\`zigoals-action\n${JSON.stringify({kind: 'open-page', page: 'markets'})}\n\`\`\``, calls};
   if (code && !lines.some(l => new RegExp(`\\b${code}\\b`).test(l))) lines.push(say(lang, `No ${code} price for ${symbol} on this device: each figure stays in the currency its page holds, never converted.`, `Geen ${code}-prijs voor ${symbol} op dit apparaat: elk bedrag blijft in de munt van zijn pagina, nooit omgerekend.`));
   return {kind: 'answer', text: `${lines.join('\n')}\n${say(lang, 'Prices as these pages show them; facts only, not advice.', 'Prijzen zoals deze pagina’s ze tonen; alleen feiten, geen advies.')}`, calls};
@@ -229,6 +238,15 @@ export function simpleCommand(question: string): LocalReply | null {
 }
 const SPEND_Q = /\b(?:how much (?:did|have) i (?:spend|spent|spending)|what did i spend|what have i spent|my spending|spent (?:this|last) (?:week|month)|hoeveel heb ik (?:\w+ ){0,3}uitgegeven|wat heb ik uitgegeven|mijn uitgaven)\b/i;
 const ROOM_Q = /\b(?:room to spend|left to spend|how much (?:can i|do i have (?:left )?to) spend|budget left|money recap|weekly money|hoeveel (?:kan|mag) ik (?:nog )?uitgeven|budget over|geldoverzicht)\b/i;
+/**
+ * Session AV lane 2 (fr-money, FR-L-11, the friend-readiness walk's Lina): the spending tool writes "1175.35 EUR"; a Dutch
+ * answer writes Dutch money ("€ 1.175,35"), as the other Money answers do (av-words.ts `moneyIn`), so "1,175.35" never
+ * reads as about one euro. English answers keep the tool's words.
+ */
+export function toldIn(lang: Lang, amount: string): string {
+  const m = /^(-?\d[\d,]*(?:\.\d+)?) ([A-Z]{3})$/.exec(amount.trim());
+  return lang === 'nl' && m ? moneyIn('nl', new Decimal(m[1]!.replace(/,/g, '')).times(100).toNumber(), m[2]!) : amount;
+}
 function spendAnswer(lang: Lang, q: string, env: ToolEnv): LocalReply {
   const period = /\b(?:last week|vorige week)\b/i.test(q) ? 'last week' : /\b(?:this week|deze week|week)\b/i.test(q) ? 'this week' : /\b(?:last month|vorige maand)\b/i.test(q) ? 'last month' : 'this month';
   const cat = /\bon ([a-z &]{3,30}?)(?: this| last| in|\?|$)/i.exec(q)?.[1] ?? /\baan ([a-z &]{3,30}?)(?: deze| vorige|\?|$)/i.exec(q)?.[1];
@@ -236,8 +254,10 @@ function spendAnswer(lang: Lang, q: string, env: ToolEnv): LocalReply {
   if (!s.result.ok) return refusalOf(s.result, [s.record]);
   const d = dataOf(s.result) as {note?: string; totals?: {currency: string; spent: string; received: string}[]; byCategory?: {category: string; spent: string}[]; roomToSpendThisWeek?: {left: string; budget: string; daysLeft: number}; matched?: string};
   if (d.note) return {kind: 'answer', text: say(lang, d.note, 'Er is nog niets gelogd in Vermogen → Uitgaven.'), calls: [s.record]};
-  const tot = (d.totals ?? []).map(t => t.spent).join(' and '), top = (d.byCategory ?? []).slice(0, 3).map(c => `${c.category} ${c.spent}`).join(', ');
-  const room = d.roomToSpendThisWeek ? say(lang, ` Room to spend this week: ${d.roomToSpendThisWeek.left} of ${d.roomToSpendThisWeek.budget}.`, ` Ruimte deze week: ${d.roomToSpendThisWeek.left} van ${d.roomToSpendThisWeek.budget}.`) : '';
+  // fr-answers (FR-TJ-4) beside fr-money (FR-L-11): Dutch money the Dutch way (toldIn), English in the display locale (localQty).
+  const told = (amount: string) => lang === 'nl' ? toldIn(lang, amount) : localQty(amount);
+  const tot = (d.totals ?? []).map(t => told(t.spent)).join(say(lang, ' and ', ' en ')), top = (d.byCategory ?? []).slice(0, 3).map(c => `${c.category} ${told(c.spent)}`).join(', ');
+  const room = d.roomToSpendThisWeek ? say(lang, ` Room to spend this week: ${told(d.roomToSpendThisWeek.left)} of ${told(d.roomToSpendThisWeek.budget)}.`, ` Ruimte deze week: ${told(d.roomToSpendThisWeek.left)} van ${told(d.roomToSpendThisWeek.budget)}.`) : '';
   const what = cat ? say(lang, ` on ${cat.trim()}`, ` aan ${cat.trim()}`) : '';
   return {kind: 'answer', text: say(lang, `You spent ${tot || 'nothing'}${what} ${period}.${top && !cat ? ` Biggest: ${top}.` : ''}${room} From your own entries in Wealth → Spending, never converted.`,
     `Je gaf ${period === 'this week' ? 'deze week' : period === 'last week' ? 'vorige week' : period === 'last month' ? 'vorige maand' : 'deze maand'} ${tot || 'niets'}${what} uit.${top && !cat ? ` Grootste: ${top}.` : ''}${room} Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.`), calls: [s.record]};
@@ -248,10 +268,10 @@ function roomAnswer(lang: Lang, env: ToolEnv): LocalReply {
   const d = dataOf(s.result) as {note?: string; totals?: {spent: string; received: string}[]; byCategory?: {category: string; spent: string}[]; roomToSpendThisWeek?: {left: string; budget: string; spent: string; daysLeft: number}};
   const w = call('net_worth_change', {period: 'week'}, env), rows = w.result.ok ? (dataOf(w.result).currencies as {currency: string; change?: string}[] | undefined) ?? [] : [];
   const worth = rows.filter(r => r.change).map(r => `${r.change}`).join(', ');
-  const room = d.roomToSpendThisWeek ? say(lang, `Room to spend: ${d.roomToSpendThisWeek.left} left of ${d.roomToSpendThisWeek.budget} (${d.roomToSpendThisWeek.daysLeft} days to go).`, `Ruimte om uit te geven: nog ${d.roomToSpendThisWeek.left} van ${d.roomToSpendThisWeek.budget} (${d.roomToSpendThisWeek.daysLeft} dagen te gaan).`) : say(lang, 'No weekly budget is set (Wealth → Spending).', 'Er is geen weekbudget ingesteld (Vermogen → Uitgaven).');
-  const spent = (d.totals ?? []).map(t => t.spent).join(' and '), top = (d.byCategory ?? [])[0];
+  const room = d.roomToSpendThisWeek ? say(lang, `Room to spend: ${d.roomToSpendThisWeek.left} left of ${d.roomToSpendThisWeek.budget} (${d.roomToSpendThisWeek.daysLeft} days to go).`, `Ruimte om uit te geven: nog ${toldIn(lang, d.roomToSpendThisWeek.left)} van ${toldIn(lang, d.roomToSpendThisWeek.budget)} (${d.roomToSpendThisWeek.daysLeft} dagen te gaan).`) : say(lang, 'No weekly budget is set (Wealth → Spending).', 'Er is geen weekbudget ingesteld (Vermogen → Uitgaven).');
+  const spent = (d.totals ?? []).map(t => toldIn(lang, t.spent)).join(say(lang, ' and ', ' en ')), top = (d.byCategory ?? [])[0];
   return {kind: 'answer', text: say(lang, `This week: spent ${spent || 'nothing yet'}${top ? `, most on ${top.category} (${top.spent})` : ''}. ${room}${worth ? ` Recorded wealth this week: ${worth}.` : ''} Your own figures; not financial advice.`,
-    `Deze week: ${spent || 'nog niets'} uitgegeven${top ? `, het meest aan ${top.category} (${top.spent})` : ''}. ${room}${worth ? ` Vastgelegd vermogen deze week: ${worth}.` : ''} Je eigen cijfers; geen financieel advies.`), calls: [s.record, w.record]};
+    `Deze week: ${spent || 'nog niets'} uitgegeven${top ? `, het meest aan ${top.category} (${toldIn(lang, top.spent)})` : ''}. ${room}${worth ? ` Vastgelegd vermogen deze week: ${worth}.` : ''} Je eigen cijfers; geen financieel advies.`), calls: [s.record, w.record]};
 }
 const JOURNAL_Q = /\b(?:patterns?|what (?:do you|can you) see|what have i (?:been )?writ(?:ten|ing)|themes?)\b.*\b(?:journal|entries|diary)\b|\bmy journal\b|\b(?:patronen|wat zie je)\b.*\b(?:dagboek|journal)\b/i;
 const ENERGY_Q = /\b(?:how (?:is|was|has been) my energy|my energy (?:this|last) week|energy levels?|energy ratings?|energy scores?|rated my energy|hoe (?:is|was) mijn energie|mijn energie|energie(?:score|cijfer)s?)\b/i;
@@ -260,7 +280,10 @@ export const isEnergyRatingAsk = (q: string): boolean => ENERGY_Q.test(q) && !/\
 /** Session AI (feature 6): journal patterns, on this device only (nothing is sent; the words never leave it). */
 function journalAnswer(lang: Lang, env: ToolEnv): LocalReply {
   const j = env.journal;
-  if (!j || !j.entries.length) return {kind: 'answer', text: say(lang, 'Your journal is empty on this device. Write a few lines on Today or the Journal page.', 'Je dagboek is leeg op dit apparaat. Schrijf een paar regels op Vandaag of de dagboekpagina.'), calls: []};
+  // Review b1 #12: no journal record is not an empty journal — NOVA with its Journal permission off says so; a journal
+  // that does not read says that. Only a journal with no entries is "empty".
+  if (!j) return novaEnvInfo(env) ? {kind: 'refusal', text: novaAreaClosed('Journal', lang), calls: []} : {kind: 'answer', text: say(lang, 'Your journal can’t be read on this device right now, so I can’t say.', 'Je dagboek kan nu niet gelezen worden op dit apparaat, dus dat kan ik niet zeggen.'), calls: []};
+  if (!j.entries.length) return {kind: 'answer', text: say(lang, 'Your journal is empty on this device. Write a few lines on Today or the Journal page.', 'Je dagboek is leeg op dit apparaat. Schrijf een paar regels op Vandaag of de dagboekpagina.'), calls: []};
   const found = patterns(j, env.energy ?? null).slice(0, 3);
   if (!found.length) return {kind: 'answer', text: say(lang, `${j.entries.length} entries so far; no theme came up three times in your last 14 yet.`, `Tot nu toe ${j.entries.length} stukjes; nog geen thema kwam drie keer terug in je laatste 14.`), calls: []};
   return {kind: 'answer', text: `${found.map(p => patternLine(p, lang)).join('\n')}\n${say(lang, 'Counts from your own entries, made on this device; never a diagnosis.', 'Tellingen uit je eigen stukjes, op dit apparaat gemaakt; nooit een diagnose.')}`, calls: []};
@@ -283,7 +306,7 @@ function missedDayAnswer(lang: Lang, word: string, env: ToolEnv): LocalReply {
   const listed = call('list_habits', {}, env);
   if (!listed.result.ok) return refusalOf(listed.result, [listed.record]);
   const yesterday = /^(?:yesterday|gisteren)$/i.test(word), date = yesterday ? addLocalDays(env.habitDay, -1) : env.habitDay;
-  const when = say(lang, `${yesterday ? 'Yesterday' : 'Today'} (${formatDate(date, {weekday: true, year: false})})`, `${yesterday ? 'Gisteren' : 'Vandaag'} (${formatDate(date, {weekday: true, year: false})})`);
+  const when = say(lang, `${yesterday ? 'Yesterday' : 'Today'} (${formatDate(date, {weekday: true, year: false})})`, `${yesterday ? 'Gisteren' : 'Vandaag'} (${nlDay(date, date)})`);
   const rows = env.habits.habits.filter(h => latestHabitRule(h).state !== 'archived').map(h => ({h, day: habitDay(h, date, env.habitDay)})).filter(r => r.day.scheduled);
   if (!rows.length) return {kind: 'answer', text: say(lang, `${when} no habit was scheduled.`, `${when} stond er geen gewoonte gepland.`), calls: [listed.record]};
   const open = yesterday ? rows.filter(r => r.day.status === 'failed') : rows.filter(r => r.day.status === 'due' || r.day.status === 'partial' || r.day.status === 'failed');

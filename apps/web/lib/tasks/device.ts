@@ -6,6 +6,7 @@ import {boundaryDay, currentDayEnds} from '../day-boundary-core';
 import {wallClock} from '../zone-time';
 import {MAX_TASKS, TASKS, TASKS_KEY, taskSchema, tasksSchema, type Task, type Tasks} from './schema';
 import {addProject, addTask as addTo, editTask, projectByName, removeProject, finishTask, removeTask, reopenTask, restoreTask, restoreTasks, skipOccurrence, tasksOnDay, type TaskInput, type TaskPatch} from './engine';
+import {withDeviceDefault} from './plan-key';
 
 /**
  * Session AK (T1): the tasks record on this device, for features outside the Tasks page — NOVA's widgets (lane NA) and
@@ -82,6 +83,11 @@ function write(change: (r: Tasks) => Tasks, storage?: Storage_): Tasks {
   return next;
 }
 /**
+ * Session AV lane 2 (r3-plan, review B3A-5): the one writer for a change made outside the task list's own hook (a focus
+ * note added to its task): it refuses an unreadable record and tells every open view (ZIGI_STORE_EVENT), as `write` does.
+ */
+export const writeTasks = (change: (r: Tasks) => Tasks, storage?: Storage_): Tasks => write(change, storage);
+/**
  * Adds a task (NOVA's and ZIGi's confirm card and the global Quick add call this only after the person confirms).
  * Throws with nothing written on a refusal (no title, the 500-task limit, a time without a day; a past day unless
  * `allowPast`). The `undo` removes it again.
@@ -98,7 +104,8 @@ export function addTask(input: TaskInput, {at = new Date(), today = tasksToday(a
       if (found) project = {id: found.id, name: found.name, made: false};
       else { const pid = `project_${crypto.randomUUID()}`; rec = addProject(rec, {name}, pid); project = {id: pid, name: name.replace(/\s+/g, ' '), made: true}; }
     }
-    return addTo(rec, {...input, ...(project ? {projectId: project.id} : {})}, {id, at, today, allowPast});
+    // Session AV lane 2 (LEDGER #11): a new task with a day takes this device's default reminder (TickTick).
+    return addTo(rec, withDeviceDefault({...input, ...(project ? {projectId: project.id} : {})}, storage), {id, at, today, allowPast});
   }, storage);
   const task = next.tasks.find(t => t.id === id)!;
   // Undo takes the task away, and the project too when this add made it and nothing else is in it.
@@ -114,7 +121,7 @@ export function addTasks(inputs: readonly (TaskInput & {projectName?: string})[]
     let projectId = input.projectId;
     const name = projectName?.trim();
     if (name) { const found = projectByName(rec, name); if (found) projectId = found.id; else { projectId = `project_${crypto.randomUUID()}`; rec = addProject(rec, {name}, projectId); madeProjects.push(projectId); } }
-    return addTo(rec, {...input, ...(projectId ? {projectId} : {})}, {id: ids[i]!, at, today, allowPast});
+    return addTo(rec, withDeviceDefault({...input, ...(projectId ? {projectId} : {})}, storage), {id: ids[i]!, at, today, allowPast});
   }, r), storage);
   return {tasks: ids.map(id => next.tasks.find(t => t.id === id)!).filter(Boolean), undo: () => { write(r => { let gone = ids.reduce((acc, id) => acc.tasks.some(t => t.id === id) ? removeTask(acc, id) : acc, r); for (const pid of madeProjects) if (!gone.tasks.some(t => t.projectId === pid)) gone = removeProject(gone, pid); return gone; }, storage); }};
 }

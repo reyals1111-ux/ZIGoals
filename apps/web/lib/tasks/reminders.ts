@@ -1,5 +1,6 @@
 import {instantAt, wallClock} from '../zone-time';
 import type {Task, TaskReminder, Tasks} from './schema';
+import {heldProject} from './engine';
 
 /**
  * Session AL (Part 8, P-LS-68, C-LS-09): task reminders. A reminder is an offset before the task's due time (a task with a
@@ -23,11 +24,15 @@ export const reminderLabel = (r: TaskReminder) => REMINDER_CHOICES.find(c => c.b
 export function reminderInstants(record: Tasks, zone: string): {task: Task; at: number; before: number; of: number}[] {
   const out: {task: Task; at: number; before: number; of: number}[] = [];
   for (const t of record.tasks) {
-    if (t.doneAt || !t.due || !t.reminders?.length) continue;
-    const base = instantAt(t.due, t.time ?? DAY_ONLY_CLOCK, zone), seen = new Set<number>();
+    // Session AV lane 2 (LEDGER #3): a reminder at its own date and time (`at`) needs no day on the task.
+    if (t.doneAt || !t.reminders?.length || (!t.due && !t.reminders.some(r => r.at))) continue;
+    const base = t.due ? instantAt(t.due, t.time ?? DAY_ONLY_CLOCK, zone) : 0, seen = new Set<number>();
     for (const r of t.reminders) {
-      const of = base - r.before * 60_000;
+      if (!r.at && !t.due) continue;
+      const of = r.at ? instantAt(r.at.slice(0, 10), r.at.slice(11, 16), zone) : base - r.before * 60_000;
       if (seen.has(of)) continue; seen.add(of);
+      // Session AV lane 2 (r6-plan, LEDGER #392; TIER 3 (PWA)): no reminder while its project is on hold (from its resume day, as before).
+      if (record.projects?.some(p => p.hold) && heldProject(record, t, wallClock(of, zone).date)) continue;
       out.push({task: t, at: t.snooze && t.snooze.of === of && (t.snooze.before === undefined || t.snooze.before === r.before) ? t.snooze.until : of, before: r.before, of});
     }
   }

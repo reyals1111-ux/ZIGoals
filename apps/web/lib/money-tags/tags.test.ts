@@ -53,6 +53,19 @@ describe('money tags, their own device record (Session AP, feature 2)', () => {
     expect(tagTotals(entries, record, '2026-11-01', '2026-11-30')).toEqual([{tag: 'work', currency: 'EUR', spent: 1000, received: 250, entries: 2}, {tag: 'work', currency: 'USD', spent: 400, received: 0, entries: 1}]);
     expect(tagTotals(entries, record, '2026-11-03', '2026-11-03')).toEqual([{tag: 'work', currency: 'EUR', spent: 0, received: 250, entries: 1}]);
   });
+  test('totals count as Wealth → Spending does: my share of a shared cost; left-out entries, refunds and transfers add nothing', () => {
+    // Session AV lane 2 (loose ends): a shared cost used to count in full.
+    const record = {version: 1 as const, tags: {s: ['trip'], o: ['trip'], t: ['trip'], r: ['trip'], i: ['trip'], w: ['trip']}};
+    const entries: MoneyEntry[] = [
+      {...e('s', '2026-11-02', '90.00'), share: '30.00'},
+      {...e('w', '2026-11-02', '12.00'), share: '15.00'}, // a share above the amount reads as the whole amount, as older builds do
+      {...e('o', '2026-11-03', '40.00'), excluded: true},
+      {...e('t', '2026-11-04', '200.00'), transfer: 'i'},
+      {...e('i', '2026-11-04', '200.00', 'income'), transfer: 't'},
+      {...e('r', '2026-11-05', '60.00', 'income'), excluded: true},
+    ];
+    expect(tagTotals(entries, record, '2026-11-01', '2026-11-30')).toEqual([{tag: 'trip', currency: 'EUR', spent: 4200, received: 0, entries: 2}]);
+  });
   test('a full record drops removed entries\' tags first, then refuses', () => {
     const full = Object.fromEntries(Array.from({length: MAX_TAGGED_ENTRIES}, (_, i) => [`e${i}`, ['x']]));
     const record = moneyTagsSchema.parse({version: 1, tags: full});

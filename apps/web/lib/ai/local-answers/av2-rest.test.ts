@@ -1,0 +1,76 @@
+import {describe, expect, test} from 'vitest';
+import {freshAll, novaEnv, showcaseAll, zigiEnv} from '../evals/as/harness';
+import {AV2_REST} from '../evals/as/cases-av2-rest';
+import {av2RestAnswer} from './av2-rest';
+import {av2TasksAnswer} from './av2-tasks';
+import type {LocalReply} from './engine';
+import {addRepeat, pauseRepeat} from '../../tasks/repeat-projects';
+import {BUILT_IN_TEMPLATES, emptyTaskTemplates} from '../../tasks/templates';
+import {emptyTaskPlan} from '../../tasks/plan-record';
+import {keepTaskVersion} from '../../tasks/versions';
+import {emptyNutrientExtras, rememberExtras} from '../../health-vitamins/extras';
+
+/** Session AV lane 2 (rest): the on-device answers to the last remainders, English and Dutch, NOVA and ZIGi. */
+const text = (r: LocalReply | null) => r && 'text' in r ? r.text : '';
+const reset = BUILT_IN_TEMPLATES.find(t => t.id === 'builtin-reset')!;
+// The corpus's day is Tuesday 17 November 2026: a weekly repeat from Monday 16 November comes round next on the 23rd.
+const templates = pauseRepeat(addRepeat(addRepeat(emptyTaskTemplates(), {name: 'Weekly reset', every: 'week', start: '2026-11-16', items: reset.items}, {id: 'r1', madeFor: '2026-11-16'}),
+  {name: 'Fictional garden', every: 'days', days: 10, start: '2026-11-01', items: reset.items}, {id: 'r2'}), 'r2', true);
+
+describe('every corpus question gets an answer of its own, in its language', () => {
+  test.each(AV2_REST.flatMap(c => [...c.en.map(q => [c.id, q, 'en'] as const), ...c.nl.map(q => [c.id, q, 'nl'] as const)]))('%s: %s', (_id, q, lang) => {
+    for (const env of [novaEnv(showcaseAll()), zigiEnv(freshAll())]) {
+      const r = av2RestAnswer(q, env);
+      expect(r).not.toBeNull();
+      const t = text(r);
+      expect(t.length).toBeGreaterThan(20);
+      if (lang === 'nl') expect(t).not.toMatch(/\b(?:the|your|of)\b/);
+    }
+    // Tasks' own answers leave these questions to this file.
+    expect(av2TasksAnswer(q, novaEnv(showcaseAll()))).toBeNull();
+  });
+});
+
+describe('answers read the features', () => {
+  test('repeating projects: how often, when next, paused (EN and NL)', () => {
+    const en = text(av2RestAnswer('which projects repeat', zigiEnv(showcaseAll()), {templates}));
+    expect(en).toMatch(/^2 projects repeat:\n• Weekly reset: every week, next .*23.*\n• Fictional garden: every 10 days \(paused\)$/);
+    const nl = text(av2RestAnswer('welke projecten herhalen zich', zigiEnv(showcaseAll()), {templates}));
+    expect(nl).toMatch(/^2 projecten herhalen zich:\n• Weekly reset: elke week, volgende .*23.*\n• Fictional garden: elke 10 dagen \(gepauzeerd\)$/);
+    expect(text(av2RestAnswer('what are my repeating projects', zigiEnv(freshAll())))).toMatch(/^No project repeats yet/);
+    expect(text(av2RestAnswer('wat zijn mijn terugkerende projecten', zigiEnv(freshAll())))).toMatch(/^Er herhaalt zich nog geen project/);
+  });
+  test('task versions: which tasks have them, how many (EN and NL)', () => {
+    const s = showcaseAll(), first = s.nova!.tasks!.tasks[0]!;
+    const plan = keepTaskVersion(keepTaskVersion(emptyTaskPlan(), first, {title: 'Changed once'}, {id: 'v1'}), {...first, title: 'Changed once'}, {title: 'Changed twice'}, {id: 'v2'});
+    expect(text(av2RestAnswer('which tasks have earlier versions', zigiEnv(s), {plan}))).toBe(`1 task has earlier versions on this device (open a task and “Earlier versions” to read or restore one):\n• ${first.title}: 2 versions`);
+    expect(text(av2RestAnswer('welke taken hebben eerdere versies', zigiEnv(s), {plan}))).toBe(`1 taak heeft eerdere versies op dit apparaat (open een taak en “Earlier versions” om er een te lezen en terug te zetten):\n• ${first.title}: 2 versies`);
+    expect(text(av2RestAnswer('are earlier versions of my tasks kept', zigiEnv(freshAll())))).toMatch(/^No earlier versions of a task are kept yet/);
+  });
+  test('the slow left-right sound: off by default, its volume and pace when on (EN and NL); Health closed is said', () => {
+    expect(text(av2RestAnswer('is the left right sound on', zigiEnv(freshAll())))).toMatch(/^The slow left-right sound is off/);
+    const s = showcaseAll();
+    s.ak = {...s.ak, habitExtras: {version: 1, calm: {visual: 'shift', pace: 'slower', sound: 35}}} as typeof s.ak;
+    expect(text(av2RestAnswer('how loud is the left and right sound', zigiEnv(s)))).toBe('The slow left-right sound is on, at volume 35 of 100, slower (5 s a side). It plays during a sitting, quiet while paused; “Sound off for this session” hushes it there.');
+    expect(text(av2RestAnswer('staat het links rechts geluid aan', zigiEnv(s)))).toMatch(/^Het langzame links-rechts geluid staat aan, op volume 35 van 100, langzamer \(5 s per kant\)/);
+    expect(av2RestAnswer('is the left right sound on', zigiEnv(s, false))?.kind).toBe('refusal');
+  });
+  test('a further nutrient today, from the extras record (EN and NL); none logged: unknown, never 0', () => {
+    const s = showcaseAll(), day = zigiEnv(s).healthDay, entry = s.health!.diary.find(d => d.date === day && d.sourceKind === 'food');
+    expect(text(av2RestAnswer('how much selenium did i have today', zigiEnv(s)))).toMatch(/^Selenium: no food you logged today carries a value, so today’s total is unknown \(never 0\)/);
+    expect(entry).toBeTruthy();
+    const nutrientExtras = rememberExtras(emptyNutrientExtras(), [entry!.id], entry!.sourceId, {seleniumUg: 20});
+    const scaled = Math.round(20 * entry!.quantityMilli / 1000);
+    expect(text(av2RestAnswer('how much selenium did i have today', zigiEnv(s), {nutrientExtras}))).toMatch(new RegExp(`^Selenium today: ${scaled} µg from 1 of \\d+ logged entries \\(general reference 55 µg a day; not advice\\)\\.$`));
+    expect(text(av2RestAnswer('hoeveel selenium heb ik vandaag gehad', zigiEnv(s), {nutrientExtras}))).toMatch(new RegExp(`^Selenium vandaag: ${scaled} µg uit 1 van \\d+ gelogde items \\(algemene richtwaarde 55 µg per dag; geen advies\\)\\.$`));
+    expect(av2RestAnswer('how much selenium did i have today', zigiEnv(s, false))?.kind).toBe('refusal');
+  });
+  test('Today off: the switch is named', () => {
+    const env = zigiEnv(showcaseAll());
+    expect(av2RestAnswer('which projects repeat', {...env, areas: {...env.areas, today: false}}, {templates})?.kind).toBe('refusal');
+  });
+  test('not a question, or another subject: no answer', () => {
+    expect(av2RestAnswer('make a repeating project', zigiEnv(showcaseAll()))).toBeNull();
+    expect(av2RestAnswer('which habits repeat', zigiEnv(showcaseAll()))).toBeNull();
+  });
+});

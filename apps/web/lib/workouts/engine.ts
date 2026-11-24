@@ -13,7 +13,7 @@ const parse = (w: Workouts) => workoutsSchema.parse(w);
 export const inProgress = (w: Workouts): Workout | undefined => w.workouts.find(x => !x.endedAt);
 export const finished = (w: Workouts): Workout[] => w.workouts.filter(x => x.endedAt).sort((a, b) => b.startedAt.localeCompare(a.startedAt));
 const blankSet = (measure: Measure, from?: Partial<WorkoutSet>): WorkoutSet => ({id: uid('set'), kind: from?.kind ?? 'normal', done: false,
-  ...(measure === 'weight-reps' ? {reps: from?.reps, weightKg: from?.weightKg} : measure === 'reps' ? {reps: from?.reps} : measure === 'time' ? {seconds: from?.seconds} : {distanceKm: from?.distanceKm, seconds: from?.seconds})});
+  ...(measure === 'weight-reps' ? {reps: from?.reps, weightKg: from?.weightKg} : measure === 'reps' ? {reps: from?.reps, ...(from?.addedKg !== undefined ? {addedKg: from.addedKg} : {}), ...(from?.assistKg !== undefined ? {assistKg: from.assistKg} : {})} : measure === 'time' ? {seconds: from?.seconds} : {distanceKm: from?.distanceKm, seconds: from?.seconds})});
 
 export function startWorkout(w: Workouts, input: {name?: string; date: string; now: Date; template?: WorkoutTemplate; repeat?: Workout}): Workouts {
   if (inProgress(w)) throw Error('A workout is already in progress. Finish or discard it first.');
@@ -24,18 +24,22 @@ export function startWorkout(w: Workouts, input: {name?: string; date: string; n
     startedAt: input.now.toISOString(), exercises, ...(input.template ? {templateId: input.template.id} : {})};
   return parse({...w, workouts: [...w.workouts, workout]});
 }
-const carried = (e: {supersetId?: string; restSeconds?: number}) => ({...(e.supersetId ? {supersetId: e.supersetId} : {}), ...(e.restSeconds !== undefined ? {restSeconds: e.restSeconds} : {})});
+const carried = (e: {supersetId?: string; restSeconds?: number; load?: ExerciseEntry['load']}) => ({...(e.supersetId ? {supersetId: e.supersetId} : {}), ...(e.restSeconds !== undefined ? {restSeconds: e.restSeconds} : {}), ...(e.load ? {load: e.load} : {})});
 const editCurrent = (w: Workouts, change: (x: Workout) => Workout): Workouts => {
   const current = inProgress(w); if (!current) throw Error('No workout is in progress.');
   return parse({...w, workouts: w.workouts.map(x => x.id === current.id ? change(x) : x)});
 };
 export const renameWorkout = (w: Workouts, name: string) => editCurrent(w, x => ({...x, name: name.trim() || 'Workout'}));
-export function addExercise(w: Workouts, exercise: Pick<LibraryExercise, 'id' | 'name' | 'measure'>): Workouts {
-  const last = lastEntryFor(w, exercise.id);
+export function addExercise(w: Workouts, exercise: Pick<LibraryExercise, 'id' | 'name' | 'measure'> & {load?: ExerciseEntry['load']}): Workouts {
+  // Session AV lane 2, round 6 (r6-body; LEDGER #421, #424): a light week's sets are not the next weights, and with no
+  // earlier sets of it the exercise's own defaults (sets, reps or time, rest) fill it; earlier values still win.
+  const last = lastEntryFor(w, exercise.id, undefined, {skipLight: true}), own = last ? undefined : w.exerciseDefaults?.[exercise.id];
   return editCurrent(w, x => {
     if (x.exercises.length >= 40) throw Error('Up to 40 exercises fit in one workout.');
-    const sets = last ? last.sets.filter(s => s.kind !== 'warmup' || last.sets.length === 1).map(s => blankSet(exercise.measure, s)) : [blankSet(exercise.measure)];
-    return {...x, exercises: [...x.exercises, {id: uid('ex'), exerciseId: exercise.id, name: exercise.name, measure: exercise.measure, sets, ...(last?.restSeconds !== undefined ? {restSeconds: last.restSeconds} : {})}]};
+    const sets = last ? last.sets.filter(s => s.kind !== 'warmup' || last.sets.length === 1).map(s => blankSet(exercise.measure, s))
+      : own ? Array.from({length: own.sets}, () => blankSet(exercise.measure, {reps: own.reps, seconds: own.seconds})) : [blankSet(exercise.measure)];
+    const load = last?.load ?? exercise.load, rest = last ? last.restSeconds : own?.restSeconds;
+    return {...x, exercises: [...x.exercises, {id: uid('ex'), exerciseId: exercise.id, name: exercise.name, measure: exercise.measure, sets, ...(rest !== undefined ? {restSeconds: rest} : {}), ...(load ? {load} : {})}]};
   });
 }
 export const removeExercise = (w: Workouts, entryId: string) => editCurrent(w, x => ({...x, exercises: x.exercises.filter(e => e.id !== entryId)}));
@@ -87,41 +91,94 @@ export function addCustomExercise(w: Workouts, input: {name: string; category: W
   return {workouts: parse({...w, exercises: [...w.exercises, exercise]}), exercise};
 }
 
-/** The same exercise's sets in the last finished workout (the "previous" column). */
-export function lastEntryFor(w: Workouts, exerciseId: string, before?: string): ExerciseEntry | undefined {
-  for (const x of finished(w)) { if (before && x.startedAt >= before) continue; const e = x.exercises.find(e => e.exerciseId === exerciseId); if (e) return e; }
+/** The same exercise's sets in the last finished workout (the "previous" column); `skipLight` passes over a light week (#421). */
+export function lastEntryFor(w: Workouts, exerciseId: string, before?: string, {skipLight = false}: {skipLight?: boolean} = {}): ExerciseEntry | undefined {
+  for (const x of finished(w)) { if (before && x.startedAt >= before) continue; if (skipLight && x.light) continue; const e = x.exercises.find(e => e.exerciseId === exerciseId); if (e) return e; }
   return undefined;
+}
+/**
+ * Session AV lane 2, round 6 (r6-body; Caliber, LEDGER #421, #422): whether a finished workout's sets of an exercise count
+ * for its bests — not a light week ("Light week (not in my bests)"), and not before the exercise's fresh start ("Count
+ * bests from today", for it or for every exercise). The history, the calendar and the volume keep every workout.
+ */
+export const bestsFromOf = (w: Pick<Workouts, 'bestsFrom'>, exerciseId: string): string | null => {
+  const one = w.bestsFrom?.[exerciseId] ?? null, all = w.bestsFrom?.['*'] ?? null;
+  return one && all ? (one > all ? one : all) : one ?? all;
+};
+export function countsForBests(w: Pick<Workouts, 'bestsFrom'>, x: Pick<Workout, 'light' | 'date'>, exerciseId: string): boolean {
+  if (x.light) return false;
+  const from = bestsFromOf(w, exerciseId);
+  return !from || x.date >= from;
 }
 /** Epley's estimate of a one-rep max, for sets of 1 to 12 reps (beyond that the estimate is not useful). */
 export const oneRepMax = (weightKg: number, reps: number) => reps < 1 || reps > 12 ? null : reps === 1 ? weightKg : weightKg * (1 + reps / 30);
 const working = (s: WorkoutSet) => s.kind !== 'warmup';
-export const volumeKg = (e: Pick<ExerciseEntry, 'measure' | 'sets'>) => e.measure !== 'weight-reps' ? 0 : e.sets.filter(working).reduce((t, s) => t + (s.weightKg ?? 0) * (s.reps ?? 0), 0);
-export type ExerciseHistory = {exerciseId: string; name: string; measure: Measure; sessions: {workoutId: string; date: string; sets: WorkoutSet[]; volumeKg: number; best: WorkoutSet | null}[];
-  bestWeightKg: number | null; bestOneRepMaxKg: number | null; mostReps: number | null; longestSeconds: number | null; farthestKm: number | null};
+/** Session AV lane 2 (body; LEDGER #202): a weighted bodyweight exercise counts its added weight × reps; an assisted one none. */
+export const volumeKg = (e: Pick<ExerciseEntry, 'measure' | 'sets'> & {load?: ExerciseEntry['load']}) => e.measure === 'reps' && e.load === 'weighted' ? e.sets.filter(working).reduce((t, s) => t + (s.addedKg ?? 0) * (s.reps ?? 0), 0)
+  : e.measure !== 'weight-reps' ? 0 : e.sets.filter(working).reduce((t, s) => t + (s.weightKg ?? 0) * (s.reps ?? 0), 0);
+export type BestValues = {bestWeightKg: number | null; bestOneRepMaxKg: number | null; mostReps: number | null; longestSeconds: number | null; farthestKm: number | null;
+  /** Session AV lane 2 (body; LEDGER #202): the most weight added to a bodyweight set, and the least help taken (fewer kg is stronger). */
+  bestAddedKg: number | null; leastAssistKg: number | null};
+export type BestKey = keyof BestValues;
+export type ExerciseHistory = {exerciseId: string; name: string; measure: Measure; sessions: {workoutId: string; date: string; sets: WorkoutSet[]; volumeKg: number; best: WorkoutSet | null;
+  /** Session AV lane 2, round 6 (LEDGER #421, #422): false for a light week or a workout before the fresh start. */ counts: boolean}[];
+  load: ExerciseEntry['load'];
+  /**
+   * Session AV lane 2, round 6 (r6-body; LEDGER #421, #422): the day each best was first set, the fresh start's day (or
+   * null), the bests of the workouts before it ("before", shown greyed; null without a fresh start or such workouts),
+   * and how many light weeks were left out. The bests above count only the workouts that count.
+   */
+  bestDays: Partial<Record<BestKey, string>>; from: string | null; before: BestValues | null; lightLeftOut: number} & BestValues;
+type Reader = (s: WorkoutSet) => number | null | undefined;
+const BEST_READERS: readonly [Exclude<BestKey, 'leastAssistKg'>, Reader][] = [
+  ['bestWeightKg', s => s.weightKg], ['bestOneRepMaxKg', s => s.weightKg !== undefined && s.reps ? oneRepMax(s.weightKg, s.reps) : null], ['mostReps', s => s.reps], ['longestSeconds', s => s.seconds], ['farthestKm', s => s.distanceKm], ['bestAddedKg', s => s.reps ? s.addedKg : null],
+];
+/** The bests of some dated sets, and the first day each was reached. */
+function bestsOf(dated: readonly {date: string; sets: readonly WorkoutSet[]}[]): {values: BestValues; days: Partial<Record<BestKey, string>>} {
+  const values: BestValues = {bestWeightKg: null, bestOneRepMaxKg: null, mostReps: null, longestSeconds: null, farthestKm: null, bestAddedKg: null, leastAssistKg: null}, days: Partial<Record<BestKey, string>> = {};
+  // Oldest first, so a later tie keeps the day the best was first set.
+  for (const d of [...dated].sort((a, b) => a.date.localeCompare(b.date))) for (const s of d.sets.filter(working)) {
+    for (const [key, read] of BEST_READERS) { const v = read(s), held = values[key]; if (typeof v === 'number' && v > 0 && (held === null || v > held)) { values[key] = v; days[key] = d.date; } }
+    if ((s.reps ?? 0) > 0 && typeof s.assistKg === 'number' && (values.leastAssistKg === null || s.assistKg < values.leastAssistKg)) { values.leastAssistKg = s.assistKg; days.leastAssistKg = d.date; }
+  }
+  return {values, days};
+}
 export function exerciseHistory(w: Workouts, exerciseId: string): ExerciseHistory | null {
-  const sessions: ExerciseHistory['sessions'] = []; let name = '', measure: Measure = 'weight-reps';
+  const sessions: ExerciseHistory['sessions'] = []; let name = '', measure: Measure = 'weight-reps', load: ExerciseEntry['load'], lightLeftOut = 0;
+  const from = bestsFromOf(w, exerciseId), earlier: {date: string; sets: WorkoutSet[]}[] = [];
   for (const x of finished(w)) for (const e of x.exercises.filter(e => e.exerciseId === exerciseId)) {
-    name ||= e.name; measure = e.measure;
-    const best = e.sets.filter(working).reduce<WorkoutSet | null>((b, s) => !b ? s : score(e.measure, s) > score(e.measure, b) ? s : b, null);
-    sessions.push({workoutId: x.id, date: x.date, sets: e.sets, volumeKg: volumeKg(e), best});
+    name ||= e.name; measure = e.measure; load ??= e.load;
+    const best = e.sets.filter(working).reduce<WorkoutSet | null>((b, s) => !b ? s : score(e.measure, s) > score(e.measure, b) ? s : b, null), counts = countsForBests(w, x, exerciseId);
+    sessions.push({workoutId: x.id, date: x.date, sets: e.sets, volumeKg: volumeKg(e), best, counts});
+    if (x.light) lightLeftOut++; else if (!counts) earlier.push({date: x.date, sets: e.sets});
   }
   if (!sessions.length) return null;
-  const sets = sessions.flatMap(s => s.sets.filter(working));
-  const max = (f: (s: WorkoutSet) => number | null | undefined) => { const v = sets.map(f).filter((n): n is number => typeof n === 'number' && n > 0); return v.length ? Math.max(...v) : null; };
-  return {exerciseId, name, measure, sessions, bestWeightKg: max(s => s.weightKg), bestOneRepMaxKg: max(s => s.weightKg !== undefined && s.reps ? oneRepMax(s.weightKg, s.reps) : null), mostReps: max(s => s.reps), longestSeconds: max(s => s.seconds), farthestKm: max(s => s.distanceKm)};
+  const now = bestsOf(sessions.filter(s => s.counts));
+  return {exerciseId, name, measure, sessions, ...now.values, load, bestDays: now.days, from, before: from && earlier.length ? bestsOf(earlier).values : null, lightLeftOut};
 }
 const score = (measure: Measure, s: WorkoutSet) => measure === 'weight-reps' ? (s.weightKg !== undefined && s.reps ? oneRepMax(s.weightKg, Math.min(s.reps, 12)) ?? 0 : 0) : measure === 'reps' ? s.reps ?? 0 : measure === 'time' ? s.seconds ?? 0 : s.distanceKm ?? s.seconds ?? 0;
-export type PersonalBest = {exerciseId: string; name: string; what: 'weight' | 'one-rep max' | 'reps' | 'time' | 'distance'; value: number};
+export type PersonalBest = {exerciseId: string; name: string; what: 'weight' | 'one-rep max' | 'reps' | 'time' | 'distance' | 'added weight' | 'least help'; value: number};
 /** New bests in a finished workout against every earlier one (none for an exercise done for the first time). */
 export function personalBests(w: Workouts, workout: Workout): PersonalBest[] {
   const out: PersonalBest[] = [];
+  // Session AV lane 2, round 6 (r6-body; LEDGER #421, #422): a light week has no "new best", and neither a light week nor a
+  // workout before the exercise's fresh start is one to beat.
+  if (workout.light) return out;
   for (const e of workout.exercises) {
-    const earlier = finished(w).filter(x => x.id !== workout.id && x.startedAt < workout.startedAt).flatMap(x => x.exercises.filter(p => p.exerciseId === e.exerciseId)).flatMap(p => p.sets.filter(working));
+    if (!countsForBests(w, workout, e.exerciseId)) continue;
+    const earlier = finished(w).filter(x => x.id !== workout.id && x.startedAt < workout.startedAt && countsForBests(w, x, e.exerciseId)).flatMap(x => x.exercises.filter(p => p.exerciseId === e.exerciseId)).flatMap(p => p.sets.filter(working));
     if (!earlier.length) continue;
     const now = e.sets.filter(working);
     const best = (sets: WorkoutSet[], f: (s: WorkoutSet) => number | null | undefined) => Math.max(0, ...sets.map(f).filter((n): n is number => typeof n === 'number'));
     const checks: [PersonalBest['what'], (s: WorkoutSet) => number | null | undefined][] = e.measure === 'weight-reps' ? [['weight', s => s.weightKg], ['one-rep max', s => s.weightKg !== undefined && s.reps ? oneRepMax(s.weightKg, s.reps) : null]] : e.measure === 'reps' ? [['reps', s => s.reps]] : e.measure === 'time' ? [['time', s => s.seconds]] : [['distance', s => s.distanceKm]];
     for (const [what, f] of checks) { const v = best(now, f); if (v > 0 && v > best(earlier, f)) out.push({exerciseId: e.exerciseId, name: e.name, what, value: Math.round(v * 10) / 10}); }
+    // Session AV lane 2 (body; LEDGER #202): more weight added beats; for help, less is the best (read the right way round).
+    if (e.measure === 'reps' && e.load === 'weighted') { const v = best(now, s => s.reps ? s.addedKg : null), b = best(earlier, s => s.reps ? s.addedKg : null); if (v > 0 && v > b) out.push({exerciseId: e.exerciseId, name: e.name, what: 'added weight', value: Math.round(v * 10) / 10}); }
+    if (e.measure === 'reps' && e.load === 'assisted') {
+      const least = (sets: WorkoutSet[]) => { const v = sets.filter(s => (s.reps ?? 0) > 0 && typeof s.assistKg === 'number').map(s => s.assistKg!); return v.length ? Math.min(...v) : null; };
+      const v = least(now), b = least(earlier);
+      if (v !== null && b !== null && v < b) out.push({exerciseId: e.exerciseId, name: e.name, what: 'least help', value: Math.round(v * 10) / 10});
+    }
   }
   return out;
 }

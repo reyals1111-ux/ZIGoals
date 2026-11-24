@@ -6,7 +6,7 @@ import {useHealthToday} from './use-health-today';
 import {coachCheckIn} from '../../lib/health-aa/coach';
 import {energyProgress} from '../../lib/health-aa/energy-progress';
 import {answerCoach, clearCoachAnswer, HEALTH_COACH} from '../../lib/health-aa/coach-schema';
-import {formatNumber} from '../../lib/visual-format';
+import {formatDate, formatNumber, formatWeekdayLong} from '../../lib/visual-format';
 import {dailyData} from '../../lib/health-daily';
 import {setHealthTargets, type HealthData} from '../../lib/health';
 import {scaledTargets} from '../../lib/health-aa/energy';
@@ -22,6 +22,10 @@ import {isShown} from '../../lib/pages/visibility';
 import {coachSlotShown, LOG_WEIGHT_HREF} from '../../lib/health-aa/coach-slot';
 import Link from 'next/link';
 import './health-aa.css';
+import {useCoachPrefs} from './food-plus/use-day-targets';
+import {FOOD_PLUS} from '../../lib/food-plus/schema';
+import {setCheckInWeekday} from '../../lib/food-plus/checkin';
+import {weightChangeText, weightText} from '../../lib/health-units';
 
 /**
  * N3: the weekly coach check-in: "This week: −0.4 kg/week; keep your target, or adjust?" with Keep and Adjust. Keep
@@ -33,7 +37,21 @@ import './health-aa.css';
 const paceLabel = (kg: number, unit: string) => `${kg < 0 ? '−' : kg > 0 ? '+' : ''}${unit === 'lb' ? (Math.abs(kg) / 0.45359237).toFixed(1) : String(Math.abs(kg))} ${unit === 'lb' ? 'lb' : 'kg'}/week`;
 export function CoachCard({data, today, perform, compact = false}: {data: HealthData; today: string; perform: HealthPerform; compact?: boolean}) {
   const coach = useDeviceRecord(HEALTH_COACH), unit = dailyData(data).preferences.weightUnit;
-  const c = coachCheckIn(data, coach.loaded && !coach.unreadable ? coach.data : {version: 1}, today, unit);
+  // Session AV lane 2 (food, LEDGER #106, #107; MacroFactor): the check-in day you chose, days marked partly logged left
+  // out of the estimate, the pace chosen on the maintenance card, and the day your goal weight is reached at it.
+  const prefs = useCoachPrefs(), plus = useDeviceRecord(FOOD_PLUS);
+  const c = coachCheckIn(data, coach.loaded && !coach.unreadable ? coach.data : {version: 1}, today, unit, prefs);
+  const setCheckInDay = (weekday: number) => { try { plus.update(r => setCheckInWeekday(r, weekday)); } catch (e) { void perform(l => l, `Check-in day not kept on this device. ${deviceSettingFailureMessage(e)}`); } };
+  const perWeek = (grams: number) => `${unit === 'kg' && grams % 100 !== 0 ? `${grams < 0 ? '−' : '+'}${formatNumber(Math.abs(grams) / 1000, {maximumFractionDigits: 2})} kg` : weightChangeText(grams, unit)}/week`;
+  const etaLine = (() => {
+    const e = c.eta; if (!e) return null;
+    const goal = weightText(e.goalGrams, unit);
+    if (Math.abs(e.goalGrams - e.latestGrams) < 100) return `Your trend weight is at your goal (${goal}).`;
+    const parts: string[] = [];
+    if (e.byTrend) parts.push(e.byTrend.date ? `at your trend (${perWeek(e.byTrend.weeklyGrams)}), about ${formatDate(e.byTrend.date)}` : `your trend (${perWeek(e.byTrend.weeklyGrams)}) is moving away from it`);
+    if (e.byPace && e.byPace.chosen) parts.push(e.byPace.date ? `at your chosen pace (${perWeek(e.byPace.weeklyGrams)}), about ${formatDate(e.byPace.date)}` : `your chosen pace (${perWeek(e.byPace.weeklyGrams)}) does not lead there`);
+    return parts.length ? `Goal ${goal}: ${parts.join('; ')}.` : null;
+  })();
   // Session AL (P-PR-23, PR-020): one count for the estimate's progress, said the same way here, on the Energy card and the tile.
   const waiting = energyProgress({loggedDays: c.progress.loggedDays, weights: c.progress.weights, implausible: c.progress.implausible});
   // Session AH (HE2; D-094, L-046, M-054, M-097, B-100, N-035): Adjust asks first, names the change, scales the macro
@@ -59,6 +77,8 @@ export function CoachCard({data, today, perform, compact = false}: {data: Health
     {c.rateGrams !== null && (c.answered ? <p className="health-coach-answered">{c.answered === 'keep' ? 'You kept your target this week.' : 'You adjusted your target this week.'} Back next week.</p> : <div className="actions"><button type="button" className="primary" onClick={() => answer('keep')}>Keep my target</button><button type="button" className="secondary" onClick={() => setAsking(true)} disabled={!c.suggestion} aria-expanded={asking}>{c.suggestion ? (hidden ? 'Adjust my target…' : `Adjust to ${c.suggestion.kcal} kcal…`) : 'Adjust (needs the estimate)'}</button></div>)}
     {asking && c.suggestion && <ConfirmInline title={hidden ? 'Adjust your calorie target from the estimate?' : `Set your calorie target to ${c.suggestion.kcal} kcal a day?`} confirmLabel="Adjust my target" cancelLabel="Keep it as it is" tone="neutral" onConfirm={() => answer('adjust')} onCancel={() => setAsking(false)}><p data-body-figure="">Now {c.currentKcal === null ? 'no target' : `${c.currentKcal} kcal`}{c.changeKcal !== null && c.changeKcal !== 0 ? ` (${signed(c.changeKcal)} kcal)` : ''}. Protein, carbs and fat scale with it. A change moves at most {c.rails.maxStepPercent} % at a time and never below {formatNumber(c.rails.floorKcal)} kcal. You can undo it right after.</p></ConfirmInline>}
     <p className="fine"><span data-body-figure={c.suggestion ? '' : undefined}>{c.suggestion ? `The adjustment comes from your energy estimate and a pace of ${paceLabel(c.suggestion.paceKg, unit)} toward your goal.` : 'The adjustment appears once the energy estimate has two weeks of logs.'}</span> <span className="health-estimate-tag">{/* Session AK P4 (FR-15): a sentence of its own, capitalised */}An estimate, not medical advice</span></p>
+    {etaLine && !compact && <p className="fine health-coach-eta" data-body-figure="">{etaLine} A date from the trend so far, not a promise.</p>}
+    {!compact && <div className="health-coach-day"><label className="field"><span>Check-in day</span><select value={c.checkInWeekday} onChange={e => setCheckInDay(Number(e.target.value))}>{[1, 2, 3, 4, 5, 6, 0].map(d => <option key={d} value={d}>{formatWeekdayLong(`2026-11-${String(22 + d).padStart(2, '0')}`)}</option>)}</select></label>{c.partialLeftOut > 0 && <p className="fine">{c.partialLeftOut} partly logged {c.partialLeftOut === 1 ? 'day is' : 'days are'} left out of the estimate.</p>}</div>}
     {/* Session AK P4 (FR-15): with no weight yet, the card says where the first one goes. */}
     {/* Session AL (NB-254): to the Weight view with its field focused, not the Diary. */}
     {compact && !data.weights.length && <p><Link className="text-link" href={LOG_WEIGHT_HREF} prefetch={false}>Log a weight →</Link></p>}

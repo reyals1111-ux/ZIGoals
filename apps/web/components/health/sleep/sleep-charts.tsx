@@ -23,7 +23,7 @@ const longDate = (date: string) => formatDate(date, {weekday: true, year: false}
 const bar = (x: number, w: number, top: number, base: number, r = 4) => { const rr = Math.min(r, w / 2, (base - top) / 2); return `M${x},${base}V${top + rr}Q${x},${top} ${x + rr},${top}H${x + w - rr}Q${x + w},${top} ${x + w},${top + rr}V${base}Z`; };
 const capsule = (x: number, w: number, top: number, bottom: number) => { const r = Math.min(4, w / 2, (bottom - top) / 2); return `M${x},${bottom - r}V${top + r}Q${x},${top} ${x + r},${top}H${x + w - r}Q${x + w},${top} ${x + w},${top + r}V${bottom - r}Q${x + w},${bottom} ${x + w - r},${bottom}H${x + r}Q${x},${bottom} ${x},${bottom - r}Z`; };
 
-type Key = {kind: 'goal' | 'window' | 'estimated' | 'missing' | 'naps'; label: string};
+type Key = {kind: 'goal' | 'window' | 'estimated' | 'missing' | 'naps' | 'usual'; label: string};
 function Frame({title, summary, children, table, tip, plot, width, keys = []}: {title: string; summary: string; children: ReactNode; table: ReactNode; tip: string | null; plot: React.RefObject<HTMLDivElement | null>; width: number; keys?: Key[]}) {
   return <figure className="sleep-chart">
     <figcaption>{title}</figcaption>
@@ -44,14 +44,17 @@ function Table({points}: {points: DayPoint[]}) {
   </table></div>;
 }
 
-/** Time asleep per night, with the goal as a dashed line. */
-export function SleepDurationChart({points, goal}: {points: DayPoint[]; goal: number | null}) {
+/**
+ * Time asleep per night, with the goal as a dashed line. Session AV lane 2 (body; LEDGER #124): and "your usual" (the
+ * median of your own nights in the 90 days before this week, lib/sleep/usual.ts) as a dotted line, never outside figures.
+ */
+export function SleepDurationChart({points, goal, usual = null}: {points: DayPoint[]; goal: number | null; usual?: number | null}) {
   const [hover, setHover] = useState<number | null>(null), [plot, W] = useChartWidth(), plotW = W - PAD.left - PAD.right;
   const top = Math.max(9 * 60, goal ?? 0, ...points.map(p => p.asleep ?? 0)), max = Math.ceil(top / 120) * 120;
   const y = (m: number) => PAD.top + plotH - m / max * plotH, step = plotW / points.length, w = Math.max(2, step - 2);
   const logged = points.filter(p => p.asleep !== null);
   const summary = logged.length ? `Time asleep, ${points.length} days: ${logged.length} nights logged, from ${formatMinutes(Math.min(...logged.map(p => p.asleep!)))} to ${formatMinutes(Math.max(...logged.map(p => p.asleep!)))}${goal ? `; goal ${formatMinutes(goal)}` : ''}.` : `Time asleep, ${points.length} days: no nights logged yet.`;
-  const keys: Key[] = [...(goal !== null ? [{kind: 'goal' as const, label: `Goal ${formatMinutes(goal)}`}] : []), ...(logged.some(p => p.estimated) ? [{kind: 'estimated' as const, label: 'Lighter bar: estimated from time in bed'}] : []), ...(points.some(p => p.asleep === null) ? [{kind: 'missing' as const, label: 'Short dash: no night logged'}] : []), ...(points.some(p => p.nights > 1) ? [{kind: 'naps' as const, label: 'A day’s bar adds its naps to the night'}] : [])];
+  const keys: Key[] = [...(goal !== null ? [{kind: 'goal' as const, label: `Goal ${formatMinutes(goal)}`}] : []), ...(usual !== null ? [{kind: 'usual' as const, label: `Your usual ${formatMinutes(Math.round(usual))} (your own nights)`}] : []), ...(logged.some(p => p.estimated) ? [{kind: 'estimated' as const, label: 'Lighter bar: estimated from time in bed'}] : []), ...(points.some(p => p.asleep === null) ? [{kind: 'missing' as const, label: 'Short dash: no night logged'}] : []), ...(points.some(p => p.nights > 1) ? [{kind: 'naps' as const, label: 'A day’s bar adds its naps to the night'}] : [])];
   return <Frame title={`Time asleep · last ${points.length} days`} summary={summary} tip={hover === null ? null : tipFor(points[hover]!)} table={<Table points={points}/>} plot={plot} width={W} keys={keys}>
     {Array.from({length: max / 120 + 1}, (_, i) => i * 120).map(m => <g key={m} className="sleep-grid"><line x1={PAD.left} x2={W - PAD.right} y1={y(m)} y2={y(m)}/><text x={PAD.left - 4} y={y(m) + 5} textAnchor="end">{m / 60} h</text></g>)}
     {points.map((p, i) => <g key={p.date}>
@@ -62,6 +65,7 @@ export function SleepDurationChart({points, goal}: {points: DayPoint[]; goal: nu
       <rect className="sleep-hit" x={PAD.left + i * step} y={PAD.top} width={step} height={plotH} onPointerEnter={() => setHover(i)} onPointerLeave={() => setHover(h => h === i ? null : h)}/>
     </g>)}
     {goal !== null && <g className="sleep-goal"><line x1={PAD.left} x2={W - PAD.right} y1={y(goal)} y2={y(goal)}/></g>}
+    {usual !== null && <g className="sleep-usual"><line x1={PAD.left} x2={W - PAD.right} y1={y(usual)} y2={y(usual)}/></g>}
   </Frame>;
 }
 

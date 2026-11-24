@@ -6,7 +6,8 @@ import {checklistPrefsOf} from '../../lib/ui-prefs/schema';
 import {LoadBoundary} from '../load-boundary';
 import {NebulaFlow} from '../nebula-flow';
 import {GlassRing} from '../progress/glass-progress';
-import {advanceRun, finishSummary, liveRun, routineOf, routineSteps, runFinished, startRun, stepElapsedMinutes} from '../../lib/routines/engine';
+import {advanceRun, finishSummary, liveRun, routineOf, routineSteps, runFinished, startRun, startRunAtOpen, stepElapsedMinutes} from '../../lib/routines/engine';
+import {openPipWindow, pipHost} from '../../lib/ai/pip';
 import {ROUTINE_RUN} from '../../lib/routines/run-schema';
 import {habitDay, habitRuleOn} from '../../lib/habits';
 import {logHabitValue, smartDoneValue} from '../../lib/habits';
@@ -33,13 +34,18 @@ const mmss = (minutes: number) => { const s = Math.max(0, Math.round(minutes * 6
  * took, at least its target when the target was reached), Skip moves on without a check-in, and a calm finish screen.
  * The run itself is `zigoals:routine-run:v1` on this device.
  */
-export function RoutinePlayer({headId, store, extras, onClose}: {headId: string; store: HabitsStore; extras: HabitExtrasState; onClose: () => void}) {
+// Session AV lane 2 (LEDGER #183, Fabulous's Picture-in-Picture progress): the step, its timer, Done and Skip in a small window.
+const RoutinePip = lazy(() => import('./routine-pip'));
+export function RoutinePlayer({headId, store, extras, onClose, atOpen = false}: {headId: string; store: HabitsStore; extras: HabitExtrasState; onClose: () => void; atOpen?: boolean}) {
   const record = useDeviceRecord(ROUTINE_RUN), routine = routineOf(store.data, headId);
   const [now, setNow] = useState(() => new Date()), [busy, setBusy] = useState(false), [error, setError] = useState(''), rang = useRef<string | null>(null), closeButton = useRef<HTMLButtonElement>(null);
+  const [pip, setPip] = useState<Window | null>(null), [pipOk, setPipOk] = useState(false);
+  useEffect(() => { queueMicrotask(() => setPipOk(pipHost() !== null)); }, []);
+  useEffect(() => () => { pip?.close(); }, [pip]);
   const [full, setFull] = useState(false), prefs = useUiPrefs(), haptics = prefs.loaded && checklistPrefsOf(prefs.data).haptics;
   const run = record.loaded && !record.unreadable ? liveRun(record.data, store.data, store.today) : null;
   const mine = run?.headId === headId ? run : null;
-  useEffect(() => { if (record.loaded && !record.unreadable && !mine && routine) { try { record.update(r => ({...r, run: startRun(headId, store.today, new Date())})); } catch { /* the player still shows the steps */ } } }, [record.loaded, record.unreadable, mine, routine, headId, store.today]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (record.loaded && !record.unreadable && !mine && routine) { try { record.update(r => ({...r, run: atOpen ? startRunAtOpen(routine, store.today, new Date()) : startRun(headId, store.today, new Date())})); } catch { /* the player still shows the steps */ } } }, [record.loaded, record.unreadable, mine, routine, headId, store.today]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { const id = window.setInterval(() => setNow(new Date()), 1000); return () => window.clearInterval(id); }, []);
   useEffect(() => { closeButton.current?.focus(); }, []);
   // The finish screen takes the focus, also when the full-screen player (now gone) logged the last step.
@@ -94,9 +100,10 @@ export function RoutinePlayer({headId, store, extras, onClose}: {headId: string;
     return <section className="routine-player routine-finish" aria-labelledby="routine-finish-title"><p className="eyebrow">Routine complete</p><h2 id="routine-finish-title"><NebulaFlow identity={`routine-finish:${headId}`}>Well done.</NebulaFlow></h2><p className="routine-finish-line">{f.done} of {f.total} {plural(f.total, 'step')} done{f.skipped ? `, ${f.skipped} skipped` : ''}, in about {f.minutes} {f.minutes === 1 ? 'minute' : 'minutes'}.</p><ol className="routine-finish-steps">{steps.map(s => <li key={s.habit.id} data-status={s.status}><span aria-hidden="true">{s.status === 'done' ? '✓' : '○'}</span>{s.habit.title}</li>)}</ol><div className="actions"><button ref={closeButton} type="button" className="primary" onClick={() => leave(true)}>Close</button></div><Guide line="You showed up for every step you could. That is the whole trick." state="celebrate"/></section>;
   }
   return <section className="routine-player" aria-labelledby="routine-player-title">
-    <div className="routine-player-head"><p className="eyebrow">{routine.title} · step {mine.step + 1} of {steps.length}</p><div className="actions"><button type="button" className="quiet" onClick={() => setFull(true)}>Full screen</button><button ref={closeButton} type="button" className="quiet" onClick={() => leave(false)} aria-label="Pause the routine and close">Close</button></div></div>
+    <div className="routine-player-head"><p className="eyebrow">{routine.title} · step {mine.step + 1} of {steps.length}</p><div className="actions"><button type="button" className="quiet" onClick={() => setFull(true)}>Full screen</button>{pipOk && !pip && <button type="button" className="quiet" onClick={() => { const host = pipHost(); if (host) void openPipWindow(host).then(w => { w.document.title = `${routine.title} · ZIGoals`; w.document.documentElement.lang = 'en'; w.document.body.classList.add('routine-pip-body'); setPip(w); w.addEventListener('pagehide', () => setPip(null), {once: true}); }, () => setError('The small window could not open. The routine goes on here.')); }}>Small window</button>}<button ref={closeButton} type="button" className="quiet" onClick={() => leave(false)} aria-label="Pause the routine and close">Close</button></div></div>
     {full && <LoadBoundary quiet><Suspense fallback={null}><RoutineFullscreen title={routine.title} steps={fullscreenSteps(steps)} haptics={haptics} bellFor={stepId => extras.loaded && habitBell(extras.data, stepId)}
       onLogStep={(stepId, minutes) => stepId === current?.habit.id ? advance('done', minutes) : undefined} onSkipStep={stepId => stepId === current?.habit.id ? advance('skipped') : undefined} onLogAll={logAll} onClose={() => setFull(false)}/></Suspense></LoadBoundary>}
+    {pip && <Suspense fallback={null}><RoutinePip win={pip} title={routine.title} stepLine={`Step ${mine.step + 1} of ${steps.length}`} step={current!.habit.title} timer={current!.duration && target ? `${mmss(elapsed)} of ${target} min` : null} busy={busy} last={mine.step + 1 === steps.length} onDone={() => void step('done')} onSkip={() => void step('skipped')} onBack={() => { pip.close(); closeButton.current?.focus(); }}/></Suspense>}
     <ol className="routine-dots" aria-label="Steps">{steps.map(s => <li key={s.habit.id} data-status={s.status} aria-label={`${s.habit.title}: ${s.status}`} />)}</ol>
     <h2 id="routine-player-title"><NebulaFlow identity={`routine-step:${current!.habit.id}`}>{current!.habit.title}</NebulaFlow></h2>
     {current!.habit.description && <p className="routine-step-desc">{current!.habit.description}</p>}

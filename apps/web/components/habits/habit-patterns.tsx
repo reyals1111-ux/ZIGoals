@@ -1,10 +1,12 @@
 'use client';
+import {lazy, Suspense, useState} from 'react';
 import {type Habit} from '../../lib/habits';
 import {byWeek, byWeekday, usualSaveTime, WEEKDAY_NAMES, WEEKS} from '../../lib/habits-v2/stats';
 import {formatClock, formatDate} from '../../lib/visual-format';
 import { plural } from '../../lib/plural';
 import {habitStrength} from '../../lib/habits-v2/strength';
 import {missReasonCounts} from '../../lib/habits-yesterday';
+import {HabitTrendLine} from './habit-trend-list';
 
 /**
  * A habit's patterns (Session W Part 10), inside its "Consistency & trends": days done by weekday and by week over the
@@ -12,12 +14,16 @@ import {missReasonCounts} from '../../lib/habits-yesterday';
  * days and unscheduled days count for nothing either way. Session AH (L2): above them, one strength figure with how it is
  * worked out in plain words (lib/habits-v2/strength.ts).
  */
+// Session AV lane 2 (LEDGER #187, #190): the longer history, its own chunk, loaded when its fold opens.
+const HabitHistory = lazy(() => import('./habit-longer-history'));
 const pct = (done: number, scheduled: number) => scheduled ? Math.round(done / scheduled * 100) : null;
 export function HabitPatterns({habit, today, zone}: {habit: Habit; today: string; zone: string}) {
-  const days = byWeekday(habit, today), weeks = byWeek(habit, today), usual = usualSaveTime(habit, zone, today), strength = habitStrength(habit, today);
+  const days = byWeekday(habit, today), weeks = byWeek(habit, today), usual = usualSaveTime(habit, zone, today), strength = habitStrength(habit, today), [historyOpen, setHistoryOpen] = useState(false);
   if (!days.some(d => d.scheduled) && !usual) return <p className="fine">Patterns appear after a few scheduled days.</p>;
   return <div className="habit-patterns">
     {strength && <p className="habit-strength"><strong>Strength {strength.score}</strong> <span className="fine">of 100, from {strength.days} scheduled {plural(strength.days, 'day')} in the last 90. Each one moves it a tenth of the way toward done or not done, so one miss dents it and never resets it; skipped and rest days don&rsquo;t count.</span></p>}
+    {/* Session AV lane 2 (health r3; LEDGER #276): the last 30 days beside the 30 before, in plain words. */}
+    <HabitTrendLine habit={habit} today={today} />
     <h3>By weekday · last {WEEKS} weeks</h3>
     <ul className="habit-weekdays">{days.map(d => <li key={d.weekday}><span>{WEEKDAY_NAMES[d.weekday]!.slice(0, 3)}</span><strong>{d.scheduled ? `${d.done} of ${d.scheduled}` : '—'}</strong></li>)}</ul>
     <h3>By week</h3>
@@ -26,6 +32,7 @@ export function HabitPatterns({habit, today, zone}: {habit: Habit; today: string
     </div>
     <details className="habit-weeks-table"><summary>The weeks as a table</summary><table><caption>Days done of days scheduled, by week</caption><thead><tr><th scope="col">Week of</th><th scope="col">Done</th><th scope="col">Scheduled</th></tr></thead>
       <tbody>{weeks.map(w => <tr key={w.weekStart}><th scope="row">{formatDate(w.weekStart, {year: false})}</th><td>{w.done}</td><td>{w.scheduled}</td></tr>)}</tbody></table></details>
+    <details className="habit-longer-fold" onToggle={e => setHistoryOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>More history: strength over the year, months and weekdays</summary>{historyOpen && <Suspense fallback={<p className="fine">Opening…</p>}><HabitHistory habit={habit} today={today}/></Suspense>}</details>
     {/* Session AV (q4 #32; Habitify): the reasons given for a "not done", counted back. */}
     {(() => { const why = missReasonCounts(habit.entries, today); return why.length ? <p className="fine habit-miss-reasons">What got in the way, last 90 days: {why.map(w => `${w.reason} ${w.count}×`).join(' · ')}.</p> : null; })()}
     {usual && <p className="fine">Check-ins are usually saved around <strong>{formatClock(usual.clock)}</strong> (from when {usual.n} {plural(usual.n, 'check-in')} of the last 60 days {usual.n === 1 ? 'was' : 'were'} saved, which can be later than the habit itself).</p>}

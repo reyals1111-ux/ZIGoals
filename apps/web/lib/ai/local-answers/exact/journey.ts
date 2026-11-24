@@ -1,3 +1,4 @@
+import {formatNumber} from '../../../visual-format';
 import {levelName} from '../../../game/levels';
 import {xpSummary} from '../../../game/xp';
 import type {ToolEnv} from '../../tools/env';
@@ -22,10 +23,10 @@ export function journeyFacts(env: ToolEnv): JourneyFacts {
   if (!game.enabled) return {state: 'off'};
   const closed = [env.areas.habits === false && 'Habits', !env.health && 'Health', env.areas.goals === false && 'Goals', env.areas.today === false && 'Today'].filter((a): a is string => !!a);
   if (closed.length || !env.health) return {state: 'closed', closed};
-  const xp = xpSummary({habits: env.habits, health: env.health, platform: env.platform, weekly: env.weekly, earnAcademy: game.earnAcademy}, env.habitDay);
+  const xp = xpSummary({habits: env.habits, health: env.health, platform: env.platform, weekly: env.weekly, earnAcademy: game.earnAcademy, habitExtras: env.ak?.habitExtras ?? null, rebirthFrom: game.rebirthFrom ?? null}, env.habitDay);
   return {state: 'counted', level: xp.level.level, name: xp.level.name, xp: xp.total, into: xp.level.into, span: xp.level.span, thisWeek: xp.thisWeek, lastWeek: xp.lastWeek, today: xp.today};
 }
-const n = (v: number) => v.toLocaleString('en-US');
+const n = (v: number) => formatNumber(v); // Session AV lane 2 (fr-answers; FR-TJ-4): the answer's number locale
 export function journeyAnswer(env: ToolEnv, lang: Lang): {text: string; facts: JourneyFacts} {
   const facts = journeyFacts(env);
   if (facts.state === 'unknown') return {facts, text: t(lang, 'Journey’s switch can’t be read here, so your level is unknown here (not zero); Journey shows it.', 'De schakelaar van Journey is hier niet te lezen, dus je level is hier onbekend (niet nul); Journey toont het.')};

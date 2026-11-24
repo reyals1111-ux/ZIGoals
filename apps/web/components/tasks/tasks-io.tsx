@@ -4,6 +4,9 @@ import {MAX_IMPORT_BYTES, applyImport, listsOverCap, readTaskFile, tasksCsv, typ
 import {MAX_PROJECTS, MAX_SECTIONS, MAX_TASKS, type Tasks} from '../../lib/tasks/schema';
 import {exportFileName} from '../../lib/showcase-detect';
 import {formatNumber} from '../../lib/visual-format';
+import {checklistZone} from '../../lib/checklist/zone';
+/** Session AV lane 2 (tasks-r2, LEDGER #227): where each file came from, in the preview. */
+const SOURCE_WORDS: Record<ImportPlan['source'], string> = {todoist: 'Todoist', ticktick: 'TickTick', ics: 'the calendar file’s to-dos', trello: 'the Trello board', asana: 'Asana'};
 
 /**
  * Session AL (Part 8, P-LS-37, C-LS-23/24): import from Todoist (CSV), TickTick (CSV backup) or a calendar's to-dos
@@ -20,7 +23,7 @@ export default function TasksIo({record, today, showcase, onClose, apply}: {reco
     if (!file) return;
     if (file.size > MAX_IMPORT_BYTES) { setError('This file is over 2 MB, more than ZIGoals reads. Export a smaller list.'); return; }
     setBusy(true);
-    try { setPlan(readTaskFile(await file.text(), {fileName: file.name, today})); }
+    try { setPlan(readTaskFile(await file.text(), {fileName: file.name, today, zone: checklistZone()})); }
     catch (cause) { setError(cause instanceof Error ? cause.message : 'This file could not be read.'); }
     finally { setBusy(false); }
   };
@@ -43,13 +46,13 @@ export default function TasksIo({record, today, showcase, onClose, apply}: {reco
     } catch { setError('The file could not be made on this device.'); }
   };
   const overLists = plan ? listsOverCap(record, plan) : 0;
-  const left = plan ? [plan.skipped.done && `${plural(plan.skipped.done, 'finished task')}`, plan.skipped.unreadable && `${plural(plan.skipped.unreadable, 'row')} with no title`, plan.skipped.notes && `${plural(plan.skipped.notes, 'comment')} with no task`, plan.tasks.length > room && `${plural(plan.tasks.length - room, 'task')} over the ${MAX_TASKS} kept`, overLists && `${plural(overLists, 'list')} over the ${MAX_PROJECTS} Tasks keeps (their tasks go to the Inbox)`].filter(Boolean) as string[] : [];
+  const left = plan ? [plan.skipped.done && `${plural(plan.skipped.done, 'finished task')}`, plan.skipped.unreadable && `${plural(plan.skipped.unreadable, 'row')} with no title`, plan.skipped.notes && `${plural(plan.skipped.notes, 'comment')} with no task`, plan.tasks.length > room && `${plural(plan.tasks.length - room, 'task')} over the ${MAX_TASKS} kept`, plan.skipped.archived && `${plural(plan.skipped.archived, 'archived card')}`, plan.skipped.people && `the ${plural(plan.skipped.people, 'person', 'people')} tasks were assigned to (Tasks is yours alone: nothing is shared between people)`, overLists && `${plural(overLists, 'list')} over the ${MAX_PROJECTS} Tasks keeps (their tasks go to the Inbox)`].filter(Boolean) as string[] : [];
   return <div className="panel tasks-io" role="group" aria-labelledby={`${id}-t`}>
     <h2 id={`${id}-t`}>Import and export</h2>
-    <label className="field"><span>Import a Todoist CSV, a TickTick CSV backup or a calendar (.ics) file</span><input ref={input} type="file" accept=".csv,.ics,.ical,text/csv,text/calendar" disabled={busy} onChange={e => void choose(e)} /></label>
+    <label className="field"><span>Import a Todoist CSV, a TickTick CSV backup, a Trello board (JSON), an Asana CSV or a calendar (.ics) file</span><input ref={input} type="file" accept=".csv,.ics,.ical,.json,text/csv,text/calendar,application/json" disabled={busy} onChange={e => void choose(e)} /></label>
     {busy && <p className="fine" role="status">Reading the file on this device…</p>}
     {plan && <div className="tasks-io-preview">
-      <p>{plan.tasks.length ? `${plural(Math.min(plan.tasks.length, room), 'task')} to add from ${plan.source === 'todoist' ? 'Todoist' : plan.source === 'ticktick' ? 'TickTick' : 'the calendar file’s to-dos'}${plan.projects.length ? `, into ${plan.projects.map(p => `“${p}”`).join(', ')}` : ', into the Inbox'}: titles, days, times, repeats, priorities, labels, notes and subtasks.` : 'No task in this file can be added.'}</p>
+      <p>{plan.tasks.length ? `${plural(Math.min(plan.tasks.length, room), 'task')} to add from ${SOURCE_WORDS[plan.source]}${plan.projects.length ? `, into ${plan.projects.map(p => `“${p}”`).join(', ')}` : ', into the Inbox'}: ${plan.source === 'trello' ? 'its lists as sections, cards as tasks with days, labels and descriptions, checklist items as subtasks.' : plan.source === 'asana' ? 'sections, tasks with days, tags, notes and subtasks.' : 'titles, days, times, repeats, priorities, labels, notes and subtasks.'}` : 'No task in this file can be added.'}</p>
       {left.length > 0 && <p className="fine">Left out: {left.join('; ')}.</p>}
       <div className="tasks-io-actions"><button type="button" className="primary" disabled={!plan.tasks.length || room <= 0} onClick={add}>Add to Tasks</button><button type="button" className="quiet" onClick={() => setPlan(null)}>Cancel</button></div>
     </div>}

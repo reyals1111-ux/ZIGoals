@@ -1,6 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {applyTheme, axe, THEMES} from './p6-helpers';
-import {entry, moneyLog, openInsight, seedDevice} from './ap/ap-money-fixtures';
+import {entry, moneyLog, openInsight, reopenInsight, seedDevice} from './ap/ap-money-fixtures';
 import {MONEY_LOG_KEY} from '../lib/money-log/schema';
 
 /**
@@ -21,6 +21,7 @@ for (const theme of THEMES) test(`${theme}: groceries up €10 on last month by 
   const findings = await axe(page, panel);
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
   await page.setViewportSize({width: 320, height: 720});
+  await reopenInsight(page, 'This month vs last'); // fix2011; deliberate (tests/ap/ap-money-fixtures.ts)
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   // Session AV (fresh-agent check q2, rank 7): at 320 the Difference column is in view without a sideways scroll, with
   // last month by now under it.

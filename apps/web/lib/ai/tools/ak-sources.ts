@@ -1,3 +1,20 @@
+import {BRING_UP} from '../../clinician-report/bring-up';
+import {CALORIE_WEEK} from '../../health-aa/calorie-week';
+import {PLANNED_WORKOUTS} from '../../workouts/planned';
+import {RACES} from '../../workouts/races';
+import {WORKOUT_HR} from '../../workouts/hr-zones';
+import {HEALTH_EXTRAS} from '../../health-extras';
+import {NOTIFY_PREFS} from '../../notify/prefs';
+import {MORE_GOALS} from '../../health-goals/more';
+import {CIRCUITS} from '../../workouts/circuits';
+import {WORKOUT_PLACES} from '../../workouts/places-schema';
+import {MONEY_MORE} from '../../money-more/schema';
+import {STORE_CARDS} from '../../store-cards/schema';
+import {MONEY_LOG_BUSINESS} from '../../money-more/spaces';
+import {NUTRIENT_EXTRAS_RECORD} from '../../health-vitamins/extras';
+import {EVENING_PLAN} from '../../evening-plan/schema';
+import {BODY_EXTRAS} from '../../body-extras/schema';
+import {WEALTH_SHEET} from '../../wealth-sheet/schema';
 import {AUTO_RULES} from '../../auto-rules/schema';
 import {BILLS} from '../../bills/schema';
 import {readDeviceRecord, type DeviceRecordSpec} from '../../device-record';
@@ -24,5 +41,15 @@ export function readAkToolSources(storage: Read): AkToolSources {
   return {autoRules: one(AUTO_RULES), bills: one(BILLS), priceAlerts: one(PRICE_ALERTS), debtPlanner: one(DEBT_PLANNER), supplements: one(SUPPLEMENTS), savingsChallenges: one(SAVINGS_CHALLENGES),
     workouts: one(WORKOUTS), remindersPlan: one(REMINDERS_PLAN), habitTimes: extras?.times ?? null,
     // Session AV (1c, f1): what the on-device answers read for the running bests, today's focus habit and money that asks for a look.
-    splits: one(WORKOUT_SPLITS), habitFocus: (extras as {focus?: unknown} | null)?.focus ?? null, moneyReview: one(MONEY_REVIEW)};
+    splits: one(WORKOUT_SPLITS), habitFocus: (extras as {focus?: unknown} | null)?.focus ?? null, moneyReview: one(MONEY_REVIEW),
+    // Session AV lane 2 (habits): the whole habit extras record, for each habit's own options, areas and focus days (av2-habits.ts).
+    habitExtras: extras,
+    // Session AV lane 2, batch 2 (body, money).
+    eveningPlan: one(EVENING_PLAN), bodyExtras: one(BODY_EXTRAS), wealthSheet: one(WEALTH_SHEET), nutrientExtras: one(NUTRIENT_EXTRAS_RECORD), moneyMore: one(MONEY_MORE), storeCards: one(STORE_CARDS), moneyLogBusiness: one(MONEY_LOG_BUSINESS), workoutPlaces: one(WORKOUT_PLACES),
+    // Session AV lane 2, round 3 (health; each answer checks the Health gate first, as the batch 2 Health records do).
+    healthExtras: one(HEALTH_EXTRAS), notifyPrefs: one(NOTIFY_PREFS), healthGoalsMore: one(MORE_GOALS), workoutCircuits: one(CIRCUITS),
+    // Round 4 (health).
+    plannedWorkouts: one(PLANNED_WORKOUTS), races: one(RACES), workoutHr: one(WORKOUT_HR), calorieWeek: one(CALORIE_WEEK),
+    // Round 6 (health): the visit's "To bring up" list (Health gate in the answer). The low-day plan is never an AI source.
+    bringUp: one(BRING_UP)};
 }

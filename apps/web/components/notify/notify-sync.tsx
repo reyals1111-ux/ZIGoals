@@ -9,12 +9,13 @@ import {readPushRecord} from '../../lib/push/client';
 import {showToast} from '../ui/undo-toast';
 import {RELOAD_MARK, UPDATE_WAITING} from '../../lib/sw/stale-code';
 import {swVersion} from '../../lib/sw/register';
+import {startTakeover, TAKEOVER_NOTE} from '../../lib/sw/takeover';
 
 const REMINDERS_CHANGE = 'zigoals:reminders-change', PRIVATE_CHANGE = 'zigoals:private-change';
 /** The device lock's event (components/device-lock.tsx LOCK_EVENT): locking hides names from notifications at once (F5). */
 const LOCK_EVENT = 'zigoals-device-lock';
 export const NOTIFY_CHANGE = 'zigoals:notify-change';
-let headroomShown = false, lastBuildCheck = 0;
+let headroomShown = false, lastBuildCheck = 0, scheduleChecked = false;
 /** Session AV Part 2 (D-PWA): an open tab asks its own server which version it serves, at most every ten minutes. */
 const BUILD_CHECK_MS = 10 * 60_000;
 /** Session AV (PK-3): how long after the worker is known the page asks it to keep the later parts (the page settles first). */
@@ -41,6 +42,8 @@ export function NotifySync() {
   // Session AV Part 2 ([TIER 3] (PWA), ADR-045 D-PWA): the same note when a newer version is known without a waiting worker
   // (this tab's server answers another build, or code of this version could not be loaded while the person was busy).
   const [newer, setNewer] = useState(false);
+  // Session AV lane 2 ([TIER 3] (PWA), owner follow-up 8): "Reload" tapped and the new version has not taken over in 5 s.
+  const [late, setLate] = useState(false);
   useEffect(() => {
     // After the one automatic reload into a newer version: say so, once (lib/sw/update-recovery.ts).
     // The recovery's own code loads only when this tab reloaded itself (its mark is there) or asks its server (below).
@@ -118,6 +121,11 @@ export function NotifySync() {
     // as a toast on another page, and nothing is written until the person acts.
     // Session AK (A6): once per visit, if a module is nearly full, say so calmly with what to do.
     idle(() => { if (!active || headroomShown) return; headroomShown = true; void import('../../lib/storage-headroom').then(m => { const line = m.headroomMessage(m.moduleUse(window.localStorage)); if (line && active) showToast({message: line, link: {href: '/app/settings/data', label: 'Your data'}}); }).catch(() => {}); });
+    // Session AV lane 2 (N6 #193): once per visit, a scheduled copy that is due is written into the person's folder (or,
+    // where the browser wants a tap or cannot write to a folder, a calm note links to Your data). Loaded only on a device
+    // with a schedule; the file is made here and never leaves the device.
+    idle(() => { if (!active || scheduleChecked) return; scheduleChecked = true; let raw: string | null = null; try { raw = isShowcase() ? null : getAppStorage().getItem('zigoals:backup-reminder:v1'); } catch { raw = null; } if (!raw || !raw.includes('"schedule"')) return;
+      void import('../../lib/backup-folder/run').then(m => m.runScheduledBackup()).then(r => { if (!active) return; if (r.state === 'written') showToast({message: `A copy of everything was saved in your backup folder (${r.name}).`}); else if (r.state === 'ask' || r.state === 'remind' || r.state === 'failed') showToast({message: r.state === 'failed' ? 'Your scheduled copy could not be written.' : 'Your scheduled copy is due.', link: {href: '/app/settings/data#backup-schedule', label: r.state === 'remind' ? 'Make it' : 'Open Your data'}}); }).catch(() => {}); });
     // Session AV Part 3 (D-KEEP): after the person's first save in this tab, ask once to keep this site's data (only where the
     // browser never asks the person; lib/keep-data/persist-once.ts). Never on view.
     let keepAsked = false;
@@ -131,8 +139,12 @@ export function NotifySync() {
   if (!waiting && !newer) return null;
   const reload = () => {
     if (!waiting) { window.location.reload(); return; }
-    navigator.serviceWorker?.addEventListener('controllerchange', () => window.location.reload(), {once: true});
-    waiting.postMessage({type: 'zigoals:sw-reload'});
+    // Session AV lane 2 ([TIER 3] (PWA), owner follow-up 8, ADR-045 D-CI2016-J04): the page's requests wait while the new
+    // worker takes over (a request reaching the old worker in that moment stalled the takeover for good); if it has not
+    // taken over in 5 s, the bar says how to finish by hand. Nothing reloads by itself and no open form is touched.
+    if (!navigator.serviceWorker) { window.location.reload(); return; }
+    setLate(false);
+    startTakeover(waiting, {done: () => window.location.reload(), late: () => setLate(true)});
   };
-  return <div className="sw-update" role="status"><span>A new version of ZIGoals is ready. Your records are saved on this device.</span><button type="button" className="primary" onClick={reload}>Reload</button><button type="button" className="quiet" onClick={() => { setWaiting(null); setNewer(false); }}>Later</button></div>;
+  return <div className="sw-update" role="status"><span>{late ? TAKEOVER_NOTE : 'A new version of ZIGoals is ready. Your records are saved on this device.'}</span>{!late && <button type="button" className="primary" onClick={reload}>Reload</button>}<button type="button" className="quiet" onClick={() => { setWaiting(null); setNewer(false); setLate(false); }}>{late ? 'OK' : 'Later'}</button></div>;
 }

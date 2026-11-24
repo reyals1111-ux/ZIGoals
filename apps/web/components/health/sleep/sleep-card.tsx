@@ -1,8 +1,13 @@
 'use client';
 import Link from 'next/link';
-import {useState} from 'react';
+import {Suspense, lazy, useState} from 'react';
+import {LoadBoundary} from '../../load-boundary';
+// Session AV lane 2, round 4 (health; Pillow, LEDGER #334): a sleep tip a day, off unless chosen; its own chunk.
+const HealthR4 = lazy(() => import('../r4/health-r4'));
+// Session AV lane 2, round 6 (r6-body; LEDGER #419): in the evening, tonight's bedtime from your goal; its own chunk.
+const SleepR6 = lazy(() => import('../r6/sleep-parts'));
 import {asleep, dailySeries, nightDay, runningNights, summary} from '../../../lib/sleep/engine';
-import {formatMinutes} from '../../../lib/zone-time';
+import {formatMinutes, wallClock} from '../../../lib/zone-time';
 import {formatDate, formatTime} from '../../../lib/visual-format';
 import {SleepTonight} from './sleep-tonight';
 import {useSleep} from './use-sleep';
@@ -27,7 +32,9 @@ export function SleepCard(layout: LayoutAttrs) {
       {week && <p className="fine">Last 7 days: {formatMinutes(week.asleep)} a night on average over {week.nights} {week.nights === 1 ? 'night' : 'nights'}{store.sleep.goal ? `, goal ${formatMinutes(store.sleep.goal.minutes)}` : ''}.</p>}
       <PastDayLine date={day.date} today={day.today}>{dayAsleep ? <>{formatMinutes(dayAsleep.minutes)} asleep that night</> : 'no night logged'} · <Link className="text-link" href={`/app/health?view=sleep&date=${day.date}`}>{dayAsleep ? 'Edit it in Sleep →' : 'Log this night →'}</Link></PastDayLine>
       {!day.past && <SleepTonight store={store} onDone={setNote}/>}
+      {!day.past && !running && wallClock(store.now, store.zone).minutes >= 17 * 60 && <LoadBoundary quiet><Suspense fallback={null}><SleepR6 part="bedtime" compact sleep={store.sleep} today={store.today} zone={store.zone}/></Suspense></LoadBoundary>}
       {note && <p role="status">{note}</p>}
+      {!day.past && <LoadBoundary quiet><Suspense fallback={null}><HealthR4 part="sleep-tip" today={store.today} say={setNote}/></Suspense></LoadBoundary>}
       <Link className="text-link" href="/app/health?view=sleep">Open Sleep →</Link>
     </>}
   </section>;

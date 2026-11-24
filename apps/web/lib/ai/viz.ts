@@ -1,5 +1,5 @@
 import {plural} from './tools/format';
-import {formatDate} from '../visual-format';
+import {formatDate, formatNumber} from '../visual-format';
 import type {ToolResult} from './tools/types';
 
 /**
@@ -50,7 +50,9 @@ export function firstSeries(results: readonly ToolResult[]): Series | null {
   for (const result of results) { const series = seriesOf(result); if (series && series.points.length >= 2) return series; }
   return null;
 }
-const fmt = (n: number) => Number(n.toFixed(1)).toLocaleString('en-US');
+// Session AV lane 2 (fr-recheck, FR-TJ-4): the caption and the stat card write figures in the display locale (lib/visual-format.ts
+// numberLocale), as the answer above them does: "5.750 mL in all" in nl-NL or en-NL, never en-US's "5,750" there.
+const fmt = (n: number) => formatNumber(Number(n.toFixed(1)), {maximumFractionDigits: 1});
 /** One plain sentence about a series, for the chart's caption and its accessible name. */
 export function seriesSummary(series: Series): string {
   const p = series.points, first = p[0]!, last = p.at(-1)!, unit = series.unit ? ` ${series.unit}` : '';
@@ -65,7 +67,7 @@ export function seriesSummary(series: Series): string {
  * steps in all, one counter's total. Only a known figure; "unknown" and mixed units are left to the words.
  */
 export type Stat = {value: string; label: string; detail: string | null; source: string};
-const plainCount = (n: unknown) => typeof n === 'number' && Number.isFinite(n) ? n.toLocaleString('en-US') : null;
+const plainCount = (n: unknown) => typeof n === 'number' && Number.isFinite(n) ? formatNumber(n) : null;
 export function statOf(result: ToolResult): Stat | null {
   if (!result.ok) return null;
   const d = result.data as Record<string, unknown>, days = (n: unknown, of: unknown) => typeof n === 'number' && typeof of === 'number' ? `${n} of ${plural(of, 'day')} with a record` : null;

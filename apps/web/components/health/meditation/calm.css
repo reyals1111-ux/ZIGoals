@@ -1,0 +1,75 @@
+/* Session AV lane 2 (habits; LEDGER #79, #80, #81): calm visuals behind a sitting, their chooser, and Move gently.
+   Theme variables for every control and text; the scenes are pictures with their own colours, the same in every theme.
+   Anything that moves does so only under data-motion="on" (set from reduced motion and the app's Motion Off) and never
+   under prefers-reduced-motion; nothing flashes. */
+.calm-chooser, .move-pick, .move-run { display: grid; gap: 12px; padding-top: 8px; min-width: 0; }
+.calm-chooser p, .move-pick p, .move-run p, .move-run h3 { margin: 0; overflow-wrap: anywhere; }
+.calm-choices { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); }
+.calm-choices legend { font-size: .9375rem; font-weight: 600; padding: 0 0 6px; }
+.calm-choice { position: relative; display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); color: var(--text); cursor: pointer; min-width: 0; }
+.calm-choice input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.calm-choice > span:last-child { display: grid; gap: 2px; min-width: 0; font-size: 1rem; }
+.calm-choice small { font-size: .875rem; color: var(--muted); }
+.calm-choice:has(input:checked) { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan); }
+.calm-choice:has(input:focus-visible) { outline: 3px solid var(--cyan); outline-offset: 2px; }
+.calm-swatch { flex: none; width: 56px; height: 40px; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); position: relative; display: block; }
+.calm-none { background: var(--bg); }
+.calm-shift-swatch { background: linear-gradient(90deg, #101a33, #1c2a52 50%, #101a33); }
+.calm-shift-swatch span { position: absolute; top: 50%; left: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: #bfe9ff; box-shadow: 0 0 10px #7fd3ff; }
+
+/* Session AV lane 2 (rest, LEDGER #79): the slow left-right sound's choice, volume and line in the session. */
+.calm-sound { grid-template-columns: minmax(0, 1fr); }
+.calm-volume { display: grid; gap: 4px; min-width: 0; }
+.calm-volume input { width: 100%; min-height: 44px; accent-color: var(--cyan); }
+.calm-sound-line { margin: 0; text-align: center; }
+.calm-sound-line button { min-height: 44px; }
+.calm-layer { margin: 0; display: grid; gap: 6px; justify-items: center; width: min(100%, 560px); }
+.calm-layer figcaption { text-align: center; }
+.calm-layer-shown { margin: 0; }
+.calm-shift { position: relative; width: 100%; height: 72px; border-radius: 36px; background: linear-gradient(90deg, #0d1630, #1a2850 50%, #0d1630); overflow: hidden; }
+.calm-light { position: absolute; top: 50%; left: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: radial-gradient(circle, #e6f6ff 0%, #9fdcff 45%, #9fdcff00 72%); will-change: transform; }
+.calm-shift[data-motion="off"] .calm-light { will-change: auto; }
+.calm-frame { width: 100%; height: clamp(120px, 26vw, 200px); border-radius: 18px; overflow: hidden; }
+
+.calm-scene { position: relative; width: 100%; height: 100%; overflow: hidden; }
+.calm-scene > span { position: absolute; inset: 0; display: block; }
+.calm-dusk { background: linear-gradient(180deg, #23214f 0%, #5b3b7a 45%, #c7706a 78%, #f0b07a 100%); }
+.calm-dusk .calm-sun { inset: auto; left: 50%; bottom: -18%; width: 34%; aspect-ratio: 1; margin-left: -17%; border-radius: 50%; background: radial-gradient(circle, #ffd9a0 0%, #ffb27a 50%, #ffb27a00 72%); }
+.calm-dusk .calm-far { background: linear-gradient(180deg, transparent 70%, #2a1f45cc 100%); }
+.calm-dusk .calm-near { inset: auto 0 0 0; height: 22%; background: #1a1430; clip-path: polygon(0 60%, 18% 30%, 34% 55%, 52% 20%, 70% 50%, 86% 28%, 100% 45%, 100% 100%, 0 100%); }
+.calm-sea { background: linear-gradient(180deg, #a9c6dc 0%, #d9e5ec 48%, #3d6f8c 52%, #23485f 100%); }
+.calm-sea .calm-far { inset: 52% -20% 0 -20%; background: repeating-linear-gradient(180deg, #ffffff14 0 2px, transparent 2px 14px); }
+.calm-sea .calm-near { inset: 70% -20% 0 -20%; background: repeating-linear-gradient(180deg, #ffffff1c 0 3px, transparent 3px 18px); }
+.calm-forest { background: linear-gradient(180deg, #cfe3c4 0%, #8fb68a 40%, #3f6a48 100%); }
+.calm-forest .calm-far { inset: 20% -10% 0 -10%; background: #5d8a5f; clip-path: polygon(0 40%, 8% 10%, 16% 40%, 24% 5%, 32% 38%, 42% 12%, 52% 42%, 62% 8%, 72% 40%, 82% 14%, 92% 42%, 100% 18%, 100% 100%, 0 100%); }
+.calm-forest .calm-near { inset: 45% -10% 0 -10%; background: #2f5238; clip-path: polygon(0 35%, 10% 0, 20% 35%, 30% 8%, 40% 38%, 50% 2%, 60% 36%, 70% 6%, 80% 34%, 90% 4%, 100% 30%, 100% 100%, 0 100%); }
+.calm-night { background: radial-gradient(ellipse at 50% 120%, #26305e 0%, #121836 55%, #070a1c 100%); }
+.calm-night .calm-stars { background-image: radial-gradient(1.5px 1.5px at 12% 22%, #fff, transparent), radial-gradient(1.5px 1.5px at 28% 60%, #e8ecff, transparent), radial-gradient(2px 2px at 44% 30%, #fff, transparent), radial-gradient(1.5px 1.5px at 63% 18%, #dfe6ff, transparent), radial-gradient(1.5px 1.5px at 76% 52%, #fff, transparent), radial-gradient(2px 2px at 88% 26%, #f2f4ff, transparent), radial-gradient(1.5px 1.5px at 54% 70%, #e8ecff, transparent); }
+.calm-night .calm-far { background: radial-gradient(ellipse at 30% 30%, #4b5aa022 0%, transparent 60%); }
+.calm-night .calm-near { inset: auto 0 0 0; height: 18%; background: #05070f; clip-path: polygon(0 50%, 25% 30%, 50% 55%, 75% 25%, 100% 50%, 100% 100%, 0 100%); }
+.calm-small > span { inset: 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .calm-scene[data-motion="on"] .calm-far { animation: calm-drift 48s ease-in-out infinite alternate; }
+  .calm-scene[data-motion="on"] .calm-near { animation: calm-drift 64s ease-in-out infinite alternate-reverse; }
+  .calm-sea[data-motion="on"] .calm-far, .calm-sea[data-motion="on"] .calm-near { animation-name: calm-swell; }
+}
+@keyframes calm-drift { from { transform: translateX(-3%); } to { transform: translateX(3%); } }
+@keyframes calm-swell { from { transform: translate(-4%, 0); } to { transform: translate(4%, 3px); } }
+
+.move-run { justify-items: start; }
+.move-cue { font-size: 1.0625rem; line-height: 1.5; max-width: 60ch; }
+.move-left { font-variant-numeric: tabular-nums; }
+.move-left strong { font-size: 2.25rem; color: var(--text); }
+.move-bar { width: min(100%, 360px); height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.move-bar span { display: block; height: 100%; background: var(--cyan); }
+.move-steps { margin: 0; padding-left: 1.3em; display: grid; gap: 4px; font-size: 1rem; color: var(--muted); }
+.move-steps [aria-current="step"] { color: var(--text); font-weight: 600; }
+.move-steps [data-done] { text-decoration: line-through; text-decoration-color: var(--muted); }
+.move-run h3:focus { outline: none; }
+.move-run h3:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+@media (forced-colors: active) {
+  .calm-choice:has(input:checked) { outline: 2px solid Highlight; }
+  .calm-light { background: CanvasText; }
+  .move-bar span { background: Highlight; }
+}

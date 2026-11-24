@@ -561,6 +561,107 @@ export function buildDensitySheet(files = sourceFiles()) {
   });
 }
 
+// ---- Session AV lane 2 (sync and appearance; LEDGER #34 Notion's high contrast, N6 #191 Loop's pure black) ----
+// Two styles of Dark, chosen in Settings → Appearance → Customize ("Dark style") and stored as `look.darkStyle` in
+// zigoals:ui-prefs:v1. Each is an override of the Dark sheet itself, the way the theme sheets override Nebula: every rule
+// of the Dark sheet that sets a colour of the style's roles is carried, mapped by the style's rule or as it is, under
+// `<html data-theme=dark data-dark-style=<style>>`, each selector with one more id of weight than its Dark original, so
+// among the copies the cascade is Dark's own and every copy beats its original. Builds that do not know `darkStyle` show
+// Dark. Motion and layout are untouched: only colour declarations are carried.
+/** Text that reaches this contrast on black (≥ 7:1 is WCAG AAA): 15:1, so it also keeps ≥ 7:1 on every fill below. */
+export const CONTRAST_TEXT_ON_BLACK = 15;
+/** A coloured fill that words sit on is deepened until white reaches this on it (and the text above reaches ≥ 7:1). */
+export const CONTRAST_FILL_ON_WHITE = 10;
+/** Lines, focus rings and icons: at least this on black (WCAG 1.4.11 asks 3:1; AAA text asks 7:1). */
+export const CONTRAST_LINE_ON_BLACK = 7;
+export const contrastOnBlack = c => (relLum(fromOklch({...c, a: 1})) + 0.05) / 0.05;
+/** The same hue, lighter in small steps (sRGB may trim the chroma), until it reaches `target` on black. */
+export function lighten(c, target) {
+  if (contrastOnBlack(c) >= target) return c;
+  let L = c.L, C = c.C; while (L < 1 && contrastOnBlack({...c, L, C}) < target) { L = Math.min(1, L + 0.005); if (L > 0.9) C *= 0.9; }
+  return {...c, L, C};
+}
+export const DARK_STYLES = {
+  // Pure black (OLED): the night's neutral panels go to black (the page's ground) or to a near-black that still tells a
+  // card from the page; every word, line and colour stays Dark's.
+  black: {
+    roles: new Set(['surface']),
+    map: {surface: c => isNeutral(c) && c.L < 0.5 ? {...c, L: c.L < 0.17 ? 0 : c.L * 0.5, C: 0} : c},
+  },
+  // High contrast: white words on black; every word reaches CONTRAST_TEXT_ON_BLACK, every coloured fill words sit on is
+  // deepened until white reaches CONTRAST_FILL_ON_WHITE on it, every line and icon reaches CONTRAST_LINE_ON_BLACK and is
+  // opaque; coloured glows are halved. A colour set at run time (var()) is mixed with white for a word, a line or an icon
+  // and with black for a fill, so it is held to the same rule. Gradient words become plain words (a flow cannot be held
+  // to 7:1 at every point).
+  contrast: {
+    roles: new Set(['text', 'gradientText', 'surface', 'border', 'graphic', 'shadow']),
+    map: {
+      text: c => ({...lighten(isNeutral(c) ? {...c, C: 0} : c, CONTRAST_TEXT_ON_BLACK), a: c.a > 0 ? 1 : 0}),
+      gradientText: c => ({...lighten(c, CONTRAST_TEXT_ON_BLACK), a: c.a > 0 ? 1 : 0}),
+      // A panel or fill: neutral and opaque, or a night panel, becomes black; a coloured opaque fill is deepened; a
+      // translucent tint or glass keeps at most a quarter of its colour, so white words over it still reach ≥ 10:1.
+      surface: c => isNeutral(c) && (c.L < 0.5 || c.a >= 0.5) ? {...c, L: 0, C: 0} : c.a >= 0.5 ? deepen(c, CONTRAST_FILL_ON_WHITE) : {...c, a: Math.min(c.a, 0.25)},
+      border: c => c.a === 0 ? c : {...lighten(isNeutral(c) ? {...c, C: 0} : c, CONTRAST_LINE_ON_BLACK), a: 1},
+      graphic: c => c.a === 0 ? c : {...lighten(c, CONTRAST_LINE_ON_BLACK), a: Math.max(c.a, 0.9)},
+      shadow: c => isNeutral(c) ? c : {...c, a: c.a * 0.5},
+    },
+  },
+};
+/** How a run-time colour (a var()) is held to a style's rule, by role: mixed with white or black at this share. */
+const STYLE_VAR_MIX = {contrast: {text: ['#fff', 25], border: ['#fff', 40], graphic: ['#fff', 40], surface: ['#000', 30]}};
+/** One value of the Dark sheet in a style: its literal colours mapped by the role's rule, a run-time colour mixed. */
+export function styleValue(style, prop, value, role) {
+  const map = DARK_STYLES[style].map[role];
+  if (!map) return value;
+  const p = prop.toLowerCase();
+  if (style === 'contrast') {
+    // Gradient words read as plain words: no flow, the letters painted in their own (mapped) colour.
+    if (role === 'gradientText' && /^background/.test(p)) return p === 'background-color' ? 'transparent' : 'none';
+    if (p === '-webkit-text-fill-color') return 'currentcolor';
+  }
+  // (A word like `white` inside a name, `var(--white)`, is a name, not a colour.)
+  const mapped = value.replace(COLOR_RE, (m, at, whole) => { if (/[\w-]/.test(whole[at - 1] ?? '')) return m; const rgba = parseColor(m.toLowerCase()); return rgba.some(v => Number.isNaN(v)) ? m : formatColor(fromOklch(map(toOklch(rgba)))); });
+  const mix = STYLE_VAR_MIX[style]?.[role];
+  // Only a single colour value is mixed (a word's, a line's, an icon's colour, a fill's background-color); a token, a
+  // shorthand or a list stays as it is.
+  const single = !p.startsWith('--') && (role !== 'surface' || p === 'background-color') && !/,(?![^(]*\))/.test(mapped) && words(mapped).length === 1;
+  if (mix && single && /var\(/.test(mapped)) return `color-mix(in srgb, ${mapped} ${mix[1]}%, ${mix[0]})`;
+  return mapped;
+}
+/** A Dark-sheet selector named for a style: `[data-theme=dark]` gains the style's attribute (outside @scope), and every
+ *  part one more id of weight. A part outside @scope that does not name Dark is left out (it would reach every theme). */
+export function styleSelector(selector, style, scoped) {
+  return selector.split(/,(?![^(]*\))/).map(part => {
+    let s = part.trim(); if (!s) return null;
+    if (!scoped) { if (!s.includes('[data-theme=dark]')) return null; s = s.replace('[data-theme=dark]', `[data-theme=dark][data-dark-style=${style}]`); }
+    const pe = PSEUDO_ELEMENT.exec(s);
+    return pe ? `${s.slice(0, pe.index)}${BOOST}${pe[0]}` : `${s}${BOOST}`;
+  }).filter(part => part !== null).join(', ');
+}
+/** The style's sheet, built from the Dark sheet's own text (buildTheme('dark')), then the style's hand layers. */
+export function buildDarkStyle(style, darkSheet) {
+  const {roles} = DARK_STYLES[style], ast = postcss.parse(darkSheet);
+  ast.walkComments(c => { c.remove(); });
+  ast.walkAtRules('scope', at => { at.params = at.params.replace('(:root[data-theme=dark])', `(:root[data-theme=dark][data-dark-style=${style}])`); });
+  ast.walkRules(rule => {
+    let scoped = false;
+    for (let p = rule.parent; p; p = p.parent) { if (p.type === 'atrule' && /keyframes$/i.test(p.name)) return; if (p.type === 'atrule' && p.name === 'scope') scoped = true; }
+    for (const d of [...(rule.nodes ?? [])]) {
+      if (d.type !== 'decl') { d.remove(); continue; }
+      const role = roleOf(d.prop, rule);
+      if (!role || !roles.has(role) || !carriesColour(d.prop, d.value)) { d.remove(); continue; }
+      d.value = styleValue(style, d.prop, d.value, role);
+    }
+    const selector = rule.nodes?.length ? styleSelector(rule.selector, style, scoped) : '';
+    if (!selector) rule.remove(); else rule.selector = selector;
+  });
+  // Keyframes carry nothing here (an animation's colours stay Dark's); at-rules left empty go.
+  ast.walkAtRules(at => { if (/keyframes$/i.test(at.name)) at.remove(); });
+  let emptied = true; while (emptied) { emptied = false; ast.walkAtRules(at => { if (at.nodes && !at.nodes.length) { at.remove(); emptied = true; } }); }
+  const head = `/* Generated by scripts/themes/build-themes.mjs (Session AV lane 2) from the Dark sheet: Dark's ${style === 'black' ? 'Pure black' : 'High contrast'} style. Do not\n   edit: change DARK_STYLES there or apps/web/themes/dark-${style}.extra.css, then run it again. */\n`;
+  return head + ast.toString().replace(/\n{3,}/g, '\n\n').trim() + '\n' + handLayers(`dark-${style}`).map(file => `/* ${relative(ROOT, file)} */\n` + readFileSync(file, 'utf8')).join('');
+}
+
 /**
  * The one script that runs before the page paints (ADR-026 F5; TIER 3 security headers/CSP), served as a same-origin file
  * (public/theme-boot.js) and loaded by the root layout with the request's CSP nonce, synchronously in <head>. It reads the
@@ -572,11 +673,15 @@ export function buildDensitySheet(files = sourceFiles()) {
  * each with its own generated sheet, holding the paint the same way (data-look-loading, at most 1.5 s; a sheet that fails
  * takes its attribute away). Defaults and any value it cannot read: no attribute. A broken look never stops the theme.
  */
-export function bootScript(sheets, look) {
+export function bootScript(sheets, look, styles = {}) {
   const map = JSON.stringify(sheets);
+  // Session AV lane 2 (N6 #192): the system-font choices need no file; (LEDGER #34, N6 #191) Dark's styles add their sheet.
+  // Session AV lane 2 (r3-plan, LEDGER #263): Reading-friendly is a system-font choice too (no file).
+  const fonts = `if(k.font==="serif"||k.font==="rounded"||k.font==="mono"||k.font==="reading")d.setAttribute("data-font",k.font);`;
+  const stylePart = Object.keys(styles).length ? `if(t==="dark"){try{var y=p.look&&typeof p.look==="object"?p.look.darkStyle:null,ym=${JSON.stringify(styles)};if(typeof y==="string"&&Object.prototype.hasOwnProperty.call(ym,y)){d.setAttribute("data-dark-style",y);var w=document.createElement("link");w.id="zigoals-dark-style-sheet";w.rel="stylesheet";w.href=ym[y];w.setAttribute("blocking","render");w.onerror=function(){d.removeAttribute("data-dark-style");w.remove()};document.head.appendChild(w)}}catch(e){}}` : '';
   const add = `add=function(a,v,h,id){d.setAttribute(a,v);n++;d.setAttribute("data-look-loading","");var x=document.createElement("link");x.id=id;x.rel="stylesheet";x.href=h;x.setAttribute("blocking","render");x.onload=fin;x.onerror=function(){d.removeAttribute(a);fin();x.remove()};document.head.appendChild(x)}`;
-  const lookPart = `try{var k=p&&p.version===1?p.look:null;if(k&&typeof k==="object"){var n=0,fin=function(){if(--n<=0)d.removeAttribute("data-look-loading")},${add};if(k.font==="inter")d.setAttribute("data-font","inter");if(k.glow==="soft")d.setAttribute("data-glow","soft");if(k.textSize==="large")add("data-text","large",${JSON.stringify(look.text)},"zigoals-text-sheet");if(k.density==="compact")add("data-density","compact",${JSON.stringify(look.density)},"zigoals-density-sheet");if(n)setTimeout(function(){n=0;d.removeAttribute("data-look-loading")},1500)}}catch(e){}`;
-  return `/* ZIGoals theme bootstrap (generated by scripts/themes/build-themes.mjs; Session AD, ADR-026 F5; Session AJ, item 32: the look). */\n(function(){try{var d=document.documentElement,r=localStorage.getItem("zigoals:ui-prefs:v1");if(!r)return;var p=JSON.parse(r);${lookPart}var m=${map},t=p&&p.version===1&&typeof p.theme==="string"?p.theme:"";if(!Object.prototype.hasOwnProperty.call(m,t))return;var s=m[t];d.setAttribute("data-theme",t);d.setAttribute("data-theme-loading","");var l=document.createElement("link"),done=function(){d.removeAttribute("data-theme-loading")};l.id="zigoals-theme-sheet";l.rel="stylesheet";l.href=s;l.setAttribute("blocking","render");l.onload=done;l.onerror=function(){d.removeAttribute("data-theme");done();l.remove()};setTimeout(done,1500);document.head.appendChild(l)}catch(e){}})();\n`;
+  const lookPart = `try{var k=p&&p.version===1?p.look:null;if(k&&typeof k==="object"){var n=0,fin=function(){if(--n<=0)d.removeAttribute("data-look-loading")},${add};if(k.font==="inter")d.setAttribute("data-font","inter");${fonts}if(k.glow==="soft")d.setAttribute("data-glow","soft");if(k.textSize==="large")add("data-text","large",${JSON.stringify(look.text)},"zigoals-text-sheet");if(k.density==="compact")add("data-density","compact",${JSON.stringify(look.density)},"zigoals-density-sheet");if(n)setTimeout(function(){n=0;d.removeAttribute("data-look-loading")},1500)}}catch(e){}`;
+  return `/* ZIGoals theme bootstrap (generated by scripts/themes/build-themes.mjs; Session AD, ADR-026 F5; Session AJ, item 32: the look). */\n(function(){try{var d=document.documentElement,r=localStorage.getItem("zigoals:ui-prefs:v1");if(!r)return;var p=JSON.parse(r);${lookPart}var m=${map},t=p&&p.version===1&&typeof p.theme==="string"?p.theme:"";if(!Object.prototype.hasOwnProperty.call(m,t))return;var s=m[t];d.setAttribute("data-theme",t);d.setAttribute("data-theme-loading","");var l=document.createElement("link"),done=function(){d.removeAttribute("data-theme-loading")};l.id="zigoals-theme-sheet";l.rel="stylesheet";l.href=s;l.setAttribute("blocking","render");l.onload=done;l.onerror=function(){d.removeAttribute("data-theme");done();l.remove()};setTimeout(done,1500);document.head.appendChild(l);${stylePart}}catch(e){}})();\n`;
 }
 
 export function buildAll() {
@@ -585,14 +690,17 @@ export function buildAll() {
   const sheetsMap = {light: `/themes/light.css?v=${hashes.light}`, dark: `/themes/dark.css?v=${hashes.dark}`};
   const textLarge = buildTextSheet(files), densityCompact = buildDensitySheet(files), hash = text => createHash('sha256').update(text).digest('hex').slice(0, 12);
   const lookMap = {text: `/themes/text-large.css?v=${hash(textLarge)}`, density: `/themes/density-compact.css?v=${hash(densityCompact)}`};
-  const boot = bootScript(sheetsMap, lookMap), bootHash = createHash('sha256').update(boot).digest('hex').slice(0, 12);
-  const sheetModule = `// Generated by scripts/themes/build-themes.mjs (Session AD, Part 3): the theme stylesheets and the early script, with\n// their content hashes.\nexport const THEME_SHEETS = ${JSON.stringify(sheetsMap).replace(/"(light|dark)":/g, '$1: ').replace(/"/g, "'").replace(/,/g, ', ')} as const;\nexport const THEME_BOOT_SRC = '/theme-boot.js?v=${bootHash}';\n// Session AJ (item 32, D5): the Customize sheets, Large text and Compact (Settings → Appearance → Customize).\nexport const LOOK_SHEETS = {text: '${lookMap.text}', density: '${lookMap.density}'} as const;\n`;
-  return {sheets, module: sheetModule, boot, textLarge, densityCompact};
+  // Session AV lane 2: Dark's two styles, from the Dark sheet.
+  const darkStyles = {black: buildDarkStyle('black', sheets.dark), contrast: buildDarkStyle('contrast', sheets.dark)};
+  const styleMap = {black: `/themes/dark-black.css?v=${hash(darkStyles.black)}`, contrast: `/themes/dark-contrast.css?v=${hash(darkStyles.contrast)}`};
+  const boot = bootScript(sheetsMap, lookMap, styleMap), bootHash = createHash('sha256').update(boot).digest('hex').slice(0, 12);
+  const sheetModule = `// Generated by scripts/themes/build-themes.mjs (Session AD, Part 3): the theme stylesheets and the early script, with\n// their content hashes.\nexport const THEME_SHEETS = ${JSON.stringify(sheetsMap).replace(/"(light|dark)":/g, '$1: ').replace(/"/g, "'").replace(/,/g, ', ')} as const;\nexport const THEME_BOOT_SRC = '/theme-boot.js?v=${bootHash}';\n// Session AJ (item 32, D5): the Customize sheets, Large text and Compact (Settings → Appearance → Customize).\nexport const LOOK_SHEETS = {text: '${lookMap.text}', density: '${lookMap.density}'} as const;\n// Session AV lane 2 (LEDGER #34, N6 #191): Dark's styles, Pure black and High contrast (Settings → Appearance → Customize).\nexport const DARK_STYLE_SHEETS = {black: '${styleMap.black}', contrast: '${styleMap.contrast}'} as const;\n`;
+  return {sheets, module: sheetModule, boot, textLarge, densityCompact, darkStyles};
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const {sheets, module: sheetModule, boot, textLarge, densityCompact} = buildAll(), check = process.argv.includes('--check');
-  const targets = [[join(WEB, 'public', 'themes', 'light.css'), sheets.light], [join(WEB, 'public', 'themes', 'dark.css'), sheets.dark], [join(WEB, 'public', 'themes', 'text-large.css'), textLarge], [join(WEB, 'public', 'themes', 'density-compact.css'), densityCompact], [join(WEB, 'public', 'theme-boot.js'), boot], [join(WEB, "lib", "ui-prefs", "theme-sheets.ts"), sheetModule]];
+  const {sheets, module: sheetModule, boot, textLarge, densityCompact, darkStyles} = buildAll(), check = process.argv.includes('--check');
+  const targets = [[join(WEB, 'public', 'themes', 'light.css'), sheets.light], [join(WEB, 'public', 'themes', 'dark.css'), sheets.dark], [join(WEB, 'public', 'themes', 'text-large.css'), textLarge], [join(WEB, 'public', 'themes', 'density-compact.css'), densityCompact], [join(WEB, 'public', 'themes', 'dark-black.css'), darkStyles.black], [join(WEB, 'public', 'themes', 'dark-contrast.css'), darkStyles.contrast], [join(WEB, 'public', 'theme-boot.js'), boot], [join(WEB, "lib", "ui-prefs", "theme-sheets.ts"), sheetModule]];
   let stale = 0;
   for (const [file, text] of targets) {
     if (check) { if (!existsSync(file) || readFileSync(file, 'utf8') !== text) { console.error(`stale: ${relative(ROOT, file)}`); stale++; } }

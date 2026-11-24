@@ -28,7 +28,14 @@ test.describe('observed route controls with fictional Showcase detail links',()=
    for(const c of controls)if(c.href&&/^\/app\/(goals\/(tracked\/)?|wealth\/asset\/)[^/?]+$/.test(c.href)&&!c.href.endsWith('/new')&&routes.size<30)routes.add(c.href);
   }
  }
- test('observe public and private route controls: the fixed routes',async()=>{
+ // Session AV lane 2 (CI run 2018, deliberate, as strict): the 13 fixed routes in two parts of their own budget (7, then 6),
+ // as Session X split the details: one part took 16.5 s locally and over 45 s on a slow runner (runs 1701, 1994, 2018).
+ // The same visits, the same checks on each, in the same order; the count is still checked once all 13 are visited.
+ test('observe public and private route controls: the fixed routes, part 1',async()=>{
+  await visit(7);
+  expect(inventory.length).toBe(7);
+ });
+ test('observe public and private route controls: the fixed routes, part 2',async()=>{
   await visit(FIXED);
   expect(inventory.length).toBeGreaterThanOrEqual(13);
  });

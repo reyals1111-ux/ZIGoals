@@ -1,0 +1,9 @@
+/* Session AV lane 2 (N6 #193): Settings → Your data → "A copy on a schedule". Layout only (no colour: every theme's own
+   words and lines apply). Each choice is a 44 px target; nothing scrolls sideways at 320 px. */
+.backup-folder { display: grid; gap: 10px; margin-top: 16px; min-width: 0; overflow-wrap: anywhere; }
+.backup-folder > h3 { margin: 0; font-size: 16px; }
+.backup-folder-every { min-width: 0; margin: 0; padding: 8px 14px 12px; border-radius: 14px; }
+.backup-folder-every legend { padding: 0 6px; font-weight: 650; }
+.backup-folder-options { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+.backup-folder-options label { flex-direction: row; align-items: center; gap: 10px; min-height: 44px; font-size: 15px; cursor: pointer; }
+.backup-folder .dh-actions button { min-height: 44px; }

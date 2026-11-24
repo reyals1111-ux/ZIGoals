@@ -4,6 +4,9 @@ import {BACKUP_REMINDER} from '../../lib/backup-reminder';
 import {localDate} from '../../lib/local-date';
 import {formatDate} from '../../lib/visual-format';
 import {backupDue} from '../../lib/backup-reminder';
+// Session AV lane 2 (N6 #193): the scheduled copy, beside the reminder (this file is itself loaded only on Your data).
+import BackupFolder from './backup-folder';
+import './backup-folder.css';
 
 /** Session AK Part 8.9: the person's own "I saved a copy" mark and the monthly reminder's switch (Settings → Your data). */
 export default function BackupReminderControls() {
@@ -20,5 +23,6 @@ export default function BackupReminderControls() {
       <button type="button" className="secondary" onClick={() => save(x => ({...x, savedOn: localDate()}))}>I saved a copy today</button>
       <button type="button" className="quiet" onClick={() => save(x => ({...x, off: !x.off}))}>{r.data.off ? 'Turn the monthly reminder on' : 'Turn the monthly reminder off'}</button>
     </div>
+    <BackupFolder/>
   </div>;
 }

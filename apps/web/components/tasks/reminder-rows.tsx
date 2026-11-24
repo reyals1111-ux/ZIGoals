@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import {useRef, useState, type ReactNode} from 'react';
 import {SNOOZE_CHOICES, snoozeReminder, snoozeUntil, type SnoozeChoice} from '../../lib/tasks/reminders';
 import {checklistZone} from '../../lib/checklist/zone';
@@ -14,7 +15,7 @@ import type {Task, Tasks} from '../../lib/tasks/schema';
  * (or the one before, or `fallback`), never to the page itself.
  */
 export type DueTaskReminder = {task: Task; at: number; key: string; of: number; before: number};
-export function ReminderRows({reminders, className, label, line, onDone, onDismiss, change, fallback}: {
+export function ReminderRows({reminders, className, label, line, onDone, onDismiss, change, fallback, onFocus}: {
   reminders: readonly DueTaskReminder[]; className: string; label: string;
   /** The row's words; the default reads "⏰ Reminder · Call mum at 6:00 PM". */
   line?: (r: DueTaskReminder) => ReactNode;
@@ -23,6 +24,8 @@ export function ReminderRows({reminders, className, label, line, onDone, onDismi
   change: (fn: (r: Tasks) => Tasks, text: string, undone?: string) => boolean;
   /** Where focus goes when the last row goes. */
   fallback?: () => HTMLElement | null;
+  /** Session AV lane 2 (LEDGER #11; TickTick's "Start focus" on a reminder): opens Focus Sessions for the task here; without it the row links to Tasks, which opens them. */
+  onFocus?: (task: Task) => void;
 }) {
   const ref = useRef<HTMLUListElement>(null), [said, setSaid] = useState('');
   /** Before a row goes: the button focus moves to once it has (the next row's, else the previous row's, else the fallback). */
@@ -44,6 +47,8 @@ export function ReminderRows({reminders, className, label, line, onDone, onDismi
       {line ? line(r) : <span><span aria-hidden="true">⏰ </span>Reminder · <span dir="auto">{r.task.title}</span>{r.task.time ? ` at ${formatClock(r.task.time)}` : ''}</span>}
       <span className="task-reminder-actions">
         <button type="button" className="text-link" onClick={() => { moveFocusFrom(r.key); onDone(r.task); }}>Done</button>
+        {onFocus ? <button type="button" className="text-link" aria-label={`Start focus on “${r.task.title}”`} onClick={() => onFocus(r.task)}>Start focus</button>
+          : <Link prefetch={false} className="text-link" aria-label={`Start focus on “${r.task.title}”`} href={`/app/tasks?focus=${encodeURIComponent(r.task.id)}`}>Start focus</Link>}
         <span className="task-reminder-snooze" role="group" aria-label={`Snooze “${r.task.title}”`}><span aria-hidden="true">Snooze:</span>
           {SNOOZE_CHOICES.map(c => <button key={c.id} type="button" className="text-link" aria-label={`Snooze “${r.task.title}” ${c.words}`} onClick={() => snooze(r, c.id)}>{c.label}</button>)}</span>
         <button type="button" className="text-link" onClick={() => { moveFocusFrom(r.key); onDismiss(r.key); }}>Dismiss</button>

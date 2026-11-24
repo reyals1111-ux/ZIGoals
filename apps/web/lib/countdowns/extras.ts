@@ -15,6 +15,12 @@ export const REMIND_CHOICES = [1, 3, 7, 14, 30] as const;
 const extraSchema = z.looseObject({
   yearly: z.literal(true).optional().catch(undefined),
   remindDays: z.number().int().min(1).max(30).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (tasks, LEDGER #15; TickTick's "days since"; TIER 3 (stored format), additive and optional): the
+   * countdown counts up from its date ("412 days since · 1 year, 1 month") instead of moving to Passed. Older builds
+   * ignore it and show the date as passed.
+   */
+  since: z.literal(true).optional().catch(undefined),
 });
 export type CountdownExtra = z.infer<typeof extraSchema>;
 export const countdownExtrasSchema = z.looseObject({
@@ -25,8 +31,10 @@ export type CountdownExtras = z.infer<typeof countdownExtrasSchema>;
 export const emptyCountdownExtras = (): CountdownExtras => ({version: 1, items: {}});
 export const COUNTDOWN_EXTRAS: DeviceRecordSpec<CountdownExtras> = {key: COUNTDOWN_EXTRAS_KEY, schema: countdownExtrasSchema, empty: emptyCountdownExtras};
 /** Sets (or clears, when nothing is left) a countdown's extras. */
-export function withExtra(record: CountdownExtras, id: string, extra: {yearly?: boolean; remindDays?: number | null}): CountdownExtras {
-  const items = {...record.items}, next: CountdownExtra = {...(extra.yearly ? {yearly: true as const} : {}), ...(extra.remindDays ? {remindDays: extra.remindDays} : {})};
+export function withExtra(record: CountdownExtras, id: string, extra: {yearly?: boolean; remindDays?: number | null; since?: boolean}): CountdownExtras {
+  // Session AV lane 2 (LEDGER #15): `since` is kept unless the caller says otherwise (callers before it never name it).
+  const since = extra.since ?? !!record.items[id]?.since;
+  const items = {...record.items}, next: CountdownExtra = {...(extra.yearly ? {yearly: true as const} : {}), ...(extra.remindDays ? {remindDays: extra.remindDays} : {}), ...(since ? {since: true as const} : {})};
   if (Object.keys(next).length) items[id] = next; else delete items[id];
   return countdownExtrasSchema.parse({...record, items});
 }
@@ -42,11 +50,36 @@ export function nextYearly(date: string, today: string): string {
 /** A countdown as shown: a yearly one moved to its next day once its own date has passed. */
 export const shownDate = (c: Pick<Countdown, 'id' | 'date'>, extras: CountdownExtras, today: string) => extras.items[c.id]?.yearly && c.date < today ? nextYearly(c.date, today) : c.date;
 /** Today's and the coming countdowns (yearly ones on their next day), soonest first; the passed ones, latest first. */
-export function splitWithExtras(record: Countdowns, extras: CountdownExtras, today: string): {upcoming: (Countdown & {shown: string})[]; passed: (Countdown & {shown: string})[]} {
+export function splitWithExtras(record: Countdowns, extras: CountdownExtras, today: string): {upcoming: (Countdown & {shown: string})[]; passed: (Countdown & {shown: string})[]; since: (Countdown & {shown: string})[]} {
   const all = record.items.map(c => ({...c, shown: shownDate(c, extras, today)}));
-  return {upcoming: all.filter(c => c.shown >= today).sort((a, b) => a.shown.localeCompare(b.shown) || a.title.localeCompare(b.title)),
-    passed: all.filter(c => c.shown < today).sort((a, b) => b.shown.localeCompare(a.shown) || a.title.localeCompare(b.title))};
+  // Session AV lane 2 (LEDGER #15): a "since" countdown whose day has come counts up in its own list, longest first.
+  const counting = (c: Countdown) => !!extras.items[c.id]?.since && c.date <= today && !extras.items[c.id]?.yearly;
+  return {upcoming: all.filter(c => c.shown >= today && !counting(c)).sort((a, b) => a.shown.localeCompare(b.shown) || a.title.localeCompare(b.title)),
+    passed: all.filter(c => c.shown < today && !counting(c)).sort((a, b) => b.shown.localeCompare(a.shown) || a.title.localeCompare(b.title)),
+    since: all.filter(counting).sort((a, b) => a.date.localeCompare(b.date) || a.title.localeCompare(b.title))};
 }
+/** Whole years and the months after them from `date` to `today` (a birthday counts a year on its day; 29 Feb on 28 Feb). */
+export function yearsMonthsSince(date: string, today: string): {years: number; months: number} {
+  if (today < date) return {years: 0, months: 0};
+  const [y1, m1, d1] = date.split('-').map(Number) as [number, number, number], [y2, m2, d2] = today.split('-').map(Number) as [number, number, number];
+  const last = new Date(Date.UTC(y2, m2, 0)).getUTCDate();
+  let months = (y2 - y1) * 12 + (m2 - m1);
+  if (d2 < Math.min(d1, last)) months -= 1;
+  return {years: Math.floor(months / 12), months: months % 12};
+}
+/**
+ * Session AV lane 2 (tasks, LEDGER #15; TickTick's "years since"): a counting-up line — "412 days since · 1 year, 1 month",
+ * "Today: day 1", "3 days since". Never negative (a day ahead reads as its countdown instead).
+ */
+export function sinceWords(date: string, today: string, format: (n: number) => string = String): string {
+  const n = daysUntil(today, date);
+  if (n <= 0) return n === 0 ? 'Today: day 1' : countdownWordsAhead(-n, format);
+  const {years, months} = yearsMonthsSince(date, today), span = years || months ? ` · ${[years ? `${format(years)} ${years === 1 ? 'year' : 'years'}` : '', months ? `${format(months)} ${months === 1 ? 'month' : 'months'}` : ''].filter(Boolean).join(', ')}` : '';
+  return `${format(n)} ${n === 1 ? 'day' : 'days'} since${span}`;
+}
+const countdownWordsAhead = (n: number, format: (n: number) => string) => n === 1 ? 'Tomorrow' : `In ${format(n)} days`;
+/** How many years a yearly countdown marks on its next day ("turns 37", "5 years"): 0 when its first day is that one. */
+export const yearsOnNext = (c: Pick<Countdown, 'date'>, shown: string): number => Math.max(0, Number(shown.slice(0, 4)) - Number(c.date.slice(0, 4)));
 /**
  * Session AV (1c, q1 #44, fresh-agent review; TickTick notifies): the mornings a countdown's reminder should reach the
  * device's notifications — the first day of its reminder (N days before) and the day itself — within the next `ahead`

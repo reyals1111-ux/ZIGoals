@@ -21,7 +21,9 @@ export const MONEY_FIELDS: readonly FieldSpec[] = [
   {id: 'payee', label: 'Payee', synonyms: ['name', 'counterparty', 'counterparty name', 'description', 'naam', 'naam omschrijving', 'merchant', 'beneficiary']},
   {id: 'note', label: 'Note', synonyms: ['memo', 'details', 'remittance information', 'mededelingen', 'omschrijving', 'reference text', 'notes']},
   {id: 'category', label: 'Category', synonyms: ['categorie', 'kategorie']},
-  {id: 'reference', label: 'Reference', synonyms: ['fitid', 'transaction id', 'end to end id', 'ref', 'referentie']},
+  {id: 'reference', label: 'Reference', synonyms: ['fitid', 'transaction id', 'end to end id', 'ref', 'referentie', /* Session AV lane 2, round 3 (money; Simplifi, LEDGER #299): a cheque or reference number */ 'check number', 'cheque number', 'check #', 'check no', 'cheque no', 'reference number', 'chequenummer']},
+  // Session AV lane 2, round 3 (money; Simplifi's imports keep tags, LEDGER #299): the entries' tags, kept in the tags record.
+  {id: 'tags', label: 'Tags', synonyms: ['tags', 'tag', 'labels', 'label']},
 ];
 export const FIELDS_FOR: Record<ImportTarget, readonly FieldSpec[]> = {money: MONEY_FIELDS, transactions: TRANSACTION_FIELDS, holdings: HOLDINGS_FIELDS};
 export type CsvTemplate = {

@@ -145,8 +145,8 @@
 .sleep-score-ring strong { font-size: 34px; letter-spacing: -.03em; margin-top: -8px; }
 .sleep-score-ring small { font-size: 14px; color: var(--text-meta); margin-top: 36px; }
 .sleep-score-parts { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 15px; }
-.sleep-score-parts li { display: flex; justify-content: space-between; gap: 10px; }
-.sleep-score-parts b { font-variant-numeric: tabular-nums; }
+.sleep-score-parts li { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; } /* Session AV lane 2 (fixb3c): the figure keeps its one line's height beside a part that wraps (it stretched to two) */
+.sleep-score-parts b { font-variant-numeric: tabular-nums; white-space: nowrap; } /* Session AV lane 2 (P-21): "34 / 40" never splits */
 .sleep-score-formula { font-size: 14px; color: var(--text-meta); margin: 0; }
 @media (max-width: 480px) { .sleep-score { grid-template-columns: 1fr; justify-items: center; text-align: center; } }
 
@@ -215,6 +215,9 @@
   .health-meal > .health-section-heading { grid-template-columns: minmax(0, 1fr) auto auto; }
   .health-meal > .health-section-heading > span { grid-row: 2; grid-column: 1 / -1; justify-self: start; text-align: start; }
 }
+/* Session AV lane 2 (P-15): an empty meal with no target of its own shows no empty "—" chip; screen readers still hear "No entry". */
+:root .health-meal > .health-section-heading > span.health-meal-figure-empty { padding: 0; border: 0; background: none; }
+:root .health-meal > .health-section-heading > span.health-meal-figure-empty > span[aria-hidden="true"] { display: none; }
 /* Session AL (P-MO-27, MO-080): the view strip's edge cue (data-more-right, components/ui/use-scroll-edges.ts) over its
    own background on a phone. */
 @media (max-width: 767.98px) { .health-views[data-more-right] { box-shadow: inset -26px 0 18px -16px #000000b3; } .health-views[data-more-left] { box-shadow: inset 26px 0 18px -16px #000000b3; } .health-views[data-more-left][data-more-right] { box-shadow: inset 26px 0 18px -16px #000000b3, inset -26px 0 18px -16px #000000b3; } }
@@ -280,6 +283,16 @@ details[open] > summary.health-fold-button { margin-bottom: 10px; }
 .health-meal-names { margin-top: 16px; }
 .health-meal-names > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 600; }
 .health-meal-name-row { margin-top: 12px; }
+/* Session AV lane 2 (food, LEDGER #197): an extra meal's section — "Save this meal" in its heading, and its teaching empty state. */
+.health-extra-save { min-height: 44px; }
+.health-extra-empty, .health-meal-empty { display: grid; gap: 8px; justify-items: start; }
+.health-extra-empty p, .health-meal-empty p { margin: 0; font-size: .9375rem; } /* Session AV lane 2 (polish4): body copy at 15 px */
+.health-extra-empty button, .health-meal-empty button { min-height: 44px; }
+/* Session AV lane 2 (fixb3c): an empty meal says "Nothing logged yet." and offers "Add to …" on one row, close under its
+   heading, so the four empty meals of a fresh day are no taller than before P-15 added the button (Health's phone page is
+   pinned at 7 screens fresh, tests/pillar-phone-length.spec.ts). A narrow screen wraps the button under the words. */
+:root .health-meal > .health-meal-empty { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 0; }
+:root .health-meal:has(> .health-meal-empty):not(:has(.meal-words-list)) > .health-section-heading { margin-bottom: 4px; }
 .import-warnings ul { padding-left: 20px; }
 
 /* Session AL: the lanes' later rules sit above the AK G3 block, so that block stays last and names theme tokens only (lib/illustrations/pillar-art.test.ts). */
@@ -350,3 +363,18 @@ details[open] > summary.health-fold-button { margin-bottom: 10px; }
 .health-repeat-days .checkbox { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; }
 /* Session AV (F-NUTRIENT-RANGE): the nutrient report's own dates. */
 .nutrient-range { display: flex; flex-wrap: wrap; gap: 8px 12px; }
+/* Session AV lane 2 (food; q3 #29): the days one "Repeat on" planned, as one group. */
+.health-plan-group summary { min-height: 44px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; cursor: pointer; }
+/* Session AV lane 2 (phone-length): Health's phone page within its pinned screens (tests/pillar-phone-length.spec.ts).
+   On a phone the Water card's drink, caffeine, energy and sugar fold under the amount (one 44 px row, the whole width;
+   it opens by itself while a drink with its details is corrected), and the card's settings sit in one row at its end
+   ("Your drinks, reminders and tips"; components/health/daily-tools.tsx). The Diary's closed folds under the meals (a meal
+   from a photo, supplements, the cycle log) are rows as tall as their 44 px summary; open, each keeps its panel padding.
+   Desktop is as it was: the drink fold and the settings row are phone markup only, and the rows rule is in the phone query. */
+.health-water .health-form .health-water-drink { grid-column: 1 / -1; min-width: 0; }
+.health-water .health-form .health-water-drink > .health-form-grid { margin-top: 8px; }
+.health-water .health-water-settings > .r3-water { margin-top: 0; }
+.health-water > .phone-fold { margin-top: 12px; }
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  :root .health-content > details.panel:not([open]) { padding-block: 0; margin-bottom: 8px; }
+}

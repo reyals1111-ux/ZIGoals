@@ -27,8 +27,8 @@ export default function FirstFive({goals, habits, meals}: {goals: number; habits
     {done: true, label: 'Open Today', detail: 'You are here: your day at a glance.', href: null},
     {done: goals > 0, label: 'Set a goal', detail: 'A destination: savings, a skill, a habit streak.', href: '/app/goals/new', page: 'goals'},
     {done: habits > 0, label: 'Add a habit', detail: 'One small step you repeat.', href: '/app/habits?add=habit', page: 'habits'},
-    {done: meals > 0 || (mealWords.loaded && mealWords.data.entries.length > 0), label: 'Log a meal', detail: 'What you ate, in your own words or by barcode.', href: '/app/health#health-entry-action', page: 'health'},
-    {done: money.loaded && money.data.entries.length > 0, label: 'Log an expense or income', detail: 'One amount in or out, kept on this device.' /* Session AV (D20-6): the step's words say what ticks it, a money-log entry */, href: '/app/wealth#spending', page: 'wealth'},
+    {done: meals > 0 || (mealWords.loaded && mealWords.data.entries.length > 0), label: 'Log a meal', detail: 'What you ate, in your own words or by barcode.', href: '/app/health?add=entry', page: 'health'} /* Session AV lane 2 (fr-layout, FR-TJ-6): Quick add's own address, which opens the meal form (#health-entry-action left Health at its top) */,
+    {done: money.loaded && money.data.entries.length > 0, label: 'Log an expense or income', detail: 'One amount in or out, kept on this device.' /* Session AV (D20-6): the step's words say what ticks it, a money-log entry */, href: '/app/wealth#log-spending' /* fr-layout, FR-TJ-6: lands on Spending once drawn and opens its form */, page: 'wealth'},
   ];
   // Session AU (ADR-044 F-1, the rehearsal's Sanne and Max): the setup leaves out of the menu the pages of areas not
   // picked, so a step could open a page that greets the person with "This page is hidden". A step whose page is not in

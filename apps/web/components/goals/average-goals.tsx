@@ -7,6 +7,7 @@ import {AVERAGE_METRICS, WINDOWS, addAverageGoal, averageKey, editAverageGoal, l
 import {averageProgress} from '../../lib/average-goals/progress';
 import {setGoalArea, setGoalTemplate} from '../../lib/goal-extras/store';
 import {templateById} from '../../lib/templates/goal-library';
+import {clearHandedName, peekHandedName} from '../../lib/goals/name-hint';
 import {formatExactNumber} from '../../lib/visual-format';
 import {useHealth} from '../health/use-health';
 import {useLocalToday} from '../use-local-today';
@@ -54,7 +55,9 @@ export function AverageGoalCard({goal, ...layout}: LayoutAttrs & {goal: AverageG
 export function AverageGoalForm({templateId}: {templateId?: string}) {
   const t = templateId ? templateById(templateId) : undefined, preset = t?.average;
   const store = useAverageGoals(), extras = useGoalExtras(), router = useRouter(), id = useId();
-  const [name, setName] = useState(t?.title ?? ''), [metric, setMetric] = useState<AverageMetric>(preset?.metric ?? 'sleep-hours');
+  const [name, setName] = useState(() => t?.title ?? peekHandedName() ?? ''), [metric, setMetric] = useState<AverageMetric>(preset?.metric ?? 'sleep-hours');
+  // FR-S-12: the name handed over by the goal wizard (in memory, never in the address) is used once.
+  useEffect(() => clearHandedName(), []);
   const [target, setTarget] = useState(preset && !preset.askTarget ? String(preset.target) : ''), [direction, setDirection] = useState<'at-least' | 'at-most'>(preset?.direction ?? 'at-least');
   const [windowDays, setWindow] = useState<7 | 14 | 30>(preset?.windowDays ?? 7), [unit, setUnit] = useState(preset?.unit ?? AVERAGE_METRICS['sleep-hours'].unit), [error, setError] = useState(''), [targetCheck, setTargetCheck] = useState(''), [targetAsked, setTargetAsked] = useState('');
   // Session AL (DV-184, P-DV-40): a spending cap names the person's currency ("EUR spent a day"), never a bare "spent a day".

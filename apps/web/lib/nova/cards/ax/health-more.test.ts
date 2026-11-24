@@ -104,7 +104,8 @@ test('every Health answer widget has its line, in English and Dutch: one or two 
   expect(en('body-scan')).toBe('Latest measurements: waist 84 cm (today), weight 73.48 kg (yesterday).');
   expect(en('weight-trend')).toBe('Weight: 73.48 kg (Mon, Nov 16), down 1.1 kg since Oct 19. Your goal is 72 kg.');
   expect(en('sleep-stages')).toBe('Sleep stages: recorded for 0 of 6 nights in the last 7 days.');
-  expect(nl('fasting-windows')).toBe('Laatste vastenperiode: 16 h van een doel van 16 h, begonnen op Nov 16. Er loopt geen vastenperiode.');
+  // Session AV lane 2 (loose ends: a Dutch caption writes its date the Dutch way, deliberate)
+  expect(nl('fasting-windows')).toBe('Laatste vastenperiode: 16 h van een doel van 16 h, begonnen op 16 nov. Er loopt geen vastenperiode.');
   expect(en('steps-heat')).toBe('Steps: 7,535 a day on average over the last 13 weeks, on 56 of 86 days logged. Your target of 8,000 was reached on 25.');
   expect(en('health-compare')).toBe('Steps: 16,900 steps this week; 14,100 steps the period before (Mon, Nov 9 to Tue, Nov 10), 2,800 steps more.');
   expect(en('heart-trend')).toBe('No heart rate is recorded yet.'); expect(nl('mood-map')).toBe('Een stemming bewaard op 12 dagen deze maand; meestal Oké (5 dagen).'); // Session AU (D8, deliberate): the Showcase's example moods

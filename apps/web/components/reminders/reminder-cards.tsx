@@ -27,6 +27,7 @@ import {habitCalendarDay} from '../../lib/habits';
 import {MEDITATION_RUN} from '../../lib/meditation/schema';
 import {sessionDay} from '../../lib/meditation/stats';
 import {localDate} from '../../lib/local-date';
+import {boundaryDay} from '../../lib/day-boundary-core';
 import {healthGroupIn} from '../../lib/vault/w-homes';
 import {HEALTH_EXTRAS} from '../../lib/health-extras';
 import {dismissFastStart, dismissMeal, fastStartDue, mealsDue} from '../../lib/meal-reminders';
@@ -37,6 +38,8 @@ import './reminders.css';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import {LoadBoundary} from '../load-boundary';
 import {everyHalfMinute} from '../half-minute';
+import {reminderWordsIn} from '../../lib/habit-reminder-words';
+import {HABIT_EXTRAS_KEY} from '../../lib/aa-device-keys';
 
 /**
  * Reminder cards on Today (Session I, Part 8): in-app only (no notification, no permission), from the times set on
@@ -83,7 +86,7 @@ export function ReminderCards({habits, health}: {habits?: HabitData; health?: He
   // Session W Part 4: the wind-down time, until a night is running (Health → Sleep).
   const windDown = wReminders.loaded && !wReminders.unreadable ? windDownDue({w: wReminders.data, running: !!health && (healthGroupIn(health, 'sleep')?.nights ?? []).some(n => n.end === null), now}) : null;
   // Session W Part 5: the meditation time, until a session is logged today or one runs (Health → Meditation).
-  const meditation = wReminders.loaded && !wReminders.unreadable && meditationRun.loaded ? meditationDue({w: wReminders.data, doneToday: !!health && (healthGroupIn(health, 'meditation')?.sessions ?? []).some(s => sessionDay(s) === localDate(now)), running: !!meditationRun.data.run, now}) : null;
+  const meditation = wReminders.loaded && !wReminders.unreadable && meditationRun.loaded ? meditationDue({w: wReminders.data, doneToday: !!health && (healthGroupIn(health, 'meditation')?.sessions ?? []).some(s => sessionDay(s) === boundaryDay(now, null)), running: !!meditationRun.data.run, now}) : null;
   // Session W Part 10: a stack's chained reminder, once the habit before it is done today.
   let chained: ReturnType<typeof chainedDue> = [];
   try { chained = habits && wReminders.loaded && !wReminders.unreadable ? chainedDue(wReminders.data, habits, habitCalendarDay(habits, now)) : []; } catch { chained = []; }
@@ -99,6 +102,8 @@ export function ReminderCards({habits, health}: {habits?: HabitData; health?: He
   // Session AL Part 15 (AL-COMPETITOR-GAP-049/067/081): the chosen meal is in the Diary today, so a fast may start.
   let fastStart: ReturnType<typeof fastStartDue> = null;
   try { fastStart = extras.loaded && !extras.unreadable && fasting.loaded && !fasting.unreadable ? fastStartDue({extras: extras.data, health, sessions: fasting.data.sessions, now}) : null; } catch { fastStart = null; }
+  // Session AV lane 2 (health r3; LEDGER #275): a habit reminder in the person's own words, when they wrote some.
+  const ownWords = (habitId: string) => { try { const words = reminderWordsIn(getAppStorage().getItem(HABIT_EXTRAS_KEY), habitId); return words ? `${words} Not done yet today.` : null; } catch { return null; } };
   if (!due.length && !windDown && !meditation && !chained.length && !contributions.length && !planned.length && !meals.length && !fastStart && !zigi && !error) return null;
   const dismiss = (reminder: DueReminder) => {
     try { reminders.update(reminder.day, current => dismissForToday(current, reminder.id, reminder.day)); setError(''); }
@@ -109,7 +114,7 @@ export function ReminderCards({habits, health}: {habits?: HabitData; health?: He
     {due.map(reminder => <article key={reminder.id} className="panel reminder-card" aria-label={`Reminder: ${reminder.title}`}>
       <p className="eyebrow">Reminder · {reminder.time} · on this device</p>
       <h2>{reminder.kind === 'water' ? 'Time for some water' : reminder.title}</h2>
-      <p>{reminder.kind === 'water' ? 'Nothing is logged yet today, or it is still below your target.' : 'Not done yet today.'}</p>
+      <p>{reminder.kind === 'water' ? 'Nothing is logged yet today, or it is still below your target.' : ownWords(reminder.id) ?? 'Not done yet today.'}</p>
       <div className="reminder-card-actions">
         <Link className="secondary" href={reminder.href}>{reminder.kind === 'water' ? 'Open water journal' : 'Open habit'}</Link>
         <button type="button" className="quiet" onClick={() => dismiss(reminder)}>Dismiss for today</button>

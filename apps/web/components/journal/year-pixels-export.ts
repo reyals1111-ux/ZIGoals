@@ -11,7 +11,8 @@ const BG_RGB = [11, 19, 39] as const, TOP = [206, 196, 255] as const, SHARE = [0
 /** A violet ramp from the night background: each level is lighter than the last, so the levels differ in lightness, not hue alone. */
 export const levelColour = (v: number) => { const t = SHARE[v - 1] ?? 0; return `rgb(${BG_RGB.map((c, i) => Math.round(c + (TOP[i]! - c) * t)).join(',')})`; };
 
-export function drawPixels(canvas: HTMLCanvasElement, grid: PixelYear, metric: PixelMetric, year: number): void {
+/** `moodWords`: the person's own mood words in the key (Session AV lane 2, LEDGER #178), else the app's. */
+export function drawPixels(canvas: HTMLCanvasElement, grid: PixelYear, metric: PixelMetric, year: number, moodWords?: readonly string[]): void {
   const cols = grid.weeks.length, width = PAD * 2 + cols * (CELL + GAP) - GAP, height = HEAD + 7 * (CELL + GAP) - GAP + KEY + PAD;
   canvas.width = width; canvas.height = height;
   const ctx = canvas.getContext('2d');
@@ -33,15 +34,15 @@ export function drawPixels(canvas: HTMLCanvasElement, grid: PixelYear, metric: P
   ctx.font = '13px system-ui, sans-serif';
   for (let v = 1; v <= 5; v++) {
     ctx.fillStyle = levelColour(v); ctx.beginPath(); ctx.roundRect(x, y - 11, CELL, CELL, 3); ctx.fill();
-    const label = `${levelWord(metric, v)} ${grid.counts[v - 1]}`;
+    const label = `${levelWord(metric, v, moodWords)} ${grid.counts[v - 1]}`;
     ctx.fillStyle = TEXT; ctx.fillText(label, x + CELL + 6, y);
     x += CELL + 6 + ctx.measureText(label).width + 16;
   }
   ctx.fillStyle = MUTED; ctx.fillText('Made with ZIGoals, on this device.', PAD, y + 24);
 }
-export async function downloadPixelsPng(grid: PixelYear, metric: PixelMetric, year: number): Promise<void> {
+export async function downloadPixelsPng(grid: PixelYear, metric: PixelMetric, year: number, moodWords?: readonly string[]): Promise<void> {
   const canvas = document.createElement('canvas');
-  drawPixels(canvas, grid, metric, year);
+  drawPixels(canvas, grid, metric, year, moodWords);
   const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
   if (!blob) throw Error('The image could not be made.');
   const url = URL.createObjectURL(blob), link = document.createElement('a');

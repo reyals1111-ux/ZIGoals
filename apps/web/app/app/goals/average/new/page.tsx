@@ -7,7 +7,8 @@ import type {Metadata} from 'next';
 export const metadata: Metadata = {title: 'Keep an average'};
 export default async function Page({searchParams}: {searchParams: Promise<{template?: string | string[]}>}) {
   // A repeated parameter arrives as a list; only its first value is read.
-  const raw = (await searchParams).template, template = Array.isArray(raw) ? raw[0] : raw;
+  const params = await searchParams, first = (v: string | string[] | undefined) => Array.isArray(v) ? v[0] : v;
+  const template = first(params.template);
   return <div className="dashboard average-goal-new">
     <PageHeader className="page-heading" eyebrow="A goal you keep" title="Keep an average" lede="Sleep, steps, water or your own measure, held over a rolling window. Kept on this device for now." art={<OrbitArt glyph={AverageGlyph} tone="goals" spin={-40}/>} />
     <AverageGoalForm templateId={template} />

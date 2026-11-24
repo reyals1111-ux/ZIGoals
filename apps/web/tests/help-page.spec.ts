@@ -1,6 +1,7 @@
 import {LOGO_INTRO_KEY} from '../components/logo-intro-decision';
 import {expect, test} from '@playwright/test';
 import {openSettings} from './settings-open';
+import {chooseChain} from './chain-choice';
 
 // Help (Session L): structure, wording that follows the owner principle, keyboard, motion, phones, and no requests or
 // writes on view.
@@ -51,7 +52,39 @@ const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret',
 // Session AJ (ADR-035, deliberate): nineteen topics, AJ's after AF's.
 // Session AK (ADR-036, deliberate): twenty topics, AK's after AJ's.
 // Session AK G2 (RELEASE_REVIEW R24, deliberate): eleven task-shaped topics; the release notes under "Earlier updates".
-test('Help has one title and twelve topics, listed before them, each linking to its section', async ({page}) => {
+// Session AV lane 2 (restore-b, PK-10): the profile a new person meets has not chosen the chain, so its topic index and two
+// section titles say plain words (lib/help/chain-help.ts CHAIN_HELP_PLAIN); its own exact lists, every other entry the same.
+const FRESH_SECTIONS: [id: string, title: string][] = [
+  ['getting-started', 'Three small first steps'], ['data-and-sync', 'Where your data lives'], ['recovery-secret', 'The one thing to keep safe'],
+  ['install', 'Install ZIGoals on your iPhone'], ['backups', 'An extra safety net, never a chore'], ['your-ai', 'Your own AI, page by page'],
+  ['nova', 'Your command center, your notes and your day'], ['more-pages', 'More pages and Chess'], ['questions', 'Good to know about the Alpha'],
+  ['whole-life', 'Sleep, mind, music, chess, links and more'],
+  ['aa', 'Deeper Habits and Health, and ZIGi knows every bit of it'],
+  ['ab', 'Everything travels with you, and nothing is lost'],
+  ['abd', 'Goals, Habits & Health = Wealth, in one calm look'],
+  ['ac', 'Each thing once, and a calmer page'],
+  ['ad', 'The final look, and three ways to see it'],
+  ['ae', 'One scene from top to end, and three finished looks'],
+  ['af', 'ZIGi, and your day as one path'],
+  ['aj', 'Price alerts, Guided journeys, sleep balance and your own look'],
+  ['ak', 'Notifications, offline, food, money and your own days'], ['whats-new-alpha', 'New in this Alpha, in your own words'],
+  ['earlier-changes', 'Smaller changes, and where things moved'], ['earlier-updates', 'Earlier updates'],
+  ['known-limitations', 'What the Alpha can’t do yet'], ['feedback', 'Tell us what you think'],
+];
+const FRESH_TOPIC_IDS = ['getting-started', 'data-and-sync', 'recovery-secret', 'install', 'backups', 'your-ai', 'nova', 'more-pages', 'questions', 'whats-new-alpha', 'earlier-updates', 'known-limitations', 'feedback'];
+const FRESH_TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · your companion', 'NOVA, notes and tasks', 'More pages and Chess', 'Questions', 'What\'s new', 'Earlier updates', 'Known limitations', 'Send feedback'];
+
+// Session AV lane 2 (restore-b): the same test runs on both profiles. `chain` chooses the chain first, the way Settings
+// does, and checks the chain titles; the fresh profile checks its own plain ones; every check is the same on both.
+const PROFILES = [
+  {label: '', chain: true, sections: SECTIONS, topicIds: TOPIC_IDS, topics: TOPICS},
+  {label: ' (a fresh profile, the chain not chosen)', chain: false, sections: FRESH_SECTIONS, topicIds: FRESH_TOPIC_IDS, topics: FRESH_TOPICS},
+];
+
+for (const {label, chain, sections: SECTIONS, topicIds: TOPIC_IDS, topics: TOPICS} of PROFILES) test(`Help has one title and twelve topics, listed before them, each linking to its section${label}`, async ({page}) => {
+  // Session AV lane 2 (PK-10: chain answers wait for the chain choice, deliberate): the chain run pins the chain topic’s and sections’ chain titles, so the person
+  // chooses the chain first, the way Settings does; every check below is unchanged. restore-b: the fresh run is the test as it was before PK-10, with its own titles.
+  if (chain) await chooseChain(page);
   await page.goto('/app/help');
   await expect(page.getByRole('heading', {level: 1})).toHaveText('Help.');
   const nav = page.getByRole('navigation', {name: 'Help topics'}), topics = nav.getByRole('link');
@@ -88,6 +121,10 @@ test('Help has one title and twelve topics, listed before them, each linking to 
   await expect(page).toHaveURL(/#more-pages$/);
   await topics.nth(8).click();
   await expect(page).toHaveURL(/#questions$/);
+  // restore-b: neither profile shows the other's headings.
+  const other = chain ? FRESH_SECTIONS : PROFILES[0]!.sections;
+  for (const [id, title] of other.filter(([id, title]) => title !== SECTIONS.find(([own]) => own === id)![1])) await expect(page.getByRole('region', {name: title, exact: true}), id).toHaveCount(0);
+  if (!chain) await expect(nav).not.toContainText(/Earn|Staking/);
 });
 
 test("What's new (Session P): eleven linkable questions; a hash opens its answer and writes nothing", async ({page}) => {
@@ -109,6 +146,9 @@ test("What's new (Session P): eleven linkable questions; a hash opens its answer
 });
 
 test('the wording follows the owner principle: sync once, backups optional, login is not recovery', async ({page}) => {
+  // Session AV lane 2 (PK-10: chain answers wait for the chain choice, deliberate): this test pins “Are my Goals on the blockchain?”, so the person
+  // chooses the chain first, the way Settings does; every check below is unchanged. A fresh profile is av2-pk10-chain-help.spec.ts.
+  await chooseChain(page);
   await page.goto('/app/help');
   const data = page.getByRole('region', {name: 'Where your data lives'});
   await expect(data).toContainText('turn on encrypted sync once');
@@ -191,7 +231,13 @@ test('the title sweeps once, and stays still under reduced motion', async ({page
   await expect(page.locator('#help-title .nebula-flow')).not.toHaveAttribute('data-entrance', 'once');
 });
 
-for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links, buttons and questions at least 44 px tall`, async ({page}) => {
+// Session AV lane 2 (restore-b): both profiles, each with its own exact in-sentence link count (`links`, below).
+// A fresh profile has 75: the 78 less the three in the chain answer al-more-pages, which waits for the chain choice.
+const FRESH_INLINE_LINKS = 75;
+for (const {label, chain, links} of [{label: '', chain: true, links: 78}, {label: ' (a fresh profile, the chain not chosen)', chain: false, links: FRESH_INLINE_LINKS}]) for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links, buttons and questions at least 44 px tall${label}`, async ({page}) => {
+  // Session AV lane 2 (PK-10: chain answers wait for the chain choice, deliberate): the chain run pins the 78 in-sentence links, three of them in the chain answer al-more-pages, so the person
+  // chooses the chain first, the way Settings does; every check below is unchanged. restore-b: the fresh run is the test as it was before PK-10, with its own count.
+  if (chain) await chooseChain(page);
   await page.setViewportSize({width, height: 844});
   await page.goto('/app/help');await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   // Session AM: the count below is taken once every answer's links are laid out. The answers far down the page get
@@ -228,7 +274,7 @@ for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links,
     }
     return out;
   });
-  await expect.poll(async () => (await measure()).inline, {timeout: 15_000}).toBe(78);
+  await expect.poll(async () => (await measure()).inline, {timeout: 15_000}).toBe(links);
   const {small, inline, stranded, tall} = await measure();
   expect(small).toEqual([]);
   // Gate C test audit (equal strength restored): the exemption covers exactly the in-sentence links Help has today, so a
@@ -248,7 +294,8 @@ for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links,
   // inside their sentences (72 → 74).
   // Session AM (deliberate): NOVA's new answers link inside their sentences: "What does NOVA's weather send" to the
   // stage's answer, Plans from the rename answer, MET Norway's privacy statement and the CC BY 4.0 licence (with Session AP's two: 72 → 78).
-  expect(inline).toBe(78);
+  // Session AV lane 2 (restore-b): 78 with the chain chosen; a fresh profile has FRESH_INLINE_LINKS (its own exact count).
+  expect(inline).toBe(links);
   expect(stranded).toEqual([]);
   expect(tall).toEqual([]);
 });
@@ -271,6 +318,9 @@ test('at phone width the top bar names Help and steps back to Settings', async (
 
 // Session W Part 24: every new feature has a linkable answer under "New: your whole life"; a hash opens it.
 test('New: your whole life: twenty linkable questions; a hash opens its answer and writes nothing', async ({page}) => {
+  // Session AV lane 2 (PK-10: chain answers wait for the chain choice, deliberate): this test pins w-portfolio among the section’s twenty answers, so the person
+  // chooses the chain first, the way Settings does; every check below is unchanged. A fresh profile is av2-pk10-chain-help.spec.ts.
+  await chooseChain(page);
   await page.goto('/app/help');
   const section = page.getByRole('region', {name: 'Sleep, mind, music, chess, links and more', exact: true});
   const ids = ['w-pages', 'w-welcome', 'w-sleep', 'w-meditation', 'w-sounds', 'w-import', 'w-devices', 'w-quick', 'w-habits', 'w-goals', 'w-wealth', 'w-wrapup', 'w-chess', 'w-portfolio', 'w-links', 'w-music', 'w-signout', 'z-step-up', 'w-newer-section', 'w-web-limits'];
@@ -411,6 +461,9 @@ test('Session AD: the final-look answers open from a hash, and nothing is writte
 // finished, so neither this section nor AD's themes answer calls them previews; the wallet answers keep the Alpha's
 // safety facts (read-only, nothing signed or sent, on this device only); nothing is written.
 test('Session AE: the stunning-finished answers open from a hash, and nothing is written', async ({page}) => {
+  // Session AV lane 2 (PK-10: chain answers wait for the chain choice, deliberate): this test pins ae-wallets and ae-wallet-card and the section’s nine answers, so the person
+  // chooses the chain first, the way Settings does; every check below is unchanged. A fresh profile is av2-pk10-chain-help.spec.ts.
+  await chooseChain(page);
   await page.goto('/app/help');
   // As above: every answer is listed and closed once the page has loaded (the workspace shows after its stores are read).
   const ids = ['ae-scene', 'ae-finale', 'ae-themes', 'ae-sidebar', 'ae-header-art', 'ae-wallets', 'ae-wallet-card', 'ae-habits', 'ae-music'];
@@ -446,6 +499,9 @@ test('Session AE: the stunning-finished answers open from a hash, and nothing is
 // keeps the safety facts (your own wallet, a review screen first, ZIGoals never sees keys); the Earn answer says nothing is
 // ranked or signed; the Checklist answers say what a tick writes and that the path stays on this device; nothing is written.
 test('Session AF: the wealth-unlocked answers open from a hash, and nothing is written', async ({page}) => {
+  // Session AV lane 2 (PK-10: chain answers wait for the chain choice, deliberate): this test pins the twelve Earn, staking and wallet answers and the section’s title, so the person
+  // chooses the chain first, the way Settings does; every check below is unchanged. A fresh profile is av2-pk10-chain-help.spec.ts.
+  await chooseChain(page);
   await page.goto('/app/help');
   const ids = ['af-earn', 'af-staking', 'af-governance', 'af-practice-badges', 'af-start-here', 'af-academy', 'af-earn-dock', 'af-validator-alerts', 'af-wallets', 'af-add-money', 'af-goal-vaults', 'af-brief', 'af-zigi-checklist', 'af-plans', 'af-page-awareness', 'ai-what-sent', 'af-earn-coach', 'af-zigi-memory', 'af-universe', 'af-timeline', 'af-stories', 'af-checklist', 'af-checklist-star', 'af-checklist-tick', 'af-checklist-streak', 'ag-orbit', 'ag-polish', 'ag2-quick-add', 'ag2-planets', 'ag2-progress', 'ag2-celebration', 'af-checklist-timers', 'af-checklist-launcher'];
   const section = page.getByRole('region', {name: 'Earn, stake in your own wallet, and your day as one path', exact: true});
@@ -506,6 +562,9 @@ test('Session AF: the wealth-unlocked answers open from a hash, and nothing is w
 // Session AK (ADR-036): one answer per feature group, each opening from its hash; the tour opens in place from its button
 // (no dialog, the page stays usable), and nothing is written until the person opens it.
 test('Session AK: the answers open from a hash, the tour opens in place, and nothing is written on view', async ({page}) => {
+  // Session AV lane 2 (PK-10: chain answers wait for the chain choice, deliberate): this test pins ak-wallets and ak-staking-clarity among the section’s answers, so the person
+  // chooses the chain first, the way Settings does; every check below is unchanged. A fresh profile is av2-pk10-chain-help.spec.ts.
+  await chooseChain(page);
   await page.goto('/app/help');
   const section = page.getByRole('region', {name: 'Notifications, offline, food, money and your own days', exact: true});
   // Owner follow-ups 1 and 2 (deliberate): the section gained answers for the new features since; the list is the page's.

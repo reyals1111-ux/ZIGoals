@@ -15,6 +15,17 @@ async function fresh(page: Page, path = '/app/health') {
   await page.locator('html[data-app-hydrated]').waitFor({state: 'attached'});
   // The parts the page loads right after its first paint are in before the "deploy" (a deploy meets a page that has settled).
   await page.waitForLoadState('networkidle');
+  // Session AV lane 2 (CI run 2026): settled includes the page's idle work (the update recovery loads then), and its files.
+  await page.evaluate(() => new Promise<void>(done => { const idle = (window as Window & {requestIdleCallback?: (cb: () => void, o?: {timeout: number}) => number}).requestIdleCallback; if (idle) idle(() => done(), {timeout: 10_000}); else setTimeout(done, 2_000); }));
+  await quiet(page);
+}
+/** No request of the page in flight for half a second. */
+async function quiet(page: Page) {
+  const open = new Set<unknown>(); let last = Date.now();
+  const start = (r: unknown) => { open.add(r); last = Date.now(); }, end = (r: unknown) => { open.delete(r); last = Date.now(); };
+  page.on('request', start); page.on('requestfinished', end); page.on('requestfailed', end);
+  try { await expect.poll(() => open.size === 0 && Date.now() - last >= 500, {timeout: 15_000, intervals: [100]}).toBe(true); }
+  finally { page.off('request', start); page.off('requestfinished', end); page.off('requestfailed', end); }
 }
 /** The app's own server now names another build on every page, as after a deploy. */
 async function serverServes(page: Page, build: string) {
@@ -112,7 +123,10 @@ test('a page change answered by a server of another version loads the new versio
   let documents = 0;
   page.on('request', request => { if (request.isNavigationRequest() && request.frame() === page.mainFrame()) documents += 1; });
   // Every page-data answer now comes from another deployment (Next compares it with this page's own build).
-  await page.route(url => url.searchParams.has('_rsc'), async route => { const response = await route.fetch(); await route.fulfill({response, headers: {...response.headers(), 'x-nextjs-deployment-id': 'another-deployment'}}); });
+  // Session AV lane 2 (deliberate, the mock only): the full load this test expects abandons the page-data requests still
+  // in flight, and answering one of those threw "Fetch response has been disposed" (1 of 6 here). Such a request is
+  // let go; every assertion below is unchanged.
+  await page.route(url => url.searchParams.has('_rsc'), async route => { try { const response = await route.fetch(); await route.fulfill({response, headers: {...response.headers(), 'x-nextjs-deployment-id': 'another-deployment'}}); } catch { /* the page abandoned this request */ } });
   const nav = page.getByRole('navigation').first().getByRole('link', {name: 'Habits', exact: true});
   if (await nav.isVisible()) await nav.click(); else await page.getByRole('link', {name: 'Habits', exact: true}).first().click();
   await page.waitForURL('**/app/habits');

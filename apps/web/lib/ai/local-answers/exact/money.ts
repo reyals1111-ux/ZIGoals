@@ -1,5 +1,6 @@
 import {byCategory, cents, fromCents} from '../../../money-log/engine';
 import type {MoneyEntry} from '../../../money-log/schema';
+import {countedCents, countedKind, inFigures} from '../../../money-log/counted';
 import {detectBills, openCandidates} from '../../../bills/detect';
 import {billPriceChange, candidatePriceChange, type PriceChange} from '../../../bills/price-change';
 import {billsCard} from '../../../nova/cards/bills';
@@ -8,13 +9,14 @@ import {formatCurrencyAmount, formatMonth, formatPercent} from '../../../visual-
 import type {ToolEnv} from '../../tools/env';
 import {text as clean} from '../../tools/format';
 import {runTool} from '../../tools/registry';
-import {dayWords, periodSpan, periodWords, previousPeriod, resolvePeriod, type Period} from './period';
+import {dayIn, monthIn, nlDay, periodSpan, periodWords, previousPeriod, resolvePeriod, type Period} from './period';
 import {dayList} from './series';
 import {listWords, t} from './text';
 import {periodFor} from './track';
 import type {Exact, ExactWidget, Query} from './types';
 import {DEBT_PLANNER_WHERE, DEBT_PLANNER_WHERE_NL, debtFreeMonth, debtMoney, debtView, type DebtCurrencyView} from '../../tools/f9-debt';
-import {countdownWords, type PlanResult} from '../../../debt-planner/plan';
+import {countdownWords, payoffMonth, type PlanResult} from '../../../debt-planner/plan';
+import {watchedHoldings, watchedWords} from '../fr-wallets';
 
 /**
  * Session AS (ADR-042, Part 1): money, exactly, from the money log, the budgets, the bills and Wealth's own totals. Every
@@ -25,11 +27,16 @@ const SOURCE = ['Your money log', 'Je geldlog'] as const;
 const money = (amountCents: number, currency: string) => formatCurrencyAmount(fromCents(amountCents), currency);
 const plain = (name: string) => clean(name.replace(/\s*[·:•|–-]?\s*\(?SHOWCASE DATA\)?.*$/i, '').replace(/^Example · /, '').trim() || name.trim(), 80);
 type Kind = 'expense' | 'income';
-/** The entries of one kind inside a period, in the currency that carries most of them. */
+/**
+ * The counted entries of one kind inside a period, in the currency that carries most of them. Review b2a #1: by Wealth →
+ * Spending's rule (lib/money-log/counted.ts `countedCents`): entries left out, Settle-up refunds and transfers are not in
+ * it, and a shared cost counts the person's own share, so "how much did I spend" says what Wealth → Spending says.
+ */
 export function ledger(entries: readonly MoneyEntry[], kind: Kind, p: Period, category?: string | null) {
-  const inRange = entries.filter(e => e.kind === kind && e.date >= p.from && e.date <= p.to && (p.weekday === null || p.days.includes(e.date)) && (!category || e.category.toLowerCase() === category.toLowerCase()));
+  // Round 6 (#425): a refund is spending below zero in its category, never income.
+  const inRange = entries.filter(e => countedKind(e) === kind && inFigures(e) && e.date >= p.from && e.date <= p.to && (p.weekday === null || p.days.includes(e.date)) && (!category || e.category.toLowerCase() === category.toLowerCase()));
   const per = new Map<string, number>();
-  for (const e of inRange) per.set(e.currency, (per.get(e.currency) ?? 0) + cents(e.amount));
+  for (const e of inRange) per.set(e.currency, (per.get(e.currency) ?? 0) + countedCents(e));
   const ranked = [...per.entries()].sort((a, b) => b[1] - a[1]), currency = ranked[0]?.[0] ?? null, own = inRange.filter(e => e.currency === currency);
   return {own, currency, total: ranked[0]?.[1] ?? 0, others: ranked.slice(1).map(([c, v]) => ({currency: c, cents: v, text: money(v, c)}))};
 }
@@ -42,7 +49,7 @@ export function spendingAnswer(q: Query, env: ToolEnv): Exact | null {
   // Session AV (1c, q2 #21): a total with no period named is this month's, as in English ("hoeveel heb ik uitgegeven aan
   // boodschappen" was today's: the generic default of a total), never a single day.
   const p = !q.period && q.weekday === null && (q.ask === 'total' || q.ask === 'done') ? resolvePeriod('this-month', today)! : periodFor({...q, shape: 'amount'}, today, 'this-month'), category = q.subject?.kind === 'category' ? q.subject.name : null;
-  const now = ledger(log.entries, kind, p, category), span = periodSpan(p, lang, today), day = (d: string) => dayWords(d, today), cur = now.currency;
+  const now = ledger(log.entries, kind, p, category), span = periodSpan(p, lang, today), day = (d: string) => dayIn(lang, d, today), cur = now.currency;
   const what = category ? `${plain(category)}: ` : '', verb = income ? t(lang, 'came in', 'binnengekomen') : t(lang, 'spent', 'uitgegeven');
   const others = now.others.length ? t(lang, ` Also ${listWords(now.others.map(o => o.text), 'en')} in other currencies.`, ` Ook ${listWords(now.others.map(o => o.text), 'nl')} in andere valuta.`) : '';
   // Session AS (Part 2): income's sources ranked when asked which or where from; a long period of spending as a heat map.
@@ -60,7 +67,10 @@ export function spendingAnswer(q: Query, env: ToolEnv): Exact | null {
   }
   // The largest single entry ("my biggest expense").
   if ((q.ask === 'best' || q.ask === 'worst') && /\b(?:expense|purchase|payment|entry|uitgave|aankoop|betaling)\b/.test(q.read)) {
-    const hit = now.own.reduce((a, e) => (q.ask === 'best' ? cents(e.amount) > cents(a.amount) : cents(e.amount) < cents(a.amount)) ? e : a);
+    // Review B6O-10: a period whose spending is only refunds has no purchase to name (and `reduce` of nothing throws).
+    const list = now.own.filter(e => e.kind === kind);
+    if (!list.length) return out(t(lang, `${what}No ${income ? 'income entry' : 'purchase'} logged ${span}${income ? '' : ', only money back (refunds)'}.`, `${what}Geen ${income ? 'inkomst' : 'aankoop'} gelogd ${span}${income ? '' : ', alleen geld terug (terugbetalingen)'}.`), {...base, entry: null}, widgets, p);
+    const hit = list.reduce((a, e) => (q.ask === 'best' ? cents(e.amount) > cents(a.amount) : cents(e.amount) < cents(a.amount)) ? e : a);
     return out(t(lang, `Your ${q.ask === 'best' ? 'largest' : 'smallest'} ${income ? 'income entry' : 'expense'} ${span}: ${money(cents(hit.amount), cur)} on ${day(hit.date)} (${plain(hit.note?.trim() || hit.category)}).`, `Je ${q.ask === 'best' ? 'grootste' : 'kleinste'} ${income ? 'inkomst' : 'uitgave'} ${span}: ${money(cents(hit.amount), cur)} op ${day(hit.date)} (${plain(hit.note?.trim() || hit.category)}).`), {...base, entry: {day: hit.date, cents: cents(hit.amount), category: hit.category}}, widgets, p);
   }
   // Days without an entry, or with one.
@@ -85,14 +95,16 @@ export function spendingAnswer(q: Query, env: ToolEnv): Exact | null {
 export function budgetsAnswer(q: Query, env: ToolEnv): Exact | null {
   const lang = q.lang, today = env.habitDay, record = env.nova?.budgets, log = env.moneyLog;
   if (!record || !log) return null;
-  const card = budgetsCard(record, log.entries, today);
+  const card = budgetsCard(record, log.entries, today, lang === 'nl' ? m => monthIn('nl', m) : undefined);
   const out = (text: string, facts: Record<string, unknown>): Exact => ({kind: 'answer', text, facts: {about: 'budgets', ask: q.ask, month: card.month, ...facts}, widgets: [{id: 'budget-gauges', fallback: 'budgets'}], query: q, source: t(lang, 'Your budgets and money log', 'Je budgetten en geldlog')});
   if (card.state === 'empty') return out(t(lang, 'You have no budgets yet.', 'Je hebt nog geen budgetten.'), {budgets: 0});
   const rows = card.lines.map(l => ({category: plain(l.category), over: l.over, spent: l.spent, available: l.available, words: l.words, share: l.share, ...(l.target ? {target: l.target} : {})})), over = rows.filter(r => r.over), facts = {count: card.count, within: card.within, over: over.map(r => r.category), lines: rows};
   const nlWords = (r: typeof rows[number]) => r.over ? `over het budget (${r.spent} van ${r.available})` : `${r.spent} van ${r.available}`;
   const one = q.subject?.kind === 'category' ? rows.find(r => r.category.toLowerCase() === plain(q.subject!.name).toLowerCase()) : null;
   // Session AV (F-BUDGET-TARGETS): a budget with a target says it after the month's figures.
-  if (one) return out(t(lang, `${one.category}: ${one.spent} of ${one.available} this month, ${one.words}${one.target ? `; ${one.target.en}` : ''}.`, `${one.category}: ${nlWords(one)} deze maand${one.target ? `; ${one.target.nl}` : ''}.`), {...facts, budget: one});
+  // Session AV lane 2 (fr-money, FR-L-3): the Dutch answer says what is left too, as the English one does ("nog € 54,65 over").
+  const nlLeft = (r: typeof rows[number]) => { const l = card.lines[rows.indexOf(r)]!; return l.over ? '' : l.leftCents === 0 ? ', helemaal op' : `, nog ${money(l.leftCents, l.currency)} over`; };
+  if (one) return out(t(lang, `${one.category}: ${one.spent} of ${one.available} this month, ${one.words}${one.target ? `; ${one.target.en}` : ''}.`, `${one.category}: ${nlWords(one)} deze maand${nlLeft(one)}${one.target ? `; ${one.target.nl}` : ''}.`), {...facts, budget: one});
   if (q.ask === 'late' || q.ask === 'missed' || q.ask === 'worst' || /\b(?:over|exceeded|blown|overschreden)\b/.test(q.read)) return out(over.length
     ? t(lang, `${over.length} of ${card.count} budgets ${over.length === 1 ? 'is' : 'are'} over this month: ${listWords(over.map(r => `${r.category} (${r.spent} of ${r.available})`), 'en')}.`, `${over.length} van je ${card.count} budgetten ${over.length === 1 ? 'is' : 'zijn'} deze maand overschreden: ${listWords(over.map(r => `${r.category} (${r.spent} van ${r.available})`), 'nl')}.`)
     : t(lang, `No budget is over this month: all ${card.count} are within plan.`, `Geen budget is deze maand overschreden: alle ${card.count} zitten binnen plan.`), facts);
@@ -106,7 +118,7 @@ export function billsAnswer(q: Query, env: ToolEnv): Exact | null {
   if (PRICE_CHANGE.test(q.read)) return priceChanges(q, env, record);
   const card = billsCard(record, today), nl = lang === 'nl';
   const due = (days: number) => nl ? (days === 0 ? 'vandaag' : days === 1 ? 'morgen' : days > 1 ? `over ${days} dagen` : `${-days} ${days === -1 ? 'dag' : 'dagen'} te laat`) : (days === 0 ? 'today' : days === 1 ? 'tomorrow' : days > 1 ? `in ${days} days` : `overdue by ${-days} ${days === -1 ? 'day' : 'days'}`);
-  const line = (l: typeof card.lines[number]) => `${plain(l.title)} ${l.amount}, ${due(l.days)} (${l.date})`;
+  const line = (l: typeof card.lines[number]) => `${plain(l.title)} ${l.amount}, ${due(l.days)} (${nl ? nlDay(l.due, today) : l.date})`;
   const out = (text: string, facts: Record<string, unknown>, widgets: ExactWidget[] = [{id: 'bill-timeline', fallback: 'bills'}]): Exact => ({kind: 'answer', text, facts: {about: 'bills', ask: q.ask, ...facts}, widgets, query: q, source: t(lang, 'Your bill reminders', 'Je rekeningen')});
   if (card.state === 'empty') return out(t(lang, 'No bill reminders yet.', 'Nog geen rekeningen als herinnering.'), {bills: 0});
   const rows = card.lines.map(l => ({bill: plain(l.title), amount: l.amount, due: l.due, days: l.days, overdue: l.overdue})), facts = {count: rows.length, bills: rows};
@@ -136,7 +148,7 @@ function priceChanges(q: Query, env: ToolEnv, record: NonNullable<NonNullable<To
   const lang = q.lang, today = env.habitDay, entries = env.moneyLog?.entries ?? [], candidates = openCandidates(detectBills(entries, today), record);
   const compared = record.bills.filter(b => b.origin === 'detected' && b.matchKey).length + candidates.length;
   const rows: {title: string; c: PriceChange}[] = [...record.bills.flatMap(b => { const c = billPriceChange(b, entries, today); return c ? [{title: plain(b.title), c}] : []; }), ...candidates.flatMap(k => { const c = candidatePriceChange(k, entries, today); return c ? [{title: plain(k.title), c}] : []; })];
-  const line = (r: typeof rows[number]) => t(lang, `${r.title} went ${r.c.direction} from ${money(r.c.previous, r.c.currency)} to ${money(r.c.latest, r.c.currency)} since ${formatMonth(r.c.sinceMonth)}`, `${r.title} ging ${r.c.direction === 'up' ? 'omhoog' : 'omlaag'} van ${money(r.c.previous, r.c.currency)} naar ${money(r.c.latest, r.c.currency)} sinds ${formatMonth(r.c.sinceMonth)}`);
+  const line = (r: typeof rows[number]) => t(lang, `${r.title} went ${r.c.direction} from ${money(r.c.previous, r.c.currency)} to ${money(r.c.latest, r.c.currency)} since ${formatMonth(r.c.sinceMonth)}`, `${r.title} ging ${r.c.direction === 'up' ? 'omhoog' : 'omlaag'} van ${money(r.c.previous, r.c.currency)} naar ${money(r.c.latest, r.c.currency)} sinds ${monthIn('nl', r.c.sinceMonth)}`);
   const up = rows.filter(r => r.c.direction === 'up'), down = rows.filter(r => r.c.direction === 'down');
   const facts = {about: 'bills', ask: q.ask, compared, changes: rows.map(r => ({bill: r.title, direction: r.c.direction, previousCents: r.c.previous, latestCents: r.c.latest, currency: r.c.currency, previousDate: r.c.previousDate, latestDate: r.c.latestDate}))};
   const out = (text: string): Exact => ({kind: 'answer', text, facts, widgets: [{id: 'bill-timeline', fallback: 'bills'}], query: q, source: t(lang, 'Your bills and money log', 'Je rekeningen en geldlog')});
@@ -154,9 +166,14 @@ export function netWorthAnswer(q: Query, env: ToolEnv): Exact | null {
   const amount = (text: string) => { const i = text.lastIndexOf(' '); return i > 0 ? formatCurrencyAmount(text.slice(0, i), text.slice(i + 1)) : text; };
   const per = r.ok ? (r.data.perCurrency as {currency: string; netWorth: string; assets: string; debts: string; holdingsWithAValue: string; accounts: number}[] | undefined) ?? [] : [];
   const out = (text: string, facts: Record<string, unknown>): Exact => ({kind: 'answer', text, facts: {about: 'networth', ask: q.ask, ...facts}, widgets: q.period || q.ask === 'trend' || q.ask === 'compare' ? [{id: 'net-worth-river', ...(q.period ? {period: q.period} : {}), fallback: 'net-worth-history'}, {id: 'net-worth'}] : [{id: 'net-worth'}, {id: 'net-worth-river', fallback: 'net-worth-history'}], query: q, source: t(lang, 'Wealth on this device', 'Wealth op dit apparaat')});
+  const tot = totalsR.ok ? (totalsR.data.totals as {currency: string; total: string}[] | undefined) ?? [] : [];
+  // Session AV lane 2 (fr-recheck, FR-TJ-5): with no priced holding, a linked (watched) wallet's coins are said as the English
+  // net-worth answer says them (engine.ts wealthTotal; lib/ai/local-answers/fr-wallets.ts): view only, the last balance this
+  // device read, no value without a price. Read-only: nothing is fetched, signed or changed.
+  const watched = tot.length ? [] : watchedHoldings(env, null), them = watched.length === 1;
+  const walletLine = watched.length ? t(lang, ` Your linked wallets hold ${watchedWords(watched, 'en', env.habitDay)}; with no price for ${them ? 'it' : 'them'} on this device there is no value to add up.`, ` Je gekoppelde wallets bevatten ${watchedWords(watched, 'nl', env.habitDay)}; zonder prijs ${them ? 'ervan' : 'ervoor'} op dit apparaat is er geen waarde om op te tellen.`) : '';
   if (!per.length) {
-    const tot = totalsR.ok ? (totalsR.data.totals as {currency: string; total: string}[] | undefined) ?? [] : [];
-    if (!tot.length) return out(t(lang, 'Nothing is tracked on Wealth yet.', 'Er wordt nog niets gevolgd bij Wealth.'), {tracked: 0});
+    if (!tot.length) return out(watched.length ? t(lang, 'No holding with a price is tracked in Wealth, so there is no total.', 'Er wordt bij Wealth geen bezitting met een prijs gevolgd, dus er is geen totaal.') + walletLine : t(lang, 'Nothing is tracked on Wealth yet.', 'Er wordt nog niets gevolgd bij Wealth.'), {tracked: 0});
     return out(t(lang, `Tracked wealth: ${listWords(tot.map(x => amount(`${x.total} ${x.currency}`)), 'en')}. No accounts or debts are kept, so this is your holdings alone.`, `Gevolgd vermogen: ${listWords(tot.map(x => amount(`${x.total} ${x.currency}`)), 'nl')}. Er zijn geen rekeningen of schulden vastgelegd, dus dit zijn alleen je bezittingen.`), {totals: tot});
   }
   const sorted = [...per].sort((a, b) => Number(b.netWorth.split(' ')[0]) - Number(a.netWorth.split(' ')[0])), lead = sorted[0]!, unknown = r.ok && typeof r.data.holdingsWithoutAValue === 'number' ? r.data.holdingsWithoutAValue : 0;
@@ -165,7 +182,7 @@ export function netWorthAnswer(q: Query, env: ToolEnv): Exact | null {
   // trend gets today's figure and says where its movement is shown, never a guessed change.
   const span = q.period ? resolvePeriod(q.period, env.habitDay) : null;
   const moved = span || q.ask === 'trend' || q.ask === 'compare' ? t(lang, ` That is today's figure; how it moved${span ? ` ${periodWords(span, 'en', env.habitDay)}` : ''} is on the net worth river beside this answer.`, ` Dat is het bedrag van vandaag; hoe het veranderde${span ? ` ${periodWords(span, 'nl', env.habitDay)}` : ''} staat op de vermogensrivier naast dit antwoord.`) : '';
-  return out(t(lang, `Net worth: ${amount(lead.netWorth)}${debts}${rest.length ? `; and ${listWords(rest, 'en')}, each currency on its own` : ''}.${unknown ? ` ${unknown} ${unknown === 1 ? 'holding has' : 'holdings have'} no known value and ${unknown === 1 ? 'is' : 'are'} not in it.` : ''}`, `Nettovermogen: ${amount(lead.netWorth)}${debts}${rest.length ? `; en ${listWords(rest, 'nl')}, elke valuta apart` : ''}.${unknown ? ` ${unknown} ${unknown === 1 ? 'bezitting heeft' : 'bezittingen hebben'} geen bekende waarde en ${unknown === 1 ? 'zit' : 'zitten'} er niet in.` : ''}`) + moved, {perCurrency: per, withoutValue: unknown});
+  return out(t(lang, `Net worth: ${amount(lead.netWorth)}${debts}${rest.length ? `; and ${listWords(rest, 'en')}, each currency on its own` : ''}.${unknown ? ` ${unknown} ${unknown === 1 ? 'holding has' : 'holdings have'} no known value and ${unknown === 1 ? 'is' : 'are'} not in it.` : ''}`, `Nettovermogen: ${amount(lead.netWorth)}${debts}${rest.length ? `; en ${listWords(rest, 'nl')}, elke valuta apart` : ''}.${unknown ? ` ${unknown} ${unknown === 1 ? 'bezitting heeft' : 'bezittingen hebben'} geen bekende waarde en ${unknown === 1 ? 'zit' : 'zitten'} er niet in.` : ''}`) + walletLine + moved, {perCurrency: per, withoutValue: unknown});
 }
 
 /**
@@ -177,7 +194,7 @@ export function debtsAnswer(q: Query, env: ToolEnv): Exact | null {
   const lang = q.lang, today = env.habitDay, views = debtView(env.accounts, env.ak?.debtPlanner, today);
   const out = (text: string, facts: Record<string, unknown>): Exact => ({kind: 'answer', text, facts: {about: 'debts', ask: q.ask, ...facts}, widgets: [{id: 'debt-ranks'}], query: q, source: t(lang, 'Your debt payoff plan', 'Je afbetalingsplan')});
   if (!views.length) return out(t(lang, 'No debt with a balance is recorded on this device, so there is no debt-free month to work out.', 'Er staat op dit apparaat geen schuld met een saldo, dus er is geen maand om schuldenvrij te zijn uit te rekenen.'), {debts: 0});
-  const say = (r: PlanResult, c: string) => { const m = debtFreeMonth(today, r.months); return m ? t(lang, `${m} (in ${countdownWords(r.months!)}, ${debtMoney(r.totalInterest, c)} interest)`, `${m} (over ${dutchCountdown(r.months!)}, ${debtMoney(r.totalInterest, c)} rente)`) : t(lang, 'not within 100 years', 'niet binnen 100 jaar'); };
+  const say = (r: PlanResult, c: string) => { const m = debtFreeMonth(today, r.months); return m ? t(lang, `${m} (in ${countdownWords(r.months!)}, ${debtMoney(r.totalInterest, c)} interest)`, `${monthIn('nl', payoffMonth(today, r.months)!)} (over ${dutchCountdown(r.months!)}, ${debtMoney(r.totalInterest, c)} rente)`) : t(lang, 'not within 100 years', 'niet binnen 100 jaar'); };
   const line = (v: DebtCurrencyView) => {
     if (v.issue || !v.comparison) return t(lang, `${v.currency}: ${v.issue ?? 'not worked out yet'}`, `${v.currency}: er ontbreekt nog een bedrag of rente in de planner`);
     const c = v.comparison;

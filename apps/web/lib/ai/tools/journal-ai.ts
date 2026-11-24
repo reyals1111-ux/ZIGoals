@@ -2,6 +2,7 @@ import * as z from 'zod';
 import {addLocalDays} from '../../local-date';
 import {ENERGY_WORDS} from '../../energy/schema';
 import {patternLine, patterns} from '../../journal/reflect';
+import {isSealed, unsealed} from '../../journal/letters';
 import type {ToolEnv} from './env';
 import {ok, provenance, refuse} from './format';
 import type {ToolDefinition} from './types';
@@ -22,8 +23,12 @@ export const journalTool: ToolDefinition<{days?: number}> = {
     if (!journal) return ok('journal', label, provenance(env, 'Journal', null, null, null), {entries: [], note: 'No journal on this device yet.'});
     if (!journal.shareWithAi) return ok('journal', label, provenance(env, 'Journal', null, null, null), {private: true, entriesOnThisDevice: journal.entries.length, note: 'The journal is private: its words stay on this device. The person can allow sharing on the Journal page.'});
     const from = addLocalDays(env.habitDay, -((args.days ?? 7) - 1));
-    const entries = journal.entries.filter(e => e.date >= from).slice(-20).map(e => ({date: e.date, text: e.text.slice(0, 600), ...(e.followUp ? {zigiAsked: e.followUp.question, ...(e.followUp.answer ? {answer: e.followUp.answer.slice(0, 300)} : {})} : {})}));
-    return ok('journal', label, provenance(env, 'Journal', null, null, null), {entries, patterns: patterns(journal, env.energy ?? null).slice(0, 4).map(p => patternLine(p, 'en'))});
+    // Session AV lane 2 (review B3C-4): a letter still folded away never leaves: not its words, its follow-up or its
+    // patterns; only how many there are in the days asked.
+    const open = unsealed(journal.entries, env.habitDay), folded = journal.entries.filter(e => e.date >= from && isSealed(e, env.habitDay)).length;
+    const entries = open.filter(e => e.date >= from).slice(-20).map(e => ({date: e.date, text: e.text.slice(0, 600), ...(e.followUp ? {zigiAsked: e.followUp.question, ...(e.followUp.answer ? {answer: e.followUp.answer.slice(0, 300)} : {})} : {})}));
+    return ok('journal', label, provenance(env, 'Journal', null, null, null), {entries, ...(folded ? {lettersFoldedAway: folded, lettersNote: `${folded === 1 ? '1 letter' : `${folded} letters`} to open later ${folded === 1 ? 'is' : 'are'} folded away until ${folded === 1 ? 'its' : 'their'} day: never quote, guess or ask about ${folded === 1 ? 'its' : 'their'} words.`} : {}),
+      patterns: patterns({...journal, entries: open}, env.energy ?? null).slice(0, 4).map(p => patternLine(p, 'en'))});
   },
 };
 export const energyTool: ToolDefinition<{days?: number}> = {

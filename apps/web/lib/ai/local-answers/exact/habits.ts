@@ -3,7 +3,7 @@ import {habitDay, habitRuleOn, habitStats, latestHabitRule, measurementUnit, typ
 import {localWeekday} from '../../../local-date';
 import {formatNumber} from '../../../visual-format';
 import {text as clean} from '../../tools/format';
-import {dayWords, periodSpan, periodWords, previousPeriod, resolvePeriod, weekdayName, type Period} from './period';
+import {dayIn, periodSpan, periodWords, previousPeriod, resolvePeriod, weekdayName, type Period} from './period';
 import {dayList, rate, tally, type DayPoint, type DayState, type Tally} from './series';
 import {listWords, t} from './text';
 import {periodFor, streakText, trackAnswer, type Track} from './track';
@@ -97,7 +97,7 @@ export function habitsAnswer(q: Query, habits: readonly Habit[], today: string):
   const most = /\b(?:most|often|usually|vaakst|meest|meestal|vaak)\b/.test(q.read) && (q.ask === 'missed' || q.ask === 'not-done' || q.ask === 'skipped');
   const fallback = most ? 'last-30-days' : q.ask === 'open' || (q.ask === 'done' && q.shape !== 'count' && !q.period) ? 'today' : q.ask === 'status' || q.ask === 'missed' || q.ask === 'not-done' || q.ask === 'skipped' || q.ask === 'done' ? 'this-week' : 'this-month';
   const p = periodFor({...q, shape: q.shape === 'yes-no' && (q.ask === 'missed' || q.ask === 'not-done' || q.ask === 'skipped') ? 'list' : q.shape}, today, fallback), rows = habitRows(habits, p, today);
-  const span = periodSpan(p, lang, today), day = (d: string) => dayWords(d, today), widgets = habitWidgets(q.ask, p);
+  const span = periodSpan(p, lang, today), day = (d: string) => dayIn(lang, d, today), widgets = habitWidgets(q.ask, p);
   if (!rows.length) return out(t(lang, `No habit was due ${span}.`, `Er stond geen gewoonte gepland ${span}.`), {due: 0}, widgets, p);
   const sum = (pick: (T: Tally) => number) => rows.reduce((n, r) => n + pick(r.T), 0);
   const openRows = rows.filter(r => r.T.open > 0), openNote = openRows.length ? t(lang, ` Still open today: ${listWords(openRows.map(r => r.name), 'en')}.`, ` Vandaag nog open: ${listWords(openRows.map(r => r.name), 'nl')}.`) : '';
@@ -139,7 +139,15 @@ export function habitsAnswer(q: Query, habits: readonly Habit[], today: string):
       const skipped = rows.filter(r => r.T.skipped > 0);
       const skip = (r: Row, l: Lang) => p.days.length === 1 ? r.name : `${r.name} (${dayCount(r.T.skipped, l)})`;
       if (skipped.length) text += t(lang, ` Skipped (not counted as missed): ${listWords(skipped.map(r => skip(r, 'en')), 'en')}.`, ` Overgeslagen (telt niet als gemist): ${listWords(skipped.map(r => skip(r, 'nl')), 'nl')}.`);
-    } else if (q.ask === 'skipped') text = hit.length ? t(lang, `You skipped ${hit.length} of ${rows.length} habits ${span}: ${listWords(list, 'en')}${more}.`, `Je hebt ${hit.length} van je ${rows.length} gewoontes overgeslagen ${span}: ${listWords(list, 'nl')}${more}.`) : t(lang, `You skipped no habit ${span}.`, `Je hebt geen gewoonte overgeslagen ${span}.`);
+    } else if (q.ask === 'skipped') {
+      // Session AV lane 2 (fr-answers; FR-MAX-6): in everyday words "skip" also means a day not done, so the days missed
+      // are said beside the planned skips ("Missed most: Tidy desk (4 days)"), each kind apart and never added together.
+      const missedRows = rows.filter(r => r.T.missed > 0).sort((a, b) => b.T.missed - a.T.missed || a.name.localeCompare(b.name)).slice(0, 3);
+      const missedEach = (r: Row, l: Lang) => p.days.length === 1 ? r.name : `${r.name} (${dayCount(r.T.missed, l)})`;
+      // Said when no day was skipped on purpose, or when the question asks which is skipped most.
+      const missedLine = missedRows.length && (!hit.length || /\b(?:most|vaakst|meest)\b/.test(q.read)) ? t(lang, ` Missed most (not done, not a planned skip): ${listWords(missedRows.map(r => missedEach(r, 'en')), 'en')}.`, ` Het vaakst gemist (niet gedaan, geen geplande overslag): ${listWords(missedRows.map(r => missedEach(r, 'nl')), 'nl')}.`) : '';
+      text = (hit.length ? t(lang, `You skipped ${hit.length} of ${rows.length} habits ${span}: ${listWords(list, 'en')}${more}.`, `Je hebt ${hit.length} van je ${rows.length} gewoontes overgeslagen ${span}: ${listWords(list, 'nl')}${more}.`) : t(lang, `You skipped no habit ${span} (no planned skip).`, `Je hebt geen gewoonte overgeslagen ${span} (geen geplande overslag).`)) + missedLine;
+    }
     else text = hit.length ? t(lang, `${hit.length} of ${rows.length} habits were not done on some day ${span}: ${listWords(list, 'en')}${more}.${others ? ` The other ${others} ${others === 1 ? 'was' : 'were'} done every due day.` : ''}`, `${hit.length} van je ${rows.length} gewoontes zijn op een dag niet gedaan ${span}: ${listWords(list, 'nl')}${more}.${others ? ` De andere ${others} ${others === 1 ? 'is' : 'zijn'} elke geplande dag gedaan.` : ''}`)
       : t(lang, `Every habit was done on every due day ${span} (${totals.done} of ${totals.due - totals.open}).`, `Elke gewoonte is op elke geplande dag gedaan ${span} (${totals.done} van ${totals.due - totals.open}).`);
     return out(text + openNote, facts, widgets, p);

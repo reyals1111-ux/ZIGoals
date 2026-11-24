@@ -1,10 +1,12 @@
 'use client';
 import {removeWithUndo} from '../../ui/remove-with-undo';
 import Link from 'next/link';
-import {useState} from 'react';
+import {Suspense, lazy, useEffect, useState} from 'react';
+import {LoadBoundary} from '../../load-boundary';
 import {deleteSession} from '../../../lib/meditation/engine';
 import {PATTERNS} from '../../../lib/meditation/breathing';
 import {meditationSummary, minutesText, sessionDay, weeklyBars} from '../../../lib/meditation/stats';
+import {meditationMilestones} from '../../../lib/meditation/milestones';
 import type {MeditationSession as Session} from '../../../lib/meditation/schema';
 import {formatDate, formatTime} from '../../../lib/visual-format';
 import {NebulaFlow} from '../../nebula-flow';
@@ -18,6 +20,14 @@ import {useMeditation} from './use-meditation';
 import {AmbientPlayer} from '../../audio/ambient-player';
 import '../sleep/sleep.css';
 import './meditation.css';
+const TodayPractice = lazy(() => import('./today-practice'));
+const CalmChooser = lazy(() => import('./calm-chooser'));
+const DailyMove = lazy(() => import('./daily-move'));
+const TimerPresets = lazy(() => import('./timer-presets'));
+// Session AV lane 2, round 6 (r6-body; LEDGER #413, #415): your consistency, and several past days at once — one chunk.
+const MedParts = lazy(() => import('../r6/med-parts'));
+// Session AV lane 2, round 6 (r6-body; LEDGER #414, #416): grounding, and your own "On a low day" page — one chunk.
+const CalmR6 = lazy(() => import('../r6/calm-parts'));
 import {sourceName} from '../../../lib/health-sources';
 import {plainErrorMessage} from '../../../lib/plain-error';
 
@@ -33,7 +43,13 @@ const sessionLine = (s: Session) => {
  * minutes a week, mindful minutes from elsewhere, the bell, and recent sessions. No score; rest days are fine.
  */
 export default function MeditationView() {
-  const store = useMeditation(), [note, setNote] = useState(''), [saves, setSaves] = useState(0), [editing, setEditing] = useState<string | null>(null), [confirm, setConfirm] = useState<string | null>(null);
+  const store = useMeditation(), [todayOpen, setTodayOpen] = useState(false), [calmOpen, setCalmOpen] = useState(false), [moveOpened, setMoveOpened] = useState(false), [presetsOpen, setPresetsOpen] = useState(false), [presetsVersion, setPresetsVersion] = useState(0), [note, setNote] = useState(''), [saves, setSaves] = useState(0), [editing, setEditing] = useState<string | null>(null), [confirm, setConfirm] = useState<string | null>(null), [rangeOpened, setRangeOpened] = useState(false), [groundOpened, setGroundOpened] = useState(false), [lowOpen, setLowOpen] = useState(false);
+  // Session AV lane 2, round 6 (LEDGER #416): /app/health?view=meditation#low-day (from an unpleasant check-in) opens the page.
+  useEffect(() => {
+    const open = () => { if (location.hash === '#low-day') { setLowOpen(true); requestAnimationFrame(() => document.getElementById('low-day')?.querySelector('summary')?.focus()); } };
+    open(); window.addEventListener('hashchange', open);
+    return () => window.removeEventListener('hashchange', open);
+  }, [store.loaded]);
   if (!store.loaded) return <section className="panel"><h1>Meditation</h1><p>Opening your meditation log…</p></section>;
   if (store.error) return <section className="panel"><h1>Meditation</h1><p role="alert">Meditation lives in your Health journal, which could not be read. Nothing was changed.</p><Link className="text-link" href="/app/health">Back to Health</Link></section>;
   const {meditation, today} = store, run = store.run.data.run;
@@ -59,7 +75,17 @@ export default function MeditationView() {
         when it appears (it was inserted with its text, which screen readers often skip). */}
     <p className={note ? 'sleep-note' : 'sr-only'} role="status" aria-live="polite">{note}</p>
     {store.runUnreadable && <p className="notice" role="alert">This device’s running session could not be read. It was not changed; a new session replaces it.</p>}
-    <section className="panel" aria-labelledby="meditation-begin-title"><h2 id="meditation-begin-title">Begin</h2><BeginForm key={`begin-${saves}`} store={store} onStarted={() => setNote('')}/></section>
+    {/* Session AV lane 2 (LEDGER #71, #77): today's written practice, loaded when its fold opens. */}
+    <details className="panel meditation-today-fold" onToggle={e => setTodayOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Today’s practice, a short written guide</summary>{todayOpen && <Suspense fallback={<p className="fine">Opening…</p>}><TodayPractice store={store} today={today} onStarted={() => setNote('')}/></Suspense>}</details>
+    <section className="panel" aria-labelledby="meditation-begin-title"><h2 id="meditation-begin-title">Begin</h2><BeginForm key={`begin-${saves}-${presetsVersion}`} store={store} onStarted={() => setNote('')}/></section>
+    {/* Session AV lane 2 (LEDGER #184): your timer presets (length, settling in, start and end bells, bells along the way), loaded when the fold opens. */}
+    <details className="panel meditation-today-fold" onToggle={e => setPresetsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Your timer presets: lengths and bells</summary>{presetsOpen && <Suspense fallback={<p className="fine">Opening…</p>}><TimerPresets onChange={() => setPresetsVersion(n => n + 1)}/></Suspense>}</details>
+    {/* Session AV lane 2 (LEDGER #79, #80): a calm visual behind the sitting; (LEDGER #81) Move gently, a guided stretch.
+        Each loads when its fold opens; Move gently stays mounted once opened, so closing the fold keeps a sequence going. */}
+    <details className="panel meditation-today-fold" onToggle={e => setCalmOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Behind your sitting: a calm visual</summary>{calmOpen && <Suspense fallback={<p className="fine">Opening…</p>}><CalmChooser/></Suspense>}</details>
+    <details className="panel meditation-today-fold r6-grounding-fold" onToggle={e => { if ((e.currentTarget as HTMLDetailsElement).open) setGroundOpened(true); }}><summary>Five, four, three, two, one: a grounding exercise</summary>{groundOpened && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><CalmR6 part="grounding" today={today}/></Suspense></LoadBoundary>}</details>
+    <details id="low-day" className="panel meditation-today-fold r6-low-day-fold" open={lowOpen} onToggle={e => setLowOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>On a low day: your own page</summary>{lowOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><CalmR6 part="low-day" today={today}/></Suspense></LoadBoundary>}</details>
+    <details className="panel meditation-today-fold" onToggle={e => { if ((e.currentTarget as HTMLDetailsElement).open) setMoveOpened(true); }}><summary>Move gently: a short guided stretch</summary>{moveOpened && <Suspense fallback={<p className="fine">Opening…</p>}><DailyMove store={store} today={today}/></Suspense>}</details>
     <section className="panel" aria-labelledby="meditation-week-title">
       <h2 id="meditation-week-title">Your practice</h2>
       <dl className="sleep-stats">
@@ -68,10 +94,14 @@ export default function MeditationView() {
         <div><dt>All sessions</dt><dd>{summary.sessions}</dd><dd className="dd-note"><small>{minutesText(summary.totalMinutes)} in all</small></dd></div>
         <div><dt>Longest</dt><dd>{summary.sessions ? minutesText(summary.longestMinutes) : 'Not yet'}</dd></div>
       </dl>
+      {/* Session AV lane 2 (LEDGER #186): calm, once-only milestones, in days; a rest day takes nothing away. */}
+      <ul className="meditation-milestones" aria-label="Milestones">{meditationMilestones(meditation, today).map(m => <li key={m.id} data-reached={m.reached || undefined}><span aria-hidden="true">{m.reached ? m.symbol : '○'}</span> {m.title}<small> · {m.reached ? 'reached' : `${Math.min(m.have, m.need)} of ${m.need} ${m.kind === 'row' ? 'in a row so far (your longest)' : 'days'}`}</small></li>)}</ul>
+      <LoadBoundary quiet><Suspense fallback={null}><MedParts part="consistency" store={store}/></Suspense></LoadBoundary>
     </section>
     <section className="panel" aria-labelledby="meditation-weeks-title"><h2 id="meditation-weeks-title" className="sr-only">Over time</h2><MeditationWeeksChart weeks={weeks} goal={summary.goal}/></section>
     <div className="sleep-columns">
-      <section className="panel" aria-labelledby="meditation-manual-title"><h2 id="meditation-manual-title">Log mindful minutes</h2><ManualForm key={`manual-${saves}`} store={store} onDone={done}/></section>
+      <section className="panel" aria-labelledby="meditation-manual-title"><h2 id="meditation-manual-title">Log mindful minutes</h2><ManualForm key={`manual-${saves}`} store={store} onDone={done}/>
+        <details className="meditation-today-fold r6-range-fold" onToggle={e => { if ((e.currentTarget as HTMLDetailsElement).open) setRangeOpened(true); }}><summary>Several days: log a range of past days</summary>{rangeOpened && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><MedParts part="range" store={store}/></Suspense></LoadBoundary>}</details></section>
       <section className="panel" aria-labelledby="meditation-goal-title"><h2 id="meditation-goal-title">Your weekly goal</h2><MeditationGoalForm key={`goal-${meditation.goal?.updatedAt ?? 'none'}`} store={store} onDone={done}/><MeditationReminderSetting/></section>
     </div>
     <div className="panel meditation-sounds"><AmbientPlayer/></div>

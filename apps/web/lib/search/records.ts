@@ -3,6 +3,7 @@ import type {Checklist} from '../checklist/schema';
 import type {Tasks} from '../tasks/schema';
 import {hasOperator, matchTasks} from '../tasks/search';
 import {scoreItem, type SearchHit, type SearchItem} from './engine';
+import {isCancelled} from '../tasks/finished';
 
 /**
  * Session AL (P-LS-05, P-PR-40; LS-005, LS-047, LS-H47, PR-102, PR-112): the records global search also finds.
@@ -22,7 +23,7 @@ export function taskHits(record: Tasks | null | undefined, query: string, today:
   // an action, so there tasks rank by their title like everything else.
   const operator = hasOperator(query) && /[#@&|!]|\bp[1-4]\b|\b\w+:/i.test(query), names = new Map((record.projects ?? []).map(p => [p.id, p.name]));
   return matchTasks(record, query, {today}).slice(0, limit).map(t => {
-    const subtitle = ['Task', dueWords(t.due, !!t.doneAt, today), t.projectId ? `#${names.get(t.projectId) ?? 'project'}` : 'Inbox', ...(t.labels ?? []).map(l => `@${l}`)].join(' · ');
+    const subtitle = ['Task', (isCancelled(t) ? 'cancelled' : dueWords(t.due, !!t.doneAt, today)) /* review B5L-3 */, t.projectId ? `#${names.get(t.projectId) ?? 'project'}` : 'Inbox', ...(t.labels ?? []).map(l => `@${l}`)].join(' · ');
     const item: SearchItem = {id: `task:${t.id}`, kind: 'task', title: t.title, subtitle, href: `/app/tasks?task=${encodeURIComponent(t.id)}`, keywords: t.notes ? [t.notes] : undefined};
     // A task matched by an operator alone (no title word) still shows; an operator search puts tasks at the top.
     return {...item, score: operator ? 40 : scoreItem(item, query) ?? 4};

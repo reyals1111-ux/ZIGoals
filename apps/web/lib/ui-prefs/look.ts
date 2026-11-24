@@ -9,10 +9,12 @@ import {LOOK_SHEETS} from './theme-sheets';
  * is never stored: choosing it removes its field, and the group goes when it is empty. On the page each choice that is
  * not the default is one attribute on <html> (app/customize.css; Large text and Compact add their generated sheets).
  */
-export type Look = {font: 'system' | 'inter'; textSize: 'standard' | 'large'; density: 'comfortable' | 'compact'; glow: 'full' | 'soft'};
+export type Look = {font: 'system' | 'inter' | 'serif' | 'rounded' | 'mono' | 'reading'; textSize: 'standard' | 'large'; density: 'comfortable' | 'compact'; glow: 'full' | 'soft'};
 export type LookKey = keyof Look;
 export const DEFAULT_LOOK: Look = {font: 'system', textSize: 'standard', density: 'comfortable', glow: 'full'};
-export const LOOK_CHOICES: {[K in LookKey]: readonly Look[K][]} = {font: ['system', 'inter'], textSize: ['standard', 'large'], density: ['comfortable', 'compact'], glow: ['full', 'soft']};
+// Session AV lane 2 (N6 #192): Serif, Rounded and Monospace, from the device's own fonts (app/customize.css).
+// Session AV lane 2 (r3-plan, LEDGER #263): "Reading-friendly", fonts the device may have with wider spacing (no font file).
+export const LOOK_CHOICES: {[K in LookKey]: readonly Look[K][]} = {font: ['system', 'inter', 'serif', 'rounded', 'mono', 'reading'], textSize: ['standard', 'large'], density: ['comfortable', 'compact'], glow: ['full', 'soft']};
 /** The <html> attribute each choice sets when it is not the default (public/theme-boot.js sets the same ones). */
 export const LOOK_ATTRIBUTE: Record<LookKey, string> = {font: 'data-font', textSize: 'data-text', density: 'data-density', glow: 'data-glow'};
 export const LOOK_EVENT = 'zigoals-look';

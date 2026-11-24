@@ -638,6 +638,325 @@ UNCHANGED: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudf
 - PR #108 frozen at this commit. App code at its head = `d0df34f4` (checked: `git diff --stat d0df34f4 HEAD -- apps/web ':!apps/web/playwright.main.shards.ts'` is empty). Since `d0df34f4`: docs, and one TIER 3 (CI) commit `9c24050c` that only repacks the main shard lists (ADR-045 D-CI2002); no test, assertion or app file.
 - Runs: 1999 (`d0df34f4`) green on the first attempt; 2000 (`97d86a8c`, docs) red only on account-browser D-SYNC; 2001 (`fbc0bdd2`, docs) red only on `nova-stage-am2:301` and `l7-fifth-answers:144` (D36's signature: NOVA's opening on a slow runner); 2002 (`41f1f6af`, docs) red only on main shard 2, `nova-stage-am2:301` (D36's signature) on both attempts; 2003 (`35a09f76`, the shard repack) in progress at the freeze.
 
+## Owner follow-up 5 (22 Nov 2026, 22:30 Brussels, verbatim)
+
+> OWNER FOLLOW-UP 5 TO SESSION AV (22 Nov 2026, 22:30 Brussels; pre-approved by the owner; no reply needed; continue in auto mode; check the mode selector shows Auto; no questions). Record this verbatim in ADR-045 under "Owner follow-up 5". Where it differs from follow-up 4, it wins.
+>
+> 1. PR #108 IS MERGED: main = 1c1b5953ebadb45c8afd228fd64f2d38bfd6cd00 (merge commit; parents 836534c3 and 807f247e). Alpha #58 is not deployed yet; the owner sends its run number, version id and rollback id later, and you record them then.
+>
+> 2. NOW, before anything else:
+>  - merge origin/main into feature/session-av-2 with a merge commit (never rebase or force-push);
+>  - push, and open the Draft PR "Session AV (continued)" against main;
+>  - its Part 0 records the #108 merge (1c1b5953) and says Alpha #58's ids will follow;
+>  - the description carries "Safe to merge now: no (CI run N)" and is kept current at every batch.
+>
+> 3. FOCUS: from now on, turn the work into a merge-ready PR.
+>  - Start no new research rounds. Round 7 stops at what is already researched: its rows get a ledger verdict, and the rows not yet started are "to build — next session" with no build.
+>  - Finish only the batches already in flight (4, 6, and the open reviews O and P), each to amendment 1's definition of done, with its fresh-agent review fixed.
+>
+> 4. CI ON THE NEW PR IS THE MAIN WORK. This is lane 2's first CI run.
+>  - Read every red job of every run at its cause, with at most 2 fix attempts each. The usual suspects: `sign-in-codes-browser` after A45-1 (TIER 3 sync), `av2-backup-folder` (real Chrome), the shard lists and their minutes (rebalance by measured minutes if a shard nears 60 min, TIER 3 CI), WebKit on the new screens, and the route budgets in the production build.
+>  - Never weaken an assertion, raise a timeout or raise a budget to get green.
+>  - Runs are never cancelled on a PR, so push only when no run is in progress on this PR. Keep fixing locally in the meantime and push the batch when the run ends. Nobody waits idle.
+>  - The goal is two consecutive full runs green on the first attempt. If the remaining budget would run out first, the honest fallback: the last run is green except jobs that failed only on a registered known intermittent and passed on their one allowed re-run, named in the line.
+>
+> 5. END once the in-flight batches are in and CI meets step 4: the ADR-045 closing table (ledger counts per round, QUALITY counts, carried causes), "Safe to merge now: yes (CI runs N, M)", the STATUS final entry, and a ≤ 12-line report with preview steps. The owner merges and deploys.
+>
+> UNCHANGED: every rule from the AV prompt, the nine amendments and follow-ups 1–4. That includes: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudflare; no new dependencies or outside services; no wallet, signing or key changes; protected areas untouched; stored data additive with TIER 3 labels and frozen readers (#58 = 1c1b5953 joins the frozen readers once deployed); Motion Off and reduced motion respected; Playwright at most 2 workers, one build or browser run at a time; helpers at most 8 (6 builders + 2 review/research); merge commits only.
+
+### Follow-up 5 — how it is read (recorded with it)
+- In flight are batches 4, 5 and 6: batch 6 is built on batch 5, so batch 5 joins with them. Batch 7 (round 7) is not in flight: its
+  builders and reviewers were stopped on receipt. Round 7's 33 rows keep their ledger verdicts; every to-build row is
+  "to build — next session". Drafts made before the stop (r7-plan #432–#440, r7-notes #441–#446, r7-food #449–#455) stayed on
+  local branches, unreviewed and not integrated; they are not in this PR.
+- Polish part 3 (started on round 7's base) was stopped with it; nothing of it is in this PR.
+
+## Owner follow-up 6 — finish (23 Nov 2026, 00:40 Brussels, verbatim)
+
+> OWNER FOLLOW-UP 6 TO SESSION AV: FINISH (23 Nov 2026, 00:40 Brussels; pre-approved by the owner; no reply needed; continue in auto mode; check the mode selector shows Auto; no questions). Record this verbatim in ADR-045 under "Owner follow-up 6". Where it differs from follow-ups 4–5, it wins.
+>
+> 0. RECORD ALPHA #58 in PR #109's Part 0 records (ADR-045, STATUS draft, AV_RESUME, the deploy table in docs/STATUS.md):
+>  - Manual Alpha deployment run 61, from main 1c1b5953ebadb45c8afd228fd64f2d38bfd6cd00, 22 Nov 2026 about 23:55 Brussels;
+>  - new version f2729d28-e9db-436f-a66a-67922cf5d924, rollback e0bc17f3-27c0-4900-aa55-416f20ece6f6 (#57);
+>  - VERIFIED after 3 reads, live prices VERIFIED, market policy period ends 2026-11-30T16:00:00Z (7 days left);
+>  - build archive SHA-256 ef1aee3bcfad982d902e944065d38a1f8534b6f328c3d778bfdded4f0a18e578.
+>  Add #58 = 1c1b5953 to the frozen readers (`scripts/frozen-readers.mjs`) and prove every stored-format change in lane 2 against #37–#58.
+>
+> 1. NOTHING NEW. No new research, rows, rounds or features from now on. Only batches 5 and 6, which are already built, get finished and integrated, with their reviews (O, P and the rest) fixed. Any row in them that cannot meet amendment 1's definition of done is unwired (not visible anywhere) and Carried with its cause. Nothing half-built stays visible.
+>
+> 2. CI ON PR #109 FIRST: the goal is two consecutive full runs green on the first attempt.
+>  - Fix every red at its cause, at most 2 attempts each; push only when no run is in progress on this PR; keep fixing locally while a run goes.
+>  - Never weaken an assertion, raise a timeout, or narrow a check to get green. Undo the narrowing in `av2-todays-practice` (the axe check scoped to the practice's own fold): the whole page's axe check stays as strict as before, and whatever the wider check found is fixed in the app. Re-read every "(deliberate)" test change in lane 2 and confirm each has an equally strict replacement; any that doesn't is restored and the app fixed.
+>  - Fallback only if the owner writes "wrap up" first: the last run is green except jobs that failed only on a registered known intermittent and passed on their one allowed re-run, named exactly.
+>
+> 3. FRIEND-READINESS PASS, after batches 5 and 6 are in. Up to 4 fresh helpers who wrote none of lane 2, on one production build, browser runs one at a time, at most 2 workers. Each takes one or two of AU's personas (Sanne, Tom, Lina, Max, Jules) and lives their first week on an empty profile, then on the Showcase, at 390 and 1440, in Nebula plus one other theme, with Playwright's clock moving across days and past midnight. They check:
+>  - every main path still easy to find, with advanced options tucked away. With hundreds of new features, each pillar's first screen stays calm and readable: no new card or row pushes the main action below the fold on a phone, and nothing shown is empty, broken or placeholder;
+>  - nothing crashes, nothing shows NaN, unknown is never 0, estimates say so;
+>  - NOVA and ZIGi answer their real questions correctly in EN and NL;
+>  - export → erase → restore keeps everything;
+>  - Help, What's new, FIRST_WEEK.md and FRIENDS_GUIDE.md match what is really there;
+>  - every page stays inside its route budget with at least 5 kB of headroom, and the production build's type check and build fit CI's limits.
+>  They report findings by severity in docs/review/session-av/FRIEND_READINESS.md. Fix every Blocker and Major and the quick Minors, and re-check the fixes with a fresh helper.
+>
+> 4. POLISH while CI runs: the design language and readability rules on every lane-2 screen (headings white→nebula, liquid-glass hover without pointer tracking, labels ≥ 14 px, body 15–16 px, inputs ≥ 16 px on phones, targets ≥ 44 px, contrast ≥ 4.5:1, no tiny grey copy), Motion Off and reduced motion still and complete, consistent wording across pillars, Dutch where NL is offered.
+>
+> 5. END when steps 1–4 are done and step 2's goal is met (or the owner wrote "wrap up"):
+>  - ADR-045's closing table: ledger counts per round (built / Carried by cause / unwired), QUALITY and FRIEND_READINESS counts, the CI history;
+>  - "Safe to merge now: yes (CI runs N, M)" in AV_RESUME and PR #109's description, which also lists the owner steps lane 2 added (private-sync Worker deploy, the food Worker redeploy, anything else in OWNER_STEPS.md);
+>  - the STATUS entry as the final commit;
+>  - a ≤ 12-line report with preview steps.
+>
+> If the owner writes "wrap up" at any point: finish the fix in hand, unwire anything half-done, push, and END honestly as in step 5.
+>
+> UNCHANGED: every rule from the AV prompt, the nine amendments and follow-ups 1–5. That includes: never merge, enable auto-merge, dispatch, deploy, or log in to Cloudflare; no new dependencies or outside services; no wallet, signing or key changes; protected areas untouched; stored data additive with TIER 3 labels; route budgets never raised; helpers at most 8; merge commits only, never rebase or force-push.
+
+### Follow-up 6 — records and how it is read
+- **Alpha #58** = Manual Alpha deployment run 61, source `main` `1c1b5953ebadb45c8afd228fd64f2d38bfd6cd00` (22 Nov 2026, about 23:55 Brussels): version `f2729d28-e9db-436f-a66a-67922cf5d924`, rollback `e0bc17f3-27c0-4900-aa55-416f20ece6f6` (#57); **VERIFIED** after 3 reads, live prices **VERIFIED** (owner); market policy period ends 2026-11-30T16:00:00Z; build archive SHA-256 `ef1aee3bcfad982d902e944065d38a1f8534b6f328c3d778bfdded4f0a18e578`.
+- **Frozen readers** are #37–#58 from now on (`scripts/frozen-readers.mjs`: #58 = `1c1b5953`). The proof runs on batch 6's head, which holds every lane 2 stored-format change.
+- `av2-todays-practice`: the scoped axe check (`446eb75f`) is undone; the page's axe check covers every Meditation fold again (the whole page), and what it finds is fixed in the app.
+- Round 7's drafts stay off this branch (follow-up 5); "nothing new" also stops polish part 3's new items: step 4's polish applies the existing design rules to lane 2's screens only.
+
+## Owner follow-up 7 (23 Nov 2026, 14:00 Brussels, verbatim)
+
+> OWNER FOLLOW-UP 7 TO SESSION AV (23 Nov 2026, 14:00 Brussels; pre-approved by the owner; no reply needed; continue in auto mode; no questions). Record this verbatim in ADR-045 under "Owner follow-up 7".
+>
+> OWNER DECISION ON THE SHARD TIME: more shards, not a longer limit.
+> - Let run 2016 finish first and read it.
+> - One TIER 3 (CI) commit:
+>   - main browser shards 14 → 20 in `.github/workflows/ci.yml` (matrix and MAIN_SHARD=<n>/20);
+>   - the explicit lists rebalanced by the measured minutes of runs 2013–2016, targeting at most 40 min per shard on the slowest measured runner;
+>   - `scripts/ci/main-shards.test.ts` updated so every spec is in exactly one of the 20 lists.
+> - Keep `timeout-minutes: 60`, `--workers=2`, the a11y and WebKit shard counts (unless a measured shard of theirs passes 45 min: then the same treatment, in the same commit), and every assertion and test timeout unchanged.
+> - No spec is deleted, skipped or merged to save time.
+> - A run now has about 31 jobs, more than GitHub runs at once, so it runs in two waves. That's expected: do not treat it as a stall.
+> - Push the held ADR-045 commit (`d98f5437`) together with this change, so only one run starts.
+>
+> Then carry on with follow-up 6 unchanged: every red at its cause; the goal is two consecutive full runs green on the first attempt; the friend-readiness fixes; then the END (ADR-045 closing table, "Safe to merge now: yes (CI runs N, M)", the STATUS final entry, the ≤ 12-line report). Write the suite's size (worker-minutes per run) in the closing table, as input for the next session.
+
+### Follow-up 7 — how it is read (recorded with it)
+- `d98f5437` was already pushed (12:24 UTC). Run 2016 had just started on `f5f172e9` (the same code), so `d98f5437` waits as pending run 2017; the shard commit's push replaces that pending run, so only one run starts.
+- "At most 40 min per shard on the slowest measured runner": each spec file's worker-minutes are the largest measured in runs 2013–2016 (the slowest runner that ran it), and each list holds at most (40 − the job's measured setup) × 2 workers of them.
+
+## Owner follow-up 8 (23 Nov 2026, 23:15 Brussels, verbatim)
+
+> OWNER FOLLOW-UP 8 TO SESSION AV: FINISH TODAY (23 Nov 2026, 23:15 Brussels; pre-approved by the owner; no reply needed; continue in auto mode; no questions). Record this verbatim in ADR-045 under "Owner follow-up 8". Where it differs from follow-ups 6–7, it wins.
+>
+> 1. j04-offline (D-CI2016-J04): the owner allows up to 2 more attempts (TIER 3 PWA), in this order:
+>  a. Find what wakes the old worker during the takeover: read the probe's network log at the tap, and check Next's router prefetch, the update check, any price, sync or keep-notes polling, fonts and images. While a takeover is under way (from "Reload" until `controllerchange`), pause those requests, then post the takeover message.
+>  b. Ship an honest fallback for friends in any case: if the new version has not taken over within 5 s of "Reload", show "Almost there: close ZIGoals and open it again to finish the update". Never reload in a loop, never lose an open form, sheet, import, restore or confirm card (follow-up 2's rules), Motion Off and reduced motion still. It needs its own spec using Playwright route interception, like Part 2's proof.
+>  Prove a on the production build with the probe: 0 stuck in at least 30 local runs. Never weaken j04's assertions or raise its 20 s.
+>
+> 2. If j04 is still red in CI after those attempts, it becomes a registered known intermittent: D-CI2016-J04 in `docs/review/session-al/CI_INTERMITTENTS.md` and STATUS "Known CI intermittents", with the measured cause and the friend-facing fallback. Register `zigi-browser-agents:126` the same way if it fails again (seen in runs 2012 and 2022; 24 of 24 locally).
+>
+> 3. FINISH, by this rule (the owner moves follow-up 2's fallback in now): the PR is "Safe to merge now: yes" when the last full run on its final head is green on the first attempt, except jobs that failed only on a registered known intermittent and passed on their one allowed re-run, each named exactly. One such run is enough; two consecutive clean runs remain the aim but no longer hold up the END.
+>  Push the held `0efdc7fa` (the `ui-evidence` split) with the j04 work in one push so one run starts. Fix every other red at its cause as before.
+>
+> 4. END as follow-up 6, step 5:
+>  - ADR-045's closing table, with the suite's worker-minutes per run;
+>  - "Safe to merge now: yes (CI run N; re-runs: …)" in AV_RESUME and PR #109's description, with the owner steps lane 2 added;
+>  - the STATUS final entry;
+>  - the ≤ 12-line report with preview steps.
+>
+> UNCHANGED: all earlier rules (never merge, enable auto-merge, dispatch, deploy, or log in to Cloudflare; no new dependencies; no wallet, signing or key changes; protected areas untouched; stored data additive with frozen readers #37–#58; route budgets never raised; push only when no run is in progress on #109; merge commits only).
+
+## D-CI2006 — PR #109's first run (2006, `303c02f8`): every job red, one cause
+- All 25 jobs failed at the type check: `pnpm typecheck` in the checks job and `next build`'s "Running TypeScript" in every
+  build job ran out of memory at Node's default 4 GB heap ("Ineffective mark-compacts near heap limit").
+- Measured locally (`tsc --noEmit --extendedDiagnostics`, root project): 8,053 files, 457,894 lines of TypeScript,
+  1.64M types, 3.84M instantiations, **4.86 GB** used. That is proportional to lane 2's added code, not a runaway type.
+- Fix (`73e75d67`, TIER 3 CI): the root `typecheck` script and the app's `build` script set
+  `NODE_OPTIONS=--max-old-space-size=6144`, so CI, the Alpha build (build:alpha passes its environment on to the app's
+  build script) and local builds all get it. No workflow file changed; no check, budget or timeout changed. Proof:
+  `pnpm typecheck` exit 0 and `pnpm build` (production, `PUBLIC_ALPHA_UNDEPLOYED`) exit 0 on `73e75d67`.
+
+## D-CI2007–2012 — PR #109's runs after the heap fix (each red job read at its cause; no assertion, timeout or budget loosened)
+- **2007 (`5ae130ca`), 2008 (`e8f4b9f9`), 2009 (`a0769942`).** Red specs written before lane 2's changes (Dutch dates
+  and money, moved buttons, new folds). Fixed at the cause in `0f85a830` (fix2007: 11 app fixes, 5 spec updates each as
+  strict or stricter, marked deliberate). 2009 also carried follow-up 6's undo of the `av2-todays-practice` narrowing
+  (whole-page axe again).
+- **2010 (`0f85a830`).** 24 of 25 jobs green. The red: slow-path specs — fixed in `9e089bdf` (fixslow: the NOVA Tasks
+  widget's length counter lost typed words, the habits trend card, CSS-scaled screenshots).
+- **2011 (`9db304c9`, batches 5 and 6).** 7 main shards red. Fixed in `1ef1abb5` (fix2011, 8 items: Health folded to
+  8.14 and Wealth to 9.84 phone screens under their ceilings, "Won't do this task", "Money back", one status region per
+  section, a focus effect, a deterministic timer) and `a6570b4b` (fixj08: the kept what-ifs answer).
+- **2012 (`63798740`).** The Alpha gate failed on a **privacy leak of mine**: `public-alpha.spec.ts:201` (both projects)
+  found `PRIVATE_SENTINEL_7cc2a9` in a request URL, `/app/goals/average/new?name=…&_rsc=…`. Cause: friend-readiness fix
+  FR-S-12 (`307b8122`) put the typed goal name into the "Keep an average instead →" link, and Next's prefetch and RSC
+  fetch send a Link's URL to the server. Fix `01858ef3`: the name is handed over in the page's memory on the click; the
+  link and the page carry no name parameter. The tests became stricter (the href is checked plain, then the form is
+  checked holding the name). Proof: `public-alpha.spec.ts:201` 2 of 2 and `webkit-au-sanne` green locally on the
+  production build of `01858ef3`. Lesson kept for the next session: **no person's words in any URL**, a Link's included.
+- **2012, the other red jobs** (each read at its cause; the app was right in all but one):
+  - Five specs written before deliberate friend-readiness changes, each updated to the new exact text, as strict or
+    stricter: `zigi-no-model-ab` (Dutch "9,72", FR-TJ-4; the Dutch introduction without "voorlopig in het Engels",
+    FR-S-5), `webkit-au-lina` and `ap-money-bill-price` (a rise names the month the new price began, FR-L-18),
+    `send-feedback` (Help's "My day ends at" sentence with the Journal, FR-MAX-7), `logo-quickadd-goals-header` (Quick
+    add's Spending row, FR-L-4). Commits `965d0926`, `8f8b3341`, `187523b5`.
+  - One app bug: `header-art-ae` at 390 — Your data's new "Restore from a backup ↓" (FR-L-7) wrapped into the header
+    art's corner. It now sits under the header (`8f8b3341`).
+  - `zigi-browser-agents:126` (desktop, both attempts): Wealth's tools were not offered within 5 s on `63798740`. On
+    `ed454d25` it passes 24 of 24 locally (`--repeat-each=4`, two workers). Watched in the next run; a red there is
+    investigated, not re-run.
+  - **D-CI2012-SHARDS (TIER 3 CI, `5fe077e2`).** Main shard 14 was cancelled at its 60-min limit (582 of 588 tests); 7 and
+    6 took 59 and 58 min. Per-file worker-minutes from every shard's log (each test start's gap at two workers) put
+    shards 14, 7, 6, 1, 9 and 4 at 93–112 and the others at 67–80. 22 files moved; every list now measures 83–89. No
+    spec, test, assertion or timeout changed; `scripts/ci/main-shards.test.ts` 4 of 4.
+- **2013 (`ddc4fdff`, the repack).** Every browser, WebKit, a11y, Alpha gate and integration job green on the first
+  attempt; main shards 32–46 min but 3 and 4 (58 and 59, both green). Checks red on one cause of mine: the theme sheets
+  were not regenerated after Your data's new CSS rule (`build-themes.test`) → `9af2bcbd`. Shards 3 and 4 measured 107 and
+  110 worker-min (80 and 93 in 2012) → second attempt at the shard time, `4d83e524` (TIER 3 CI): twelve files, about 15
+  worker-min from each, to the five fastest lists of 2013.
+- **2014 (`9af2bcbd`, still the first layout).** Checks, Alpha gate, integration, a11y and 10 main shards green. Main
+  shards 12 and 3 were cancelled at 60 min and 13 and 9 took 58 and 56 — no test hung (the longest gap between test
+  starts is 34 s; 578 of 628 tests ran evenly). Runner speed varied about 30% from 2013 on the same code (shard 12:
+  41.8 → 60+). WebKit shard 2: `zigi-voice-z:199` on both attempts (Carried, D-CI1991: Settings' hydration in WebKit),
+  and `zigi-voice-z:316` on its retry — **an app bug**: "Tap the mic to talk" and "no speech recognition here" could
+  show together; the mic hint no longer shows where speech recognition is missing (`f5f172e9`; the voice and states
+  specs 44 of 44 locally).
+- **Shard time: two attempts used.** If the run on `f5f172e9` (both rebalances) still has a shard at its limit, the
+  cause is the suite's size, not its split: about 1,230 worker-min over 14 lists of two workers is about 49 min a list
+  on a normal runner and over 60 on a slow one. Then it is the owner's decision (more lists in `ci.yml`, or a longer
+  job limit, which the rules forbid this session); nothing more is changed here.
+
+## D-BUDGETS-STATUS — the Budgets page's per-panel status lines stay
+- A lane 2 review asked whether Budgets' several status lines (one per panel) should become one. They stay: each line belongs
+  to the panel whose action it reports ("one live status region per section"), and folding them into one would move a
+  message away from the control that caused it. Recorded, not changed.
+
+## D-CI2016 and D-CI-SHARDS20 — run 2016, the update stall, and twenty shards (owner follow-up 7)
+- **Run 2016 (`f5f172e9`, both rebalances).** Checks, Alpha gate, integration, the a11y shards, the four WebKit shards
+  (`zigi-voice-z` green) and 12 main shards green. Main shard 10 cancelled at 60 min (112 worker-min on a slow runner);
+  main shard 5 red on `j04-offline` (both attempts).
+- **D-CI2016-J04 — Carried, two attempts used.** The journey's update step: after "Reload" the waiting worker (the newer
+  build) stays `installed` and never takes over, so the page's `load` does not come within 20 s. Reproduced locally on
+  the production build (2 of 6, then 3 of 8, 1 of 10 with a probe). The probe (a copy of the journey, not committed) logged
+  the registration every 0.5 s after the tap: in the stuck runs no `controllerchange` and no state change for the whole
+  25 s; in the others the takeover and the load in under 2.5 s. Attempt 1 (`e15abe45`, TIER 3 PWA): the old worker's
+  offline warm-up ends once a newer worker waits — right on its own, kept, but the stall stayed (3 of 8). Attempt 2
+  (`0e03a2a4`): reload 3 s after the tap anyway — the new worker still did not take over after the load (2 of 30, now at
+  the controller check), so its premise was wrong; reverted (`d4b03d7f`). Lane 2 changed only notification wording in
+  `public/sw.js` (no timer, no long `waitUntil`); the journey's update step was seen failing before (run 1701). Next
+  session: read the old worker's in-flight events with the DevTools protocol (ServiceWorker domain) while it is stuck.
+  For a friend: the "Reload" tap can do nothing for a while; closing the tab and opening it again lets the update in.
+- **Run 2019 (`7fc6f563`, 20 shards and the route-walk split).** Every browser job green on the first attempt but one:
+  main shard 13, `j04-offline` (D-CI2016-J04). WebKit (27.4–34.7 min, `zigi-alive` and `zigi-voice-z` green), a11y, Alpha
+  gate and integration green; `run11-route-mobile-acceptance` green in its two parts. No main shard cancelled: 18 of 20
+  took 25.1–39.9 min, the two that started last 52.3 and 53.4. Checks red on one cause seen for the first time: all
+  15,583 unit tests passed, then Vitest reported an unhandled `EnvironmentTeardownError` ("Closing rpc while
+  onUserConsoleLog was pending", attributed to `habit-card-render.test.ts`, which Vitest says need not be its source).
+  Not reproduced locally (alone, and with teardown held 4 s: no console output); recorded, not chased.
+- **Run 2020 (`5c1ca33c`, docs only).** 30 of 31 jobs green on the first attempt, `j04-offline` and the checks job
+  included; main shards 25.2–43.2 min, WebKit to 37.6. Red: main shard 6 cancelled at 60 min, as in run 2018 — the same
+  list, not a slow runner (112 worker-min both times against 69.7 packed): `honesty-banners` (19.3 there, 3.6
+  elsewhere) and `hydration-zone` (7.3 against 4.2) both visit every main page and slowed each other on the job's two
+  workers; with `l7-fifth-answers` (13.2 against 6.2) they move to the three lightest lists of run 2019 (`3d491fef`,
+  TIER 3 CI; still twenty lists).
+- **Run 2021 (`8e8c8eaa`, shard 6 split).** 30 of 31 jobs green on the first attempt (`j04-offline` and checks
+  included); shard 6 now 32.9 min; main shards 25.9–39.5 but shard 5 (51.9, a slow runner). Red: main shard 17,
+  `nova-dashboard:210` on both attempts ("Online" in Behind the intelligence still hidden at 5 s), with `nova-workflows`
+  and `p3-nova-polish` passing on their retries — three NOVA specs in one list, and D36's measured cause is NOVA's
+  opening slowing under concurrent heavy work (8 of 8 locally). `p3-nova-polish` and `nova-workflows` move to shards 19
+  and 20, which hold no NOVA spec (`1e41ab6b`, TIER 3 CI; the first attempt at this).
+- **Run 2022 (`386bbc1b`, the NOVA spread).** Shard 17 green (24.8 min); main shards 24.8–41.7. Red: main shard 13,
+  `j04-offline` (D-CI2016-J04) and `zigi-browser-agents:126` (desktop, both attempts; seen in run 2012; 24 of 24 locally).
+- **Run 2023 (`a63a3309`, docs only).** Red on two jobs: main shard 11, `ui-evidence:91` (the ten-page unlocked-layouts
+  walk past its 45 s on a slow runner, both attempts; seen in run 1994) → two parts with their own budget (`0efdc7fa`,
+  3 pages then 7, every page and check kept; 11–14 s and 19–20 s locally), and main shard 13, `j04-offline`.
+- **D-CI2016-J04 under owner follow-up 8 — attempt a, the waking request found and held (`1116646f`, TIER 3 PWA).** The
+  probe's request log at the tap (15 runs, 2 stuck): in both stuck takeovers the Next router prefetched
+  `/app/settings?_rsc=…` (twice) through the old worker 116–188 ms after the tap, while Chromium was stopping it; in the
+  takeovers that worked no request reached the old worker in that window. Next's router calls `window.fetch` at call
+  time (`segment-cache/fetch.js`), so from the tap until `controllerchange` every `window.fetch` call of the page waits
+  (the prefetches, the update check, the app's polling), and only then is the takeover message posted
+  (`lib/sw/takeover.ts`). Proof on the production build: the probe 29 of 29 takeovers done, 0 stuck (3 further runs
+  failed earlier in the journey's offline steps under local load, before the takeover), and `j04-offline` itself 16 of
+  16 — 45 takeovers, 0 stuck (before: 2–3 stuck in every 6–12). **Attempt b, the friend-facing fallback:** if the new
+  version has not taken over within 5 s, the bar says "Almost there: close ZIGoals and open it again to finish the
+  update." (no reload by itself, no loop, nothing open touched, no motion); `tests/av-update-takeover.spec.ts` proves the
+  hold and the fallback with request interception (10 of 10), `lib/sw/takeover.test.ts` the hold, its release and the 5 s.
+- **D-CI2016-J04, the cause measured (run 2019 red on it again; no third fix, by the two-attempt rule).** A probe with
+  Chromium's own service-worker reporting (DevTools protocol, `ServiceWorker.workerVersionUpdated`; 12 runs, 3 stuck):
+  after the tap the old worker is stopped for the takeover; in the runs that work it becomes `redundant` and the new one
+  activates within about 1 s; in the stuck runs it is started again within 0.1 s of stopping (an event for the page it
+  still controls reaches it in that window) and stays `activated/running` with its page, while the new worker stays
+  `installed` for good. Posting the takeover message again every 2 s (tried locally only, not committed) changed
+  nothing (5 of 16 stuck). So Chromium abandons the takeover when the old worker is woken mid-way, and asking again
+  does not resume it. What wakes it is not yet named (the page's own requests at that moment are the candidates).
+  For the next session or the owner: find that request in the probe's network log and keep it off the old worker
+  during the takeover, or let the page reload only after the old worker is `redundant`.
+- **Run 2017 (`d98f5437`, docs only, still 14 shards: it started before the 20-shard push could replace it).** Main
+  shards 12 and 5 cancelled at 60 min; WebKit shard 2 red on `zigi-alive:54` (desktop, both attempts: ZIGi's launcher not
+  on the page within 5 s — the WebKit late-launcher class, D-CI1932) and `zigi-voice-z:199` on its retry (D-CI1991).
+- **Run 2018 (`5194b92e`, the first with 20 main shards; 31 jobs in two waves).** Checks, Alpha gate, integration, the
+  a11y and WebKit shards (WebKit 24.9–43.2 min, `zigi-alive` and `zigi-voice-z` green) and 17 main shards green; the
+  first-wave main shards took 24.3–40.4 min. Red: main shard 4, `run11-route-mobile-acceptance:31` (desktop, both
+  attempts, its 45-s test budget: the 13 fixed routes take 16.5 s locally; seen before in runs 1701 and 1994) → the 13
+  routes in two parts with their own budget, the same visits and checks (`51b05c43`, 10 of 10 locally, as Session X split
+  the detail links). Main shards 5 and 6 (second wave) took 52.6 min (green) and 60 (cancelled): their runners were 1.4
+  and 1.6 times slower than the slowest of runs 2013–2016 over all their files (shard 6: 111 worker-min against the 69.7
+  packed; `nova-stage-am2:301` on its retry, D36). Lists packed to 40 min on the slowest measured runner still reach 60 on
+  a runner that much slower: about 28–32 lists would keep 40 min there, or a longer job limit; both are the owner's call.
+ Main shards 14 → 20, each list at most 70 worker-min by the largest
+  measured minutes per file (runs 2013, 2014, 2016): **1,393 worker-min per run**. Lists measure 69.6–69.7.
+
+## Lane 2 closing table (owner follow-up 6, step 5; 23 Nov 2026)
+
+### Ledger, per round (`docs/review/session-av/LEDGER.md`)
+
+| round | rows | built (commit) | Carried (cause) | unwired |
+|---|---|---|---|---|
+| 1, #1–#175 | 175 | 161: 24 before lane 2, 136 whole, 1 in part (#124, the rest needs content made for ZIGoals) | 14 (13 needs content made for ZIGoals, 1 needs an outside service) | 0 |
+| ten more, #176–#222 | 47 | 44 | 3 (needs content made for ZIGoals) | 0 |
+| 2, #223–#255 | 33 | 32 | 1 (needs content made for ZIGoals) | 0 |
+| 3, #256–#299 | 44 | 41 | 3 (2 needs content made for ZIGoals, 1 a new dependency) | 0 |
+| 4, #300–#347 | 48 | 47 | 1 (a new dependency) | 0 |
+| 5, #348–#390 | 43 | 42 | 1 (a new dependency) | 0 |
+| 6, #391–#431 | 41 | 41 | 0 | 0 |
+| 7, #432–#464 | 33 | 0: "to build — next session" (31; follow-up 5) | 2 | 0 |
+| **all** | **464** | **408** (31 more to build next session) | **25** | **0** |
+
+Parts Carried inside built rows keep their causes in the ledger (needs an outside service, needs a model, native-only, against a named rule, a protected area).
+
+### Reviews
+- **QUALITY.md:** the first check (q1–q4): 2 Blockers, 63 Majors, 74 Minors, all Blockers and Majors fixed. The per-batch checks, batches 1–6: 24 Blockers, 69 Majors, 146 Minors, all Blockers and Majors fixed; Minors fixed but the three batch 1 left with a cause.
+- **FRIEND_READINESS.md:** 1 Blocker, 33 Majors, 41 Minors from four persona walks. Every Blocker and Major fixed. The fresh re-check found 30 Fixed and 4 Partly; three Partly rows then fixed (`ed454d25`), FR-TJ-7 Carried on the phone (a protected area: the accepted Habits baseline). Minors 23 fixed, 3 partly, 15 Carried.
+
+### CI history (PR #109)
+| run | head | result | cause → fix |
+|---|---|---|---|
+| 2006 | `303c02f8` | all red | type check out of memory at 4 GB → `73e75d67` (TIER 3 CI) |
+| 2007–2009 | `5ae130ca`, `e8f4b9f9`, `a0769942` | red | older specs meeting lane 2's screens → `0f85a830` |
+| 2010 | `0f85a830` | 24 of 25 | slow-path specs → `9e089bdf` |
+| 2011 | `9db304c9` | 7 main shards red | batches 5 and 6 meeting older specs → `1ef1abb5`, `a6570b4b` |
+| 2012 | `63798740` | red | a goal name in a link's URL (Alpha gate) → `01858ef3`; five specs after friend-readiness wording; a link in the header art's corner → `8f8b3341`; shard 14 over 60 min → `5fe077e2` (TIER 3 CI) |
+| 2013 | `ddc4fdff` | checks red | theme sheets not regenerated → `9af2bcbd`; shards 3, 4 at 58–59 min |
+| 2014 | `9af2bcbd` | red | shards 12, 3 cancelled (slow runners); WebKit `zigi-voice-z:199`; the mic-hint bug → `f5f172e9` |
+| 2016 | `f5f172e9` | red | shard 10 cancelled; `j04-offline` (D-CI2016-J04, Carried) |
+| 2017 | `d98f5437` | red | 14 shards: 12, 5 cancelled; WebKit `zigi-alive:54` |
+| 2018 | `5194b92e` | red | first with 20 shards (owner follow-up 7); route walk → `51b05c43`; shards 5, 6 on slow runners |
+| 2019 | `7fc6f563` | red | checks: one Vitest teardown error (first sighting); `j04-offline` |
+| 2020 | `5c1ca33c` | 30 of 31 | shard 6's list too heavy → `3d491fef` |
+| 2021 | `8e8c8eaa` | 30 of 31 | shard 17's three NOVA specs → `1e41ab6b` |
+| 2022 | `386bbc1b` | 30 of 31 | `j04-offline`, `zigi-browser-agents:126` |
+| 2023 | `a63a3309` | 29 of 31 | `ui-evidence:91` → `0efdc7fa`; `j04-offline` → owner follow-up 8: `1116646f`, `6132b166` |
+| **2024** | **`12b04b94`** | **32 of 32 green on the first attempt, no re-run** | main shards 26.7–43.3 min, WebKit 21.0–40.1, a11y 12.6–28.6; `j04-offline` green |
+
+### Suite size (input for the next session)
+- **Main browser suite: 1,393 worker-minutes per run** (each of 1,005 spec files at its largest measured minutes, runs 2013, 2014 and 2016), over 20 lists of two workers; a runner's speed varied up to 1.6× between runs. The a11y suite (3 shards) takes 13–30 min a job, WebKit (4 shards) 25–43.
+- `j04-offline`'s update stall: fixed at its measured cause under follow-up 8 (the router's prefetch held during the takeover; 45 local takeovers, 0 stuck; green in run 2024), with the 5-s "Almost there" note for friends. Not registered as a known intermittent (green after the fix); `zigi-browser-agents:126` did not fail again.
+- Still recorded (not registered, each seen without failing the final run): WebKit's slow Settings hydration (`zigi-voice-z:199`, `zigi-alive:54`); one Vitest teardown error (run 2019).
+
+- **D-CI2025 (run 2025 on `4781e004`, docs only, red):** WebKit shard 2 failed `zigi-voice-z:199` on both attempts (the known slow-Settings-hydration item since run 1701). The one allowed re-run failed on a different test, `zigi-states:200`, on both attempts: launcher "idle", expected "attention". The cause was in the app: alive.ts sends the set-up ask once per page, and the machine took it only at rest, so on a slow page still greeting the ask was lost and ZIGi rested at idle with no model chosen. Fixed in `c98f0deb`: the machine keeps "not set up" from that ask until "connected" and rests at "attention" (unit test). While proving it, `zigi-alive:54` failed 2 of 4 locally on an immediate read of the stored `launcherHidden`, which the lazily loaded updater writes a moment after the UI changes; `76883e08` polls the read (same values, no timeout raised; 16 of 16). Also found locally: desktop `zigi-states:75` missed the first-open greeting 3 of 12, then 10 of 24 (states read: idle, listening; the greeting never marked). `c98f0deb` cannot cause it (ZIGi is set up there). The cause, measured with a probe, was in the app and older than lane 2: a tap made before ZIGi's alive chunk loads (on idle, up to 2 s) sends "panel opened" into the bus's early queue, and the first listener took that queue; on Today the game's celebration layer listened first and dropped it, so ZIGi never greeted that open. Fixed in `8a00d9f5`: the early signals wait for the controller (`zigiSignals.on`), and the celebration layer only watches (`zigiSignals.watch`). Unit test; 24 of 24 after the fix; the ZIGi specs (states, alive, proactive, emotions, face, one line, help) and the checklist celebration: 100 passed.
+
+- **D-CI2026 (run 2026 on `1af15cff`):** three reds, each on both attempts. Main shard 15, `ui-design-pass:385` (desktop): after Shift+Tab and Tab the focus was on "Oat latte (Showcase)", not the Water amount field. A focus probe (1 of 6 locally) showed the cause: the water card's own drinks load in their lazy part (Health's weight budget) and their row arrived between "Change" and the field after the page answered. `0297ed8e`: the keyboard step first waits for that row (an assertion added; the rest unchanged), 16 of 16. The late row itself is carried as a friend-readiness Minor. WebKit shard 2, `zigi-alive:137` (desktop): ZIGi's launcher was not on the page 5 s after a reload, then on the retry Settings' Look card was not there within 5 s. That is the WebKit slow-load class of D-CI1932 and D-CI1991, after two fixes; it is now registered as a known intermittent (`zigi-voice-z:199`, `zigi-alive:54`, `zigi-alive:137`; one job re-run).
+  Main shard 6, `av-update:38` (desktop, TIER 3 PWA): after the "deploy" the page showed the "new version" note instead of reloading once. The run's trace showed the cause: the recovery's own file is loaded when the page is idle, capped at 5 s; the busy runner had no idle moment before the deploy 3 s in, so that file was gone too, its import failed, and only the note showed (no request asked the server for its version). `486e0c80`: the cap is 1.5 s; `a6928297`: the spec's "a page that has settled" also waits for the page's idle work and its requests, the precondition it states (assertions unchanged). av-update and av-update-takeover: 56 of 56 locally.
+
+- **D-CI2027 (run 2027 on `e0506b06`):** 31 of 32 jobs green on the first attempt (all 20 main shards, the a11y and the four WebKit shards; WebKit shard 1 took 56.9 of its 60 min, the slowest so far). Red: the checks job, all 15,588 unit tests passed and Vitest failed on the run 2019 teardown error ("Closing rpc while onUserConsoleLog was pending", `habit-card-render.test.ts`). Reproduced here every time, and the late console call caught with a probe: React's "A suspended resource finished loading inside a test, but the event was not wrapped in act", the full habit card's lazy parts landing after the render's act. `ed0235f4`: each render's act waits for them (same assertions); 3 of 3 clean.
+
+- **D-CI2028 (run 2028 on `ea7023ff`):** the checks job green (the teardown fix holds). Main shard 17 red on `nova-dashboard:210` (desktop, both attempts; also run 2021): "Online" under Behind the intelligence still hidden at 5 s. Read from the trace: the panel's four requests to the mocked Ollama took 0.2 s together, but the first left 4.8 s after the page load, while the panel still said "Asking this computer…"; the time is NOVA's start on a loaded runner, D36's measured cause, not the request chain. Two fixes so far (Part 1's fitter, run 2021's spread), so it is registered as a known intermittent (with `p3-nova-polish` ND-1; one job re-run). Also red: main shard 10, `earn-guide-zigi:54` (mobile, both attempts): "Open Valdora" opened no new tab within 45 s, the CI 1937 signature word for word (second sighting in 90 runs; never fixed, so recorded and not registered). 30 of 32 jobs green.
+
+**Safe to merge now: set by the Milestone quality run on this head** (the run after run 2026, on the final head; registered known intermittents: the WebKit slow-load class, D-CI2026): yes only if it is green on the first attempt, apart from registered known intermittents that pass on their one re-run, each named. PR #109's description gives the verdict once that run is over; nothing is pushed after it.
+
 ## Follow-ups 2 and 3 — decisions and measurements
 
 - **D-FU2-1a (food Worker, TIER 3 Workers, `0dc926b5`).** Cause measured: a slot was reserved on time but its request

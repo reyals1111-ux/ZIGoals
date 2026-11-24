@@ -10,7 +10,7 @@ import type {DeviceRecordSpec} from '../device-record';
  * At most 1,000 sessions (the oldest drop first).
  */
 export const FOCUS_SESSIONS_KEY = 'zigoals:focus-sessions:v1';
-export const MAX_SESSIONS = 1000;
+export const MAX_SESSIONS = 1000, FOCUS_NOTE_MAX = 2000;
 export const focusSessionSchema = z.looseObject({
   id: z.string().regex(/^focus_[A-Za-z0-9-]{8,60}$/),
   startedAt: z.iso.datetime(),
@@ -29,6 +29,12 @@ export const focusSessionSchema = z.looseObject({
   mode: z.string().max(20).optional().catch(undefined),
   block: z.number().int().min(1).max(12).optional().catch(undefined),
   taskId: z.string().max(80).optional().catch(undefined),
+  /**
+   * Session AV lane 2 (r3-plan, LEDGER #260; Structured's notes during a focus session; TIER 3 (stored format), additive and
+   * optional): what the person wrote while the run went on, kept on the run's latest block. A value this build cannot read
+   * is dropped on read; older builds keep it untouched (loose) and do not show it.
+   */
+  note: z.string().max(FOCUS_NOTE_MAX).optional().catch(undefined),
 });
 /** Session AK (T3): the Pomodoro lengths the person last chose (minutes) and their two choices (a sound, tick the task). */
 export const POMODORO_LIMITS = {work: [5, 90], shortBreak: [1, 30], longBreak: [5, 60], cycles: [1, 8]} as const;

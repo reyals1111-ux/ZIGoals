@@ -26,13 +26,16 @@ Rather not see calorie or weight numbers? Health → Targets → **Hide calories
   "wanneer haal ik mijn noodfonds?".
 - They answer from your own records on this device. No AI is connected for you; the answers say "no AI used".
 - **Health stays closed to them until you open it.** If you want answers about meals, water, sleep or workouts, go to
-  **NOVA → Permissions → Allow Health**. You can close it there again.
+  **NOVA → Permissions → Allow Health** (the button under NOVA's "Health is off" reply takes you there; on a phone also
+  Settings → **NOVA, the command center** → **What NOVA can see**). **Allow Health** is the first thing there. You can
+  close it there again.
 - An estimate is labelled as one ("an estimate, not a promise"). They never give money advice.
 
 ## If you stay up late
 
-Settings → **My day ends at** (for example 3:00). Habits, the Checklist, streaks and Tasks then count until that time,
-so ticking things off at 1:30 still counts for "today".
+Settings → **My day ends at** (for example 3:00). Habits, the Checklist, streaks, Tasks and the Journal then count until
+that time, so ticking things off or writing at 1:30 still counts for "today". A change you make after midnight starts
+from the next night (the status line says so).
 
 ## Money
 
@@ -45,7 +48,8 @@ so ticking things off at 1:30 still counts for "today".
 ## Day 7: keep a copy
 
 Settings → **Export everything** makes a readable file of your records on your device. Keep it somewhere private; it can
-be restored later (Settings → Your data → Restore from a backup). Once you have added a good amount since your last copy,
+be restored later (Settings → Your data → Restore from a backup; on a phone, the Settings row **Restore a backup**
+opens it). Once you have added a good amount since your last copy,
 Today offers the same backup in one tap (at most every two weeks; "Not now" waits, and you can turn it off).
 
 ## When a new version comes out

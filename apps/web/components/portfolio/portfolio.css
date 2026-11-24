@@ -258,3 +258,13 @@ tr[data-expanded] .data-coin-chevron { transform: rotate(-90deg); }
 .portfolio-lots-methods { display: flex; flex-wrap: wrap; gap: 8px 20px; }
 /* Fourth pass: the global `label` rule is a column flexbox; without a row direction the text sat under its radio. */
 .portfolio-lots-methods label { display: inline-flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; white-space: nowrap; }
+/* Session AV lane 2 (money; CoinStats): count a transaction in the results, or leave it out. */
+.portfolio-counted{display:inline-flex;align-items:center;gap:8px;min-height:44px;font-size:14px;cursor:pointer}
+.portfolio-counted input{width:20px;height:20px}
+.portfolio-counted-note{display:block;flex-basis:100%;overflow-wrap:anywhere}
+.portfolio-left-out{margin:4px 0 0}
+.portfolio-time-machine{display:grid;gap:8px;margin-top:16px;min-width:0}
+.portfolio-time-machine h3{margin:0}
+.portfolio-time-machine input{min-height:44px}
+.portfolio-time-machine p{margin:0;overflow-wrap:anywhere}
+.portfolio-time-machine-list{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}

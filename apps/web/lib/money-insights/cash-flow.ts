@@ -1,7 +1,8 @@
 import {monthKey, shiftMonth} from '../budgets/engine';
 import {normalisePayee} from '../bills/detect';
 import type {MoneyEntry} from '../money-log/schema';
-import {entryParts, minorUnits} from '../money-split/parts';
+import {countedBetween, countedByCategoryBetween, countedCents, countedDayParts, countedIn, countedKind, inFigures, isSpending} from '../money-log/counted';
+import {monthOf} from '../money-log/engine';
 
 /**
  * Session AP (Wealth → Spending, owner-approved): the money log month by month, pure. Every figure is the person's own
@@ -36,17 +37,24 @@ export type CashFlowGap = {kind: 'gap'; from: string; to: string; months: number
 export type CashFlowRow = CashFlowMonth | CashFlowGap;
 export type CashFlow = {currency: string; rows: CashFlowRow[]; months: CashFlowMonth[]};
 
-/** The last 12 months with a record in the currency, oldest first, with the gaps between them. */
+/**
+ * The last 12 months with a record in the currency, oldest first, with the gaps between them. Review b4f #2 (the lead's
+ * decision): spending each month spreads a cost over its months as the budgets do (`countedBetween`), so a month that a
+ * spread cost reaches holds its share and counts as a month with a record.
+ */
 export function cashFlow(entries: readonly MoneyEntry[], currency: string, today: string, limit = CASH_FLOW_MONTHS): CashFlow {
-  const months = recordMonths(entries, currency, today).slice(0, limit).reverse(), wanted = new Set(months);
+  const spreadMonths = entries.filter(e => e.currency === currency && e.spread && isSpending(e)).flatMap(e => countedDayParts(e).filter(d => d.date <= today).map(d => monthKey(d.date)));
+  const months = [...new Set([...recordMonths(entries, currency, today), ...spreadMonths])].sort().reverse().slice(0, limit).reverse(), wanted = new Set(months);
   const by = new Map<string, CashFlowMonth>(months.map(m => [m, {kind: 'month', month: m, income: 0, spending: 0, net: 0, count: 0}]));
   for (const e of entries) {
+    if (!inFigures(e)) continue; // Session AV lane 2 (money): left out and transfers
     if (e.currency !== currency || e.date > today) continue;
     const row = by.get(monthKey(e.date)); if (!row || !wanted.has(row.month)) continue;
-    const amount = minorUnits(e.amount);
-    if (e.kind === 'income') row.income += amount; else row.spending += amount;
+    // Review b4f #3: Wealth → Spending's rule (lib/money-log/counted.ts `countedCents`): a shared cost counts the person's share.
+    if (countedKind(e) === 'income') row.income += countedCents(e); // Round 6 (#425): a refund is never income
     row.count++;
   }
+  for (const row of by.values()) { const {start, end} = monthOf(`${row.month}-01`); row.spending = countedBetween(entries, start, end > today ? today : end, {currency}).get(currency) ?? 0; }
   const rows: CashFlowRow[] = [], list = months.map(m => by.get(m)!);
   for (const row of list) row.net = row.income - row.spending;
   list.forEach((row, i) => {
@@ -64,21 +72,56 @@ export const monthsBetween = (a: string, b: string) => (Number(b.slice(0, 4)) * 
 
 export type CategoryTrend = {category: string; values: (number | null)[]; total: number};
 export type TrendView = {currency: string; months: string[]; recorded: boolean[]; categories: CategoryTrend[]};
-/** Each spending category over the 12 calendar months to today's, oldest first, biggest total first. */
+/**
+ * Each spending category over the 12 calendar months to today's, oldest first, biggest total first. Session AV lane 2,
+ * round 4 (money, LEDGER #343): each month's figure counts by the shared rule (lib/money-log/counted.ts; review b4f #2:
+ * `countedByCategoryBetween`, a spread cost by its share in each of its months, as the budgets do), so a shared cost counts
+ * the person's share and the line and its average agree; a split entry still counts in each part's category.
+ */
 export function categoryTrend(entries: readonly MoneyEntry[], currency: string, today: string, span = TREND_MONTHS): TrendView {
-  const last = monthKey(today), months = Array.from({length: span}, (_, i) => shiftMonth(last, i - span + 1)), index = new Map(months.map((m, i) => [m, i]));
-  const recorded = months.map(() => false), by = new Map<string, number[]>();
-  for (const e of entries) {
-    if (e.currency !== currency || e.date > today) continue;
-    const i = index.get(monthKey(e.date)); if (i === undefined) continue;
-    recorded[i] = true;
-    if (e.kind !== 'expense') continue;
-    // A split entry counts in each of its parts' categories (lib/money-split/parts.ts), as This month by category does.
-    for (const p of entryParts(e)) { const row = by.get(p.category) ?? months.map(() => 0); row[i]! += p.cents; by.set(p.category, row); }
-  }
+  const last = monthKey(today), months = Array.from({length: span}, (_, i) => shiftMonth(last, i - span + 1));
+  const mine = entries.filter(e => e.currency === currency && e.date <= today), recorded = months.map(() => false), by = new Map<string, number[]>();
+  months.forEach((m, i) => {
+    const {start, end} = monthOf(`${m}-01`), to = end > today ? today : end;
+    // Review b4f #2: a month a spread cost reaches holds its share, as the budgets count it (`countedByCategoryBetween`).
+    recorded[i] = countedIn(mine, currency, start, to);
+    for (const r of countedByCategoryBetween(mine, start, to)) { const row = by.get(r.category) ?? months.map(() => 0); row[i]! += r.total; by.set(r.category, row); }
+  });
   const categories = [...by.entries()].map(([category, sums]) => ({category, values: sums.map((v, i) => recorded[i] ? v : null), total: sums.reduce((a, b) => a + b, 0)}))
     .sort((a, b) => b.total - a.total || a.category.localeCompare(b.category));
   return {currency, months, recorded, categories};
+}
+
+/**
+ * Session AV lane 2, round 4 (money; Actual's average ranges, LEDGER #343): the 3-, 6- or 12-month average before this
+ * month — for all spending and for each category, counted as the budgets count them (review b4f #2) — beside this month so far, as facts ("€40.00
+ * above your 6-month average"), never a target or a warning. A month without any record in the currency is unknown, so
+ * the average is over the months with records (said with how many); none: no average.
+ */
+export const AVERAGE_SPANS = [3, 6, 12] as const;
+export type AverageSpan = typeof AVERAGE_SPANS[number];
+export type AverageLine = {average: number | null; thisMonth: number; diff: number | null};
+export type MonthAverage = {currency: string; span: AverageSpan; month: string; recorded: number; total: AverageLine; categories: Map<string, AverageLine>};
+export function monthlyAverage(entries: readonly MoneyEntry[], currency: string, today: string, span: AverageSpan = 6): MonthAverage {
+  const month = monthKey(today), mine = entries.filter(e => e.currency === currency && e.date <= today), sums = new Map<string, number>();
+  let recorded = 0, all = 0;
+  for (let i = 1; i <= span; i++) {
+    const {start, end} = monthOf(`${shiftMonth(month, -i)}-01`);
+    // Review b4f #2: each month as the budgets count it, a spread cost by its share in each of its months.
+    if (!countedIn(mine, currency, start, end)) continue;
+    recorded++;
+    all += countedBetween(mine, start, end, {currency}).get(currency) ?? 0;
+    for (const r of countedByCategoryBetween(mine, start, end)) sums.set(r.category, (sums.get(r.category) ?? 0) + r.total);
+  }
+  const now = countedByCategoryBetween(mine, `${month}-01`, today), nowAll = countedBetween(mine, `${month}-01`, today, {currency}).get(currency) ?? 0;
+  const line = (sum: number, thisMonth: number): AverageLine => { const average = recorded ? Math.round(sum / recorded) : null; return {average, thisMonth, diff: average === null ? null : thisMonth - average}; };
+  const categories = new Map<string, AverageLine>();
+  for (const c of new Set([...sums.keys(), ...now.map(r => r.category)])) categories.set(c, line(sums.get(c) ?? 0, now.find(r => r.category === c)?.total ?? 0));
+  return {currency, span, month, recorded, total: line(all, nowAll), categories};
+}
+/** All spending each month of the trend (as the budgets count it, `countedBetween`), null for a month without records. */
+export function totalTrend(entries: readonly MoneyEntry[], view: TrendView, today: string): (number | null)[] {
+  return view.months.map((m, i) => { if (!view.recorded[i]) return null; const {start, end} = monthOf(`${m}-01`); return countedBetween(entries, start, end > today ? today : end, {currency: view.currency}).get(view.currency) ?? 0; });
 }
 
 export type Payee = {key: string; name: string; thisMonth: number; lastMonth: number | null; count: number};
@@ -94,17 +137,22 @@ export function topPayees(entries: readonly MoneyEntry[], currency: string, toda
   const month = monthKey(today), previous = shiftMonth(month, -1);
   const keyOf = (e: MoneyEntry) => { const p = normalisePayee(nameOf(e)); return p ? `payee:${p}` : `category:${e.category.toLowerCase()}`; };
   const by = new Map<string, Payee & {latest: string}>();
-  let previousRecorded = false;
+  // Review b4f follow-up (the shared rule): each expense counts by `countedDayParts` — the person's share of a shared cost,
+  // a spread cost by its share in each of its months, nothing for an entry left out, a transfer or a refund — so a payee's
+  // month is the figure the budgets and the other month views count. A month with a counted figure is a recorded month.
+  const previousRecorded = countedIn(entries, currency, `${previous}-01`, monthOf(`${previous}-01`).end);
   for (const e of entries) {
-    if (e.currency !== currency || e.date > today) continue;
-    const m = monthKey(e.date);
-    if (m === previous) previousRecorded = true;
-    if (e.kind !== 'expense' || (m !== month && m !== previous)) continue;
-    const key = keyOf(e), row = by.get(key) ?? {key, name: '', thisMonth: 0, lastMonth: 0, count: 0, latest: ''};
-    if (m === month) { row.thisMonth += minorUnits(e.amount); row.count++; } else row.lastMonth! += minorUnits(e.amount);
-    // The name as the latest entry writes it.
-    if (`${e.date}${e.createdAt}` >= row.latest) { row.latest = `${e.date}${e.createdAt}`; row.name = key.startsWith('payee:') ? nameOf(e).slice(0, 60) : `${e.category}, no payee noted`; }
-    by.set(key, row);
+    if (!isSpending(e) || e.currency !== currency || e.date > today) continue; // Round 6 (#425): a refund lowers its payee
+    const key = keyOf(e);
+    for (const d of countedDayParts(e)) {
+      const m = monthKey(d.date), cents = d.parts.reduce((sum, p) => sum + p.cents, 0);
+      if (d.date > today || (m !== month && m !== previous) || !cents) continue;
+      const row = by.get(key) ?? {key, name: '', thisMonth: 0, lastMonth: 0, count: 0, latest: ''};
+      if (m === month) { row.thisMonth += cents; row.count++; } else row.lastMonth! += cents;
+      // The name as the latest entry writes it.
+      if (`${e.date}${e.createdAt}` >= row.latest) { row.latest = `${e.date}${e.createdAt}`; row.name = key.startsWith('payee:') ? nameOf(e).slice(0, 60) : `${e.category}, no payee noted`; }
+      by.set(key, row);
+    }
   }
   const payees = [...by.values()].filter(p => p.thisMonth > 0).sort((a, b) => b.thisMonth - a.thisMonth || a.name.localeCompare(b.name)).slice(0, limit)
     .map((p): Payee => ({key: p.key, name: p.name, thisMonth: p.thisMonth, lastMonth: previousRecorded ? p.lastMonth : null, count: p.count}));

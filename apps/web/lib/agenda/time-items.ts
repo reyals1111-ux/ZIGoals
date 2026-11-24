@@ -1,9 +1,11 @@
 import type {AgendaDay, AgendaItem, AgendaSource} from './build';
 import type {Task, TaskPriority, Tasks} from '../tasks/schema';
-import {openTasks, shownDoneOn} from '../tasks/engine';
+import {isLate, openTasks, shownDoneOn} from '../tasks/engine';
+import {blockLength} from '../tasks/pieces';
 import type {CalendarImport} from '../ics/calendar';
 import {occurrences} from '../ics/expand';
 import type {ExtraSource} from './extra-sources';
+import {isCancelled} from '../tasks/finished';
 
 /**
  * Session AK (T1, T2): the Agenda's two newer kinds of item, beside the ones `buildAgenda` reads (lib/agenda/build.ts,
@@ -21,7 +23,8 @@ import type {ExtraSource} from './extra-sources';
 export {EXTRA_SOURCES, EXTRA_LABEL, type ExtraSource} from './extra-sources';
 export const MAX_EXTRA_ITEMS = 3000, TASK_MINUTES = 30;
 type Base = Omit<AgendaItem, 'source' | 'pillar' | 'href'>;
-export type TaskAgendaItem = Base & {source: 'task'; pillar: 'goals' | 'life'; href: string; taskId: string; priority: TaskPriority; goal?: string; overdueSince?: string};
+export type TaskAgendaItem = Base & {source: 'task'; pillar: 'goals' | 'life'; href: string; taskId: string; priority: TaskPriority; goal?: string; overdueSince?: string;
+  /** Session AV lane 2 (r5-plan, review B5L-3): closed without being done; its state is 'skipped', never 'done'. */ cancelled?: true};
 export type EventAgendaItem = Base & {source: 'event'; pillar: 'life'; href: null; calendarId: string; calendar: string; part?: number; parts?: number};
 export type DayItem = AgendaItem | TaskAgendaItem | EventAgendaItem;
 export type DayWithExtras = {date: string; items: DayItem[]};
@@ -31,9 +34,10 @@ const ORDER: Record<DaySource, number> = {review: 0, habit: 1, task: 2, meal: 3,
 export const compareDayItems = (a: DayItem, b: DayItem) => (a.time === null ? -1 : 0) - (b.time === null ? -1 : 0) || (a.time ?? '').localeCompare(b.time ?? '') || ORDER[a.source] - ORDER[b.source] || a.title.localeCompare(b.title);
 
 function taskItem(t: Task, date: string, today: string): TaskAgendaItem {
+  // Session AV lane 2 (LEDGER #24; Sunsama's timeboxing): a timed task's block ends after its own minutes (30 when it has none).
   const time = t.time && t.due === date ? t.time : null;
-  return {id: `task:${t.id}:${date}`, source: 'task', pillar: t.goal ? 'goals' : 'life', date, time, minutes: time ? TASK_MINUTES : 0, title: t.title, href: `/app/tasks#task-${t.id}`,
-    state: t.doneAt ? 'done' : 'open', taskId: t.id, priority: t.priority, ...(t.goal ? {goal: t.goal} : {}), ...(!t.doneAt && t.due && t.due < today ? {overdueSince: t.due} : {})};
+  return {id: `task:${t.id}:${date}`, source: 'task', pillar: t.goal ? 'goals' : 'life', date, time, minutes: time ? (t.doneAt ? t.minutes ?? TASK_MINUTES : blockLength(t)) : 0, /* Session AV lane 2 (r4-plan, LEDGER #303): a task in pieces holds one piece */ title: t.title, href: `/app/tasks#task-${t.id}`,
+    state: t.doneAt ? (isCancelled(t) ? 'skipped' : 'done') : 'open', ...(isCancelled(t) ? {cancelled: true as const} : {}), taskId: t.id, priority: t.priority, ...(t.goal ? {goal: t.goal} : {}), ...(!t.doneAt && t.due && isLate(t, today) ? {overdueSince: t.due} : {})};
 }
 /** The tasks between two days (`doneDay` gives the local day of a finish time). */
 export function taskAgendaItems(record: Tasks, from: string, to: string, today: string, doneDay: (iso: string) => string): TaskAgendaItem[] {

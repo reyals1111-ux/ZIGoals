@@ -1,12 +1,13 @@
 import {frequencyProgress, habitDay, habitRuleOn, latestHabitRule, measurementUnit, type HabitData} from '../habits';
 import {pathLabelOf} from './path-label';
 import {HEALTH_MEALS, type HealthData} from '../health';
-import {dailyData, waterDayDone, waterOn} from '../health-daily';
+import {dailyData, healthDay, healthZone, waterDayDone, waterOn} from '../health-daily';
 import {weightReadingText} from '../health-units';
 import type {Platform} from '../positions';
 import type {Sleep} from '../sleep/schema';
 import {nightDay, runningNights} from '../sleep/engine';
 import type {Meditation, MeditationRun} from '../meditation/schema';
+import {meditationDayAt, sessionDay} from '../meditation/stats';
 import type {Fasting} from '../fasting/schema';
 import {runningSession} from '../fasting/engine';
 import {wallClock} from '../zone-time';
@@ -170,7 +171,10 @@ function healthDot(item: ChecklistHealthItem, base: Base, s: DeriveSources, date
       return {...here, label: item.label ?? 'Sleep', state, counted: true, note, intent: 'tick', ...(ended ? {doneAt: ended.end!} : {})};
     }
     case 'meditation': {
-      const today = (s.meditation?.sessions ?? []).filter(x => dayIn(x.startedAt, x.timeZone ?? s.zone) === day), running = !!s.meditationRun?.run;
+      // Review B6P-2: today's step counts the sessions of the meditation day ("My day ends at"), as the Meditation view does;
+      // a past day is that day.
+      const tz = prefs?.timezone ?? null, meditationDay = day === healthDay(tz, s.now) ? meditationDayAt(day, s.now, healthZone(tz)) : day;
+      const today = (s.meditation?.sessions ?? []).filter(x => sessionDay(x) === meditationDay), running = !!s.meditationRun?.run;
       const minutes = Math.round(today.reduce((n, x) => n + x.seconds, 0) / 60);
       return {...here, label: item.label ?? 'Meditate', state: today.length ? 'done' : running ? 'running' : 'undone', counted: true, note: today.length ? `${minutes} min today` : running ? 'Session running' : undefined, intent: 'value',
         value: {current: item.lastValue ?? null, unit: 'min', suggested: item.defaultValue ?? 10, min: 1, max: 240, step: 1}};

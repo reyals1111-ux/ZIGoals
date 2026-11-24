@@ -21,6 +21,11 @@
 .sleep-charts-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
 .sleep-charts-head h2 { margin: 0; }
 .sleep-range { display: flex; flex-wrap: wrap; gap: 8px; } /* Session AV (F-SLEEP-LONG): four ranges wrap on a 320 px phone */
+/* Session AV lane 2 (P-23): the four ranges as one even row ("1 year" alone on a second row read as an afterthought); two by two under 360 px. */
+.sleep-range { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.sleep-range button { padding-inline: 6px; white-space: nowrap; }
+@media (max-width: 359.98px) { .sleep-range { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.sleep-nights-all { min-height: 44px; margin-top: 8px; }
 .sleep-range button { min-height: 44px; }
 .sleep-range button[aria-pressed="true"] { border-color: #7fdcff; box-shadow: 0 0 0 1px #7fdcff; }
 .sleep-chart { margin: 16px 0 0; }
@@ -32,7 +37,10 @@
 .sleep-key-window { width: 16px; height: 10px; border: 1px solid #c45bb080; border-radius: 2px; background: #c45bb02e; }
 .sleep-key-estimated { width: 12px; height: 12px; border: 1.5px solid #6f7ff5; border-radius: 3px; background: #6f7ff56b; }
 .sleep-chart-plot { position: relative; }
-.sleep-chart svg { display: block; overflow: visible; }
+/* Session AV lane 2 (fixb1): never wider than its plot, as the other measured charts (calculator, goal forecast, wealth
+   history): drawn at the measured width, so this only holds between a resize and the next measure, when the old width
+   made the page scroll sideways for a moment. */
+.sleep-chart svg { display: block; overflow: visible; max-width: 100%; height: auto; }
 .sleep-grid line { stroke: #7fc8ff1f; stroke-width: 1; }
 .sleep-grid text, .sleep-axis { fill: #bccae0; font-size: 14px; }
 .sleep-bar { fill: #6f7ff5; stroke: #0d1629; stroke-width: 1; }
@@ -105,3 +113,20 @@
 .sleep-csv-import { margin-top: 16px; }
 .sleep-csv-import > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 600; }
 .sleep-csv-import .health-preview ul { padding-left: 20px; line-height: 1.6; }
+/* Session AV lane 2 (body; LEDGER #123, #124): "your usual" from your own nights, a dotted line; time to fall asleep. */
+.sleep-usual line { stroke: #3fc1a5; stroke-width: 2; stroke-dasharray: 1 4; stroke-linecap: round; }
+.sleep-key-usual { width: 18px; height: 0; border-top: 3px dotted #3fc1a5; }
+.sleep-bar.latency { fill: #3fc1a5; }
+@media (forced-colors: active) { .sleep-usual line { stroke: CanvasText; } .sleep-key-usual { border-top-color: CanvasText; } .sleep-bar.latency { fill: CanvasText; } }
+/* Session AV lane 2 (r3-notes; LEDGER #278): a night's dreams and "Write down a dream". */
+.night-dreams { display: flex; flex-wrap: wrap; gap: 0 16px; }
+.night-dreams .text-link { min-height: 44px; display: inline-flex; align-items: center; font-size: 15px; }
+/* Session AV lane 2 (polish 2, P-22): a night's card has no empty band above Edit and Delete — the page's `.fine` margins
+   (12 px above, 20 px below its quality line) and the actions' own 20 px had added about 40 px. The card's 10 px gap
+   is the one space between its lines and its buttons. */
+:root .sleep-nights > li > div:first-child > * { margin: 0; }
+:root .sleep-nights > li > .actions { margin: 0; }
+/* …and in "Your last 7 days" how a figure is worked out waits behind "What is this?" under it. */
+:root .sleep-stats dd.sleep-stat-how { font-size: 14px; font-weight: 600; color: var(--muted, #bccae0); }
+.sleep-stat-how > details > summary.fold-summary { gap: 6px; }
+.sleep-stat-how > details > small { display: block; font-weight: 400; padding-bottom: 4px; }

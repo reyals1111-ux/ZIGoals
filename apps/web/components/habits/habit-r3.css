@@ -1,0 +1,27 @@
+/* Session AV lane 2 (health r3; LEDGER #275, #276): a habit reminder in your own words, the trend per habit. Theme tokens
+   only, 14 px or more, 44 px targets, nothing moves. */
+.habit-reminder-more { margin: 4px 0 8px; }
+.habit-reminder-more > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.habit-reminder-more .field { display: grid; gap: 4px; }
+.habit-reminder-more input[type="text"] { width: 100%; min-height: 44px; }
+.habit-reminder-times { border: 0; padding: 0; margin: 6px 0; display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.habit-reminder-times legend { font-weight: 600; margin-bottom: 4px; font-size: 15px; }
+.habit-reminder-times input { min-height: 44px; }
+/* Session AV lane 2 (fixb3): the card is its hidden sentences' containing block, so a phone's swipe row (overflow-x: auto)
+   clips them; positioned from the page instead, they widened the whole page by the row's width. */
+.habit-trend-list { display: grid; gap: 10px; position: relative; }
+/* Session AV lane 2 (fixb3): on a phone it is the swipe row's third card, as wide as the month and the week beside it (it
+   was squeezed to its narrowest, about 34 px). */
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  :root .habits-workspace .habit-consistency > .habit-trend-list { flex: 0 0 88%; scroll-snap-align: start; min-width: 0; margin: 0; padding: 16px; }
+}
+.habit-trend-list h2 { margin: 0; }
+.habit-trend-list h3 { margin: 6px 0 4px; font-size: 1rem; }
+/* Session AV lane 2 (fixslow, CI run 2009 "recompose at 1440"): beside the month and the week (two columns, habits.css) the
+   card took the left cell of a second row alone, its habits one under another, so the section ran about 1 500 px tall with
+   an empty cell beside it. It spans the row under the two, and its habits sit side by side as far as the card allows (one
+   column in a phone's swipe card, where the row is flex and the span does nothing). */
+.habit-consistency > .habit-trend-list { grid-column: 1 / -1; }
+.habit-trend-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); }
+.habit-trend-items li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; padding: 8px 10px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); font-size: 15px; overflow-wrap: anywhere; min-width: 0; }
+.habit-trend-line { margin: 6px 0; }

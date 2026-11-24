@@ -1,0 +1,26 @@
+/* Session AV lane 2 (habits; LEDGER #45, #49, #50, #57): a habit's own options in its Details. Theme variables only. */
+.habit-options-set { border: 0; margin: 0; padding: 8px 0 0; display: grid; gap: 4px; min-width: 0; }
+.habit-option { align-items: flex-start; font-size: 1rem; }
+.habit-option input { margin-top: 3px; }
+.habit-option > span { display: grid; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
+.habit-option small.fine { font-size: .875rem; color: var(--text-secondary); }
+.habit-option-difficulty { display: grid; gap: 6px; margin-top: 6px; max-width: 28rem; }
+.habit-option-difficulty select { min-height: 44px; font-size: 1rem; }
+.habit-option-difficulty small.fine { font-size: .875rem; color: var(--text-secondary); }
+.habit-options > p.fine:empty { display: none; }
+/* LEDGER #53: the areas' week. */
+.habit-areas-week { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+.habit-area-week { display: grid; gap: 6px; min-width: 0; }
+.habit-area-week p { margin: 0; overflow-wrap: anywhere; }
+.habit-area-week-line { font-size: 1rem; }
+.habit-area-week progress { width: 100%; height: 10px; accent-color: var(--brand-cyan, #63e7ff); }
+.habit-area-week .quiet { min-height: 44px; justify-self: start; }
+.habit-area-goal { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+.habit-area-goal input { min-height: 44px; width: 8rem; font-size: 1rem; }
+.habit-area-goal button { min-height: 44px; }
+.habit-area-week > p.fine:empty { display: none; }
+/* LEDGER #185: a few times in any few days. */
+.habit-option-rolling { display: grid; gap: 6px; min-width: 0; }
+.habit-option-rolling-fields { display: flex; flex-wrap: wrap; gap: 10px; padding-left: 28px; }
+.habit-option-rolling-fields .field { display: grid; gap: 4px; }
+.habit-option-rolling-fields select { min-height: 44px; font-size: 1rem; min-width: 7rem; }

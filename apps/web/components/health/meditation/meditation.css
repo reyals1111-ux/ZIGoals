@@ -52,3 +52,17 @@
   .meditation-ring { stroke: CanvasText; } .meditation-ring-track { stroke: GrayText; }
   .meditation-segment > label input:checked + span, .meditation-chip[aria-pressed="true"] { outline: 2px solid Highlight; }
 }
+/* Session AV lane 2 (LEDGER #71, #77): today's written practice. */
+.meditation-today-fold > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.meditation-today { display: grid; gap: 10px; padding-top: 8px; min-width: 0; }
+.meditation-today p, .meditation-today h3 { margin: 0; overflow-wrap: anywhere; }
+.meditation-today-steps { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; font-size: 1rem; line-height: 1.5; }
+.meditation-today-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.meditation-today-actions button { min-height: 44px; }
+/* Session AV lane 2 (LEDGER #186): meditation milestones. */
+.meditation-milestones { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 1rem; }
+.meditation-milestones small { color: var(--muted); }
+.meditation-milestones [data-reached] { color: var(--text); font-weight: 600; }
+/* Session AV lane 2 (LEDGER #184): timer presets under Begin, and the session's settling-in and count-up lines. */
+.meditation-presets > label span small { display: block; }
+.meditation-settling { margin: 0; font-size: 1rem; color: var(--text); }

@@ -1,5 +1,5 @@
 'use client';
-import {useId, useState, type FormEvent} from 'react';
+import {useEffect, useId, useState, type FormEvent} from 'react';
 import './wallet-holdings.css';
 import {useLinkedWallets} from './use-linked-wallets';
 import {useChainChoice} from '../chain/use-chain-choice';
@@ -15,9 +15,19 @@ import {shortAddress} from '../../lib/wallet-address';
  * wallet app, nothing signed. Remove it from the wallet menu's "Linked on this device". Not in the Showcase, and only once
  * the person chose the chain.
  */
+/** Session AV lane 2 (fr-layout, FR-TJ-6): the panel's address, for Search's "Watch a Bitcoin address". */
+const WATCH_ID = 'watch-address';
 export default function AddressLookup() {
   const linked = useLinkedWallets(), chain = useChainChoice(), id = useId(), form = useFormErrors();
   const [open, setOpen] = useState(false), [text, setText] = useState(''), [name, setName] = useState(''), [busy, setBusy] = useState(false), [done, setDone] = useState('');
+  // Session AV lane 2 (fr-layout, FR-TJ-6): Search's "Watch a Bitcoin address" (/app/wealth#watch-address) opens the form
+  // here with the cursor in its address field; Wealth's page brings this panel into view once it has drawn.
+  const shown = linked.loaded && !linked.showcase && chain.chosen;
+  useEffect(() => {
+    if (!shown) return;
+    const follow = () => { if (window.location.hash !== `#${WATCH_ID}`) return; setOpen(true); setDone(''); requestAnimationFrame(() => requestAnimationFrame(() => document.querySelector<HTMLElement>(`#${WATCH_ID} form input`)?.focus({preventScroll: true}))); };
+    follow(); window.addEventListener('hashchange', follow); return () => window.removeEventListener('hashchange', follow);
+  }, [shown]);
   // Chain words only once the person chose the chain (lib/chain-choice.ts): a consumer's Wealth never shows this panel.
   if (!linked.loaded || linked.showcase || !chain.chosen) return null;
   async function submit(event: FormEvent) {
@@ -34,7 +44,7 @@ export default function AddressLookup() {
     } catch (cause) { form.fail({address: cause instanceof LinkedWalletError ? cause.message : 'The address could not be kept on this device. Nothing was saved.'}); }
     finally { setBusy(false); }
   }
-  return <section className="panel xpub-watch address-lookup" aria-labelledby={`${id}-title`}>
+  return <section id={WATCH_ID} className="panel xpub-watch address-lookup" aria-labelledby={`${id}-title`}>
     <p className="eyebrow">ANY ADDRESS · READ-ONLY</p>
     <h3 id={`${id}-title`}>Look up an address</h3>
     <p className="fine">No account and no wallet app needed: paste a public ZIGChain, EVM (Ethereum, Arbitrum, Base, OP Mainnet, Polygon, BNB Chain), Solana or Bitcoin address to see its balances here.</p>

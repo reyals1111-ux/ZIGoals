@@ -47,6 +47,7 @@ import {clockTime, degrees, umbrella} from '../world/words';
 import {axLine} from './ax-lines';
 import {connectLine, type ConnectData} from './connect-lines';
 import {moreFromSources, moreLine, type MoreData} from './more-lines';
+import {nlLogDay, nlShortDate, nlWeekDay} from './nl-dates';
 
 /**
  * Session AM (design review AM-D2, AM-D3, AM-D12): the one-line figure summary of a widget ("stage line") — what NOVA says
@@ -118,13 +119,13 @@ function healthLine(id: string, params: WidgetParams | undefined, d: LineData, l
     if (!c.latest) return say(lang, 'No weight logged yet.', 'Nog geen gewicht gelogd.');
     if (c.change) {
       const size = weightText(Math.abs(c.change.grams), c.unit);
-      const nl = c.change.direction === 'flat' ? `geen verandering sinds ${c.change.since}` : `${size} ${c.change.direction === 'down' ? 'lager' : 'hoger'} dan op ${c.change.since}`;
+      const since = nlShortDate(c.readings[0]!.date, day), nl = c.change.direction === 'flat' ? `geen verandering sinds ${since}` : `${size} ${c.change.direction === 'down' ? 'lager' : 'hoger'} dan op ${since}`;
       return say(lang, `${c.latest.text}, ${c.change.text}.`, `${c.latest.text}, ${nl}.`);
     }
-    const when = logDayWords(c.latest.date, day);
+    const when = logDayWords(c.latest.date, day), whenNl = nlLogDay(c.latest.date, day);
     return c.readings.length
-      ? say(lang, `${c.latest.text}, logged ${when}; one weigh-in in ${c.window.words}, so no change to state yet.`, `${c.latest.text}, gelogd ${when}; één weging in ${rangeWords(c.window.range, 'nl')}, dus nog geen verandering.`)
-      : say(lang, `No weight logged in ${c.window.words}; the latest is ${c.latest.text} (${when}).`, `Geen gewicht gelogd in ${rangeWords(c.window.range, 'nl')}; het laatste is ${c.latest.text} (${when}).`);
+      ? say(lang, `${c.latest.text}, logged ${when}; one weigh-in in ${c.window.words}, so no change to state yet.`, `${c.latest.text}, gelogd ${whenNl}; één weging in ${rangeWords(c.window.range, 'nl')}, dus nog geen verandering.`)
+      : say(lang, `No weight logged in ${c.window.words}; the latest is ${c.latest.text} (${when}).`, `Geen gewicht gelogd in ${rangeWords(c.window.range, 'nl')}; het laatste is ${c.latest.text} (${whenNl}).`);
   }
   if (id === 'steps') {
     const c = stepsCard(data, day, params?.range);
@@ -162,10 +163,10 @@ function wealthLine(id: string, params: WidgetParams | undefined, d: LineData, l
     const card = netWorthCard(d.wealth.hud, d.day, id === 'net-worth' ? params?.range ?? NET_WORTH_RANGE : NET_WORTH_RANGE);
     if (card.state === 'empty') return say(lang, 'Nothing is tracked on Wealth yet.', 'Er wordt nog niets gevolgd bij Vermogen.');
     if (card.total === null || !card.currency) return say(lang, 'Your holdings have no known value yet.', 'Je bezittingen hebben nog geen bekende waarde.');
-    const cur = card.currency, total = wealthMoney(card.total, cur), since = card.change ? formatDate(card.change.since, {year: !card.change.since.startsWith(d.day.slice(0, 4))}) : '';
+    const cur = card.currency, total = wealthMoney(card.total, cur), since = card.change ? formatDate(card.change.since, {year: !card.change.since.startsWith(d.day.slice(0, 4))}) : '', sinceNl = card.change ? nlShortDate(card.change.since, d.day) : '';
     const size = card.change ? wealthMoney(card.change.cents < 0n ? -card.change.cents : card.change.cents, cur) : '';
-    const change = !card.change || id !== 'net-worth' ? '' : card.change.direction === 'flat' ? say(lang, `, no change since ${since}`, `, geen verandering sinds ${since}`)
-      : say(lang, `, ${card.change.direction} ${size} since ${since}`, `, ${size} ${card.change.direction === 'up' ? 'hoger' : 'lager'} dan op ${since}`);
+    const change = !card.change || id !== 'net-worth' ? '' : card.change.direction === 'flat' ? say(lang, `, no change since ${since}`, `, geen verandering sinds ${sinceNl}`)
+      : say(lang, `, ${card.change.direction} ${size} since ${since}`, `, ${size} ${card.change.direction === 'up' ? 'hoger' : 'lager'} dan op ${sinceNl}`);
     const apart = d.wealth.accounts > 0 ? say(lang, ' Accounts and debts are not in this figure.', ' Rekeningen en schulden zitten niet in dit bedrag.') : '';
     return `${say(lang, 'Tracked wealth', 'Gevolgd vermogen')} ${total}${card.knownSoFar ? say(lang, ' known so far', ' tot nu toe bekend') : ''}${change}.${apart}`;
   }
@@ -191,7 +192,7 @@ function wealthLine(id: string, params: WidgetParams | undefined, d: LineData, l
     if (!next) return id === 'money' ? null : say(lang, 'No bill reminders yet.', 'Nog geen rekeningen als herinnering.');
     const more = c.lines.length - 1;
     return say(lang, `Next bill: ${plainName(next.title)}, ${next.amount}, due ${dueLine(next.days, 'en')} (${next.date})${more > 0 && id === 'bills' ? `; ${more} more after it` : ''}.`,
-      `Volgende rekening: ${plainName(next.title)}, ${next.amount}, ${dueLine(next.days, 'nl')} (${next.date})${more > 0 && id === 'bills' ? `; daarna nog ${more}` : ''}.`);
+      `Volgende rekening: ${plainName(next.title)}, ${next.amount}, ${dueLine(next.days, 'nl')} (${nlWeekDay(next.due, d.day)})${more > 0 && id === 'bills' ? `; daarna nog ${more}` : ''}.`);
   }
   return null;
 }
@@ -244,7 +245,7 @@ export function stageLine(id: string, params: WidgetParams | undefined, data: Li
         if (!data.workouts) return null;
         const c = workoutsCard(data.workouts, data.healthDay, params?.range), words = rangeWords(c.window.range, lang);
         if (!c.all) return say(lang, 'No workouts logged yet.', 'Nog geen workouts gelogd.');
-        if (!c.count) return say(lang, `No workouts logged in ${words}; the latest was ${plainName(c.recent[0]!.name)}, ${c.recent[0]!.dateText}.`, `Geen workouts gelogd in ${words}; de laatste was ${plainName(c.recent[0]!.name)}, ${c.recent[0]!.dateText}.`);
+        if (!c.count) return say(lang, `No workouts logged in ${words}; the latest was ${plainName(c.recent[0]!.name)}, ${c.recent[0]!.dateText}.`, `Geen workouts gelogd in ${words}; de laatste was ${plainName(c.recent[0]!.name)}, ${nlLogDay(c.recent[0]!.date, data.healthDay)}.`);
         return say(lang, `${formatNumber(c.count)} ${c.countWord} in ${words}, ${c.minutesText} in total.`, `${formatNumber(c.count)} ${c.count === 1 ? 'workout' : 'workouts'} in ${words}, samen ${c.minutesText}.`);
       }
       case 'habit-week': {
@@ -265,10 +266,10 @@ export function stageLine(id: string, params: WidgetParams | undefined, data: Li
         if (!data.journal) return null;
         const m = journalMonth(data.journal, data.day);
         if (!m.total) return say(lang, 'No journal entries yet.', 'Nog niets in je dagboek.');
-        const last = m.lastDate ? shortDate(m.lastDate, data.day) : '';
-        if (!m.entries) return say(lang, `No journal entry this month yet${last ? `; the last one is from ${last}` : ''}.`, `Deze maand nog niets in je dagboek${last ? `; het laatste is van ${last}` : ''}.`);
+        const last = m.lastDate ? shortDate(m.lastDate, data.day) : '', lastNl = m.lastDate ? nlShortDate(m.lastDate, data.day) : '';
+        if (!m.entries) return say(lang, `No journal entry this month yet${last ? `; the last one is from ${last}` : ''}.`, `Deze maand nog niets in je dagboek${last ? `; het laatste is van ${lastNl}` : ''}.`);
         return say(lang, `${m.daysWritten} ${m.daysWritten === 1 ? 'day' : 'days'} written this month${m.streak > 1 ? `; ${m.streak} days in a row` : last ? `; last entry ${logDayWords(m.lastDate!, data.day)}` : ''}.`,
-          `${m.daysWritten} ${m.daysWritten === 1 ? 'dag' : 'dagen'} geschreven deze maand${m.streak > 1 ? `; ${m.streak} dagen op rij` : last ? `; laatste keer ${logDayWords(m.lastDate!, data.day)}` : ''}.`);
+          `${m.daysWritten} ${m.daysWritten === 1 ? 'dag' : 'dagen'} geschreven deze maand${m.streak > 1 ? `; ${m.streak} dagen op rij` : last ? `; laatste keer ${nlLogDay(m.lastDate!, data.day)}` : ''}.`);
       }
       case 'net-worth': case 'wealth-hud': case 'spending': case 'budgets': case 'bills': case 'money': return wealthLine(id, params, data, lang);
       case 'goal-focus': case 'goals-hud': case 'goal-pace': return goalsLine(id, params, data, lang);
@@ -287,7 +288,7 @@ export function stageLine(id: string, params: WidgetParams | undefined, data: Li
       case 'time': {
         const r = timeRings(now), left = dayLeftWords(r.day.minutesLeft).replace(/ left$/, '');
         return say(lang, `It is ${formatTime(now)}, ${formatDate(now, {weekday: true})}; ${left === 'Under a minute' ? 'under a minute' : left} left today, ${r.year.daysLeft} ${r.year.daysLeft === 1 ? 'day' : 'days'} left this year.`,
-          `Het is ${formatTime(now)}, ${formatDate(now, {weekday: true})}; nog ${left === 'Under a minute' ? 'minder dan een minuut' : left} vandaag, nog ${r.year.daysLeft} ${r.year.daysLeft === 1 ? 'dag' : 'dagen'} dit jaar.`);
+          `Het is ${formatTime(now)}, ${nlWeekDay(localDate(now), null)}; nog ${left === 'Under a minute' ? 'minder dan een minuut' : left} vandaag, nog ${r.year.daysLeft} ${r.year.daysLeft === 1 ? 'dag' : 'dagen'} dit jaar.`);
       }
       case 'weather': case 'sun': return worldLine(id, data.weather, lang);
       case 'nova-brain': {

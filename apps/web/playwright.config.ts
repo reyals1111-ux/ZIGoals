@@ -3,8 +3,8 @@ import { defineConfig, devices } from "@playwright/test";
 import { A11Y_SWEEP, mainShardMatch } from "./playwright.main.shards";
 // Session AK ([TIER 3] (CI), ADR-036 C3): CI runs the accessibility sweep (tests/p6-*.spec.ts) as its own suite of shards
 // (A11Y_SWEEP=only) and the rest without it (A11Y_SWEEP=skip); unset, as locally, every spec runs.
-// Session AU ([TIER 3] (CI), ADR-044 D-CI): CI's fourteen main shards are the duration-balanced lists in
-// playwright.main.shards.ts (`MAIN_SHARD=n/14` with A11Y_SWEEP=skip, which first checks that every selected spec is in
+// Session AU ([TIER 3] (CI), ADR-044 D-CI): CI's main shards (twenty since Session AV follow-up 7) are the duration-balanced lists in
+// playwright.main.shards.ts (`MAIN_SHARD=n/20` with A11Y_SWEEP=skip, which first checks that every selected spec is in
 // exactly one list); without MAIN_SHARD, the selection is as before.
 if (process.env.MAIN_SHARD && process.env.A11Y_SWEEP !== "skip") {
   throw new Error(`MAIN_SHARD="${process.env.MAIN_SHARD}" needs A11Y_SWEEP=skip: its lists are the main suite, without the accessibility sweep`);

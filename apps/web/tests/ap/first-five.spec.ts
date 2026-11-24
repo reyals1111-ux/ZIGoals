@@ -1,7 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {freshDevice, hydrated, offlineApi} from '../ah-helpers';
 import {continueToGoalReview, typeGoalName} from '../goal-name';
-import {openMealLog} from '../phone-nav';
+import {closeFormSheet, isPhone, openMealLog} from '../phone-nav';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../../lib/dashboard-settings';
 
 /**
@@ -40,6 +40,11 @@ test('the first five: a goal, a habit, a meal and a money record from Today, in 
   // A meal.
   await card(page).getByRole('link', {name: 'Log a meal'}).click();
   await expect(page).toHaveURL(/\/app\/health/);
+  // (fr-layout; deliberate) FR-TJ-6: the step opens the meal form itself (Quick add's address; it left Health at its
+  // top): on a phone its sheet, elsewhere its card on screen with the keyboard in it (with no food yet, "Add your first
+  // food"). The person then adds the food first, as before.
+  if (await isPhone(page)) { await expect(page.getByRole('dialog', {name: 'Log a meal'})).toBeVisible(); await closeFormSheet(page); await expect(page.getByRole('dialog', {name: 'Log a meal'})).toBeHidden(); }
+  else { await expect(page.locator('#health-entry-action')).toBeInViewport(); await expect.poll(() => page.evaluate(() => !!document.activeElement?.closest('#health-entry-action'))).toBe(true); }
   // As a person does the first time: the food once (Foods & recipes), then the meal (Diary → Log a meal).
   await page.getByRole('tab', {name: 'Foods & recipes', exact: true}).click();
   await page.getByRole('button', {name: 'New food', exact: true}).click();
@@ -57,7 +62,10 @@ test('the first five: a goal, a habit, a meal and a money record from Today, in 
   // A money record.
   await card(page).getByRole('link', {name: 'Log an expense or income'}) /* Session AV (D20-6, deliberate): the step is named for what ticks it */.click();
   const spending = page.locator('#spending');
-  await spending.getByRole('button', {name: 'Log spending', exact: true}).click();
+  // (fr-layout; deliberate) FR-TJ-6: the step lands on Spending with its form open (it ended at the footer on a phone);
+  // the form's own button is not needed, and the form is on screen.
+  await expect(spending.getByRole('form', {name: 'Log spending or income'})).toBeInViewport({timeout: 15_000});
+  await expect(spending.getByRole('button', {name: 'Log spending', exact: true})).toHaveCount(0);
   await spending.getByLabel('Amount').fill('12,50');
   await spending.getByRole('radio', {name: 'Food & drink'}).check();
   await spending.getByRole('button', {name: 'Save', exact: true}).click();

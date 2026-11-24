@@ -129,12 +129,24 @@ export type CycleCard = {
   /** How many complete cycles an estimate still needs. */
   need: number | null;
   rule: string;
+  /** Session AV lane 2 (r5-body, LEDGER #383): "No period" is chosen, so no next-period line is shown. */
+  noPeriod?: true;
 };
 export function cycleCard(record: Cycle, today: string): CycleCard {
   if (!cycleOn(record)) return {state: 'off', day: null, lastStart: null, cycles: 0, estimate: null, need: null, rule: CYCLE_LINE};
   const starts = periodStarts(record).filter(s => s <= today), e = nextPeriodEstimate(record, today);
   return {state: starts.length ? 'live' : 'empty', day: cycleDay(record, today), lastStart: starts.at(-1) ?? null, cycles: e.cycles,
-    estimate: e.kind === 'range' ? {from: e.from, to: e.to, shortest: e.shortest, longest: e.longest, passed: e.passed} : null, need: e.kind === 'not-yet' ? e.need - e.cycles : null, rule: CYCLE_LINE};
+    estimate: e.kind === 'range' ? {from: e.from, to: e.to, shortest: e.shortest, longest: e.longest, passed: e.passed} : null, need: e.kind === 'not-yet' ? e.need - e.cycles : null, rule: CYCLE_LINE, ...(e.kind === 'off' ? {noPeriod: true} : {})};
+}
+/**
+ * The card's "Next period, an estimate" readout in words: the value and the line under it. Session AV lane 2 (review
+ * B5H-2): with "No period" chosen it says so, never a count of cycles still needed. Text only; the card's layout is its own.
+ */
+export function cycleReadout(card: CycleCard, range: (from: string, to: string) => string): {value: string; sub: string; long: boolean} {
+  const e = card.estimate;
+  if (card.noPeriod) return {value: 'Not shown', sub: 'You chose No period in the cycle log.', long: false};
+  if (e) return {value: range(e.from, e.to), sub: `${e.passed ? 'These days have passed. ' : ''}From your cycles of ${e.shortest} to ${e.longest} days.`, long: true};
+  return {value: 'Not yet', sub: `After ${card.need} more complete ${card.need === 1 ? 'cycle' : 'cycles'}.`, long: false};
 }
 export function cycleRows(card: CycleCard, day: (date: string) => string): [string, string][] {
   if (card.state === 'off') return [['Cycle', 'The cycle log is off on Health']];
@@ -142,7 +154,7 @@ export function cycleRows(card: CycleCard, day: (date: string) => string): [stri
   return [
     ['Day of this cycle', card.day === null ? 'Not known: no recent period logged' : `Day ${card.day}`],
     ['Last period started', card.lastStart ? day(card.lastStart) : 'Not logged'],
-    ['Next period, an estimate', card.estimate ? `${card.estimate.passed ? 'The estimated days have passed: ' : ''}between ${day(card.estimate.from)} and ${day(card.estimate.to)}, from cycles of ${card.estimate.shortest} to ${card.estimate.longest} days` : `Not yet: ${card.need} more complete ${card.need === 1 ? 'cycle' : 'cycles'} needed`],
+    ['Next period, an estimate', card.noPeriod ? 'Not shown: you chose No period in the cycle log' : card.estimate ? `${card.estimate.passed ? 'The estimated days have passed: ' : ''}between ${day(card.estimate.from)} and ${day(card.estimate.to)}, from cycles of ${card.estimate.shortest} to ${card.estimate.longest} days` : `Not yet: ${card.need} more complete ${card.need === 1 ? 'cycle' : 'cycles'} needed`],
     ['How to read this', card.rule],
   ];
 }

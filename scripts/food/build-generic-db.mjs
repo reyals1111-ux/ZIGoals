@@ -15,12 +15,12 @@
 // verified in LICENCES.json is never built. Downloaded files are data: they are parsed by the strict readers in lib/,
 // never executed. The XLS (old binary Excel) files are not read; CIQUAL's XML is used instead.
 import {createHash} from 'node:crypto';
-import {mkdir, mkdtemp, readFile, readdir, rename, stat, writeFile} from 'node:fs/promises';
+import {mkdir, mkdtemp, readFile, readdir, rename, rm, stat, writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {gzipSync} from 'node:zlib';
-import {pack, serialise, SCHEMA_VERSION} from './lib/pack.mjs';
+import {pack, packMore, serialise, SCHEMA_VERSION} from './lib/pack.mjs';
 import {fineliZipFiles, readCiqual, readCofid, readFineli} from './lib/sources.mjs';
 
 export const SOURCES = /** @type {const} */ (['ciqual', 'cofid', 'fineli']);
@@ -135,8 +135,12 @@ export async function build(options = {}) {
       const text = serialise(json), bytes = Buffer.from(text), file = `${source}-v1.json`;
       // Written next to the target first, then moved, so an interrupted build never leaves half a file.
       await writeFile(join(out, file + '.tmp'), bytes); await rename(join(out, file + '.tmp'), join(out, file));
-      const row = {source, ok: true, file, foods: json.foods.length, skipped, bytes: bytes.length, gzipBytes: gzipSync(bytes, {level: 9}).length, sha256: hash('sha256', bytes), notes: [...rows.provenance, ...rows.notes]};
-      report.push(row); log(`${source}: ${row.foods} foods (${skipped} skipped), ${row.bytes} bytes, ${row.gzipBytes} gzip.`);
+      const row = /** @type {any} */ ({source, ok: true, file, foods: json.foods.length, skipped, bytes: bytes.length, gzipBytes: gzipSync(bytes, {level: 9}).length, sha256: hash('sha256', bytes), notes: [...rows.provenance, ...rows.notes]});
+      // Session AV lane 2 (LEDGER #93): the further nutrients beside it, bound to this file by its checksum (none: no side file).
+      const more = packMore({source, datasetVersion: about.datasetVersion}, rows.foods, {ids: new Set(json.foods.map(f => String(f[0]))), main: row.sha256}), moreFile = `${source}-more-v1.json`;
+      if (more) { const moreBytes = Buffer.from(serialise(more)); await writeFile(join(out, moreFile + '.tmp'), moreBytes); await rename(join(out, moreFile + '.tmp'), join(out, moreFile)); row.more = {file: moreFile, foods: more.foods.length, bytes: moreBytes.length, gzipBytes: gzipSync(moreBytes, {level: 9}).length}; }
+      else await rm(join(out, moreFile), {force: true});
+      report.push(row); log(`${source}: ${row.foods} foods (${skipped} skipped), ${row.bytes} bytes, ${row.gzipBytes} gzip.${row.more ? ` Further nutrients for ${row.more.foods} foods: ${row.more.bytes} bytes, ${row.more.gzipBytes} gzip.` : ''}`);
     } catch (error) {
       report.push({source, ok: false, error: error instanceof Error ? error.message : String(error)}); log(`${source}: NOT BUILT — ${report.at(-1).error}`);
     }

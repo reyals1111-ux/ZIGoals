@@ -45,6 +45,7 @@
 .workouts-stats dd { margin: 0; font-size: 1.3rem; font-weight: 650; font-variant-numeric: tabular-nums; }
 .workouts-history-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .workouts-history-table th, .workouts-history-table td { padding: 6px 4px; text-align: left; border-top: 1px solid var(--line, #8fb6ff1f); }
+.workouts-history-table :is(th[scope="row"], td:not(:nth-child(2))) { white-space: nowrap; } /* Session AV lane 2 (P-25): "1,437.5 kg" and the day never split */
 .workouts-card-week { margin: 0; }
 @media (max-width: 520px) { .workouts-num { width: 4.5em; } .workouts-sets th, .workouts-sets td { padding: 2px; } }
 :root[data-theme=light] .workouts-tick[aria-pressed="true"] { background: #16865c; color: #fff; }
@@ -119,6 +120,9 @@
 .workouts-weeks h3{margin:0;font-size:16px}
 .workouts-weeks-pick{display:flex;flex-wrap:wrap;gap:6px}
 .workouts-weeks-pick button{min-height:44px}
+/* Session AV lane 2 (P-25): the switches read as chips (bare words looked like a caption); the chosen one is filled. */
+.workouts-weeks-pick button{padding:0 14px;border:1px solid var(--line);border-radius:999px}
+.workouts-weeks-pick button[aria-pressed="true"]{border-color:var(--cyan);background:color-mix(in srgb,var(--cyan) 14%,transparent);font-weight:650}
 .workouts-weeks-bars{width:100%;height:64px}
 .workouts-weeks-bars rect{fill:var(--cyan, #6fd3ff);opacity:.7}
 .workouts-weeks-bars rect.is-this-week{opacity:1}
@@ -144,3 +148,18 @@
 .workouts-last-note { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 4px 0 0; overflow-wrap: anywhere; }
 .workouts-last-note .text-link { min-height: 44px; }
 .workouts-calendar-fold > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+/* Session AV lane 2 (body; LEDGER #115, #119, #112): pinned and routine notes, a library routine's plan line, folders,
+   the lazy folds (their content's own sheet is av2-body.css). */
+.av2-fold > summary, .av2-howto > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.av2-howto > summary { font-size: 15px; }
+.av2-pinned { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: 15px; overflow-wrap: anywhere; }
+.av2-pinned .text-link { min-height: 44px; }
+.av2-folder { margin: 10px 0 0; font-size: 1rem; }
+.av2-routine-note { font-size: 14px; }
+.workout-calendar-mode { margin-bottom: 4px; }
+.workout-streak { margin: 0 0 6px; }
+/* Session AV lane 2 (body; LEDGER #201, #202): an exercise's own unit and its bodyweight load. */
+.workouts-ex-unit, .workouts-ex-load { flex: 0 1 200px; }
+.workouts-ex-unit select, .workouts-ex-load select { min-height: 44px; max-width: 100%; }
+.workouts-run-shoe { max-width: 20rem; margin: 6px 0; }
+.workouts-run-shoe select { min-height: 44px; max-width: 100%; }

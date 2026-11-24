@@ -9,6 +9,7 @@ import type {ChecklistDays} from '../checklist/schema';
 import {dayCounts, needOn, type DayGoal} from '../checklist/day-goal-core';
 import {ACADEMY_LESSON_IDS, ACADEMY_LESSON_XP} from '../earn/academy-ids';
 import type {EarnAcademy} from '../earn/records';
+import {DIFFICULTY_XP, FOCUS_BONUS_XP, readFocusDays, readHabitOptions} from '../habit-options/rule';
 
 /**
  * XP is derived from the person's own records, never stored: a check-in, a log, a goal step or a review earns points the
@@ -30,7 +31,10 @@ export const XP_RULES = {
 export type ChecklistDaySummaryXp = {date: string; total: number; done: number; perfect?: boolean};
 /** Session AF chunk 2 (L1): `earnAcademy` is the Earn Academy's device record (`zigoals:earn-academy:v1`); optional, so a store
  *  without it earns no Academy XP, as before. */
-export type GameStores = {habits: HabitData; health: HealthData; platform?: Platform | null; weekly?: WeeklyReview | null; checklist?: ChecklistDays | null; dayGoal?: DayGoal | null; checklistToday?: ChecklistDaySummaryXp | null; earnAcademy?: EarnAcademy | null};
+/** Session AV lane 2 (LEDGER #45, #52, #48): `habitExtras` is the loose habit extras record (each habit's difficulty, and
+ *  the focus habit of each day); `rebirthFrom` the day the person started again at level 1 (the game record's
+ *  `rebirth.from`); `monthThemeOff` the monthly theme hidden (LEDGER #55). All optional: without them every completed day earns the 10 XP it always did, and levels count all XP. */
+export type GameStores = {habits: HabitData; health: HealthData; platform?: Platform | null; weekly?: WeeklyReview | null; checklist?: ChecklistDays | null; dayGoal?: DayGoal | null; checklistToday?: ChecklistDaySummaryXp | null; earnAcademy?: EarnAcademy | null; habitExtras?: unknown; rebirthFrom?: string | null; monthThemeOff?: boolean};
 export type XpEvent = {id: string; day: string; xp: number; kind: 'habit' | 'health' | 'goal' | 'review' | 'checklist' | 'earn'; title: string};
 /** Session AF chunk 2 (L1): the Academy lessons this build knows, passed on or before `today`, each once (by its first pass). */
 export function earnLessonsPassed(stores: Pick<GameStores, 'earnAcademy'>, today: string): {id: string; day: string}[] {
@@ -50,12 +54,17 @@ export function checklistOrbitDays(stores: Pick<GameStores, 'checklist' | 'check
 const isoDay = (stamp: string) => stamp.slice(0, 10);
 export function xpEvents(stores: GameStores, today: string): XpEvent[] {
   const out: XpEvent[] = [];
+  const options = stores.habitExtras ? readHabitOptions(stores.habitExtras) : {}, focusDays = stores.habitExtras ? readFocusDays(stores.habitExtras) : {};
   for (const h of stores.habits.habits) {
+    const difficulty = options[h.id]?.difficulty;
     for (const e of h.entries) {
       if (e.date > today || e.disposition !== 'logged') continue;
       const day = habitDay(h, e.date, today), rule = habitRuleOn(h, e.date);
       if (!rule || !day.scheduled) continue;
-      if (day.status === 'complete') out.push({id: `habit:${h.id}:${e.date}`, day: e.date, xp: XP_RULES.habitComplete, kind: 'habit', title: h.title});
+      if (day.status === 'complete') {
+        out.push({id: `habit:${h.id}:${e.date}`, day: e.date, xp: difficulty ? DIFFICULTY_XP[difficulty] : XP_RULES.habitComplete, kind: 'habit', title: h.title});
+        if (focusDays[e.date] === h.id) out.push({id: `habit-focus:${h.id}:${e.date}`, day: e.date, xp: FOCUS_BONUS_XP, kind: 'habit', title: `Today’s focus: ${h.title}`});
+      }
       else if (day.status === 'partial' && e.count > 0) out.push({id: `habit:${h.id}:${e.date}`, day: e.date, xp: XP_RULES.habitPartial, kind: 'habit', title: h.title});
     }
   }
@@ -105,11 +114,17 @@ function goalReached(platform: Platform, id: string, status: string): boolean {
   try { const p = goalProgress(platform, id); return !p.requiresReview && BigInt(p.current) >= BigInt(p.target); } catch { return false; }
 }
 export const weekStart = (day: string) => addLocalDays(day, -((localWeekday(day) + 6) % 7));
-export type XpSummary = {total: number; level: LevelProgress; thisWeek: number; lastWeek: number; today: number; byKind: Record<XpEvent['kind'], number>; events: XpEvent[]};
+/** `lifetime` (Session AV lane 2, LEDGER #48): every XP ever earned, a rebirth or not (the rewards shelf unlocks by it). */
+export type XpSummary = {total: number; lifetime: number; level: LevelProgress; thisWeek: number; lastWeek: number; today: number; byKind: Record<XpEvent['kind'], number>; events: XpEvent[]};
+/**
+ * Session AV lane 2 (LEDGER #48, Habitica's Orb of Rebirth): the XP that counts toward the level — every event, or after
+ * a rebirth only those from its day on. The records and badges stay as they are; only the level starts again at 1.
+ */
+export const countedXp = (events: readonly Pick<XpEvent, 'day' | 'xp'>[], from?: string | null) => events.reduce((n, e) => !from || e.day >= from ? n + e.xp : n, 0);
 export function xpSummary(stores: GameStores, today: string): XpSummary {
-  const events = xpEvents(stores, today), ws = weekStart(today), lastWs = addLocalDays(ws, -7);
+  const every = xpEvents(stores, today), events = every.filter(e => !stores.rebirthFrom || e.day >= stores.rebirthFrom), ws = weekStart(today), lastWs = addLocalDays(ws, -7);
   let total = 0, thisWeek = 0, lastWeek = 0, todayXp = 0;
   const byKind: Record<XpEvent['kind'], number> = {habit: 0, health: 0, goal: 0, review: 0, checklist: 0, earn: 0};
   for (const e of events) { total += e.xp; byKind[e.kind] += e.xp; if (e.day >= ws) thisWeek += e.xp; else if (e.day >= lastWs) lastWeek += e.xp; if (e.day === today) todayXp += e.xp; }
-  return {total, level: levelProgress(total), thisWeek, lastWeek, today: todayXp, byKind, events};
+  return {total, lifetime: countedXp(every), level: levelProgress(total), thisWeek, lastWeek, today: todayXp, byKind, events: every};
 }

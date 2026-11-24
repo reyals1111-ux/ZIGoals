@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useRef, type ReactNode} from 'react';
+import type {ReactNode} from 'react';
 import {habitDay} from '../../lib/habits';
 import {dailyData, waterOn} from '../../lib/health-daily';
 import {logWaterWithUndo} from '../health/water-log';
@@ -22,7 +22,8 @@ import {useFasting} from '../health/use-fasting';
 import {AppIcon} from '../app-icon';
 import {Slot} from '../progress/slot';
 import {SectionHeading} from '../ui/section-heading';
-import {showStatus, showUndo} from '../ui/undo-toast';
+import {lastToastId, showStatus, showUndo} from '../ui/undo-toast';
+import {useOneTap} from '../health/one-tap';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {newHealthId} from '../../lib/health';
 
@@ -64,7 +65,7 @@ export function TodayFocus({reminders, nextGoal, step, financial, showHabits, sh
   const firstWater = healthReady ? waterButtons(health.data)[0] : undefined;
   const lastNight = healthReady && health.data.sleep ? nightsIn(health.data.sleep, healthDate, 1).at(-1) : undefined;
   const slept = lastNight ? asleep(lastNight) : null;
-  const lastTap = useRef(-Infinity);
+  const sameTap = useOneTap(); // FR-S-11: a second tap within 350 ms is said on the counted tap's toast
   // Session AL (NB-138, P-NB-43): last night in one tap, as water is: Health's own sleep write (quickLastNight + saveNight,
   // so an overlap is still refused), with Undo that removes exactly that night from the latest record.
   const sleepStore = useSleep();
@@ -81,13 +82,13 @@ export function TodayFocus({reminders, nextGoal, step, financial, showHabits, sh
   async function logWater(tapAt: number) {
     if (!firstWater) return;
     // Session AL (MO-111, P-MO-97): a second tap within 350 ms (the event's own time) is one tap, as on Health.
-    if (tapAt - lastTap.current < 350) return;
-    lastTap.current = tapAt;
+    if (!sameTap.tap(tapAt)) return;
     // Session AH (HE1; N-105, B-001): the same id and payload as Health's own water button (a bare UUID is refused).
     // Session AL (P-NB-27; NB-081, NB-089; L2 request): Health's one water write. Undo removes exactly THIS entry from the
     // latest Health record (an entry logged since stays), through the app's one toast.
     try {
       await logWaterWithUndo(health.update, {id: newHealthId(), date: healthDate, amountMilli: firstWater.amountMilli, unit: firstWater.unit}, firstWater.label.replace(/^Add /, ''));
+      sameTap.shown(lastToastId());
     } catch (e) {
       showStatus(plainErrorMessage(e, 'Could not log water on this device.'), {tone: 'error'});
     }
@@ -141,7 +142,7 @@ export function TodayFocus({reminders, nextGoal, step, financial, showHabits, sh
           <div className="focus-actions"><Link prefetch={false} className="text-link" href="/app/health?view=sleep">Open sleep →</Link></div>
         </> : <>
           <strong>No night logged</strong>
-          <div className="focus-actions">{sleepStore.loaded && !sleepStore.error && [7, 8].map(h => <button key={h} type="button" className="secondary" aria-label={`Log ${h} hours of sleep last night`} onClick={() => void logNight(h)}>{h} h</button>)}<Link prefetch={false} className="text-link" href="/app/health?view=sleep">Enter the times →</Link></div>
+          <div className="focus-actions">{sleepStore.loaded && !sleepStore.error && [7, 8].map(h => <button key={h} type="button" className="secondary" aria-label={`Log ${h} hours of sleep last night`} onClick={() => void logNight(h)}>{h} h</button>)}{/* Session AV lane 2 (fr-layout, FR-S-9): to last night's form, not to Sleep's top ("Tonight · I'm going to bed", the form 2,300 px down) */}<Link prefetch={false} className="text-link" href="/app/health?view=sleep#log-night">Enter the times →</Link></div>
         </>}
       </article>}
     </div>

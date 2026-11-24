@@ -1,5 +1,5 @@
 import type {Domain} from './cloud-sync';
-import type {ExtrasStatus,SectionSync} from '../../components/vault-sync-controls';
+import type {ExtrasStatus,SectionSync} from '../../components/vault-context';
 import type {PortfolioStatus} from '../../components/portfolio-sync-choice';
 
 /**

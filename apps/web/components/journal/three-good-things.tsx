@@ -1,7 +1,7 @@
 'use client';
 import {useEffect, useId, useMemo, useRef, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
-import {localDate} from '../../lib/local-date';
+import {journalDay} from '../../lib/journal/journal-day';
 import {JOURNAL, type JournalEntry} from '../../lib/journal/schema';
 import {GOOD_THING_MAX, GOOD_THINGS_ID, goodThingsInMonth, goodThingsText} from '../../lib/journal/good-things';
 import {lineLanguage} from '../../lib/quick-log/multi';
@@ -14,13 +14,19 @@ import {SecretGuard} from '../secret-guard/secret-guard';
  * month holds. Calm: no streak to lose, no score. Private like every entry; nothing is sent. Its own chunk.
  * Session AV (1c, q4 #4, fresh-agent review): open at the top of Write (the person can fold it), and Today's journal card
  * links here (#good-things), which puts the cursor in the first line.
+ * Session AV lane 2 (fr-layout, FR-TJ-9): folded by default — open, its three fields and Save pushed "Today's entry" to
+ * y 1,391 on a phone (2,118 in the Showcase). One 44 px line at the top of Write now; #good-things (Today's link) opens it.
  */
 const LABELS = ['A good thing today', 'Another good thing', 'One more'] as const;
 export default function ThreeGoodThings() {
-  const journal = useDeviceRecord(JOURNAL), today = localDate(), id = useId();
+  const journal = useDeviceRecord(JOURNAL), today = journalDay(), id = useId();
   const [items, setItems] = useState<string[]>(['', '', '']), [status, setStatus] = useState(''), [problem, setProblem] = useState('');
-  const first = useRef<HTMLInputElement>(null);
-  useEffect(() => { if (journal.loaded && typeof location !== 'undefined' && location.hash === '#good-things') requestAnimationFrame(() => { first.current?.scrollIntoView({block: 'center'}); first.current?.focus(); }); }, [journal.loaded]);
+  const first = useRef<HTMLInputElement>(null), [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!journal.loaded) return;
+    const go = () => { if (location.hash !== '#good-things') return; setOpen(true); requestAnimationFrame(() => { first.current?.scrollIntoView({block: 'center'}); first.current?.focus(); }); };
+    go(); window.addEventListener('hashchange', go); return () => window.removeEventListener('hashchange', go);
+  }, [journal.loaded]);
   const month = useMemo(() => goodThingsInMonth(journal.data.entries, today.slice(0, 7)), [journal.data.entries, today]);
   const save = (event: FormEvent) => {
     event.preventDefault(); setProblem('');
@@ -34,7 +40,7 @@ export default function ThreeGoodThings() {
   };
   if (!journal.loaded) return null;
   const summary = month.things ? `${month.things} good ${plural(month.things, 'thing', 'things')} this month, on ${month.days} ${plural(month.days, 'day', 'days')}` : 'None this month yet';
-  return <details id="good-things" className="good-things-fold" open>
+  return <details id="good-things" className="good-things-fold" open={open || undefined} onToggle={e => setOpen((e.currentTarget as HTMLDetailsElement).open)}>
     <summary>Three good things <span className="fine">· {summary}</span></summary>
     <form className="good-things" onSubmit={save} aria-label="Three good things">
       <p className="fine">Small things count: a warm drink, a kind word, a walk. Write one, two or three; they are kept as one entry.</p>

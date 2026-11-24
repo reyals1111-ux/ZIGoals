@@ -1,0 +1,19 @@
+/* Session AV lane 2 (habits pillar; LEDGER #66, #67): How you felt, and Week by week. Theme variables only. */
+.av2-feelings, .av2-graph { display: grid; gap: 12px; min-width: 0; }
+.av2-feelings p, .av2-graph p { margin: 0; overflow-wrap: anywhere; }
+.av2-feelings-list, .av2-graph-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.av2-feelings-list li { display: flex; gap: 12px; align-items: flex-start; }
+.av2-graph-row { display: grid; gap: 4px; }
+.av2-graph-label { font-size: .9375rem; }
+.av2-graph-svg { width: 100%; height: 56px; display: block; overflow: visible; }
+.av2-graph-base { stroke: var(--text-secondary); stroke-opacity: .35; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.av2-graph-line { fill: none; stroke: var(--cyan, #63e7ff); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.av2-graph-dot { fill: var(--cyan, #63e7ff); stroke: var(--surface, var(--bg, #0b0820)); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.av2-graph-axis { display: flex; justify-content: space-between; gap: 8px; }
+.av2-graph-scroll { overflow-x: auto; max-width: 100%; }
+.av2-graph-scroll:focus-visible { outline: 2px solid var(--cyan, #63e7ff); outline-offset: 2px; }
+.av2-graph-scroll table { border-collapse: collapse; font-size: .875rem; min-width: 100%; }
+.av2-graph-scroll th, .av2-graph-scroll td { padding: 6px 8px; text-align: left; white-space: nowrap; }
+.av2-graph-table > summary, .av2-graph-pick > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: .9375rem; }
+.av2-graph-pick fieldset { border: 0; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0 12px; }
+.av2-graph > p.fine:empty { display: none; }

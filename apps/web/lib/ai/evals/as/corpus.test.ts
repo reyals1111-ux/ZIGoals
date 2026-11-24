@@ -2,7 +2,7 @@ import {existsSync, readFileSync, writeFileSync} from 'node:fs';
 import {describe, expect, test} from 'vitest';
 import {CORPUS, questionCount, type Intent} from './cases';
 import {ask, freshAll, novaEnv, showcaseAll, zigiEnv, type Asked, type Pillar} from './harness';
-import {SAYS} from './says';
+import {SAYS, saysIn} from './says';
 
 /**
  * Session AS (ADR-042 Part 1): the corpus as unit tests. At least 400 questions; each must give the literal expected
@@ -50,7 +50,8 @@ describe('the Showcase on 17 November 2026: every question gets its expected ans
       const got = ask(question, showcase), text = lang === 'nl' ? want.nl : want.en;
       if (!answered(got)) return note(c.pillar, `${c.id} “${question}”: ${got.kind} (${got.text.slice(0, 70)})`);
       if (lead && got.text !== text) return note(c.pillar, `${c.id} “${question}”: said “${got.text.slice(0, 160)}”, expected “${text.slice(0, 160)}”`);
-      const missing = (SAYS[c.id] ?? []).filter(fact => !got.text.includes(fact));
+      // Session AV lane 2 (Dutch dates, deliberate): a Dutch phrasing states each date fact the Dutch way (says.ts saysIn); English as before.
+      const missing = saysIn(c.id, lang).filter(fact => !got.text.includes(fact));
       if (missing.length) return note(c.pillar, `${c.id} “${question}”: lacks ${missing.join(' · ')} in “${got.text.slice(0, 140)}”`);
       for (const bad of c.never ?? []) if (got.text.includes(bad)) return note(c.pillar, `${c.id} “${question}”: says “${bad}”`);
       const exact = got.tools.includes('life_facts');

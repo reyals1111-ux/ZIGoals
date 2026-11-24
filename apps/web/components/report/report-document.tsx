@@ -1,4 +1,7 @@
 'use client';
+// Session AV lane 2 (journal; LEDGER #177): the Journal section, private unless included.
+import {ReportJournal} from './report-journal';
+import type {JournalReportSection} from '../../lib/journal/report';
 import {useLayoutEffect, useRef, useState, type ReactNode} from 'react';
 import type {Report} from '../../lib/clinician-report/build';
 import {weightChangeText, weightText, type WeightUnit} from '../../lib/health-units';
@@ -45,6 +48,25 @@ function ScaleChart({series}: {series: {date: string; mood: number | null; energ
     <Axis labels={dateLabels(series.map(p => p.date), x)}/>
   </svg>;
 }
+/**
+ * Session AV lane 2 (body; q3 #48): up to four symptoms' daily levels (0 None to 3 Strong) as lines, told apart by line style
+ * and marker shape (never colour alone), named in the key below; a day not rated is a gap. The table beside it has the counts.
+ */
+const STYLES = [{dash: '', mark: 'circle', word: 'solid line, circles'}, {dash: '6 4', mark: 'square', word: 'dashed line, squares'}, {dash: '2 3', mark: 'triangle', word: 'dotted line, triangles'}, {dash: '8 3 2 3', mark: 'diamond', word: 'dash-dot line, diamonds'}] as const;
+function SymptomLines({chart}: {chart: NonNullable<NonNullable<Report['symptoms']>['chart']>}) {
+  const n = chart.dates.length, step = pw / Math.max(1, n - 1 || 1), x = (i: number) => PAD.left + (n === 1 ? pw / 2 : i * step), y = (v: number) => PAD.top + ph - v / 3 * ph;
+  const path = (values: (number | null)[]) => { let d = '', open = false; values.forEach((v, i) => { if (v === null) { open = false; return; } d += `${open ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`; open = true; }); return d; };
+  const mark = (kind: typeof STYLES[number]['mark'], cx: number, cy: number, key: string) => kind === 'circle' ? <circle key={key} className="report-dot" cx={cx} cy={cy} r={2.6}/> : kind === 'square' ? <rect key={key} className="report-dot is-open" x={cx - 2.4} y={cy - 2.4} width={4.8} height={4.8}/>
+    : kind === 'triangle' ? <path key={key} className="report-dot" d={`M${cx},${cy - 3}L${cx + 3},${cy + 2.4}L${cx - 3},${cy + 2.4}Z`}/> : <path key={key} className="report-dot is-open" d={`M${cx},${cy - 3.2}L${cx + 3.2},${cy}L${cx},${cy + 3.2}L${cx - 3.2},${cy}Z`}/>;
+  return <figure className="report-figure">
+    <svg className="report-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Symptom levels per day, 0 None to 3 Strong: ${chart.lines.map((l, i) => `${l.name} (${STYLES[i]!.word})`).join('; ')}. Gaps are days without a rating.`}>
+      {[0, 1, 2, 3].map(v => <g key={v} className="report-grid"><line x1={PAD.left} x2={W - PAD.right} y1={y(v)} y2={y(v)}/><text x={PAD.left - 4} y={y(v) + 4} textAnchor="end">{v}</text></g>)}
+      {chart.lines.map((l, i) => <g key={l.name}><path className="report-line" d={path(l.values)} style={STYLES[i]!.dash ? {strokeDasharray: STYLES[i]!.dash} : undefined}/>{l.values.map((v, k) => v === null ? null : mark(STYLES[i]!.mark, x(k), y(v), `${i}-${k}`))}</g>)}
+      <Axis labels={dateLabels(chart.dates, x)}/>
+    </svg>
+    <figcaption><ul className="report-key">{chart.lines.map((l, i) => <li key={l.name}>{l.name}: {STYLES[i]!.word}</li>)}</ul></figcaption>
+  </figure>;
+}
 function WeightChart({rows, unit}: {rows: {date: string; grams: number}[]; unit: WeightUnit}) {
   const lo = Math.min(...rows.map(r => r.grams)), hi = Math.max(...rows.map(r => r.grams)), span = Math.max(1000, hi - lo), base = lo - span * 0.1, top = hi + span * 0.1;
   const t0 = Date.parse(`${rows[0]!.date}T12:00:00Z`), t1 = Date.parse(`${rows.at(-1)!.date}T12:00:00Z`), x = (d: string) => PAD.left + (t1 === t0 ? pw / 2 : (Date.parse(`${d}T12:00:00Z`) - t0) / (t1 - t0) * pw), y = (g: number) => PAD.top + ph - (g - base) / (top - base) * ph;
@@ -73,7 +95,8 @@ function Wide({label, children}: {label: string; children: ReactNode}) {
 }
 const More = ({n, what}: {n: number; what: string}) => n > 0 ? <p className="report-more">{n} more {what} in these dates are not listed here.</p> : null;
 
-export function ReportDocument({report: r, weightUnit, showcase}: {report: Report; weightUnit: WeightUnit; showcase: boolean}) {
+export function ReportDocument({report: r, weightUnit, showcase, journal, bringUp = []}: {report: Report; weightUnit: WeightUnit; showcase: boolean; /** Session AV lane 2 (LEDGER #177): the Journal section, only when the person included it. */ journal?: JournalReportSection | null;
+  /** Session AV lane 2, round 6 (r6-body; LEDGER #417): the person's own lines to bring up, at the top, as written. */ bringUp?: readonly string[]}) {
   const none = <p className="report-none">Nothing logged in these dates.</p>;
   return <article className="report-sheet" aria-label="Report">
     <header className="report-head">
@@ -82,6 +105,10 @@ export function ReportDocument({report: r, weightUnit, showcase}: {report: Repor
       <p>From the person&rsquo;s own log in ZIGoals: entered by them or imported from their own devices and apps. Not a medical record; it holds no diagnosis and no advice. Days without an entry are left blank, never counted as zero.</p>
       {showcase && <p className="report-showcase"><strong>Showcase: fictional example data, not a real person&rsquo;s log.</strong></p>}
     </header>
+    {bringUp.length > 0 && <section className="report-section report-bring-up" aria-labelledby="report-bring-up"><h2 id="report-bring-up">To bring up</h2>
+      <p className="report-legend">In the person&rsquo;s own words, written before this visit.</p>
+      <ul className="report-facts">{bringUp.map((line, i) => <li key={i} dir="auto">{line}</li>)}</ul>
+    </section>}
     {r.sleep && <section className="report-section" aria-labelledby="report-sleep"><h2 id="report-sleep">Sleep</h2>
       {r.sleep.nights ? <>
         <ul className="report-facts"><li>Nights logged: {r.sleep.nights} of {r.range.days}</li><li>Asleep, average: {formatMinutes(r.sleep.avgAsleep!)}{r.sleep.estimated ? ' (some estimated from time in bed)' : ''}</li><li>Bedtime · wake time, average: {formatClock(r.sleep.avgBed!)} · {formatClock(r.sleep.avgWake!)}</li><li>Own quality rating, average: {r.sleep.avgQuality !== null ? `${formatNumber(r.sleep.avgQuality)} of 5` : 'not rated'}</li>{r.sleep.goal && <li>Own sleep goal: {formatMinutes(r.sleep.goal)}</li>}</ul>
@@ -130,14 +157,29 @@ export function ReportDocument({report: r, weightUnit, showcase}: {report: Repor
     {/* Session AV (owner follow-up 1, F-REPORT-MORE): symptoms and factors as rated, supplements and medication as logged. */}
     {r.symptoms && <section className="report-section" aria-labelledby="report-symptoms"><h2 id="report-symptoms">Symptoms and factors</h2>
       {r.symptoms.rows.length ? <><p>Rated by the person each day from None to Strong (0 to 3). Days without a rating are left out, never counted as None.</p>
+        {r.symptoms.chart && <SymptomLines chart={r.symptoms.chart}/>}
         <Wide label="Symptom ratings"><table><thead><tr><th scope="col">Symptom or factor</th><th scope="col">Days rated</th><th scope="col">Above None</th><th scope="col">Strong</th><th scope="col">Average</th></tr></thead>
-          <tbody>{r.symptoms.rows.map((s, i) => <tr key={`${s.name}-${i}`}><th scope="row" className="report-name">{s.name}{s.kind === 'factor' ? ' (factor)' : ''}</th><td>{s.rated}</td><td>{s.noted}</td><td>{s.strong}</td><td>{s.average === null ? '—' : `${formatNumber(s.average)} (${s.averageWord})`}</td></tr>)}</tbody></table></Wide></> : none}
+          <tbody>{r.symptoms.rows.map((s, i) => <tr key={`${s.name}-${i}`}><th scope="row" className="report-name">{s.name}{s.kind === 'factor' ? ' (factor)' : ''}</th><td>{s.rated}</td><td>{s.noted}</td><td>{s.strong}</td><td>{s.average === null ? '—' : `${formatNumber(s.average)} (${s.averageWord})`}</td></tr>)}</tbody></table></Wide>
+        {/* Session AV lane 2 (food; q3 #48 check 8): each symptom's level over the range, a dot per rated day (none for a day not rated). */}
+        {(r.symptoms.series ?? []).map(s => { const n = s.levels.length, x = (i: number) => n > 1 ? 4 + i * 292 / (n - 1) : 150, y = (v: number) => 44 - v * 13, rated = s.levels.flatMap((v, i) => v === null ? [] : [[i, v] as const]);
+          return <figure key={s.name} className="report-symptom-chart"><svg viewBox="0 0 300 48" width="100%" height="48" role="img" aria-label={`${s.name}: ${rated.length} ${rated.length === 1 ? 'day' : 'days'} rated, highest ${['None', 'Mild', 'Moderate', 'Strong'][Math.max(...rated.map(([, v]) => v))] ?? 'None'}`} preserveAspectRatio="none">
+            <line x1="4" x2="296" y1="44" y2="44" stroke="currentColor" strokeOpacity=".3"/>
+            {rated.length > 1 && <polyline fill="none" stroke="currentColor" strokeWidth="1.5" points={rated.map(([i, v]) => `${x(i)},${y(v)}`).join(' ')}/>}
+            {rated.map(([i, v]) => <circle key={i} cx={x(i)} cy={y(v)} r="2.5" fill="currentColor"/>)}
+          </svg><figcaption className="fine">{s.name}, None (0) to Strong (3), {r.range.days} days</figcaption></figure>; })}</> : none}
+    </section>}
+    {/* Session AV lane 2 (food, LEDGER #98): the food diary's averages for the range. */}
+    {r.nutrition && <section className="report-section" aria-labelledby="report-nutrition"><h2 id="report-nutrition">Nutrition</h2>
+      {r.nutrition.loggedDays ? <><p>From the food diary: {r.nutrition.loggedDays} {r.nutrition.loggedDays === 1 ? 'day' : 'days'} with food logged. Each average is over the days whose every entry gives that value; others are left out, never counted as 0. As logged, not measured.</p>
+        <Wide label="Nutrition averages"><table><thead><tr><th scope="col">Nutrient</th><th scope="col">Average a day</th><th scope="col">Days counted</th></tr></thead>
+          <tbody>{r.nutrition.rows.map(n => <tr key={n.name}><th scope="row" className="report-name">{n.name}</th><td>{n.average === null ? '—' : `${formatNumber(n.average)} ${n.unit}`}</td><td>{n.days}</td></tr>)}</tbody></table></Wide></> : none}
     </section>}
     {r.supplements && <section className="report-section" aria-labelledby="report-supplements"><h2 id="report-supplements">Supplements and medication</h2>
       {r.supplements.rows.length ? <><p>As the person wrote them and logged each dose. ZIGoals checks no dose and gives no advice.</p>
         <Wide label="Doses logged"><table><thead><tr><th scope="col">Name</th><th scope="col">Dose</th><th scope="col">Planned doses</th><th scope="col">Taken</th><th scope="col">Skipped</th><th scope="col">Not logged</th></tr></thead>
           <tbody>{r.supplements.rows.map((s, i) => <tr key={`${s.name}-${i}`}><th scope="row" className="report-name">{s.name}{s.kind === 'medication' ? ' (medication)' : ''}</th><td>{s.dose ?? '—'}</td><td>{s.planned ?? 'as needed'}</td><td>{s.taken}</td><td>{s.skipped}</td><td>{s.notLogged ?? '—'}</td></tr>)}</tbody></table></Wide></> : none}
     </section>}
+    {journal && <ReportJournal section={journal}/>}
     <footer className="report-foot"><p>Made on the person&rsquo;s own device with ZIGoals. Nothing in this report was uploaded.</p></footer>
   </article>;
 }

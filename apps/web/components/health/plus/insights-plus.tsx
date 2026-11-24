@@ -1,5 +1,5 @@
 'use client';
-import {useMemo} from 'react';
+import {lazy, Suspense, useMemo, useState} from 'react';
 import type {HealthData} from '../../../lib/health';
 import {foodLoggingMonth, foodMonthWords} from '../../../lib/food-log/consistency';
 import {MOOD_TAGS} from '../../../lib/mood-tags/schema';
@@ -8,6 +8,7 @@ import {healthGroupIn} from '../../../lib/vault/w-homes';
 import {formatDate, formatMonth} from '../../../lib/visual-format';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import './plus.css';
+const TagStats = lazy(() => import('../../mood-look/tag-stats')); // Session AV lane 2 (LEDGER #188)
 
 /**
  * Session AP (features 1 and 7), in Health → Insights: "What goes with your good days" from the mood tags (counts, five
@@ -15,6 +16,7 @@ import './plus.css';
  */
 export function GoodDaysCard({data, today}: {data: HealthData; today: string}) {
   const tags = useDeviceRecord(MOOD_TAGS);
+  const [statsOpen, setStatsOpen] = useState(false);
   const result = useMemo(() => goodDayTags(healthGroupIn(data, 'moods')?.days ?? {}, tags.data, today), [data, tags.data, today]);
   if (!tags.loaded || tags.unreadable || (!result.ready.length && !result.pending.length)) return null; // no tags kept: no card
   return <section className="panel health-aa-card" aria-labelledby="ap-good-days-title">
@@ -23,6 +25,8 @@ export function GoodDaysCard({data, today}: {data: HealthData; today: string}) {
     {result.ready.length ? <ul>{result.ready.map(f => <li key={f.tag}><p><strong>{f.tag}</strong>: {f.sentence}</p></li>)}</ul>
       : <p>No tag goes with your good days more often than other days yet, or none has {TAG_MIN_DAYS} days with a mood. {GOES_WITH}</p>}
     {result.pending.length > 0 && <details><summary>Still collecting</summary><ul>{result.pending.map(p => <li key={p.tag}>{p.tag}: {p.days} of {p.need} days with a mood</li>)}</ul></details>}
+    {/* Session AV lane 2 (LEDGER #188): each tag this month and last, and the moods on its days. */}
+    <details className="tag-stats-fold" onToggle={e => setStatsOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Each tag, month by month</summary>{statsOpen && <Suspense fallback={<p className="fine">Opening…</p>}><TagStats moods={healthGroupIn(data, 'moods')?.days ?? {}} entries={tags.data.entries} today={today}/></Suspense>}</details>
     <p className="fine">A good day is a mood of Good or Great. Counts from your own days, {result.moodDays} with a mood; they show things that went together, not why, and are not advice.</p>
   </section>;
 }

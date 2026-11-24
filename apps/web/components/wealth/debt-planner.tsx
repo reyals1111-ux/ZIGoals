@@ -1,13 +1,15 @@
 'use client';
-import {useEffect, useId, useMemo, useState} from 'react';
+import {Suspense, lazy, useEffect, useId, useMemo, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {ACCOUNTS, isDebtKind} from '../../lib/accounts/schema';
 import {balanceOn, owedAfterPayments} from '../../lib/accounts/net-worth';
 import {localDate} from '../../lib/local-date';
 import {formatDate, formatMoney, formatMonth} from '../../lib/visual-format';
-import {EXAMPLE_DEBTS, EXAMPLE_EXTRA, addMonths, centsText, comparePlans, comparisonWords, firstPaymentMonth, lumpMonth, parseCents, payoffMonth, planIssue, planProgress, rateE4, runPlan, toCents, type Lump, type PlanComparison, type PlanDebt, type PlanResult, type Strategy} from '../../lib/debt-planner/plan';
+import {EXAMPLE_DEBTS, EXAMPLE_EXTRA, addMonths, monthsBetween, centsText, comparePlans, comparisonWords, firstPaymentMonth, lumpMonth, parseCents, payoffMonth, planIssue, planProgress, rateE4, runPlan, toCents, type Lump, type PlanComparison, type PlanDebt, type PlanResult, type Strategy} from '../../lib/debt-planner/plan';
 import {LumpsEditor, OrderEditor, Progress, STRATEGY_WORDS, Schedule, countdownLine, type DraftLump} from './debt-planner-more';
 import {DEBT_PLANNER} from '../../lib/debt-planner/store';
+// Session AV lane 2 (money; Undebt.it): further orders, paid-off-by months, promo rates, notes, Debt Blaster, what-if, consolidation, CSV and print (its own chunk).
+const DebtPlannerTools = lazy(() => import('./debt-planner-tools'));
 import {plainErrorMessage} from '../../lib/plain-error';
 import {useChartWidth} from '../charts/use-chart-width';
 import {ChartLookDefs, useChartLook} from '../charts/chart-defs';
@@ -74,7 +76,9 @@ export default function DebtPlanner() {
       if (!min) return {debts, issue: `Enter the minimum monthly payment for ${r.name}, from your statement.`};
       const minimum = parseCents(min);
       if (minimum === null || minimum <= 0n) return {debts, issue: `The minimum monthly payment for ${r.name} is an amount above zero, for example 25.00.`};
-      debts.push({id: r.id, name: r.name, balance: r.owed, ratePercent: rate, minimum});
+      // Session AV lane 2 (money): an introductory rate the person keeps for this debt counts until its month.
+      const kept = stored.data.debts?.[r.id], promoMonths = kept?.promoRate !== undefined && kept.promoUntil ? monthsBetween(firstPaymentMonth(today), kept.promoUntil) + 1 : 0;
+      debts.push({id: r.id, name: r.name, balance: r.owed, ratePercent: rate, minimum, ...(promoMonths > 0 && rateE4(kept!.promoRate!) !== null ? {promoRate: kept!.promoRate!, promoMonths} : {})});
     }
     if (extraCents === null) return {debts, issue: 'Enter the extra amount a month as a number, for example 100, or leave it empty.'};
     return {debts, issue: planIssue(debts, extraCents)};
@@ -83,7 +87,8 @@ export default function DebtPlanner() {
   const lumps: Lump[] = d.lumps.flatMap(l => { const month = lumpMonth(today, l.month), cents = parseCents(l.amount); return month && cents ? [{month, cents}] : []; });
   const order = d.order?.filter(x => input.debts.some(debt => debt.id === x)) ?? [];
   const planExtra = example ? (extraCents ?? EXAMPLE_EXTRA) : extraCents ?? 0n;
-  const comparison: PlanComparison | null = input.issue || !input.debts.length ? null : comparePlans(input.debts, planExtra, {order, lumps});
+  const stepUp = !example && stored.data.stepUp && parseCents(stored.data.stepUp.amount) ? {cents: parseCents(stored.data.stepUp.amount)!, every: stored.data.stepUp.every} : undefined;
+  const comparison: PlanComparison | null = input.issue || !input.debts.length ? null : comparePlans(input.debts, planExtra, {order, lumps, ...(stepUp ? {stepUp} : {})});
   const setPlan = (change: Partial<Pick<Draft, 'order' | 'lumps' | 'shown'>>) => { setStatus(''); setUnkept(true); setDraft(x => ({...(x ?? d), ...change})); };
   // The plan kept on "Track this plan", against what the accounts show now (same currency only).
   const tracked = !example && stored.data.tracked?.currency === currency ? stored.data.tracked : undefined;
@@ -103,7 +108,7 @@ export default function DebtPlanner() {
     if (!tracked) return null;
     try {
       const debts = tracked.debts.map(x => ({id: x.id, name: x.name, balance: parseCents(x.balance)!, ratePercent: x.ratePercent, minimum: parseCents(x.minimum)!}));
-      return planProgress({on: tracked.on, debts, extra: tracked.extra ? parseCents(tracked.extra) ?? 0n : 0n, strategy: tracked.strategy, order: tracked.order ?? [], lumps: (tracked.lumps ?? []).map(l => ({month: l.month, cents: parseCents(l.amount) ?? 0n}))}, owedNow.map, today);
+      return planProgress({on: tracked.on, debts, extra: tracked.extra ? parseCents(tracked.extra) ?? 0n : 0n, strategy: tracked.strategy, order: tracked.order ?? [], lumps: (tracked.lumps ?? []).map(l => ({month: l.month, cents: parseCents(l.amount) ?? 0n})), ...(tracked.stepUp && parseCents(tracked.stepUp.amount) ? {stepUp: {cents: parseCents(tracked.stepUp.amount)!, every: tracked.stepUp.every}} : {})}, owedNow.map, today);
     } catch { return null; }
   })();
   const track = () => {
@@ -112,7 +117,7 @@ export default function DebtPlanner() {
     try {
       stored.update(r => ({...r, tracked: {on: today, strategy, currency, ...(planExtra > 0n ? {extra: centsText(planExtra)} : {}),
         debts: input.debts.map(x => ({id: x.id, name: x.name.slice(0, 100), balance: centsText(x.balance), ratePercent: x.ratePercent, minimum: centsText(x.minimum)})),
-        ...(order.length ? {order} : {}), ...(d.lumps.length ? {lumps: d.lumps} : {})}}));
+        ...(order.length ? {order} : {}), ...(d.lumps.length ? {lumps: d.lumps} : {}), ...(stored.data.method && strategy === 'custom' ? {method: stored.data.method} : {}), ...(stored.data.stepUp ? {stepUp: stored.data.stepUp} : {})}}));
       setStatus(`Tracking ${STRATEGY_WORDS[strategy]} from today, on this device.`);
     } catch (cause) { setStatus(plainErrorMessage(cause, 'Not kept on this device.')); }
   };
@@ -128,7 +133,10 @@ export default function DebtPlanner() {
           const min = d.minimums[row.id]?.trim(), rate = row.accountRate ? undefined : d.rates[row.id]?.trim();
           const minimum = min && parseCents(min) !== null ? centsText(parseCents(min)!) : undefined;
           const next = {...(minimum ? {minimum} : {}), ...(rate && rateE4(rate) !== null ? {ratePercent: (r => r.ok ? r.text : rate)(parseNumberInput(rate)) /* Session AL (3f) */} : {})};
-          if (Object.keys(next).length) debts[row.id] = next; else delete debts[row.id];
+          // Session AV lane 2 (money): the promo rate, note and paid-off-by month kept on this debt stay with it.
+          const {minimum: _m, ratePercent: _r, ...extras} = debts[row.id] ?? {}; void _m; void _r;
+          const merged = {...extras, ...next};
+          if (Object.keys(merged).length) debts[row.id] = merged; else delete debts[row.id];
         }
         // Debts that are no longer in the accounts are dropped.
         const live = new Set(accounts.data.items.map(a => a.id));
@@ -171,7 +179,9 @@ export default function DebtPlanner() {
         {input.issue ? <p role="status" className="debt-planner-issue">{input.issue}</p> : comparison && <>
           <Results c={comparison} money={money} today={today}/>
           <Schedule c={comparison} shown={d.shown} onShow={s => setPlan({shown: s})} names={new Map(input.debts.map(x => [x.id, x.name]))} money={money} today={today}
-            plan={s => runPlan(input.debts, planExtra, s, {order, lumps, schedule: true})}/>
+            plan={s => runPlan(input.debts, planExtra, s, {order, lumps, schedule: true, ...(stepUp ? {stepUp} : {})})}/>
+          <Suspense fallback={null}><DebtPlannerTools debts={input.debts} extra={planExtra} order={order} lumps={lumps} shown={d.shown} today={today} currency={shown} example={example} stored={stored}
+            onOrder={o => setPlan({order: o, shown: 'custom'})}/></Suspense>
         </>}
         {progress && tracked && <Progress tracked={tracked} progress={progress} money={money} onStop={stopTracking} payments={owedNow.payments}/>}
         {!example && <div className="money-actions">

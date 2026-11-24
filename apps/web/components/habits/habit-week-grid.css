@@ -24,3 +24,16 @@
 .habit-week-why legend { font-weight: 600; margin-bottom: 4px; }
 .habit-week-why label.reason { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; }
 .habit-week-why input:not([type=radio]) { min-height: 44px; width: 100%; box-sizing: border-box; }
+/* Session AV lane 2 (habits; q4 #30 Minor): what a tap on a day does, and the day's Skip and amount panel. */
+.habit-week-mode { border: 0; margin: 0 0 8px; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; min-width: 0; }
+.habit-week-mode legend { font-weight: 600; padding: 0 0 4px; font-size: .9375rem; }
+.habit-week-mode label { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; }
+.habit-week-day { display: grid; gap: 8px; margin-top: 10px; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius, 14px); background: var(--panel); min-width: 0; }
+.habit-week-day h3, .habit-week-day p { margin: 0; overflow-wrap: anywhere; }
+.habit-week-day h3:focus { outline: none; }
+.habit-week-day h3:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+.habit-week-day .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.habit-week-day button { min-height: 44px; }
+.habit-week-amount { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
+.habit-week-amount .field { flex: 1 1 12rem; min-width: 0; }
+.habit-week-amount input { min-height: 44px; font-size: 16px; width: 100%; box-sizing: border-box; }

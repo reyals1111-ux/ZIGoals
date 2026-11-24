@@ -12,6 +12,9 @@ export const AH_VIEW_CHOICES = ['markets-layout', 'price-chart-range', 'portfoli
 // Session AV (owner follow-up 1, F-HIDE-FIGURES): `zigoals:hide-body-figures` (display), the calories-and-weight switch;
 // F-MATRIX-RULES: `zigoals:matrix-rules` (display), the priority matrix's own lines; F-OWN-TEMPLATES:
 // `zigoals:journal-question-lang` (display), the Journal's daily question in English or Dutch.
-export const AH_DISPLAY_KEYS: readonly string[] = ['zigoals:hide-amounts', 'zigoals:hide-body-figures', 'zigoals:matrix-rules', 'zigoals:journal-question-lang', 'zigoals:device-lock:v1', ...AH_VIEW_CHOICES.map(name => `zigoals:view-choice:${name}`)];
+// Session AV lane 2 (nl-days, R3): the switch's key as a constant too, for Export everything and the restore plan, which
+// keep it (raw text `on`); it stays a display key here, so the account erase leaves it.
+export const HIDE_BODY_FIGURES_KEY = 'zigoals:hide-body-figures';
+export const AH_DISPLAY_KEYS: readonly string[] = ['zigoals:hide-amounts', HIDE_BODY_FIGURES_KEY, 'zigoals:matrix-rules', 'zigoals:journal-question-lang', 'zigoals:device-lock:v1', ...AH_VIEW_CHOICES.map(name => `zigoals:view-choice:${name}`)];
 /** The account erase removes the personal ones; display choices stay, as other sessions' do. */
 export const AH_ERASE_KEYS: readonly string[] = AH_PERSONAL_KEYS;

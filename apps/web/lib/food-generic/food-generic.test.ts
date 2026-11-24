@@ -154,7 +154,8 @@ describe('search', () => {
     const {fetcher, calls} = library();
     const {results, failed} = await searchGenericLibrary('apple raw', {fetcher});
     expect(failed).toEqual([]);expect(results[0]?.entries).toHaveLength(2);
-    expect(calls).toEqual(['/food-generic/manifest.json', '/food-generic/ciqual-v1.json', '/food-generic/cofid-v1.json']);
+    // Session AV lane 2 (rest, LEDGER #93, deliberate: CoFID's side file of further nutrients is asked for after its file; still only these, and never the words).
+    expect(calls).toEqual(['/food-generic/manifest.json', '/food-generic/ciqual-v1.json', '/food-generic/cofid-v1.json', '/food-generic/cofid-more-v1.json']);
     expect(calls.join(' ')).not.toContain('apple');
   });
 });

@@ -1,7 +1,8 @@
 'use client';
 import {showUndo} from '../ui/undo-toast';
 import {EmptyState} from '../ui/empty-state';
-import {useEffect, useMemo, useState} from 'react';
+import {lazy, Suspense, useEffect, useMemo, useState} from 'react';
+import {LoadBoundary} from '../load-boundary';
 import type {HealthData} from '../../lib/health';
 import {dailyData} from '../../lib/health-daily';
 import {exerciseData} from '../../lib/health-counters';
@@ -9,7 +10,7 @@ import {healthGoalLine, healthGoalProgress} from '../../lib/health-goals/progres
 import type {HealthGoal} from '../../lib/health-goals/schema';
 import {addHealthGoal, editHealthGoal, setHealthGoalStatus, type HealthGoalDraft} from '../../lib/health-goals/store';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
-import {isShowcase} from '../../lib/showcase-storage';
+import {getAppStorage, isShowcase} from '../../lib/showcase-storage';
 import {SYNC_WRITES} from '../../lib/vault/sync-writes';
 import {formatDate} from '../../lib/visual-format';
 import {GlassBar} from '../progress/glass-progress';
@@ -19,6 +20,16 @@ import {useHealthToday} from '../health/use-health-today';
 import {HealthGoalCreator} from './health-goal-creator';
 import type {HealthGoalsStore} from './use-health-goals';
 import './health-goals.css';
+
+// Session AV lane 2 (health r3; LEDGER #287): goals on a nutrient, a body measurement or your own number, their own chunk,
+// loaded when the fold opens (open at once on a device that keeps some).
+const MoreGoals = lazy(() => import('./more-goals'));
+const MORE_GOALS_KEY_LITERAL = 'zigoals:health-goals-more:v1';
+function MoreGoalsFold({health, today}: {health: HealthData; today: string}) {
+  const [open, setOpen] = useState(false);
+  useEffect(() => { let on = true; queueMicrotask(() => { try { if (on && /"goals":\[\{/.test(getAppStorage().getItem(MORE_GOALS_KEY_LITERAL) ?? '')) setOpen(true); } catch { /* storage blocked: closed */ } }); return () => { on = false; }; }, []);
+  return <details className="more-goals-fold" open={open} onToggle={e => setOpen(e.currentTarget.open)}><summary>Goals on a nutrient, a measurement or your own number</summary>{open && <LoadBoundary quiet><Suspense fallback={<p className="fine" role="status">Opening…</p>}><MoreGoals health={health} today={today}/></Suspense></LoadBoundary>}</details>;
+}
 
 /** "Health goals · on this device" on the Goals page (G3): rows from the Health journal, a creator, done and closed behind a fold. */
 export function HealthGoalsSection({goals, health, healthLoaded}: {goals: HealthGoalsStore; health: HealthData; healthLoaded: boolean}) {
@@ -75,6 +86,7 @@ export function HealthGoalsSection({goals, health, healthLoaded}: {goals: Health
       {rest.length > 0 && <div className="health-goals-fold"><button type="button" className="quiet" aria-expanded={showDone} onClick={() => setShowDone(open => !open)}>{showDone ? 'Hide done and ended' : `Show done and ended (${rest.length})`}</button>{showDone && <ul className="health-goal-list" aria-label="Done and closed health goals">{rest.map(row)}</ul>}</div>}
     </>}
     {message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}
+    <MoreGoalsFold health={health} today={today} />
     {creator && (phone ? <PhoneFormSheet title={editor === 'new' ? 'New health goal' : 'Edit health goal'} onClose={() => setEditor(null)}>{creator}</PhoneFormSheet> : creator)}
   </section>;
 }

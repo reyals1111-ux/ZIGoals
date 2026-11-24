@@ -1,15 +1,18 @@
 'use client';
 import Link from 'next/link';
-import {useEffect, useRef, useState} from 'react';
+import {Suspense, lazy, useEffect, useRef, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {Switch} from '../ai/ai-switch';
-import {NOTIFY_LABELS, NOTIFY_PREFS, NOTIFY_TYPES, eveningTime, morningTime, setTime, setType, typeOn, type NotifyType} from '../../lib/notify/prefs';
+import {NOTIFY_LABELS, NOTIFY_PREFS, NOTIFY_TYPES, eveningTime, moodTimes, morningTime, setMoodTimes, setTime, setType, typeOn, type NotifyType} from '../../lib/notify/prefs';
 import {REMINDERS_PLAN, quietHours} from '../../lib/reminders-plan/schema';
 import {pushSupport} from '../../lib/push/support';
 import {isShowcase} from '../../lib/showcase-storage';
 import {formatClock} from '../../lib/visual-format';
 import {NOTIFY_CHANGE} from './notify-sync';
 import './notifications.css';
+
+// Session AV lane 2 (r5-body; LEDGER #369): one reminder per part of the day, its own chunk.
+const HabitPartsChoice = lazy(() => import('./habit-parts-choice'));
 
 /** Session AL (P-BN-37, BN-114): this browser's own answer, said beside the service's state (they are two things). */
 export type BrowserPermission = 'granted' | 'denied' | 'default' | 'unsupported';
@@ -108,9 +111,16 @@ export function NotificationsCard() {
       <legend>What to be told about</legend>
       {NOTIFY_TYPES.map((type: NotifyType) => <Switch key={type} label={NOTIFY_LABELS[type].title} note={NOTIFY_LABELS[type].blurb} checked={typeOn(prefs.data, type)} onChange={on => save(p => setType(p, type, on))}/>)}
     </fieldset>
+    {prefs.loaded && typeOn(prefs.data, 'habits') && <Suspense fallback={null}><HabitPartsChoice/></Suspense>}
     <div className="notify-times">
       <label className="field"><span>Morning orbit at</span><input type="time" step={60} value={morningTime(prefs.data)} onChange={e => { if (e.target.value) save(p => setTime(p, 'morning', e.target.value)); }}/></label>
       <label className="field"><span>Evening wrap-up at</span><input type="time" step={60} value={eveningTime(prefs.data)} onChange={e => { if (e.target.value) save(p => setTime(p, 'evening', e.target.value)); }}/></label>
+      {/* Session AV lane 2 (LEDGER #180): the mood check-in's time and an optional second one, while it is on. */}
+      {typeOn(prefs.data, 'mood') && (() => { const [first, second] = moodTimes(prefs.data); return <>
+        <label className="field"><span>Mood check-in at</span><input type="time" step={60} value={first} onChange={e => { if (e.target.value) save(p => setMoodTimes(p, e.target.value, second ?? null)); }}/></label>
+        <label className="checkbox"><input type="checkbox" checked={!!second} onChange={e => save(p => setMoodTimes(p, first!, e.target.checked ? '13:00' : null))}/><span>A second mood check-in</span></label>
+        {second && <label className="field"><span>Second mood check-in at</span><input type="time" step={60} value={second} onChange={e => { if (e.target.value) save(p => setMoodTimes(p, first!, e.target.value)); }}/></label>}
+      </>; })()}
     </div>
     <p className="fine">Quiet hours: nothing between {formatClock(quiet.from)} and {formatClock(quiet.to)} in this device’s time zone. <Link href="/app/settings/reminders">Change quiet hours and the review day →</Link> Your device’s own Do Not Disturb still applies.</p>
   </section>;

@@ -13,3 +13,6 @@
 /* Session AV (1c, q4 #33): the journal's glance line from 561 px up; on a phone Today's height ceiling (today-screens,
    ADR-024) leaves it to the journal card's own line in For you. */
 @media (max-width: 560px) { .today-journal-glance { display: none; } }
+/* Session AV lane 2 (money): what is left in each budget, plain text under the Money line (opt-in). */
+.today-budgets-left{font-size:14px;overflow-wrap:anywhere}
+.today-budgets-left span{display:inline-block;padding-block:4px}

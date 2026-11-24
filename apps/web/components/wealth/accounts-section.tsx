@@ -8,7 +8,7 @@ import {reinsertAccount, unarchiveAccount} from '../../lib/wealth-undo';
 import {plausibilityWarning} from '../../lib/wealth-plausibility';
 import {PlausibleCheck, usePlausibleCheck} from './plausible-check';
 import {ACCOUNTS, ASSET_KINDS, DEBT_KINDS, isDebtKind, type Account, type AccountKind, type Accounts} from '../../lib/accounts/schema';
-import {add, addAccount, balanceOn, editAccount, holdingsOf, moneyText, netWorthTotal, netWorthHistory, payoffMonths, recordBalance, recordPayment, removeAccount, usualPayment, type Money} from '../../lib/accounts/net-worth';
+import {add, addAccount, balanceOn, owedAfterPayments, editAccount, holdingsOf, moneyText, netWorthTotal, netWorthHistory, payoffMonths, recordBalance, recordPayment, removeAccount, usualPayment, type Money} from '../../lib/accounts/net-worth';
 import {parseAmountInput} from '../../lib/amount-input';
 import {formatGoalAmount} from '../../lib/goal-summary';
 import {addLocalDays, localDate} from '../../lib/local-date';
@@ -25,9 +25,29 @@ import {formatDate, formatMoney, formatNumber} from '../../lib/visual-format';
 import {amountIssue, moneyUnitsIssue, validateValue, within} from '../../lib/limits/plausibility';
 import {parseNumberInput} from '../../lib/numbers/parse';
 import {useMoneyCurrency} from './use-money-currency';
+// Session AV lane 2 (money; Monarch): a note on each account and the person's own order (kept on the money log's loose record).
+import {MONEY_LOG} from '../../lib/money-log/schema';
+import {inOrder, moveAccount, withAccountNote} from '../../lib/money-log/counted';
 // Session AK (F5a, items 1 and 3): the debt payoff planner (on its button) and the net-worth milestones, each its own chunk.
 const DebtPlanner = lazy(() => import('./debt-planner'));
 const NetWorthMilestones = lazy(() => import('./networth-milestones'));
+// Session AV lane 2 (money; Undebt.it): the debts at a glance (debt-free month, paid down, trends, paid off), its own chunk.
+const DebtsSummary = lazy(() => import('./debts-summary'));
+// Session AV lane 2 (money; Kubera): your sheet (shares, groups, update reminders, one total from your rates) and each account's sheet options, each its own chunk.
+const WealthSheetPanel = lazy(() => import('./wealth-sheet'));
+const AccountSheet = lazy(() => import('./account-sheet'));
+const PropertyEquity = lazy(() => import('./account-sheet').then(x => ({default: x.PropertyEquity})));
+// Session AV lane 2, round 2 (money; Wallet): balances past the person's own lines (lazy).
+const LimitNotices = lazy(() => import('./account-limits'));
+// Session AV lane 2, round 3 (money; Simplifi's credit card dashboard, LEDGER #293): a card's limit used and its days (lazy).
+const CardLine = lazy(() => import('./credit-card'));
+// Session AV lane 2, round 4 (money; Actual's reconcile, LEDGER #340): check an account's entries against the bank's statement (lazy).
+const Reconcile = lazy(() => import('./reconcile'));
+const RECONCILE_KINDS = new Set<AccountKind>(['cash', 'savings', 'credit-card']);
+// Session AV lane 2, round 5 (money; Tiller's Data Cleanup, LEDGER #387): merge two accounts of a group (lazy, on its button).
+const MergeAccounts = lazy(() => import('./merge-accounts'));
+// Session AV lane 2, round 2 (money; Wallet): net worth with money lent and borrowed, beside the cards (lazy).
+const BesideWorth = lazy(() => import('./beside-worth'));
 
 /**
  * Accounts, debts and net worth (Session W Part 12; Wealth's "wealth:accounts" section). Balances are the person's own,
@@ -45,7 +65,7 @@ const rateText = (raw: string) => { if (!raw.trim()) return ''; const v = valida
 const toMoney = (text: string, date: string): Money & {date: string} => { const value = parseAmountInput(text, 2); within(moneyUnitsIssue(value, 2)); /* Session AH (VA2, B3) */ if (value < 0n) throw Error('Enter the amount as a positive number; a debt’s balance is what is owed.'); return {value, decimals: 2, date}; };
 /** Session AC: inside Wealth's one holdings list, `only` follows its chips (Accounts: what you own; Debts: what you owe). */
 export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?: 'all' | 'accounts' | 'debts'}) {
-  const accounts = useDeviceRecord(ACCOUNTS), platform = usePlatform(), today = localDate();
+  const accounts = useDeviceRecord(ACCOUNTS), platform = usePlatform(), today = localDate(), extras = useDeviceRecord(MONEY_LOG), [arranging, setArranging] = useState<'assets' | 'debts' | null>(null), [merging, setMerging] = useState<'assets' | 'debts' | null>(null);
   /* Session AK (F5a, item 1) */ const [planOpen, setPlanOpen] = useState(false), [adding, setAdding] = useState(false), [open, setOpen] = useState<{id: string; mode: 'balance' | 'payment' | 'edit'} | null>(null), [message, setMessage] = useState(''), [error, setError] = useState('');
   // Session W Part 21: ZIGi's balance hand-off, read once (on arrival, or when told while Wealth is already open); the
   // named account's balance form opens filled in, and the person saves it.
@@ -93,14 +113,17 @@ export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?:
       </article>)}
       <p className="fine">Net worth = accounts + Wealth holdings with a value − debts, per currency, never converted between currencies.{worth.unvaluedHoldings ? ` Not counted, no value yet: ${worth.unvaluedNames.join(', ')}.` : ''}</p>
     </div>}
+    <Suspense fallback={null}><BesideWorth rows={worth.rows.map(r => ({currency: r.currency, net: Math.round(Number(moneyText(r.net)) * 100)}))}/></Suspense>
+    <Suspense fallback={null}><LimitNotices accounts={accounts.data}/></Suspense>
     {/* Session AK (F5a, item 3): net-worth milestones, off by default; one calm card the first time one is passed. */}
     {worth.rows.length > 0 && <Suspense fallback={null}><NetWorthMilestones rows={worth.rows.map(r => ({currency: r.currency, net: r.net}))} today={today} /></Suspense>}
     {history.length > 1 && <details className="accounts-history"><summary>Net worth over time (accounts only)</summary><table><caption>Month-end net worth from your accounts and debts</caption><thead><tr><th scope="col">Date</th><th scope="col">Currency</th><th scope="col">Net worth</th><th scope="col">Accounts counted</th></tr></thead>
       <tbody>{history.map(h => <tr key={`${h.date}-${h.currency}`}><th scope="row">{formatDate(h.date)}</th><td>{h.currency}</td><td>{show(h.net, h.currency)}</td><td>{h.counted}</td></tr>)}</tbody></table></details>}
     {active.length === 0 && !adding && <p>No accounts yet. Add a savings account, a pension, a loan or a credit card to see your net worth here.</p>}
-    {(['assets', 'debts'] as const).filter(group => only === 'all' || (group === 'debts') === (only === 'debts')).map(group => { const list = active.filter(a => isDebtKind(a.kind) === (group === 'debts')); return list.length > 0 && <div key={group} className="accounts-group"><h3>{group === 'assets' ? 'What you own' : 'What you owe'}</h3><ul className="accounts-list">{list.map(a => <AccountRow key={a.id} account={a} today={today} open={open?.id === a.id ? open.mode : null} setOpen={mode => { setOpen(mode ? {id: a.id, mode} : null); setPrefill(null); }} change={change} {...(prefill?.id === a.id ? {prefill} : {})} />)}</ul>
+    {(['assets', 'debts'] as const).filter(group => only === 'all' || (group === 'debts') === (only === 'debts')).map(group => { const list = inOrder(active.filter(a => isDebtKind(a.kind) === (group === 'debts')), extras.data.accounts?.order), ids = list.map(a => a.id), title = group === 'assets' ? 'What you own' : 'What you owe'; return list.length > 0 && <div key={group} className="accounts-group"><div className="accounts-group-head"><h3>{title}</h3>{list.length > 1 && extras.loaded && !extras.unreadable && <button type="button" className="quiet" aria-pressed={arranging === group} aria-label={`Arrange ${title}`} onClick={() => setArranging(g => g === group ? null : group)}>{arranging === group ? 'Done arranging' : 'Arrange'}</button>}{list.length > 1 && extras.loaded && !extras.unreadable && <button type="button" className="quiet" aria-expanded={merging === group} aria-label={`Merge two accounts in ${title}`} onClick={() => setMerging(g => g === group ? null : group)}>Merge two</button>}</div>{merging === group && <Suspense fallback={<p className="fine" aria-busy="true">Opening…</p>}><MergeAccounts list={list} title={title}/></Suspense>}{group === 'debts' && <Suspense fallback={null}><DebtsSummary accounts={accounts.data} today={today}/></Suspense>}<ul className="accounts-list">{list.map((a, i) => <AccountRow key={a.id} account={a} today={today} open={open?.id === a.id ? open.mode : null} setOpen={mode => { setOpen(mode ? {id: a.id, mode} : null); setPrefill(null); }} change={change} {...(prefill?.id === a.id ? {prefill} : {})} all={accounts.data} note={extras.data.accounts?.notes?.[a.id]} onNote={extras.loaded && !extras.unreadable ? text => extras.update(l => withAccountNote(l, a.id, text)) : undefined} {...(arranging === group ? {arrange: {first: i === 0, last: i === list.length - 1, move: (by: -1 | 1) => { extras.update(l => moveAccount(l, ids, a.id, by)); requestAnimationFrame(() => { const same = document.getElementById(`account-move-${a.id}-${by}`) as HTMLButtonElement | null; (same && !same.disabled ? same : document.getElementById(`account-move-${a.id}-${-by}`))?.focus(); }); }}} : {})} />)}</ul>
       {/* Session AK (F5a, item 1): snowball or avalanche, from these debts; loads on the button. */}
       {group === 'debts' && <><button type="button" className="secondary accounts-plan-button" aria-expanded={planOpen} onClick={() => setPlanOpen(o => !o)}>{planOpen ? 'Close the payoff planner' : 'Plan paying off your debts'}</button>{planOpen && <Suspense fallback={<p className="fine">Loading…</p>}><DebtPlanner /></Suspense>}</>}</div>; })}
+    {active.length > 0 && only !== 'debts' && <Suspense fallback={null}><WealthSheetPanel accounts={accounts.data} today={today}/></Suspense>}
     {archived.length > 0 && <details className="accounts-archived"><summary>Archived ({archived.length})</summary><ul className="accounts-list">{archived.map(a => <li key={a.id}><span>{a.name} · {KIND_LABEL[a.kind]}</span><div className="actions"><button type="button" className="quiet" onClick={() => change(g => editAccount(g, a.id, {archived: false}, new Date().toISOString()), `${a.name} unarchived.`)}>{/* Session AL (TK-190): the same word as an archived asset */}Unarchive</button><button type="button" className="quiet" onClick={() => { const at = items.findIndex(x => x.id === a.id); change(g => removeAccount(g, a.id), `${a.name} removed from this device.`, {fn: reinsertAccount(a, at), done: `${a.name} is back.`}); }}>Remove</button></div></li>)}</ul></details>}
     {message && <p role="status">{message}</p>}
     {error && <p role="alert">{error}</p>}
@@ -138,16 +161,17 @@ function AddAccount({onAdd, today, held}: {onAdd: (input: Parameters<typeof addA
     {fe.error && <p role="alert" id={fe.messageId}>{fe.error}</p>}
   </form>;
 }
-function AccountRow({account: a, today, open, setOpen, change, prefill}: {account: Account; today: string; open: 'balance' | 'payment' | 'edit' | null; setOpen: (mode: 'balance' | 'payment' | 'edit' | null) => void; change: (fn: (current: Accounts) => Accounts, words: string, undo?: {fn: (current: Accounts) => Accounts; done: string}) => boolean; prefill?: {amount: string; date: string}}) {
+function AccountRow({account: a, today, open, setOpen, change, prefill, note, onNote, arrange, all}: {all?: Accounts; account: Account; today: string; open: 'balance' | 'payment' | 'edit' | null; setOpen: (mode: 'balance' | 'payment' | 'edit' | null) => void; change: (fn: (current: Accounts) => Accounts, words: string, undo?: {fn: (current: Accounts) => Accounts; done: string}) => boolean; prefill?: {amount: string; date: string}; note?: string; onNote?: (text: string) => void; arrange?: {first: boolean; last: boolean; move: (by: -1 | 1) => void}}) {
   const b = balanceOn(a), debt = isDebtKind(a.kind), usual = debt ? usualPayment(a, today) : null, [monthly, setMonthly] = useState(''), fe = useFieldErrors(), [rateError, setRateError] = useState(''), check = usePlausibleCheck();
   // Session AH (WE7, B-152): the payoff calculator takes a payment above zero and up to a trillion, else it shows nothing.
   const typedMonthly = monthly.trim() ? readNumber(monthly) : NaN, monthlyBad = monthly.trim() !== '' && !(typedMonthly > 0 && !amountIssue(typedMonthly));
   const monthlyNumber = monthly.trim() ? (monthlyBad ? NaN : typedMonthly) : usual ? Number(moneyText(usual)) : NaN;
   const months = debt && b && a.ratePercent && Number.isFinite(monthlyNumber) ? payoffMonths(Number(moneyText(b)), Number(a.ratePercent), monthlyNumber) : undefined;
-  const now = () => new Date().toISOString();
+  const now = () => new Date().toISOString(), [sheetOpen, setSheetOpen] = useState(false), [checking, setChecking] = useState(false);
   return <li className="accounts-row">
-    <div className="accounts-row-main"><strong>{a.name}</strong><small>{KIND_LABEL[a.kind]}{a.institution ? ` · ${a.institution}` : ''}{a.ratePercent ? ` · ${a.ratePercent} % a year (your figure)` : ''}</small></div>
-    <div className="accounts-row-balance">{b ? <><strong>{show(b, a.currency)}</strong><small>{debt ? 'owed' : 'balance'} on {formatDate(b.date)}</small></> : <small>No balance yet</small>}</div>
+    <div className="accounts-row-main"><strong>{a.name}</strong><small>{KIND_LABEL[a.kind]}{a.institution ? ` · ${a.institution}` : ''}{a.ratePercent ? ` · ${a.ratePercent} % a year (your figure)` : ''}</small>{note && <small className="accounts-note">Note: {note}</small>}{all && a.kind === 'property' && <Suspense fallback={null}><PropertyEquity accounts={all} account={a} today={today}/></Suspense>}{a.kind === 'credit-card' && <Suspense fallback={null}><CardLine account={a} today={today}/></Suspense>}</div>
+    {arrange && <div className="actions accounts-arrange"><button type="button" id={`account-move-${a.id}--1`} className="quiet" disabled={arrange.first} aria-label={`Move ${a.name} up`} onClick={() => arrange.move(-1)}>↑ Up</button><button type="button" id={`account-move-${a.id}-1`} className="quiet" disabled={arrange.last} aria-label={`Move ${a.name} down`} onClick={() => arrange.move(1)}>↓ Down</button></div>}
+    <div className="accounts-row-balance">{b ? <><strong>{show(b, a.currency)}</strong><small>{debt ? 'owed' : 'balance'} on {formatDate(b.date)}</small>{debt && (() => { const o = owedAfterPayments(a, today); return o && o.payments > 0 ? <small className="accounts-owed-now">{show(o, a.currency)} after {o.payments} {o.payments === 1 ? 'payment' : 'payments'} since (until your next statement)</small> : null; })()}</> : <small>No balance yet</small>}</div>
     <div className="actions"><button type="button" className="quiet" aria-label={`Update the balance of ${a.name}`} onClick={() => setOpen(open === 'balance' ? null : 'balance')}>Update balance</button>{debt && <button type="button" className="quiet" aria-label={`Record a payment on ${a.name}`} onClick={() => setOpen(open === 'payment' ? null : 'payment')}>Record a payment</button>}<button type="button" className="quiet" aria-label={`Edit ${a.name}`} onClick={() => setOpen(open === 'edit' ? null : 'edit')}>Edit</button></div>
     {open && open !== 'edit' && <form key={open === 'balance' && prefill ? `prefill:${prefill.amount}:${prefill.date}` : open} className="platform-form accounts-inline" aria-label={open === 'balance' ? `New balance for ${a.name}` : `Payment on ${a.name}`} onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); try { const m = toMoney(String(f.get('amount')), String(f.get('date') || today));
       // Session AH (WE7, L-067, B-199): a payment is above zero and never more than what is owed.
@@ -161,12 +185,16 @@ function AccountRow({account: a, today, open, setOpen, change, prefill}: {accoun
       <button type="submit" className="secondary">Save</button>
       {fe.error && <p role="alert" id={fe.messageId}>{fe.error}</p>}
     </form>}
-    {open === 'edit' && <form className="platform-form accounts-inline" aria-label={`Edit ${a.name}`} onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); let rate: string; try { rate = rateText(String(f.get('rate') ?? '')); } catch (cause) { setRateError(plainErrorMessage(cause, 'Check the rate.')); return; } setRateError(''); const newName = String(f.get('name')).trim(); if (change(g => editAccount(g, a.id, {name: newName, institution: String(f.get('institution') ?? '').trim() || null, ratePercent: rate || null}, now()), `${newName || a.name} saved.` /* Session AL (TK-005): the name as saved, not the old one */)) setOpen(null); }}>
+    {open === 'edit' && <form className="platform-form accounts-inline" aria-label={`Edit ${a.name}`} onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); let rate: string; try { rate = rateText(String(f.get('rate') ?? '')); } catch (cause) { setRateError(plainErrorMessage(cause, 'Check the rate.')); return; } setRateError(''); const newName = String(f.get('name')).trim(); if (onNote) { try { onNote(String(f.get('note') ?? '')); } catch { /* the note is kept on the money log; the account itself still saves */ } } if (change(g => editAccount(g, a.id, {name: newName, institution: String(f.get('institution') ?? '').trim() || null, ratePercent: rate || null}, now()), `${newName || a.name} saved.` /* Session AL (TK-005): the name as saved, not the old one */)) setOpen(null); }}>
       <label className="field">Name<input name="name" required maxLength={80} defaultValue={a.name} autoFocus /* Session AL (TK-129, TK-138): Edit puts the focus in Name */ /></label>
       <label className="field">Bank or provider<input name="institution" maxLength={80} defaultValue={a.institution ?? ''} /></label>
+      {onNote && <label className="field">Note — optional (joint with Sam, closes in March)<textarea name="note" maxLength={300} rows={2} defaultValue={note ?? ''} /></label>}
       <label className="field">Yearly rate, your own figure (%)<input name="rate" inputMode="decimal" autoComplete="off" defaultValue={a.ratePercent ?? ''} aria-invalid={rateError ? true : undefined} aria-describedby={rateError ? `${fe.messageId}-rate` : undefined} /></label>{rateError && <p className="field-error" role="alert" id={`${fe.messageId}-rate`}>{rateError}</p>}
       <div className="actions"><button type="submit" className="secondary">Save</button><button type="button" className="quiet" onClick={() => { if (change(g => editAccount(g, a.id, {archived: true}, now()), `${a.name} archived; its history is kept.`, {fn: unarchiveAccount(a.id), done: `${a.name} is back.`})) setOpen(null); }}>Archive</button></div>
     </form>}
+    {all && <div className="accounts-sheet-toggle"><button type="button" className="quiet" aria-expanded={sheetOpen} aria-label={`Sheet options for ${a.name}`} onClick={() => setSheetOpen(v => !v)}>Sheet</button>{RECONCILE_KINDS.has(a.kind) && <button type="button" className="quiet" aria-expanded={checking} aria-label={`Check ${a.name} against my bank`} onClick={() => setChecking(v => !v)}>Check against my bank</button>}</div>}
+    {all && checking && <Suspense fallback={<p className="fine" aria-busy="true">Opening…</p>}><Reconcile account={a} today={today}/></Suspense>}
+    {all && sheetOpen && <Suspense fallback={<p className="fine" aria-busy="true">Opening…</p>}><AccountSheet accounts={all} account={a} today={today}/></Suspense>}
     {debt && b && b.value > 0n && <details className="accounts-payoff"><summary>When would it be paid off?</summary>
       {a.ratePercent ? <><label className="field">Monthly payment ({a.currency}){usual ? `, usual: ${moneyText(usual)}` : ''}<input inputMode="decimal" value={monthly} onChange={e => setMonthly(e.target.value)} placeholder={usual ? moneyText(usual) : 'for example 250'} /></label>
         {Number.isFinite(monthlyNumber) && <p role="status">{months === null ? `At ${formatNumber(Number(a.ratePercent))} % a year this payment does not cover the interest, or it would take more than 100 years.` : months !== undefined ? `At your rate of ${formatNumber(Number(a.ratePercent))} % a year and ${formatMoney(String(monthlyNumber), a.currency)} a month: paid off in about ${months} ${months === 1 ? 'month' : 'months'}, around ${formatDate(addLocalDays(today, Math.round(months * 30.44)))}.` : ''}</p>}

@@ -2,6 +2,7 @@ import {expect, test, type BrowserContext, type Page, type Worker} from '@playwr
 import {PUSH_KEY} from '../lib/push/client';
 import {navLink} from './phone-nav';
 import {openSettings} from './settings-open';
+import {openPhoneRow} from './phone-length-folds';
 
 // Push reminders (ADR-010): the Settings panel's states, turn on (one worker at /push-sw.js, no title or count sent),
 // a reminder-time change re-sends the schedule, turn off unsubscribes and unregisters, nothing on view, never in Showcase.
@@ -108,6 +109,10 @@ test('without the fixture the panel says the build has no push, offers no button
   await expect(panel(page).getByRole('button')).toHaveCount(0);
   await expect(panel(page)).toContainText('Never a habit’s name, a count, or anything you record.');
   await page.goto('/app/health');
+  // Session AV lane 2 (phone-length, deliberate): on a phone the water reminder sits in the Water card's row "Your drinks,
+  // reminders and tips" (tests/phone-length-folds.ts: there and closed on a phone, absent on a computer); it is opened as a
+  // person would, then the same form is used and checked as before.
+  await openPhoneRow(page, 'Your drinks, reminders and tips');
   await expect(page.getByRole('form', {name: 'Water reminder'})).toBeVisible();
   await expect(page.getByRole('link', {name: /Get this on your phone even when ZIGoals is closed/})).toHaveCount(0);
 });
@@ -153,6 +158,10 @@ test('turn on: permission, one worker at /push-sw.js, a subscribe call with time
   expect(await record(page)).toMatchObject({version: 1, subscriptionId: SUBSCRIPTION_ID, quiet: {from: '22:00', to: '07:00'}});
   // A reminder time on this device re-sends the schedule: a time, the zone and the weekdays; still no title.
   await go(page, 'Health', '/app/health');
+  // Session AV lane 2 (phone-length, deliberate): on a phone the water reminder sits in the Water card's row "Your drinks,
+  // reminders and tips" (tests/phone-length-folds.ts: there and closed on a phone, absent on a computer); it is opened as a
+  // person would, then the same form is used and checked as before.
+  await openPhoneRow(page, 'Your drinks, reminders and tips');
   await expect(page.getByRole('link', {name: /Get this on your phone even when ZIGoals is closed/})).toHaveAttribute('href', '/app/settings#reminders');
   const form = page.getByRole('form', {name: 'Water reminder'});
   await form.getByLabel(/^Reminder time/).fill('20:15');

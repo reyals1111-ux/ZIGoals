@@ -11,6 +11,7 @@ import type {Recur} from './schema';
  */
 const WEEKDAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const ORDINAL = (n: number) => n === -1 ? 'last' : ['', 'first', 'second', 'third', 'fourth', 'fifth'][n] ?? `${n}th`;
+const FROM_END: Record<number, string> = {2: 'second-to-last', 3: 'third-to-last', 4: 'fourth-to-last', 5: 'fifth-to-last'};
 const suffix = (n: number) => n % 100 >= 11 && n % 100 <= 13 ? 'th' : n % 10 === 1 ? 'st' : n % 10 === 2 ? 'nd' : n % 10 === 3 ? 'rd' : 'th';
 
 const parts = (date: string) => ({y: Number(date.slice(0, 4)), m: Number(date.slice(5, 7)), d: Number(date.slice(8, 10))});
@@ -27,6 +28,36 @@ export function nthWeekday(y: number, m: number, n: number, weekday: number): st
   if (n === -1) { const last = ymd(y, m, daysInMonth(y, m)); return addLocalDays(last, -((localWeekday(last) - weekday + 7) % 7)); }
   const first = ymd(y, m, 1), date = addLocalDays(first, (weekday - localWeekday(first) + 7) % 7 + 7 * (n - 1));
   return parts(date).m === m ? date : null;
+}
+/**
+ * Session AV lane 2 (r6-plan, LEDGER #398; OmniFocus 4.9's "next to last"): a weekday counted from the month's end (n 2 the
+ * second-to-last, up to 5), or null when the month has fewer; and the month's first or last working day (Monday to Friday).
+ */
+export function fromEndWeekday(y: number, m: number, n: number, weekday: number): string | null {
+  const date = addLocalDays(nthWeekday(y, m, -1, weekday)!, -7 * (n - 1));
+  return parts(date).m === m ? date : null;
+}
+export function workdayOf(y: number, m: number, which: 'first' | 'last'): string {
+  let date = ymd(y, m, which === 'first' ? 1 : daysInMonth(y, m));
+  while (localWeekday(date) === 0 || localWeekday(date) === 6) date = addLocalDays(date, which === 'first' ? 1 : -1);
+  return date;
+}
+/** The day a monthly rule falls on in a month (`day` the anchor's day of the month, for a plain monthly rule). */
+function monthDate(rule: Recur, y: number, m: number, day: number): string | null {
+  if (rule.fromEnd) return fromEndWeekday(y, m, rule.fromEnd.n, rule.fromEnd.weekday);
+  if (rule.workday) return workdayOf(y, m, rule.workday);
+  if (rule.nth) return nthWeekday(y, m, rule.nth.n, rule.nth.weekday);
+  return ymd(y, m, Math.min(rule.monthDay === -1 ? 31 : rule.monthDay ?? day, daysInMonth(y, m)));
+}
+/**
+ * The rule as written to the device: a repeat from the month's end keeps a plain `monthDay` beside it that an older build
+ * follows (the occurrence's own day; the last working day: the month's last day, the first: the 1st), and no `nth` (an older
+ * build would drop one it cannot read). Every other rule is returned as it is.
+ */
+export function olderDay(rule: Recur, due: string): Recur {
+  if (rule.every !== 'month' || (!rule.fromEnd && !rule.workday)) return rule;
+  const {nth: _n, ...rest} = rule; void _n;
+  return {...rest, monthDay: rule.fromEnd ? parts(due).d : rule.workday === 'first' ? 1 : -1};
 }
 const weekIndex = (date: string) => Math.floor((Date.parse(`${addLocalDays(date, -((localWeekday(date) + 6) % 7))}T00:00:00Z`) / 86_400_000) / 7);
 
@@ -52,7 +83,7 @@ function occurrenceAfter(rule: Recur, anchor: string, after: string): string | n
       const {y, m} = parts(anchor);
       for (let k = 0; k <= 12 * 40; k += n) {
         const index = y * 12 + (m - 1) + k, ny = Math.floor(index / 12), nm = index % 12 + 1;
-        const date = rule.nth ? nthWeekday(ny, nm, rule.nth.n, rule.nth.weekday) : ymd(ny, nm, Math.min(rule.monthDay === -1 ? 31 : rule.monthDay ?? parts(anchor).d, daysInMonth(ny, nm)));
+        const date = monthDate(rule, ny, nm, parts(anchor).d);
         if (date && date > after) return date;
       }
       return null;
@@ -77,7 +108,7 @@ export function firstDue(rule: Recur, start: string): string {
 export function matches(rule: Recur, date: string): boolean {
   const {y, m, d} = parts(date);
   if (rule.every === 'week') return !rule.weekdays?.length || rule.weekdays.includes(localWeekday(date));
-  if (rule.every === 'month') return rule.nth ? nthWeekday(y, m, rule.nth.n, rule.nth.weekday) === date : rule.monthDay === undefined || d === Math.min(rule.monthDay === -1 ? 31 : rule.monthDay, daysInMonth(y, m));
+  if (rule.every === 'month') return rule.fromEnd || rule.workday || rule.nth ? monthDate(rule, y, m, d) === date : rule.monthDay === undefined || d === Math.min(rule.monthDay === -1 ? 31 : rule.monthDay, daysInMonth(y, m));
   return true;
 }
 
@@ -88,7 +119,13 @@ export function matches(rule: Recur, date: string): boolean {
 export function nextOccurrence(rule: Recur, due: string, finishedDay: string, today: string): {due: string; rule: Recur} | null {
   if (rule.left !== undefined && rule.left <= 1) return null;
   let next: string | null;
-  if (rule.afterDone) {
+  if (rule.flex) {
+    // Session AV lane 2 (r4-plan, LEDGER #305; Motion): once a week or a month, any day of it. The next one is the window
+    // after this one's (its last day is the task's day); windows wholly past are skipped, so a missed week is one overdue
+    // task, never a pile.
+    next = windowEnd(rule.flex, addLocalDays(windowEnd(rule.flex, due), 1));
+    for (let guard = 0; next < today && guard < 1000; guard++) next = windowEnd(rule.flex, addLocalDays(next, 1));
+  } else if (rule.afterDone) {
     next = rule.every === 'day' ? addLocalDays(finishedDay, rule.interval) : rule.every === 'week' ? addLocalDays(finishedDay, 7 * rule.interval) : rule.every === 'month' ? addMonths(finishedDay, rule.interval) : addMonths(finishedDay, 12 * rule.interval);
   } else {
     next = occurrenceAfter(rule, due, due);
@@ -100,6 +137,17 @@ export function nextOccurrence(rule: Recur, due: string, finishedDay: string, to
   return {due: next, rule: rule.left !== undefined ? {...rule, left: rule.left - 1} : rule};
 }
 
+/** Session AV lane 2 (r4-plan, LEDGER #305): the last day of the week (Sunday; weeks start on Monday) or month a day is in. */
+export function windowEnd(flex: 'week' | 'month', day: string): string {
+  if (flex === 'week') return addLocalDays(day, (7 - localWeekday(day)) % 7);
+  const {y, m} = parts(day);
+  return ymd(y, m, daysInMonth(y, m));
+}
+/** The first day of that window (Monday, or the 1st). */
+export const windowStart = (flex: 'week' | 'month', day: string) => flex === 'week' ? addLocalDays(windowEnd('week', day), -6) : `${day.slice(0, 7)}-01`;
+/** A floating repeat, as written for older builds too: every week on Sunday, or every month on its last day. */
+export const flexRule = (flex: 'week' | 'month', text?: string): Recur => ({...(flex === 'week' ? {every: 'week', weekdays: [0]} : {every: 'month', monthDay: -1}), interval: 1, flex, ...(text ? {text} : {})} as Recur);
+
 /** The next few due days of a series, for the editor's preview ("Next: Mon 3 Nov, Mon 10 Nov, …"). */
 export function upcoming(rule: Recur, due: string, count = 3): string[] {
   const out = [due];
@@ -110,6 +158,7 @@ export function upcoming(rule: Recur, due: string, count = 3): string[] {
 
 /** The rule in plain words: "Every 2 weeks on Mon, Wed", "Every month on the 1st", "Every 3 days after it's done". */
 export function describeRecur(rule: Recur): string {
+  if (rule.flex) return `Once a ${rule.flex}, any day${rule.until ? ` until ${rule.until}` : ''}${rule.left !== undefined ? ` (${rule.left} left)` : ''}`;
   const n = rule.interval, every = n === 1 ? 'Every' : `Every ${n}`;
   const unit = (one: string) => n === 1 ? one : `${one}s`;
   let text: string;
@@ -119,7 +168,9 @@ export function describeRecur(rule: Recur): string {
     const named = days.length === 5 && [1, 2, 3, 4, 5].every(d => days.includes(d)) ? 'weekday' : days.length === 7 ? 'day' : null;
     text = named && n === 1 ? `Every ${named}` : days.length ? `${every} ${unit('week')} on ${days.map(d => WEEKDAY_NAMES[d]!.slice(0, 3)).join(', ')}` : `${every} ${unit('week')}`;
   } else if (rule.every === 'month') {
-    text = rule.nth ? `${every} ${unit('month')} on the ${ORDINAL(rule.nth.n)} ${WEEKDAY_NAMES[rule.nth.weekday]}` : rule.monthDay === -1 ? `${every} ${unit('month')} on the last day` : rule.monthDay ? `${every} ${unit('month')} on the ${rule.monthDay}${suffix(rule.monthDay)}` : `${every} ${unit('month')}`;
+    text = rule.fromEnd ? `${every} ${unit('month')} on the ${FROM_END[rule.fromEnd.n] ?? `${rule.fromEnd.n}th-to-last`} ${WEEKDAY_NAMES[rule.fromEnd.weekday]}`
+      : rule.workday ? `${every} ${unit('month')} on the ${rule.workday} working day`
+      : rule.nth ? `${every} ${unit('month')} on the ${ORDINAL(rule.nth.n)} ${WEEKDAY_NAMES[rule.nth.weekday]}` : rule.monthDay === -1 ? `${every} ${unit('month')} on the last day` : rule.monthDay ? `${every} ${unit('month')} on the ${rule.monthDay}${suffix(rule.monthDay)}` : `${every} ${unit('month')}`;
   } else text = `${every} ${unit('year')}`;
   if (rule.afterDone) text += ' after it’s done';
   if (rule.until) text += ` until ${rule.until}`;

@@ -1,7 +1,7 @@
 'use client';
 import {removeWithUndo} from '../../ui/remove-with-undo';
 import {ShowcaseTag} from '../../ui/showcase-tag';
-import {Suspense, lazy, useEffect, useId, useMemo, useRef, useState, type FormEvent} from 'react';
+import {Suspense, lazy, useEffect, useId, useMemo, useRef, useState, type FormEvent, type ReactNode} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {localDate} from '../../../lib/local-date';
 import {formatMonth} from '../../../lib/visual-format';
@@ -10,6 +10,7 @@ import {EXPENSE_CATEGORIES, MONEY_LOG, type MoneyEntry} from '../../../lib/money
 import {budgetIssue, carriesInto, monthKey, monthView, removeBudget, setBudget, shiftMonth, startFresh, type BudgetRow} from '../../../lib/budgets/engine';
 import {showUndo} from '../../ui/undo-toast';
 import {BUDGETS, type BudgetsRecord} from '../../../lib/budgets/schema';
+import {MONEY_MORE} from '../../../lib/money-more/schema';
 import {budgetPace, paceWords} from '../../../lib/budgets/pace';
 import './budgets.css';
 // Session AK (BUILD list 2 #19): a sum in the amount field ("300+45,50") is worked out and that amount is saved.
@@ -18,12 +19,35 @@ import {CalcHint} from '../../money-calc/calc-hint';
 import '../../money-select/money-select.css';
 import {parseNumberInput} from '../../../lib/numbers/parse';
 import {useMoneyCurrency} from '../use-money-currency';
+import {categoryChoices} from '../../../lib/money-log/counted';
 // Session AP (feature 3): Ready to assign, its own chunk.
 const ReadyToAssign = lazy(() => import('./ready-to-assign'));
+// Session AV lane 2, round 3 (money; PocketGuard's Leftover, LEDGER #291, #292): Left this month, each part listed (lazy).
+const LeftThisMonth = lazy(() => import('./left-this-month'));
 // Session AV (owner follow-up 1, F-WATCH): categories watched without a budget.
 const WatchList = lazy(() => import('./watch-list'));
+// Session AV lane 2 (Money N11, LEDGER #212, #213, #216; Goodbudget): pay periods, a paycheck fill, debts paid from a budget.
+const BudgetPeriodsPanel = lazy(() => import('./budget-periods'));
 // Session AV (follow-up 1, F-MONTH-RECAP): a month in short, loaded when its fold opens.
 const MonthRecapView = lazy(() => import('./month-recap'));
+// Session AV lane 2 (money): watched payees, challenges, budgets on Today, and the year in review (each lazy).
+const BudgetExtras = lazy(() => import('./budget-extras'));
+// Session AV lane 2 (money; YNAB's assign mode and targets, Monarch's flex and non-monthly budgets): "Plan <month>" (lazy).
+const AssignPanel = lazy(() => import('./assign-panel'));
+// Session AV lane 2, round 2 (money; Emma's Spaces): the business space's own budgets and entries.
+import SpaceSwitch, {useMoneySpace} from '../spending/space-switch';
+import {budgetsSpec, logSpec} from '../../../lib/money-more/spaces';
+const YearRecapView = lazy(() => import('./year-recap'));
+// Session AV lane 2, round 5 (money; Tiller's Year-to-Date Comparison, LEDGER #385): this year so far against the budgets (lazy, on its fold).
+const YearSoFarView = lazy(() => import('./year-so-far'));
+// Session AV lane 2, round 2 (money; Spendee, Wallet): your own budgets on a tag or chosen categories, each month or once (lazy).
+const OwnBudgets = lazy(() => import('./own-budgets'));
+// Session AV lane 2, round 6 (money; EveryDollar, Banktivity, LEDGER #426, #428, #429): your own order, paychecks and next month (lazy, on their folds).
+const ReorderBudgets = lazy(() => import('./r6-budgets'));
+const PaycheckPlan = lazy(() => import('./r6-budgets').then(m => ({default: m.PaycheckPlan})));
+const SetAsideNext = lazy(() => import('./r6-budgets').then(m => ({default: m.SetAsideNext})));
+import {coveredIn} from '../../../lib/budgets/set-aside';
+import {perDayWords} from '../../../lib/budgets/per-day';
 
 /**
  * Session AK (7.7): category budgets, one month at a time, against the money log. Each row is the month's amount, plus
@@ -65,8 +89,8 @@ function AddTarget({row, thisMonth, onSave, onCancel}: {row: BudgetRow; thisMont
     <div className="budgets-form-actions"><button type="submit" className="secondary">Save target</button><button type="button" className="quiet" onClick={() => { setOpen(false); setProblem(''); onCancel(); }}>Cancel</button></div>
   </form>;
 }
-export type BudgetsViewProps = {record: BudgetsRecord; entries: readonly MoneyEntry[]; today: string; showcase?: boolean; unreadable?: boolean; onChange: (change: (current: BudgetsRecord) => BudgetsRecord) => void};
-export function BudgetsView({record, entries, today, showcase = false, unreadable = false, onChange}: BudgetsViewProps) {
+export type BudgetsViewProps = {/** Session AV lane 2, round 2 (money; Emma's Spaces): the space shown. */ space?: 'personal' | 'business'; record: BudgetsRecord; entries: readonly MoneyEntry[]; today: string; showcase?: boolean; unreadable?: boolean; onChange: (change: (current: BudgetsRecord) => BudgetsRecord) => void; /** Session AV lane 2 (money): the categories offered, with the person's own. */ categories?: readonly string[]};
+export function BudgetsView({space = 'personal', record, entries, today, showcase = false, unreadable = false, onChange, categories = EXPENSE_CATEGORIES}: BudgetsViewProps) {
   const id = useId(), thisMonth = monthKey(today);
   const [month, setMonth] = useState(thisMonth), [status, setStatus] = useState(''), [problem, setProblem] = useState('');
   const startCurrency = useMoneyCurrency(); // Session AL (P-DVR-22): the one default currency, never a fixed EUR
@@ -82,6 +106,10 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
   useEffect(() => { if (!focusKey) return; const el = table.current?.querySelector<HTMLElement>(`[data-focus-key="${focusKey}"]`); if (el) { el.focus(); setFocusKey(null); } }, [focusKey, view]);
   // Session AV (owner follow-up 1, F-MONTH-RECAP, F-FRESH-MONTH): last month (or the month shown) in short, and a fresh start.
   const [recapOpen, setRecapOpen] = useState(false), recapMonth = month === thisMonth ? shiftMonth(thisMonth, -1) : month;
+  const [yearOpen, setYearOpen] = useState(false), [ytdOpen, setYtdOpen] = useState(false), [orderOpen, setOrderOpen] = useState(false), [payOpen, setPayOpen] = useState(false);
+  const covered = useMemo(() => coveredIn(record, month), [record, month]);
+  const usedCurrencies = useMemo(() => { const count = new Map<string, number>(); for (const e of entries) count.set(e.currency, (count.get(e.currency) ?? 0) + 1); const used = [...count].sort((x, y) => y[1] - x[1]).map(([c]) => c); return used.length ? used : [currency]; }, [entries, currency]);
+  const safeChange = (fn: (r: BudgetsRecord) => BudgetsRecord) => { try { onChange(fn); } catch { setProblem('Not saved on this device.'); } };
   // Session AV (fresh-agent check q2, rank 49): shown in the Showcase too (Undo is there); after the change the button is
   // gone, so focus moves to the month heading rather than dropping to the page.
   const canFresh = month === thisMonth && carriesInto(record, entries, thisMonth), heading = useRef<HTMLHeadingElement>(null);
@@ -109,6 +137,7 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
       <button type="button" className="quiet" onClick={() => setMonth(shiftMonth(month, 1))} disabled={month >= thisMonth} aria-label="Next month">›</button>
     </div>
     <Suspense fallback={null}><ReadyToAssign entries={entries} record={record} month={month} current={month === thisMonth}/></Suspense>
+    {month === thisMonth && space === 'personal' && <Suspense fallback={null}><LeftThisMonth entries={entries} record={record} today={today} showcase={showcase}/></Suspense>}
     {view.totals.map(t => <p key={t.currency} className="budgets-total"><strong>{t.left >= 0 ? money(t.left, t.currency) : money(-t.left, t.currency)}</strong> {t.left >= 0 ? 'left' : 'over'} of {money(t.available, t.currency)} budgeted{view.daysLeft !== null ? ` · ${view.daysLeft === 1 ? 'last day of the month' : `${view.daysLeft} days to go`}` : ''}</p>)}
     {canFresh && <p className="budgets-fresh"><button type="button" className="quiet" onClick={fresh}>Start this month fresh</button> <small className="fine">What earlier months left stops carrying into {formatMonth(thisMonth)}; Undo brings it back.</small></p>}
     {/* Session AV (fresh-agent check q2, ranks 9 and 37): the pace and target lines, the target buttons and Remove sit in
@@ -119,11 +148,13 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
       {view.rows.map(r => { const p = budgetPace(r, month, today), w = p && paceWords(p, `${money(r.left, r.currency)} left`), current = month === thisMonth; return <tbody key={r.id} className={r.over ? 'budgets-over' : undefined}><tr className="budgets-main">
         <th scope="row"><span className="budgets-cat">{r.category}</span><span className="budgets-bar" aria-hidden="true"><span style={{width: `${Math.round(r.share * 100)}%`}}/></span></th>
         <td className="budgets-num">{money(r.spent, r.currency)}</td>
-        <td className="budgets-num">{money(r.available, r.currency)}{r.carried > 0 && <small className="fine"> incl. {money(r.carried, r.currency)} rolled over</small>}</td>
+        <td className="budgets-num">{money(r.available, r.currency)}{r.carried > 0 && <small className="fine"> incl. {money(r.carried, r.currency)} rolled over</small>}{covered.get(r.id) ? <small className="fine"> · {money(covered.get(r.id)!, r.currency)} set aside in {formatMonth(shiftMonth(month, -1))}</small> : null}</td>
         <td className="budgets-num">{r.left >= 0 ? money(r.left, r.currency) : <>{money(-r.left, r.currency)} over</>}</td>
       </tr><tr className="budgets-detail"><td colSpan={4}>
         <span className="visually-hidden">{r.category}: </span>
         {w ? <small className={`budgets-pace is-${p!.state}`}>{w}</small> : null}{/* Session AV (F-BUDGET-PACE) */}
+        {/* Session AV lane 2, round 2 (money; Spendee's daily amount left): on every row of the month still running with money left. */}
+        {current && view.daysLeft !== null && p?.state !== 'near' && (d => d && <small className="budgets-per-day">{d}.</small>)(perDayWords(r.left, view.daysLeft, money, r.currency))}
         {r.target && <TargetLine row={r} current={current} onStop={() => { setFocusKey(`${r.id}-add`); change(x => setBudget(x, {category: r.category, currency: r.currency, monthly: (r.budgeted / 100).toFixed(2), rollover: r.rollover, target: null}, r.id, thisMonth), `The target for ${r.category} is off; the budget stays.`); }}/>}
         <span className="budgets-row-actions">
           {!r.target && current && <AddTarget row={r} thisMonth={thisMonth} onSave={target => { const input = {category: r.category, currency: r.currency, monthly: (r.budgeted / 100).toFixed(2), rollover: true, target}, issue = budgetIssue(input) ?? (target.by < thisMonth ? 'Choose this month or a later one to reach it by.' : null); if (issue) return issue; change(x => setBudget(x, input, r.id, thisMonth), `${r.category} now saves towards ${money(Math.round(Number(target.amount) * 100), r.currency)} by ${formatMonth(target.by)}, with rollover.`); setFocusKey(`${r.id}-stop`); return null; }} onCancel={() => setFocusKey(`${r.id}-add`)}/>}
@@ -134,7 +165,7 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
     {view.unbudgeted.length > 0 && <p className="fine">Also spent this month, without a budget: {view.unbudgeted.slice(0, 6).map(u => `${u.category} ${money(u.spent, u.currency)}`).join(' · ')}.</p>}
     {!adding ? <p className="budgets-add"><button type="button" className="secondary" aria-expanded={false} onClick={() => { setAdding(true); setStatus(''); }}>+ Set a monthly budget</button></p>
     : <form className="budgets-form" onSubmit={save} aria-label="Set a monthly budget">
-      <label className="field"><span>Category</span><select value={category} onChange={e => setCategory(e.target.value)}>{EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
+      <label className="field"><span>Category</span><select value={category} onChange={e => setCategory(e.target.value)}>{categories.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
       <label className="field"><span>Each month</span><input inputMode="decimal" autoComplete="off" value={amount} onChange={e => setAmount(e.target.value)} placeholder="300" aria-describedby={`${id}-calc`}/></label>
       <label className="field"><span>Currency</span><select value={currency} onChange={e => setCurrency(e.target.value)}>{CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
       <CalcHint value={amount} id={`${id}-calc`}/>
@@ -146,15 +177,46 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
       </div>}
       <div className="budgets-form-actions"><button type="submit" className="secondary">Save budget</button><button type="button" className="quiet" onClick={() => { setAdding(false); setProblem(''); }}>Cancel</button></div>
     </form>}
+    {entries.length > 0 && <details className="budgets-recap-fold" onToggle={e => setYearOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>{today.slice(0, 4)} in review</summary>{yearOpen && <Suspense fallback={<p className="fine">Opening…</p>}><YearRecapView entries={entries} today={today}/></Suspense>}</details>}
+    {record.budgets.length > 0 && <details className="budgets-recap-fold money-ytd-fold" onToggle={e => setYtdOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>{today.slice(0, 4)} so far against your budgets</summary>{ytdOpen && <Suspense fallback={<p className="fine">Opening…</p>}><YearSoFarView record={record} entries={entries} today={today}/></Suspense>}</details>}
     {(view.rows.length > 0 || entries.length > 0) && <details className="budgets-recap-fold" onToggle={e => setRecapOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>{formatMonth(`${recapMonth}-01`)} in short</summary>{recapOpen && <Suspense fallback={<p className="fine">Opening…</p>}><MonthRecapView entries={entries} record={record} month={recapMonth} today={today}/></Suspense>}</details>}
+    {record.budgets.length > 1 && <details className="budgets-recap-fold" onToggle={e => setOrderOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Reorder budgets</summary>{orderOpen && <Suspense fallback={<p className="fine">Opening…</p>}><ReorderBudgets record={record} onChange={safeChange}/></Suspense>}</details>}
+    {space === 'personal' && !unreadable && record.budgets.length > 0 && <details className="budgets-recap-fold" onToggle={e => setPayOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Paychecks and next month</summary>{payOpen && <Suspense fallback={<p className="fine">Opening…</p>}><PaycheckPlan record={record} month={month} today={today} currencies={usedCurrencies}/>{month === thisMonth && <SetAsideNext record={record} entries={entries} month={month} onChange={safeChange}/>}</Suspense>}</details>}
     <p className="budgets-status" role="status" aria-live="polite">{status}</p>
     {problem && <p role="alert">{problem}</p>}
-    <Suspense fallback={null}><WatchList record={record} entries={entries} today={today} currencies={(() => { const count = new Map<string, number>(); for (const e of entries) count.set(e.currency, (count.get(e.currency) ?? 0) + 1); const used = [...count].sort((a, b) => b[1] - a[1]).map(([c]) => c); return used.length ? used : [currency]; })()} onChange={fn => { try { onChange(fn); } catch { setProblem('Not saved on this device.'); } }}/></Suspense>
+    <MoreBudgetTools record={record} space={space}>
+      {!unreadable && space === 'personal' && <Suspense fallback={null}><BudgetPeriodsPanel record={record} entries={entries} today={today} startsOn="monday" onChange={onChange}/></Suspense>}
+      {view.rows.length > 0 && month >= thisMonth && <Suspense fallback={null}><AssignPanel record={record} entries={entries} month={month} today={today} update={safeChange}/></Suspense>}
+      <Suspense fallback={null}><WatchList record={record} entries={entries} today={today} currencies={usedCurrencies} onChange={safeChange}/></Suspense>
+      <Suspense fallback={null}><OwnBudgets entries={entries} today={today} currencies={usedCurrencies} categories={categories} space={space}/></Suspense>
+      <Suspense fallback={null}><BudgetExtras record={record} entries={entries} today={today} currencies={usedCurrencies} onChange={safeChange} space={space}/></Suspense>
+    </MoreBudgetTools>
     <p className="fine">From your own money log, in each currency apart. An overspend is never carried into the next month. Not financial advice.</p>
   </div>;
 }
+/**
+ * Session AV lane 2 (polish 2, P-34): on a device with nothing set up yet — no budget, nothing watched, no payee, no
+ * challenge, no budget of its own — the extra tools (pay periods, watching, your own budgets, payees, challenges) wait in
+ * one fold, "More budget tools", so "+ Set a monthly budget" is the one first step (four empty forms had stood open at
+ * once). Decided once, when the tools first show: what a person starts inside the fold never folds it away under them, and
+ * a device with anything set up shows the tools as before.
+ */
+function MoreBudgetTools({record, space, children}: {record: BudgetsRecord; space: 'personal' | 'business'; children: ReactNode}) {
+  const more = useDeviceRecord(MONEY_MORE), [folded, setFolded] = useState<boolean | null>(null);
+  const started = record.budgets.length > 0 || Object.entries(record).some(([key, value]) => key !== 'version' && key !== 'budgets' && value !== undefined && value !== null && !(Array.isArray(value) && value.length === 0))
+    || (space === 'personal' && !!more.data.budgets?.length);
+  useEffect(() => { if (folded === null && more.loaded) setFolded(!started); }, [folded, more.loaded, started]);
+  if (folded === null) return null;
+  if (!folded) return <>{children}</>;
+  return <details className="budgets-more-tools"><summary className="fold-summary"><span>More budget tools <small className="fine">{space === 'personal' ? 'Pay periods · watching · your own budgets · payees · challenges' : 'Watching · payees · challenges'}</small></span></summary><div className="budgets-more-tools-body">{children}</div></details>;
+}
 export default function BudgetsMonth({showcase = false}: {showcase?: boolean}) {
-  const budgets = useDeviceRecord(BUDGETS), log = useDeviceRecord(MONEY_LOG), today = localDate();
+  const {space, ready} = useMoneySpace(), shown = showcase ? 'personal' : space;
+  if (!ready) return <p className="fine" role="status">Loading your budgets…</p>;
+  return <>{!showcase && <SpaceSwitch where="budgets"/>}<BudgetsSpace key={shown} showcase={showcase} space={shown}/></>;
+}
+function BudgetsSpace({showcase, space}: {showcase: boolean; space: 'personal' | 'business'}) {
+  const budgets = useDeviceRecord(space === 'business' ? budgetsSpec('business') : BUDGETS), log = useDeviceRecord(space === 'business' ? logSpec('business') : MONEY_LOG), today = localDate();
   if (!budgets.loaded || !log.loaded) return <p className="fine" role="status">Loading your budgets…</p>;
-  return <BudgetsView record={budgets.data} entries={log.data.entries} today={today} showcase={showcase} unreadable={budgets.unreadable} onChange={fn => { budgets.update(fn); }}/>;
+  return <BudgetsView space={space} record={budgets.data} entries={log.data.entries} today={today} showcase={showcase} unreadable={budgets.unreadable} categories={categoryChoices(log.data, 'expense')} onChange={fn => { budgets.update(fn); }}/>;
 }

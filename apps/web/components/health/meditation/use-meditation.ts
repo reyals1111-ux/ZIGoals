@@ -1,5 +1,5 @@
 'use client';
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useLayoutEffect, useMemo, useState} from 'react';
 import {useSharedHealth} from '../../use-shared-health';
 import {useJournalZone} from '../../use-journal-zone';
 import {useDeviceZone} from '../../use-device-zone';
@@ -8,7 +8,7 @@ import {healthGroupIn} from '../../../lib/vault/w-homes';
 import {updateHealthGroup} from '../../../lib/w-homes-store';
 import {emptyMeditation, MEDITATION_RUN, type Meditation} from '../../../lib/meditation/schema';
 import {dailyData} from '../../../lib/health-daily';
-import {wallClock} from '../../../lib/zone-time';
+import {activityDay, currentDayEnds, subscribeDayEnds} from '../../../lib/day-boundary-core';
 
 /**
  * Meditation in a component (Session W Part 5): the Health v4 `meditation` group from the one shared Health read, written
@@ -21,13 +21,20 @@ export function useMeditation() {
   const meditation = useMemo<Meditation>(() => health.loaded && !health.error ? healthGroupIn(health.data, 'meditation') ?? emptyMeditation() : emptyMeditation(), [health]);
   const zone = dailyData(health.data).preferences.timezone ?? journal ?? device ?? 'UTC';
   const running = !!run.data.run, [now, setNow] = useState(() => Date.now());
+  // Session AV lane 2 (CI run 2007): read at once when a session starts, before it is drawn: between the minute ticks `now`
+  // can be up to a minute old, and a session just begun read as "settling in" (its start still ahead) until the next tick.
+  useLayoutEffect(() => { if (running) setNow(Date.now()); }, [running]);
   useEffect(() => {
     const tick = () => { if (document.visibilityState === 'visible') setNow(Date.now()); };
     const timer = window.setInterval(tick, running ? 1000 : 60_000);
     document.addEventListener('visibilitychange', tick);
     return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', tick); };
   }, [running]);
+  // Session AV lane 2, round 6 (r6-body; LEDGER #411): today follows "My day ends at", as the sessions' days do
+  // (lib/meditation/stats.ts sessionDay); a new end applies at once.
+  const [, setEnds] = useState(0);
+  useEffect(() => subscribeDayEnds(() => setEnds(n => n + 1)), []);
   const update = useCallback((change: (current: Meditation) => Meditation) => updateHealthGroup('meditation', change), []);
-  return {loaded: health.loaded && run.loaded, error: health.error, runUnreadable: run.unreadable, meditation, update, run, zone, now, today: wallClock(now, zone).date};
+  return {loaded: health.loaded && run.loaded, error: health.error, runUnreadable: run.unreadable, meditation, update, run, zone, now, today: activityDay(currentDayEnds(), new Date(now), zone)};
 }
 export type MeditationStore = ReturnType<typeof useMeditation>;

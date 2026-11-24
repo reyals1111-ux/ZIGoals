@@ -17,9 +17,16 @@ export function showcaseWorkouts(day: string): Workouts {
   const session = (offset: number, name: string, plan: Plan[], bump: number, length: number): Workout => ({id: `showcase-workout-${-offset}`, name, date: addLocalDays(day, offset), type: 'strength',
     startedAt: at(offset, 7), endedAt: at(offset, 7, length), exercises: lifts(`sw${-offset}`, plan, bump), notes: 'SHOWCASE DATA · fictional'});
   const run = (offset: number, km: number, seconds: number): Workout => ({id: `showcase-workout-${-offset}`, name: 'Easy run', date: addLocalDays(day, offset), type: 'cardio', startedAt: at(offset, 18), endedAt: at(offset, 18, Math.round(seconds / 60)),
-    exercises: [{id: `sr${-offset}-e0`, exerciseId: 'running', name: 'Running', measure: 'distance-time', sets: [{id: `sr${-offset}-s0`, kind: 'normal', distanceKm: km, seconds, done: true}]}], notes: 'SHOWCASE DATA · fictional'});
+    exercises: [{id: `sr${-offset}-e0`, exerciseId: 'running', name: 'Running', measure: 'distance-time', sets: [{id: `sr${-offset}-s0`, kind: 'normal', distanceKm: km, seconds, done: true}]}], notes: 'SHOWCASE DATA · fictional', shoeId: 'showcase-shoe-blue'});
+  // Session AV lane 2, round 5 (gym; LEDGER #377): the last leg day is a favourite (a star; no photo: photos are the person's own).
   const workouts = [session(-13, 'Push day', PUSH, 0, 52), session(-12, 'Pull day', PULL, 0, 48), session(-11, 'Leg day', LEGS, 0, 55), run(-9, 5, 1680),
-    session(-6, 'Push day', PUSH, 2.5, 50), session(-5, 'Pull day', PULL, 5, 47), session(-4, 'Leg day', LEGS, 5, 57), run(-2, 6, 2040), session(-1, 'Push day', PUSH, 2.5, 49)];
-  const template = (id: string, name: string, plan: Plan[]) => ({id, name, type: 'strength' as const, createdAt: at(-13, 9), exercises: plan.map(([exerciseId, n, sets]) => ({exerciseId, name: n, measure: 'weight-reps' as const, sets: sets.map(([kg, reps], j) => ({kind: j === 0 ? 'warmup' as const : 'normal' as const, weightKg: kg, reps}))}))});
-  return workoutsSchema.parse({version: 1, workouts, templates: [template('showcase-routine-push', 'Push day', PUSH), template('showcase-routine-legs', 'Leg day', LEGS)], exercises: [], restSeconds: 90});
+    session(-6, 'Push day', PUSH, 2.5, 50), session(-5, 'Pull day', PULL, 5, 47), {...session(-4, 'Leg day', LEGS, 5, 57), star: true}, run(-2, 6, 2040), session(-1, 'Push day', PUSH, 2.5, 49)];
+  // Session AV lane 2 (body; LEDGER #115, #119): the two routines sit in a "Gym" folder; Push day keeps a labelled note.
+  // Session AV lane 2, round 5 (gym; LEDGER #373): Leg day keeps its last weights.
+  const template = (id: string, name: string, plan: Plan[]) => ({id, name, type: 'strength' as const, createdAt: at(-13, 9), folder: 'Gym', ...(id === 'showcase-routine-push' ? {note: 'Example · 90 s rest between sets', progression: {kind: 'double' as const, minReps: 6, maxReps: 10, stepKg: 2.5}} : {}), ...(id === 'showcase-routine-legs' ? {keepWeights: true} : {}), exercises: plan.map(([exerciseId, n, sets]) => ({exerciseId, name: n, measure: 'weight-reps' as const, sets: sets.map(([kg, reps], j) => ({kind: j === 0 ? 'warmup' as const : 'normal' as const, weightKg: kg, reps}))}))});
+  // Session AV lane 2 (body; LEDGER #119): a note pinned to the squat, labelled, so the library and the workout show one.
+  return workoutsSchema.parse({version: 1, workouts, templates: [template('showcase-routine-push', 'Push day', PUSH), template('showcase-routine-legs', 'Leg day', LEGS)], exercises: [], restSeconds: 90,
+    pinnedNotes: {squat: 'Example · safety bars at hole 6'}, distanceGoals: [{id: 'showcase-goal-run', sport: 'run', period: 'month', km: 30, createdAt: at(-13, 9)}],
+    // Session AV lane 2 (body; LEDGER #203): the runs' labelled pair of shoes, near its limit.
+    shoes: [{id: 'showcase-shoe-blue', name: 'Example · blue trainers', startKm: 620, retireKm: 700, createdAt: at(-13, 9)}]});
 }

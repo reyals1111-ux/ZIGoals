@@ -709,3 +709,1724 @@ header says "No score", though the page shows `SleepScoreCard`.
 | Live prices and news | Prices for 20,000+ coins; news from 140+ sources | https://apps.apple.com/us/app/coinstats-crypto-tracker/id1247849330 | no | `have` | Prices: `components/markets/market-table.tsx`, `sparkline.tsx`. News would be an outside service (against a rule) | — | — | — |
 
 ---
+
+## Ten more apps (owner follow-up 4, item 4e; 22 Nov 2026)
+
+
+Drafted 22 Nov 2026, to be added under `## Matrix` in `docs/review/session-av/COMPETITORS.md`. It uses the method in that file's header: official sites, help centres and 2025–2026 release notes (App Store "What's New" counts as release notes) were read with WebSearch and WebFetch, and page text was treated as data only. Every row was then checked against this branch's code (`apps/web`, HEAD `355d9949`). Each `have` and `half` names the file that was opened. All pages were seen on 22 Nov 2026.
+
+Not repeated: a feature that already has a row in COMPETITORS.md gets no new row. It appears under "Already in COMPETITORS.md" for that app. Where the new app goes further, the row is added and covers only that further part. Each app also lists what was left out because it is only a native-OS integration or only a server service, with that cause.
+
+Source caveats:
+- goodbudget.com returned 403 to the fetcher, so Goodbudget rows say "via search index".
+- loseit.com refused the fetcher, so Lose It! rows rest on its App Store page and its April 2025 press release.
+- Kubera's Documents and Sheets rows rest on a 2026 third-party review (wallethacks.com), because kubera.com and the help-centre index do not describe them.
+- Fabulous's routine reminder comes from its App Store listing and reviews. No official help page was found.
+- App Store notes often print no year. Where the year was inferred from the version order, the row says so.
+
+### Totals (the ten apps)
+
+| Status | Habits and mind (Daylio, Loop, Fabulous, Insight Timer) | Food, body and workouts (Yazio, Lose It!, Strong, Nike Run Club) | Money (Goodbudget, Kubera) | All |
+|---|---|---|---|---|
+| `have` | 8 | 2 | 3 | 13 |
+| `half` | 19 | 9 | 8 | 36 |
+| `missing` | 2 | 6 | 3 | 11 |
+| `against a rule` | 0 | 3 | 1 | 4 |
+| **Rows** | **29** | **20** | **15** | **64** |
+
+Rows per app: Daylio 10, Loop 9, Fabulous 7, Insight Timer 3, Yazio 5, Lose It! 4, Strong 6, Nike Run Club 5, Goodbudget 4, Kubera 11.
+
+### Habits, mood and meditation (additions)
+
+#### Daylio
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Custom moods | Edit the mood emojis and names, mix your own, add more moods to the scale | https://daylio.net/ ; https://daylio.net/faq/docs/daylio-faq/tutorials/create-and-manage-moods/ (via search index) | no | `half` | `MOOD_WORDS` in `lib/wrap-up/engine.ts:39` (Hard, Low, Okay, Good, Great, fixed); `lib/moods/schema.ts` (1–5, one a day). Bearable's "Mood and emotions" row covers feeling words; this row is the five levels themselves | Your own word and symbol for each of the five levels, shown wherever the mood is (wrap-up, Health chip, Year in Pixels, Mood map). The stored 1–5 stays: more than five levels would change the stored format and every reader | S | Sanne |
+| Activities with icons and groups | Activities picked from a large icon library, arranged in groups, tapped not typed | https://daylio.net/ ; https://apps.apple.com/us/app/daylio-journal-daily-diary/id1194023242 | no | `half` | `lib/mood-tags/schema.ts` (up to eight typed tags per day, device-only), `recentTags` in `lib/mood-tags/tags.ts` (the eight most used, one tap) | A saved list of your activities in your own groups (Social, Sleep, Food), each with a symbol from a fixed set, tapped in the check-in. The tags stay the same device-only record | S | Sanne, Tom |
+| Scales | Sliders for sleep, stress, energy, pain and other factors | https://apps.apple.com/us/app/daylio-journal-daily-diary/id1194023242 (1.70.0, Apr; year read as 2025) | yes | `have` | `lib/scales/store.ts` (up to five 1–5 scales with your own words for each end; removed scales keep their history), `components/scales/your-scales.tsx`; each scale is a Compare factor and outcome | — | — | — |
+| Scale statistics | A closer look at each tracked scale | https://apps.apple.com/us/app/daylio-journal-daily-diary/id1194023242 (1.73.1, May; year read as 2025) | yes | `half` | `scaleSeries` in `lib/scales/engine.ts:65` is read only by ZIGi's tools (`lib/ai/tools/g1-tools.ts`); `components/scales/your-scales.tsx` rates and edits, with no chart | A page per scale: its ratings over 30, 90 and 365 days as a line, and how often each level came | S | Sanne |
+| Activity and mood statistics | Per activity: how often in the period, the change from the previous period, the moods it went with, with Low/Medium/High confidence | https://daylio.net/faq/?p=5703 (via search index) | no | `half` | `goodDayTags` in `lib/mood-tags/tags.ts` (tags on at least five mood days in 365, share of good days, "Goes with, not a cause.") | Per tag: days this month against last month, and the spread of moods on its days, in counts and words (never a cause). The ranked overview of every factor is Bearable's Factor Effect row | S | Sanne |
+| Year in Pixels | The whole year as one chart, one dot a day, export as an image | https://daylio.net/ | no | `have` | `lib/year-pixels/grid.ts` (mood or energy, a word per square), `components/journal/year-pixels.tsx`, `components/journal/year-pixels-export.ts` | — | — | — |
+| Monthly and yearly statistics | Mood counts and charts per month and year | https://daylio.net/ ; https://apps.apple.com/us/app/daylio-journal-daily-diary/id1194023242 | no | `have` | `components/nova/widgets/mood-map.tsx` (a month of moods, counts, the mood kept most often), `pixelYear` counts and summary in `lib/year-pixels/grid.ts`. No average, by design | — | — | — |
+| Reminders to log | Notifications that open a new entry | https://daylio.net/ | no | `half` | The evening wake in `lib/notify/plan.ts:80` opens `/app/review`. The mood is asked on the wrap-up card in Today's For you (`lib/wrap-up/engine.ts`, off until turned on) | The reminder does not open the mood question, and there is only the one evening time (no second check-in reminder, for example at midday) | S | Sanne, Max |
+| PDF export | Redesigned PDF exports of entries for printing or saving | https://apps.apple.com/us/app/daylio-journal-daily-diary/id1194023242 (1.75.0, Aug; year read as 2025) | yes | `half` | `components/report/report-builder.tsx` ("Print or save as PDF"); `REPORT_SECTIONS` in `lib/clinician-report/build.ts:25` (sleep, mood and energy, notes with mood and sleep, weight, habits, numbers, symptoms, supplements); CSV in `lib/export/everything.ts` | A Journal section in the printable report: the entries with their dates and the day's mood tags | S | Sanne |
+| Custom fonts | Visual refresh with a choice of custom fonts | https://apps.apple.com/us/app/daylio-journal-daily-diary/id1194023242 (1.77.0, Oct; year read as 2025) | yes | `half` | `Look.font` in `lib/ui-prefs/look.ts` (`system` or `inter`; Inter is self-hosted in `public/fonts/inter`) | One or two more self-hosted fonts (a serif, a rounded one), added as files the way Inter is, with no font package | S | Sanne |
+
+Not rowed:
+- Native-only: Apple Watch logging (1.78.0), Siri quick entries (1.76.0), home-screen widgets.
+- Server service: backup to Google Drive or iCloud Drive (a scheduled file copy is Loop's row below).
+
+Already in COMPETITORS.md:
+- Day One: notes, photos and voice memos in an entry; writing templates; On This Day (1.74.x); search; PIN and Face ID lock.
+- Bearable: Influence on Mood (Factor Effect); the redesigned mood chart (1.73.2, Trends); several entries a day (folded into Bearable's symptoms row).
+- Habitify and Habitica: goals and achievements.
+- Streaks: colour themes and dark mode; sharing statistics as an image.
+
+#### Loop Habit Tracker
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Habit score with its chart | A strength score that one miss dents but never resets, shown over months and years | https://loophabits.org/ ; https://github.com/iSoron/uhabits/blob/dev/CHANGELOG.md | no | `half` | `habitStrength` in `lib/habits-v2/strength.ts` (0–100 over the last 90 scheduled days, each a tenth of the way), shown once in `components/habits/habit-patterns.tsx:20` | The strength over time: a weekly line for the past year, not only today's figure | S | Max |
+| History and frequency charts | Bar chart of repetitions by week, month, quarter and year; frequency by weekday | https://github.com/iSoron/uhabits/blob/dev/CHANGELOG.md (1.3, 1.8.0) | no | `half` | `byWeek` (12 weeks) and `byWeekday` in `lib/habits-v2/stats.ts`, `components/habits/habit-patterns.tsx`; the year view `components/habits/year-view.tsx` | Totals by month, quarter and year beyond the 12 weeks, and the weekday frequency per month | S | Max |
+| Custom frequency "x times in y days" | For example 3 times in any 10 days | https://github.com/iSoron/uhabits/blob/dev/CHANGELOG.md (2.1.0) | no | `half` | `habitScheduleSchema` in `lib/habits.ts:20-30` (daily, weekdays, every 2–365 days, N per week, month or year, month dates) | A rolling window: N times in any M days (an additive schedule kind; TIER 3 stored format) | M | Max |
+| Measurable habits, "at most", streaks for measurable habits | Numeric habits with a minimum or a maximum; streaks for measurable habits | https://github.com/iSoron/uhabits/blob/dev/CHANGELOG.md (2.1.0; 2.3.0, 2025-06-23) | yes | `have` | `type` build, quit or limit and `habitMeasurementSchema` (count, duration, quantity, custom) in `lib/habits.ts:31-54`; limits count their whole period (`lib/habits.ts:269`) | — | — | — |
+| Notes on specific dates | A note on a habit's day; notes in the CSV export | https://github.com/iSoron/uhabits/blob/dev/CHANGELOG.md (2.1.0; 2.3.1, 2025-08-13) | yes | `have` | Entry `note` (2,000 characters) in `lib/habits.ts:65`; the `note` column of `check-ins.csv` in `lib/export/everything.ts:273` | — | — | — |
+| Habit search | Search habits by name, question and notes | https://github.com/iSoron/uhabits/blob/dev/CHANGELOG.md (Unreleased) | yes (unreleased) | `have` | `SEARCH_KINDS` includes `habit` in `lib/search/engine.ts:10` | — | — | — |
+| Automatic backups | Daily automatic backups; a chosen backup folder | https://github.com/iSoron/uhabits/blob/dev/CHANGELOG.md (2.0.0; Unreleased: SAF folder) | yes (folder) | `half` | `lib/backup-reminder.ts` (a monthly "keep a copy" reminder, because Export everything is done by hand); `lib/export/everything.ts` | A scheduled copy into a folder chosen once (File System Access, Chromium on computers; the reminder stays for other browsers) | M | any |
+| Pure black dark mode | AMOLED black theme | https://github.com/iSoron/uhabits/blob/dev/CHANGELOG.md (1.5.x; 2.3.x fixes) | no | `half` | `THEMES = ['nebula', 'light', 'dark']` in `lib/ui-prefs/theme.ts:15` | A pure-black variant of Dark: an added theme, not a redesign of the accepted baseline | S | Max |
+| Imports from other habit apps | HabitBull (with numbers) and Tickmate imports, categories brought in | https://github.com/iSoron/uhabits/blob/dev/CHANGELOG.md (2.1.0; Unreleased) | no | `half` | `lib/import/switch/formats.ts` (Loop read to its open-source exporter; Streaks off because its columns are unpublished) | HabitBull and Tickmate files, under the importer's rule that a layout must be documented or open source | S | Max |
+
+Not rowed:
+- Native-only: home-screen widgets, the Tasker plugin, Pebble.
+
+Already in COMPETITORS.md:
+- Habitify: skips that keep the streak; archive; habit categories (Areas).
+- Habitica: the 3 a.m. day rollover (Custom Day Start); confetti (achievement notifications).
+- Streaks: per-day reminders (Smart reminders); CSV export (Statistics and export).
+
+#### Fabulous
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Routines played step by step | Morning, afternoon and evening routines run one habit at a time | https://www.thefabulous.co/ ; https://apps.apple.com/us/app/fabulous-daily-routine-planner/id1203637303 | no | `have` | `lib/routines/engine.ts` (a stack played one habit at a time, with the timer on duration steps), `components/habits/routines-panel.tsx` (Start or Resume), six templates in `lib/routines/templates.ts` | — | — | — |
+| Complete a habit from the routine card | Tick a habit directly on the routine card | https://apps.apple.com/us/app/fabulous-daily-routine-planner/id1203637303 (13.0.1, 07/31/2025) | yes | `half` | `components/habits/routines-panel.tsx` (each routine shows how many of its habits are done, with Start or Resume); steps are ticked in the player or on each habit's own card | A tick per step on the routine card itself, without starting the player | S | Max |
+| Routine reminder | A notification at your routine time, every morning | https://apps.apple.com/us/app/fabulous-daily-routine-planner/id1203637303 (listing and reviews; no official help page found) | no | `half` | `dueReminders` in `lib/reminders/due.ts:29-37` (a reminder per habit; its link is `/app/habits#habit-<id>`); the routine opens through `#routine=` (`components/habits/habits-workspace.tsx:187`) | A reminder on the routine that opens its player at the first open step, not the first habit's card | S | Max, Sanne |
+| Picture-in-Picture routine progress | A floating window with the running routine's progress | https://apps.apple.com/us/app/fabulous-daily-routine-planner/id1203637303 (12.0.1, 06/24/2025) | yes | `half` | `lib/ai/pip.ts` (Document Picture-in-Picture, used only for ZIGi's mini window; Chrome and Edge 116+, Firefox 151 on computers) | The running routine (step, timer, Done) in the same kind of mini window. The Lock Screen Live Activity and Dynamic Island (11.0.1, 12.0.1) are native-only | S | Max |
+| Journeys | Goal-based multi-week programmes of small daily steps, with coaching letters | https://apps.apple.com/us/app/fabulous-daily-routine-planner/id1203637303 ; https://apps.apple.com/us/story/id1324941860 | no | `half` | `lib/guided/programs.ts` (seven short guided journeys, one step a day, each a link into an existing flow) | Multi-week journeys with a written letter for each step | — | Sanne, Max |
+| Daily coaching series | Two-minute coaching sessions to read, watch or hear, grouped by topic (anxiety, productivity, self-love) | https://www.thefabulous.co/ ; https://apps.apple.com/us/app/fabulous-daily-routine-planner/id1203637303 | no | `missing` | `lib/guided/programs.ts` steps carry one line of note each; there is no coaching library | A coaching library made for ZIGoals, written or recorded | — | Sanne |
+| Daily affirmations | An affirmation each day, beside the gratitude journal | https://apps.apple.com/us/app/fabulous-daily-routine-planner/id1203637303 | no | `missing` | `lib/journal/good-things.ts` (three good things), `lib/journal-prompts/daily.ts` (one question a day); no affirmation anywhere | An optional affirmation line on Today, from a short written list in English and Dutch, off by default, with "Another one" | S | Sanne |
+
+Not rowed:
+- Native-only: the Apple Watch app, Dynamic Island, the Lock Screen Live Activity, the motivation widget.
+- Server service: the AI Helper (12.0.1; needs a model), one-to-one coaching, community Circles and live challenges (other people), HabitatZero.
+
+Already in COMPETITORS.md:
+- Todoist and Things: the daily planner and to-do list.
+- TickTick and Sunsama: the deep-focus tools.
+- Calm and Headspace: short workouts, breathing and meditation.
+- Finch and Day One: the gratitude journal and journaling.
+- Finch: the goal tracker.
+- Bearable: the feelings wheel (Mood and emotions).
+- Habitify: habit stacking.
+
+#### Insight Timer
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Meditation timer | Start and end bells (9 bells and 8 overlays), interval bells (repeat every 5 s to 30 min with a count, random, from the start or before the end), warm-up time, no-limit sessions, saved presets | https://insighttimer.com/meditation-timer ; https://insight-timer.freshdesk.com/support/solutions/articles/67000665005-how-do-i-set-up-repeating-interval-bells- | no | `half` | `bellPrefsSchema` in `lib/meditation/schema.ts` (one sound of three, a volume, one interval every 1–60 min), `PRESET_MINUTES` and 1–240 min in `lib/meditation/timer.ts:11-12` | Saved presets (length, bells and sound together), a separate start and end bell, several interval bells with a repeat count or "before the end", a warm-up and an open-ended session | S | Sanne |
+| Ambient sound during the timer | Brown and pink noise, drones and other sounds under the timer | https://insighttimer.com/meditation-timer | no | `have` | `AmbientPlayer` on the meditation page (`components/health/meditation/meditation-view.tsx:77`), `lib/audio/ambient.ts` (white, pink, brown, rain-like, ocean-like, drone, made on the device) | — | — | — |
+| Milestones | A milestone for 7 days in a row or 50 days in total, shown as stars from yellow to blue | https://insight-timer.freshdesk.com/support/solutions/articles/67000698008-how-do-milestones-work- (via search index) ; https://apps.apple.com/us/app/insight-timer-meditate-sleep/id337472899 | no | `half` | `daysInARow` and `meditationSummary` in `lib/meditation/stats.ts`; `lib/game/badges.ts` has no meditation badge | Meditation milestones (seven days in a row, 50 days in all, then 100) as calm, once-only badges | S | Sanne |
+
+Not rowed:
+- Native-only: Mindful Minutes written to Apple Health.
+- Server service: live events, retreats, community groups, the teacher and therapist directories, ratings.
+
+Already in COMPETITORS.md (Headspace and Calm):
+- The library of guided meditations, sleep content and Yoga Nidra, courses, multi-day challenges and playlists (needs content).
+- Offline downloads and the advanced player.
+- Stats (Streaks and Mindful Minutes).
+- Binaural beats.
+
+### Food, sleep and workouts (additions)
+
+#### Yazio
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Food ratings | Each food rated for quality in the diary | https://apps.apple.com/us/app/yazio-calorie-counter-diet/id946099227 | no | `half` | `components/health/nutri-score.tsx` (a Nutri-Score letter for Open Food Facts products, off by default; the file says "generic foods never get one") | A rating for library and own foods, worked out from their own nutrients. Owner to confirm: the code chose not to rate generic foods | S | Tom |
+| Recipes with a cooking mode | Recipes with step-by-step cooking mode and filters | https://apps.apple.com/us/app/yazio-calorie-counter-diet/id946099227 ; https://www.yazio.com/en | no | `missing` | `recipeSchema` in `lib/health.ts:43` (name, portions, yield, ingredients; no steps); `lib/server/recipe-import.ts:69` counts the method steps and `components/health/recipe-import.tsx:61` says they are "left aside" | Keep a recipe's method steps (a new device record keyed by recipe id), and a cooking view that shows one step at a time and keeps the screen on (Wake Lock) | M | Tom |
+| Milestones | Progress milestones along the way to the goal | https://www.yazio.com/en | no | `half` | `lib/health-goals/schema.ts` (a weight goal with a target and a date), the goal line in `components/health/weight-trend.tsx`; milestones exist for net worth only (`lib/networth-milestones/milestones.ts`) | Opt-in steps on the way to a weight goal (each 2 kg or each 10 % of the way), marked on the trend and celebrated once | S | Tom |
+| Calculators | BMI, ideal body weight, daily calorie intake, calories burned | https://www.yazio.com/en | no | `half` | `lib/health-aa/energy.ts` (a maintenance estimate from your own logs, the owner-approved exception); `measurementKinds` in `lib/body-measurement-schema.ts:2` keeps no height | A BMI figure from a height you type (the number only, with no judgement word). Ideal weight is `against a rule` (no medical advice); calories burned is `against a rule` (no calorie-burn guessing) | S | Tom |
+| Fasting phases | Guidance on ketosis, autophagy and energy use during a fast; 16:8, 5:2 and 6:1 plans | https://apps.apple.com/us/app/yazio-calorie-counter-diet/id946099227 ; https://www.yazio.com/en | no | `against a rule` | No medical claims: `components/health/fasting-timeline.tsx` uses neutral milestones "without health claims". The timer and presets are MyFitnessPal's row; 5:2 days are MacroFactor's fasting-days row | — | — | — |
+
+Not rowed:
+- Native-only: step and workout sync with Fitbit, Garmin and other devices.
+- Server service: the 4 million-item database (MyFitnessPal's food search row says the same).
+
+Already in COMPETITORS.md:
+- MyFitnessPal: AI photo logging (Meal Scan; help.yazio.com, via search index); barcode scanning; the diary with macro goals; the water tracker; the meal planner and smart grocery list; meal reminders.
+- MyFitnessPal and MacroFactor: the recipe library (Plan tab).
+- Bearable: mood and symptoms.
+- Cronometer: body metrics (Biometrics).
+
+#### Lose It!
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Meal names, snacks and meal targets | Your own meal names and extra snacks, with suggested calories per meal | https://apps.apple.com/us/app/lose-it-calorie-counter/id297368629 | no | `half` | `components/health/meal-names.tsx` (rename the four meals, a usual time and an optional calorie target each); `HEALTH_MEALS` in `lib/health.ts:18` (four fixed meals) | A fifth and sixth meal (an afternoon snack, a late meal). `diarySchema.meal` is the fixed four-meal enum, so this is a TIER 3 stored-format change | M | Tom, Max |
+| Diet plans that flag foods | Weight-loss diet plans that mark foods that help or hinder progress | https://apps.apple.com/us/app/lose-it-calorie-counter/id297368629 | no | `missing` | `lib/health-aa/macro-mode.ts` (standard, net carbs, keto and custom splits, display only), `lib/diet-templates/templates.ts` (three authored 7-day plans); no mark on a food | A chosen eating style (low carb, high protein, high fibre) with a plain "fits" mark on foods by their own nutrients, never "good" or "bad" | S | Tom |
+| GLP-1 support with estimated levels | Log the medication and see estimated GLP-1 levels against hunger and eating | https://apps.apple.com/us/app/lose-it-calorie-counter/id297368629 ("NEW") | yes | `against a rule` | No medical advice: an estimated drug-level curve is a medical model. The medication log is built (`components/health/supplements.tsx`); the rest is MyFitnessPal's GLP-1 row | — | — | — |
+| Exercise calories in the budget | Logged exercise adds to the day's calorie budget | https://apps.apple.com/us/app/lose-it-calorie-counter/id297368629 | no | `against a rule` | No calorie-burn guessing; `lib/health-aa/energy.ts` (the maintenance estimate from logs) is the one exception | — | — | — |
+
+Not rowed:
+- Native-only: syncing with Fitbit, Garmin, Withings, Google Fit and HealthKit.
+- Server service: community friends and support groups; the 56 million-item database.
+
+Already in COMPETITORS.md:
+- MyFitnessPal: Say It! voice and Snap It! photo logging (press release April 2025, https://www.newswire.com/news/lose-it-finds-ai-powered-logging-boosts-weight-loss-success-and-22557702); the barcode scanner; logging streaks.
+- MacroFactor: the daily calorie budget and the date to goal (goal ETA).
+- Cronometer: blood pressure, glucose and cholesterol (Biometrics).
+- MyFitnessPal and MacroFactor: fasting schedules and meal planning.
+- Cronometer Oracle: nutrient-dense food discovery.
+
+#### Strong
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Assisted and weighted bodyweight exercises | Exercise types including assisted bodyweight and duration | https://apps.apple.com/us/app/strong-workout-tracker-gym-log/id464254577 | no | `missing` | `MEASURES` in `lib/workouts/schema.ts:14` (weight-reps, reps, time, distance-time; duration is built) | An assisted measure, where the help weight lowers the load, and added weight on bodyweight moves, with bests and volume that read them the right way round | S | Tom |
+| Imperial, metric or mixed units | A unit per exercise | https://apps.apple.com/us/app/strong-workout-tracker-gym-log/id464254577 | no | `half` | `components/health/workouts/units.ts` (weights kept in kg; one Health weight unit for the whole page) | A unit per exercise (a machine in lb, the barbell in kg); stored kilograms unchanged | S | Tom |
+| Workout scheduling | Plan workouts on days | https://www.strong.app/ | no | `have` | Planned workouts on the Agenda, "Planned workout" (`lib/agenda/build.ts:189`) | — | — | — |
+| CSV export with notes | Export with or without timers and workout notes; measurement CSV | https://apps.apple.com/us/app/strong-workout-tracker-gym-log/id464254577 (6.2.0 Sep 8 2025, 6.2.1, 6.2.3 Oct 15 2025) | yes | `half` | `workout-sets.csv` in `lib/export/everything.ts:431` (set kind, weight, reps, distance, seconds); measurements go out in `weights.csv` (`:409`) | RPE, the exercise note and the workout note as columns | S | Tom |
+| Strong Cloud | Training synced across devices | https://www.strong.app/ | no | `half` | `WORKOUTS` in `lib/workouts/schema.ts` is a device-only record (in Export everything; `lib/vault` names its key only in the frozen backup fixture) | The workout log in the encrypted account sync (TIER 3 sync, its own commits) | L | Tom |
+| Sharing routines and workouts | Share a routine or workout with someone | https://apps.apple.com/us/app/strong-workout-tracker-gym-log/id464254577 | no | `half` | Habits share a routine's structure as a small file (`components/habits/routine-share.tsx`, `lib/routines/share.ts`); workout templates (`templateSchema` in `lib/workouts/schema.ts`) cannot be shared | A workout template as the same kind of small file, imported with a preview | S | Tom |
+
+Not rowed:
+- Native-only: the Apple Watch app and Live Sync (6.1.1, 6.6.0), Live Activity and Dynamic Island rest timers (6.5.0), Siri Shortcuts, calendar and activity widgets (6.4.1), Apple Health.
+- Server service: third-party integrations.
+
+Already in COMPETITORS.md:
+- Hevy: supersets, set tags, RPE, the rest timer, warm-up and plate calculators, custom exercises; advanced charts and 1RM (Progress analytics); exercise videos (Exercise library); formatted notes (Three-level notes); the calendar and weekly streak (Calendar and streaks).
+- MacroFactor: body measurements and progress photos.
+- Strava: the muscle heat map.
+
+#### Nike Run Club
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Shoe tagging | Distance per pair of shoes, a reminder to replace them, pace per pair | https://apps.apple.com/us/app/nike-run-club-running-coach/id387771637 | no | `missing` | `workoutSchema` in `lib/workouts/schema.ts` has no shoe or gear field (a search of `lib/workouts` and `components/health/workouts` for shoe or gear finds nothing) | Shoes (a name, a starting distance, a distance to retire at) picked on a run, with the distance each has done and a note when one nears its limit (additive, TIER 3) | S | Tom |
+| Pace and splits | Pace, distance, elevation, heart rate and mile splits; average pace from total time and distance | https://www.nike.com/nrc-app ; https://apps.apple.com/us/app/nike-run-club-running-coach/id387771637 (7.79.x, 2026) | yes | `have` | Pace and per-kilometre splits from imported GPX and TCX files (`lib/workouts/splits-schema.ts`, `components/health/workouts/workout-splits.tsx`). Recording itself is native-only | — | — | — |
+| Achievements for personal records | Trophies and badges for personal bests and run-day streaks | https://www.nike.com/nrc-app ; https://apps.apple.com/us/app/nike-run-club-running-coach/id387771637 | no | `half` | `lib/workouts/run-bests.ts` (fastest 1, 5, 10 km and half marathon, longest run), `components/health/workouts/run-bests.tsx`; `lib/game/badges.ts` has no running badge | A quiet, once-only mark when a run best is beaten. Lifting PRs are Hevy's row and the weekly streak is Hevy's calendar row | S | Tom |
+| Audio-Guided Runs | Coach audio during a run; re-run them from the Activity tab; a search bar | https://www.nike.com/nrc-app ; https://apps.apple.com/us/app/nike-run-club-running-coach/id387771637 (7.76.0 Mar 2026; 7.79.4 Nov 2026) | yes | `missing` | — | Spoken coaching made for ZIGoals; playing it during a GPS run is native-only | — | Tom |
+| Training tips | Mindset and recovery tips, also on days you do not run | https://www.nike.com/nrc-app | no | `missing` | No running tips in `lib/workouts` or `lib/help` (a search finds none) | Short written running tips (easy pace, rest days, new shoes), English and Dutch, one on the Workouts page | S | Tom |
+
+Not rowed:
+- Native-only: GPS run recording, in-run audio stats, live run location sharing (7.65.0, Apr 2025), the Apple Watch app.
+- Server service: Race Finder (7.72.0, Oct 27 2025); challenges with friends and in-run cheers (other people).
+
+Already in COMPETITORS.md:
+- Strava + Runna: training plans.
+- Strava: monthly mileage goals (Goals, challenges and Fitness Score).
+
+### Money, debt and crypto (additions)
+
+#### Goodbudget
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Budget period | A budget that runs monthly from any day of the month, weekly, every two weeks or twice a month | https://goodbudget.com/help/budgeting-with-goodbudget/change-budget-period/ (via search index) | no | `half` | `budgetSchema` in `lib/budgets/schema.ts` (`monthly` amount, `since` a calendar month); the money log's weekly "room to spend" is not a budget | A budget month that starts on payday (any day of the month), and weekly or two-weekly budgets (TIER 3 stored format) | M | Lina |
+| Scheduled Fill from a paycheck | Income fills each envelope by a saved split, on a schedule from weekly to yearly | https://goodbudget.com/help/getting-started-guide/step-1-add-envelopes/ (via search index) ; https://goodbudget.com/help/budgeting-with-goodbudget/change-budget-period/ (via search index) | no | `half` | `lib/budgets/ready-to-assign.ts` (the month's logged income minus what the budgets hold); one fixed monthly amount per budget (`setBudget` in `lib/budgets/engine.ts`) | A saved fill (how one paycheck splits over the budgets), offered with one tap when an income entry is logged. Different amounts per month and quick-assign are YNAB's New Assign Mode row | S | Lina |
+| Duplicate transaction matching | Matches duplicate transactions on Web and iPhone | https://goodbudget.com/blog/2025/11/2025-goodbudget-features-recap/ (via search index) | yes | `have` | `duplicateKey` and `markDuplicateRows` in `lib/bankfiles/index.ts:46-49` (date, amount, direction, currency, payee and reference; the person decides) | — | — | — |
+| Debt accounts linked to an envelope | A debt account linked to an envelope, so payments come from that budget and lower the balance | https://goodbudget.com/help/tackling-debt/change-debt-envelope/ (via search index) | no | `half` | Debts and their payments in `lib/accounts/schema.ts` (`payments` on debt kinds only); budgets read only money-log entries (`lib/budgets/ready-to-assign.ts`) | A debt linked to a budget category, so a payment logged there also counts against the budget. Lowering the balance is Undebt.it's Payment tracking row | S | Lina |
+
+Not rowed:
+- Server service: household sharing across people's devices; bank sync through Plaid with pending transactions (Web 5.4.18); Web Admin Tools for mismatched balances (Web 5.4.26). The bank link is also against a rule (no bank connections).
+
+Already in COMPETITORS.md:
+- YNAB: envelopes (category budgets); envelope transfers (move money, New Assign Mode); goal envelopes with a due date (Targets); spending reports; swipe to confirm (iOS, May 20 2025, Card Mode).
+- Monarch: annual envelopes (non-monthly budgets, Category budgets with rollovers).
+
+#### Kubera
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Recap | Portfolio trends, allocations and performance over time | https://help.kubera.com/category/14-portfolio-tracking | no | `have` | `lib/networth-history.ts` (net worth by source, one entry a day), `components/wealth/networth-history.tsx`, `components/wealth/wealth-history-chart.tsx`, allocation views in `lib/allocation/` | — | — | — |
+| Any currency, one total | Assets in any currency, totals in the one you choose | https://www.kubera.com/ ; https://help.kubera.com/category/14-portfolio-tracking | no | `half` | `lib/accounts/net-worth.ts` (net worth per currency, never converted); `lib/wealth-total.ts:2` ("No exchange rate exists in the app") | One total in a chosen currency from rates the person types, each with its date, labelled as theirs. Fetched rates would need an outside service | M | Lina, Jules |
+| Sheets and sections | Assets and debts in spreadsheet-like sheets and sections you add, rename and remove | https://wallethacks.com/kubera-review/ (third-party review, 2026) | no | `half` | Accounts by kind with the Accounts and Debts chips (`components/wealth/accounts-section.tsx`), holdings by source (`lib/accounts/by-source.ts`) | Your own groups of accounts and holdings (for example "Pension", "Kids"), each with a subtotal per currency | S | Lina |
+| Mark as stale | A reminder to update manual asset values from time to time | https://help.kubera.com/category/14-portfolio-tracking | no | `missing` | `valuationState` in `lib/wealth.ts:190` (a manual value is never stale); account balances are dated snapshots (`balanceSnapshotSchema` in `lib/accounts/schema.ts`) with no reminder | An "update every month or quarter" choice per manual value or account, shown on Wealth and in For you when it is overdue | S | Lina |
+| Link a mortgage to a home | A mortgage linked to the property to show the equity | https://help.kubera.com/category/14-portfolio-tracking | no | `missing` | `ASSET_KINDS` (`property`) and `DEBT_KINDS` (`mortgage`) in `lib/accounts/schema.ts` with no link between them | A mortgage linked to its property, with the equity (value minus what is owed) on the property's row | S | Lina |
+| Portfolio share % | Count only your share of a part-owned asset, trust or company | https://www.kubera.com/ ("only your share of partial ownership") ; https://help.kubera.com/category/14-portfolio-tracking | no | `missing` | `accountSchema` in `lib/accounts/schema.ts` has no ownership share | An ownership share per account (50 % of a joint home), so net worth counts that part (additive, TIER 3) | S | Lina |
+| Correct a past value | Correct the value of an asset for a past date | https://help.kubera.com/category/14-portfolio-tracking | no | `have` | `balanceSnapshotSchema` in `lib/accounts/schema.ts` (one balance per date, entered for any date, with a note) | — | — | — |
+| IRR of an investment | Annualised return from an asset's cash flows; ROI for short holdings | https://help.kubera.com/article/79-irr-of-my-investment-in-kubera ; https://help.kubera.com/article/155-why-is-kubera-showing-roi-instead-of-irr-for-some-of-my-investments-is-it-a-bug (via search index) | no | `half` | Time- and money-weighted returns for coins in `lib/portfolio/performance.ts:188-229`; accounts keep balances only (`lib/accounts/schema.ts`) | Money-in and money-out entries on an account or manual asset (a fund, a property) and its annualised return worked out from them, labelled a result, not advice | M | Jules |
+| Documents | Upload deeds, contracts, wills and tax receipts beside the portfolio | https://wallethacks.com/kubera-review/ (third-party review, 2026) | no | `half` | Photos on money entries only, on the device (`lib/money-photos/store.ts`, IndexedDB, never uploaded) | A document (photo or PDF) kept on the device with an account or asset, in Export everything and the erase | S | Lina |
+| Fast Forward rules | Future net worth from rules, with an inflation rule and estimated tax on income streams | https://help.kubera.com/category/14-portfolio-tracking ("How does the Inflation rule work in Fast Forward?") ; https://wallethacks.com/kubera-review/ (August 2025 update) | yes | `half` | `lib/fi-model/model.ts` (Monte Carlo from today's invested amount, monthly contribution, returns after inflation). Life events and saved scenarios are Monarch's Forecasting row | Figures in today's money beside the nominal ones, and a tax rate the person types for each income stream | M | Jules |
+| Tax Estimate | An estimate of tax owed on the portfolio | https://help.kubera.com/category/14-portfolio-tracking ("What is Tax Estimate?") | no | `against a rule` | No money advice: a tax figure depends on each country's rules | — | — | — |
+
+Not rowed:
+- Server service: the Dead Man's Switch and Beneficiary, which send the portfolio to chosen people.
+- Server service: the family roll-up and collaborators (other people).
+- Server service: "Your Club" benchmarks (other users' data).
+- Server service, also against a rule: bank and brokerage sync and the Web Sync extension (no bank connections).
+- Server service: automatic values for homes, vehicles by VIN and metals.
+- Needs a model: AI document and screenshot import, Kubera GPT and AI agents (August 2025).
+
+Already in COMPETITORS.md:
+- Copilot Money: net worth with manual real estate, vehicles, metals and other assets.
+- Monarch Money: account notes (Accounts: sort, notes, net worth range).
+- CoinStats: crypto and DeFi holdings.
+
+## Ten more apps, round 2 (owner follow-up 4, item 4g; 22 Nov 2026)
+
+
+
+Drafted 22 Nov 2026, to be added under `## Matrix` in `docs/review/session-av/COMPETITORS.md`, after "Ten more apps (owner follow-up 4, item 4e)". It uses the method in that file's header. Official sites, help centres and 2025–2026 release notes were read with WebSearch and WebFetch; App Store "What's New" notes count as release notes. Page text was treated as data only. Every row was then checked against this branch's code (`apps/web`, branch `lane2/batch2`, HEAD `cdd996db`), after the lane 2 registries (`docs/review/session-av/lane2/*.md`) were read so that built work is not marked missing. Each `have` and `half` names the file that was opened. All pages were seen on 22 Nov 2026.
+
+Not repeated: a feature that already has a row in COMPETITORS.md (the 25 apps and the first "Ten more apps") gets no new row. It is listed under "Already in COMPETITORS.md" for that app. Where the new app goes further, the row is added and covers only the further part, which it names. Each app also lists what was left out because it is native-only or a server service, with that cause.
+
+Source caveats:
+- Most 2025–2026 App Store notes for these ten apps say only "bug fixes" (Microsoft To Do, Google Tasks, Reflectly, Fitbod, Rise, Emma). Their rows rest on the App Store description and the official site or help centre. Moodnotes' last listed release is 3.14.8 (24 Oct 2024), so none of its rows is new since 2025.
+- These pages refused the fetcher, so their rows say "via search index": help.fitbod.me and fitbod.me (403), help.risescience.com (403), support.budgetbakers.com (403), and the Google Workspace Updates post on Keep reminders.
+- www.moodnotes.app does not resolve from this session's network. Moodnotes rows rest on its App Store listing.
+- The emma-app.com features page returned 404. Emma rows rest on its App Store listing (UK) and two official blog posts ("What we chose to build at Emma in 2025"; "New in Emma: your accounts just got smarter", 3 Jun 2025).
+- App Store notes often print no year. Where the year was read from the version order, the row says so.
+
+### Totals (the ten apps)
+
+| Status | Tasks and planning (Microsoft To Do, Google Tasks, Any.do) | Journal, habits and mind (Reflectly, Moodnotes) | Sleep, workouts and body (Fitbod, Rise) | Money (Spendee, Wallet, Emma) | All |
+|---|---|---|---|---|---|
+| `have` | 1 | 1 | 2 | 1 | 5 |
+| `half` | 4 | 2 | 4 | 8 | 18 |
+| `missing` | 3 | 3 | 3 | 6 | 15 |
+| `against a rule` | 0 | 1 | 0 | 0 | 1 |
+| **Rows** | **8** | **7** | **9** | **15** | **39** |
+
+Rows per app: Microsoft To Do 2, Google Tasks 2, Any.do 4, Reflectly 3, Moodnotes 4, Fitbod 4, Rise 5, Spendee 3, Wallet by BudgetBakers 7, Emma 5.
+
+### Tasks, planning, notes and journaling (second additions)
+
+#### Microsoft To Do
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| My Day | A daily list you pick tasks into, kept apart from their due dates. It starts empty each day. The Suggestions pane offers starred tasks, tasks due soon, and the picks from yesterday that were not finished | https://support.microsoft.com/en-us/ToDo/my-day-and-suggestions ; https://apps.apple.com/us/app/microsoft-to-do/id1212616790 | no | `half` | `planSuggestions` in `lib/tasks/plan-day.ts` (overdue tasks, a deadline within three days, priority 1–2 with no day; at most five). In `components/tasks/plan-day.tsx`, "Plan for today" calls `editMany(…, {due: today})` (`components/tasks/tasks-page.tsx:389`). TickTick's Suggested Tasks and Sunsama's planning rows cover the suggestions | The deeper part: a pick for today that leaves the task's own day and deadline alone and is cleared at the end of the day, with yesterday's unfinished picks offered back as "From yesterday". Now, planning a task for today moves its due day | M | Max |
+| List colours and backgrounds | Each list takes a colour or a full-screen background picture, and an emoji in its name (version 2.0) | https://support.microsoft.com/en-gb/todo/what-s-new-in-microsoft-to-do | no | `have` | `TASK_COLOURS` (nine named colours, drawn per theme) on `projectSchema.colour` in `lib/tasks/schema.ts:36,138`; a project name takes any text, emoji included. Picture backgrounds are not proposed: calm design, and the Tasks page sits inside the accepted baseline | — | — | — |
+
+Not rowed:
+- Server service, and against the rule that nothing is shared between people: shared lists by link, assigning a task to a member, "Assigned to me" from Planner (versions 1.32, 1.62).
+- Server service: Flagged Email from Outlook (version 1.52), two-way sync with Outlook and Microsoft 365, dragging a task onto the Outlook calendar.
+- Native-only: pinning a list to the Windows Start menu, widgets.
+
+Already in COMPETITORS.md:
+- Things: list groups (version 1.63; Projects, Areas and Headings), checklists (Steps, version 1.28), import from Microsoft To Do.
+- Todoist: due dates, reminders and repeats; files on a task (version 1.49; Task descriptions and comments); calendar integration.
+- Todoist and TickTick: the Important and Planned smart lists (Labels, priorities and filters; saved filters).
+
+#### Google Tasks
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Reminders from notes saved as tasks | Since October 2025, every dated Keep reminder is saved to Google Tasks, so it shows as a task in the Tasks app and in Calendar | https://workspaceupdates.googleblog.com/2025/10/google-keep-reminders-now-saved-to-tasks.html (via search index) | yes | `half` | Lane 2 built reminders written in a note ("@remind tomorrow 9:30 …"). `lib/notes/reminders.ts` is read only by `components/notes/note-reminders.tsx`, `lib/notify/sync.ts` and `lib/ai/local-answers/av2-tasks.ts`, so they show under the note, in Notes and as a notification. Notion's Reminders row is the reminder itself | The deeper part: a note's reminder also listed in Tasks' Today and Upcoming and on the Agenda's day, each linking back to its note. It stays a note line, not a copied task | S | Max, Sanne |
+| Print your tasks | Print a task list (a help topic beside dark theme and keyboard shortcuts) | https://support.google.com/tasks/answer/7675772 | no | `missing` | There is no `@media print` under `components/tasks`. Print styles exist only for bills, money tools, the debt planner and the report (`components/wealth/bills/bills.css:76`, `components/report/report.css:51`). The grocery list has its own `groceryPrintHtml` (`lib/grocery/list.ts`) | "Print this list" for a project or a view (title, day, priority, subtasks indented, tick boxes), printed through print CSS on the page as the bills do | S | Max, Lina |
+
+Not rowed:
+- Server service: tasks made from Gmail, Chat and Docs; tasks assigned in a Chat space (also against the rule that nothing is shared between people).
+- Native-only: the home-screen task shortcut.
+
+Already in COMPETITORS.md:
+- Todoist and Things: deadlines kept apart from the date (2025; the Deadlines rows), due dates and repeats, subtasks.
+- Todoist: completed tasks with their dates (Productivity insights; the completed archive), sorting and filters.
+- Todoist and Notion: tasks in the calendar (Calendar integration; Tasks in Notion Calendar).
+- Things: keyboard shortcuts (Multiple windows and full keyboard shortcuts).
+
+#### Any.do
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Templates gallery | 100+ ready lists and boards; family plan templates added in 5.64.3 | https://www.any.do/ ; https://apps.apple.com/us/app/any-do-to-do-list-planner/id497328576 (5.64.3, Mar 9; year read as 2026) | yes | `half` | `BUILT_IN_TEMPLATES` in `lib/tasks/templates.ts:43` (four: Moving house, A trip, A new job, Weekly reset), plus your own templates saved from a project. Todoist's Templates row is built | The deeper part: a larger written gallery in English and Dutch, in groups (home: cleaning week, a party, a packing list; work: a project kick-off, a weekly review; family: school year start), each a project with sections and days from a start day | S | Max |
+| Import from other task apps | Brings work over from Trello, ClickUp, Asana, Monday.com and Todoist | https://www.any.do/ | no | `half` | `ImportPlan.source: 'todoist' \| 'ticktick' \| 'ics'` in `lib/tasks/import.ts:14` (`readTodoistCsv`, `readTickTickCsv`, `readIcsTodos`). Things' Import row covers Apple Reminders, Microsoft To Do and Todoist | The deeper part: Trello's board export (JSON) and Asana's project CSV, read into projects, sections (Trello lists, Asana sections) and tasks. This follows the rule the habit importer keeps (`lib/import/switch/formats.ts`): a layout must be documented or open source. ClickUp and Monday.com stay off unless their export layout is published | M | Max |
+| Automations | Rules that run routine steps on a board, such as assigning each new task | https://www.any.do/ | no | `missing` | No automation or rule anywhere in `lib/tasks` or `components/tasks` (a search for automation finds nothing). Board columns are sections (`sectionSchema` in `lib/tasks/schema.ts`) | Simple rules on a project, run on the device when a task is added or moved: "When a task enters <section>: set priority / add label / set day to today / mark done". Each rule's change is a normal write with Undo. A rule that assigns people is left out (nothing is shared between people) | M | Max |
+| Custom fields | Board and table views with fields you add yourself | https://www.any.do/ | no | `missing` | `taskSchema` in `lib/tasks/schema.ts` has fixed fields only. The Table view's columns are the fixed `TABLE_COLUMNS` (`lib/tasks/layouts.ts:191`) | Up to five fields per project (text, number, a date, a choice from a list, a tick), shown as Table columns and sortable. Stored as an additive, optional `fields` on the loose task, TIER 3 (stored format) | M | Max |
+
+Not rowed:
+- Server service: WhatsApp reminders and adding tasks by message; email capture; Slack, Gmail, Zapier, Jira and other integrations; attachments from Google Drive, OneDrive, Dropbox and Box (5.52.1); the MCP connector for AI agents (also needs a model).
+- Server service, and against the rule that nothing is shared between people: shared lists and boards, owners and @mentions, chat, chores and the family organizer for four.
+- Native-only: location reminders (5.63.0; as in Todoist's Reminders row), widgets (5.57.0), the Apple Watch and Wear OS apps, shake to clear completed tasks.
+
+Already in COMPETITORS.md:
+- Microsoft To Do (above), TickTick and Sunsama: My Day and the daily planner with smart suggestions.
+- Things: snooze and start dates for tasks (5.52.1; When scheduling, Start Early).
+- Todoist and Notion: board, calendar and table views.
+- MyFitnessPal: the real-time grocery list (Meal Planner and grocery list). ZIGoals' list is built, with your own items, aisles, frequent items and print (`lib/grocery/schema.ts`, `lib/grocery/list.ts`, `components/health/planner-view.tsx`).
+- Todoist: subtasks and their completion; recurring tasks.
+
+### Habits, mood and journaling (second additions)
+
+#### Reflectly
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Questions chosen from your entries | Personalised questions based on your diary entries, a new one each day | https://apps.apple.com/us/app/reflectly-journal-ai-diary/id1241229134 ; https://reflectlyapp.com/ | no | `have` | `followUpFor` and `THEMES` in `lib/journal/reflect.ts` (one follow-up question picked by rule from what the entry says, never the same as the last; patterns in plain counts). The person's own AI may word it instead. Reflectly's AI wording would need a model; the rule question needs none | — | — | — |
+| Morning motivation and a daily challenge | A quote and a small challenge each morning, then evening insights | https://apps.apple.com/us/app/reflectly-journal-ai-diary/id1241229134 | no | `half` | `AFFIRMATIONS` in `lib/journal/affirmations.ts` (28 kind lines in English and Dutch, one a day, off by default, shown on Today's journal card through `components/journal/today-affirmation.tsx`). No daily challenge anywhere in `lib/journal` | The deeper part: a small daily challenge beside the affirmation ("Send someone a kind message", "Ten minutes outside"), from a written list in English and Dutch, with "Done" and "Another one". Off by default, and nothing is counted against the person | S | Sanne |
+| A space to vent | Write whenever you need to get something off your chest | https://apps.apple.com/us/app/reflectly-journal-ai-diary/id1241229134 | no | `missing` | Every journal entry is kept (`lib/journal/schema.ts`, with versions in `lib/journal/versions.ts`). A search for vent or "let go" in `lib/journal` and `components/journal` finds nothing | "Write it out": a plain page that is never saved, with "Let it go" (clears it, with a calm line) or "Keep as an entry". Nothing is stored unless the person chooses Keep | S | Sanne |
+
+Not rowed:
+- Needs a model: AI-written prompts and the AI "mental health companion" wording.
+- Native-only: the streak widget.
+
+Already in COMPETITORS.md:
+- Bearable and Daylio: the mood check-in, mood correlations and graphs, and the daily, weekly and monthly overviews (Factor Effect, Trends and weekly report, monthly statistics).
+- Day One: voice notes and photos in an entry; journaling reminders and streaks; Prompt Packs (Reflectly's premium "stories").
+
+#### Moodnotes
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Thinking traps and the thought checker | Write the thought behind a mood; the app names possible thinking traps (catastrophising, blaming, overgeneralising, emotional reasoning, fortune telling) and walks you to a more balanced thought | https://apps.apple.com/us/app/moodnotes-mood-tracker/id1019230398 ; https://apps.apple.com/ca/app/moodnotes/id1019230398 (via search index) | no | `missing` | A search of `lib` and `components` for thinking trap, catastroph, thought record or reframe finds nothing. Journal prompts (`lib/journal-prompts/daily.ts`) and the rule follow-up (`lib/journal/reflect.ts`) ask questions but name no trap | A short written exercise in the Journal: the situation, the thought, pick any of about ten named thinking traps (each with one plain line and a Dutch twin), then "another way to see it", kept as a journal entry. Worded as self-reflection, never as treatment | M | Sanne |
+| Feelings with a strength | Pick several feeling words for an entry, each with its own intensity; several entries a day | https://apps.apple.com/us/app/moodnotes-mood-tracker/id1019230398 | no | `half` | `moodWordDaySchema` in `lib/mood-words/schema.ts` keeps one word a day (`{energy, pleasantness, word, at}`), with your own words built (lane 2, LEDGER #61). Bearable's Mood and emotions row is the word itself | The deeper part: up to three feeling words on a day, each with a strength (a little, quite, very), shown beside the day's mood. An additive, optional `more` list on the loose day, TIER 3 (stored format); older builds keep reading the one `word` | S | Sanne |
+| Face scan for mood | Scan your face with the camera to detect your mood | https://apps.apple.com/us/app/moodnotes-mood-tracker/id1019230398 | no | `against a rule` | Reading emotion from a face needs a model, and the camera image would be personal data analysed by one. The mood is always the person's own choice (`lib/moods/schema.ts`) | — | — | — |
+| Self-awareness articles | Articles by mental-health experts on thinking traps and well-being; more full-text articles in Premium | https://apps.apple.com/us/app/moodnotes-mood-tracker/id1019230398 | no | `missing` | No article library in `lib/help` or `lib/journal` (Help answers how the app works) | An expert-written article library made for ZIGoals | — | Sanne |
+
+Not rowed:
+- Native-only: the Apple Watch app. Server service: iCloud sync and backup.
+
+Already in COMPETITORS.md:
+- Bearable and Daylio: mood tracking, triggers (Factors), statistics and insights, notes on an entry, several entries a day (folded into Bearable's symptoms row).
+- Day One: photo memories in an entry.
+
+### Food, sleep and workouts (second additions)
+
+#### Fitbod
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Muscle recovery | A recovery percentage per muscle from recent sets, shown as a body heat map; under 50 % counts as fatigued; editable in the gym profile | https://help.fitbod.me/hc/en-us/articles/360006269014-Muscle-Recovery (via search index) ; https://apps.apple.com/us/app/fitbod-gym-fitness-planner/id1041517543 | no | `have` | `components/health/workouts/muscle-freshness.tsx` (front and back body diagram, a percentage and a word per group, recovery days you can change per group, `zigoals:muscle-recovery:v1`), `RECOVERY_DAYS = 6` and the model in `lib/workouts/depth.ts:208-215`, a line on Today (`components/health/workouts/muscle-freshness-today.tsx`) | — | — | — |
+| Gym profiles and equipment | A profile per place (home, gym, travel), each with the equipment there; workouts use only what that place has | https://fitbod.me/blog/your-gym-profile/ (via search index) ; https://help.fitbod.me/hc/en-us/sections/360001078993-How-Fitbod-Works (via search index) | no | `missing` | Equipment is free text in each how-to (`lib/workouts/howto.ts:22`, "A barbell and a flat bench"); `lib/workouts/library.ts` entries carry a name, a category and a measure, with no equipment tag. No place or profile in `lib/workouts/schema.ts` | An equipment tag per library exercise (barbell, dumbbells, cable, machine, bench, pull-up bar, bands, none), and your places (up to five) with what each has. The exercise picker and library filter by the chosen place (a device record) | M | Tom |
+| A workout made for today | Builds today's session from fresh muscles, your goal, level, equipment and chosen length; you can add cardio or adjust | https://apps.apple.com/us/app/fitbod-gym-fitness-planner/id1041517543 ; https://help.fitbod.me/hc/en-us/sections/31812780318743-Exercise-Workout-Customization (via search index) | no | `missing` | No workout suggestion in `lib/workouts` or `components/health/workouts`. The ready-made routines are fixed (`lib/workouts/routine-library.ts`). Hevy Trainer's row is a programme builder (ledger #120, Carried for authored splits) | The deeper part, with no programme to author: "Suggest a workout" picks 4–6 exercises from the built-in library for the freshest muscle groups, using the chosen place's equipment and a length (30, 45 or 60 minutes), with sets and weights from the person's own last sessions and the progression rule. It is labelled a suggestion the person can edit before starting | L | Tom |
+| Replace an exercise | Swap an exercise for another that works the same muscles with the equipment you have | https://apps.apple.com/us/app/fitbod-gym-fitness-planner/id1041517543 ("workout modifiers") | no | `missing` | A search of `lib/workouts` and `components/health/workouts` for swap, replace, alternative or similar finds nothing. Each how-to in `lib/workouts/howto.ts` names its main and helping muscles | "Replace" on an exercise in a running or planned workout: a short list of library exercises with the same main muscle (and, once built, the place's equipment), keeping the sets typed so far | S | Tom |
+
+Not rowed:
+- Native-only: the Apple Watch app; Apple Health, Fitbit and Strava sync (Strava is also a server service).
+- Server service: email to pro trainers.
+- Needs content made for ZIGoals: 1,000+ exercises with multi-angle video.
+
+Already in COMPETITORS.md:
+- Hevy: the exercise library with instructions, supersets and circuits, RPE, saved workouts (routines), progress analytics.
+- MacroFactor Workouts: progression over time (the rep-progression row).
+- Hevy Trainer: a programme from goal, equipment and time (non-linear periodisation).
+- Strava + Runna: cardio plans.
+
+#### Rise (sleep and energy)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Sleep debt | How much sleep you owe over recent nights against your sleep need, and how to pay it back | https://www.risescience.com/ ; https://apps.apple.com/us/app/rise-sleep-tracker/id1453884781 | no | `have` | `sleepDebt` (7 days) and `sleepBalance` (14 nights, at least five logged, in kind words, "never debt") in `lib/sleep/engine.ts:114-140` | — | — | — |
+| Sleep need from your own nights | Estimates your own sleep need from your phone's past data on first use | https://www.risescience.com/ | no | `half` | `DEFAULT_NEED = 480` and `needFrom: 'goal' \| 'default'` in `lib/energy-curve/curve.ts`; `sleepGoalSchema` in `lib/sleep/schema.ts:36` is the person's own typed goal | The deeper part: an estimate of the person's own need from their logged nights (for example the middle of their longest free-day nights over the last 30), offered as a suggested goal and labelled an estimate. Nothing changes until the person keeps it | S | Sanne |
+| Energy schedule and its reminders | Each morning: how long grogginess lasts, the morning and evening peaks, the afternoon dip, and when to start winding down (the melatonin window). Push notifications before peaks and dips | https://help.risescience.com/hc/en-us/articles/6654243671191-Getting-to-Know-Your-Daily-Energy (via search index) ; https://www.risescience.com/ | no | `half` | `lib/energy-curve/curve.ts` (grogginess, the focus window of `lib/sleep/focus-window.ts`, a dip 7–9 h after waking, a second lift, a bedtime window, lower after a short balance; an estimate) drawn by `components/sleep/energy-curve.tsx`. `ItemKind` in `lib/notify/plan.ts:12` has no focus or dip kind; the wind-down reminder is a fixed time (`components/health/sleep/wind-down.tsx`) | The deeper part: opt-in device reminders worked out from the day's curve, at the start of the focus window, before the dip and at the wind-down start (instead of a fixed wind-down time). A new notification kind, TIER 3 (PWA). Putting the curve on an outside calendar needs an outside service | S | Sanne, Max |
+| Habits at suggested times | 16 habits, each nudged at a time worked out from your energy schedule (morning light, caffeine cut-off, last meal, blue light, wind-down) | https://www.risescience.com/ ; https://apps.apple.com/us/app/rise-sleep-tracker/id1453884781 | no | `half` | `SUGGESTIONS` in `lib/evening-plan/plan.ts:15-24` (caffeine 240 min before, last meal 180, screens away, lights low, lights out; LEDGER #83 built), listed with their times in `components/health/sleep/evening-plan.tsx`. The steps carry `minutesBefore` only (`lib/evening-plan/schema.ts:22`): no morning steps, no reminder per step | The deeper part: morning steps timed from the wake time (daylight within the first hour, the first coffee after the grogginess), and an opt-in reminder at each chosen step's time | S | Sanne |
+| Naps and their effect | Shows how naps (and activity) affect your sleep debt and energy | https://apps.apple.com/us/app/rise-sleep-tracker/id1453884781 | no | `half` | Naps are kept (`napOrNight` and `kind: 'night' \| 'nap'` in `lib/sleep/engine.ts:49-54`), but `nightsIn` keeps `kind === 'night'` only (`lib/sleep/engine.ts:89-92`), so the balance, the debt and the energy curve leave naps out | The deeper part: a day's naps counted in the sleep balance (marked as naps), and a nap's lift shown on that day's energy curve as an estimate | S | Sanne, Max |
+
+Not rowed:
+- Native-only: automatic tracking from Apple Health, Apple Watch, Fitbit and Oura; the smart alarm (also Sleep Cycle's row); widgets.
+- Server service: the sleep clinic, the podcast, calendar integration.
+
+Already in COMPETITORS.md:
+- Calm and Sleep Cycle: sleeping sounds, meditation guides and the sleep knowledge library (Sleep Aid audio; Sleep Stories; needs content).
+- Calm Sleep companion: the evening plan with a readiness bar (built, LEDGER #83).
+- Sleep Cycle: statistics, the sleep goal and programmes.
+
+### Money, debt and crypto (second additions)
+
+#### Spendee
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Daily amount left | Each budget shows how much is left for each remaining day; budgets by month or week with daily spending limits (6.0.13) | https://www.spendee.com/features ; https://apps.apple.com/us/app/spendee-budget-money-tracker/id635861140 (6.0.13, Nov 14; year read as 2026) | yes | `half` | `budgetPace` and `paceWords` in `lib/budgets/pace.ts` ("Near the limit: 84% spent, €40 left for 6 days", only near the limit). Weekly and two-weekly budgets are built (`lib/budgets/periods.ts`, LEDGER #212) | The deeper part: "about €6 a day left" on every budget row with money left (left ÷ days left in its own period), always shown, not only near the limit. A fact, not advice | S | Lina |
+| Budgets by label | A custom budget that counts the transactions carrying chosen labels (a trip, a renovation) across categories (6.0.13) | https://apps.apple.com/us/app/spendee-budget-money-tracker/id635861140 (6.0.13, Nov 14; year read as 2026) ; https://www.spendee.com/features | yes | `missing` | `budgetSchema` in `lib/budgets/schema.ts:14-16` takes one `category`. Tags exist only as a money-log filter (`tagged` in `lib/money-log/search.ts:14-29`; the tags live in their own record) | A budget on a tag: the entries carrying that tag, in any category, against an amount for the month or for the budget's own dates. An additive, optional `tag` on the loose budget, TIER 3 (stored format) | S | Lina |
+| Reorder and hide wallets | Reorder wallets and hide the ones you no longer use (6.0.1) | https://apps.apple.com/us/app/spendee-budget-money-tracker/id635861140 (6.0.1, Aug 28; year read as 2026) | yes | `have` | `archivedAt` on accounts (`lib/accounts/schema.ts:28`), shown apart with Undo (`components/wealth/accounts-section.tsx:77-87`); your own order in `accounts.order` (`lib/money-log/schema.ts:84-88`, LEDGER #143) | — | — | — |
+
+Not rowed:
+- Server service and against a rule (no bank connections): bank sync with 9,000 banks, e-wallets and crypto-wallet connections, automatic categorisation of bank payments.
+- Server service, and against the rule that nothing is shared between people: shared wallets.
+- Native-only: Apple Pay payments logged automatically and Siri (6.0.12), home-screen widgets and one-tap logging (6.0.6, 6.0.8).
+- Needs a model: the AI receipt scanner (6.0.0; Magic Scan, 5.5.49, 12/18/2025).
+- Against a rule (no money advice): personal tips and emergency-fund guidance.
+
+Already in COMPETITORS.md:
+- Kubera: wallets in several currencies combined into one total (built, LEDGER #214, from rates you type).
+- Goodbudget: the configurable month start day (6.0.13; Budget period, built).
+- YNAB: transfer recognition and converting an entry into a transfer (6.0.0, 6.0.5; Credit card payment auto-match, built).
+- Rocket Money and Copilot: scheduled payments in charts and a calendar (6.0.10; bills); labels and own categories (Transaction tools); CSV export; search across all accounts (Running totals).
+- Monarch: receipt photos on an entry (Receipt scanning).
+
+#### Wallet by BudgetBakers
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Record templates | Saved records (amount, category, payee, note) added again in one tap | https://apps.apple.com/us/app/wallet-budget-money-manager/id1032467659 ("creating categories and templates") | no | `missing` | The money log has recent categories first (`categoriesRecentFirst` from `lib/recent-categories/recent.ts`, used in `components/wealth/spending/spending-section.tsx:23-25`) and no saved entry. A search of `lib/money-log` for template, favourite or usual finds only the category lists | Saved entries (up to 20: a name, amount, category, payee, currency), offered as one-tap chips in the money form ("Coffee €3.20"), each tap an ordinary entry with Undo. A new device record | S | Lina, Tom |
+| Payment types | Every record carries how it was paid (cash, debit card, credit card, transfer, voucher, and more) | https://apps.apple.com/us/app/wallet-budget-money-manager/id1032467659 ("Full range of payment types") | no | `missing` | `moneyEntrySchema` in `lib/money-log/schema.ts:32-64` has `account` only for bank-file rows (as the file named it); a typed entry has no "paid with" | An optional "paid with" on an entry (cash, debit card, credit card, transfer, other), filterable in search and shown in the month's totals by method. Additive and optional on the loose entry, TIER 3 (stored format) | S | Lina |
+| Planned payments with automatic confirmation | Recurring records with a start date and a reminder three days before; each set to Manual (you confirm) or Automatic (recorded on the day) | https://support.budgetbakers.com/hc/en-us/articles/7149523920786 (via search index) | no | `half` | Bills with cadences and "Mark paid" (an expense on the due day), the autopay mark and history (`lib/bills/tracker.ts:11-16`, `autopay` in `lib/bills/schema.ts:34-35`; Undebt.it's Bill Tracker row, built). Nothing is ever written without a tap | The deeper part: an opt-in "record it for me on the day" per bill marked autopay, writing the expense on its due day the next time the app opens, with a notice and Undo. Owner to confirm (see the ledger note) | S | Lina |
+| One-time budgets across categories | A one-time or recurring budget over any set of categories (redesigned budgets 5.6), with a forecasted-spend breakdown (5.7.3) | https://apps.apple.com/us/app/wallet-budget-money-manager/id1032467659 (5.6, Jun 29; 5.7.3, Sep 1; years read as 2026) | yes | `missing` | `budgetSchema` in `lib/budgets/schema.ts`: one `category` each, monthly (or weekly and two-weekly through `lib/budgets/periods.ts`). `group` (`schema.ts:55`) groups rows for display | A one-time budget with its own start and end dates (a holiday, a move) over chosen categories, with spent, left and days to go. A new device record, so the monthly budgets stay untouched | M | Lina |
+| Balance-limit notifications | In-app notifications when an account's balance crosses a limit you set (5.3) | https://apps.apple.com/us/app/wallet-budget-money-manager/id1032467659 (5.3, Mar 12; year read as 2026) | yes | `half` | One `lowBalance: {amount, currency}` on the money log (`lib/money-log/schema.ts`), read against the cash forecast (`lowBalanceCross` in `lib/money-notices.ts`, used by `lib/ai/local-answers/av2-money.ts:142-144`; Rocket Money's Low-balance row, built) | The deeper part: a limit per account (below or above), checked against that account's latest balance snapshot and shown on Wealth and Today's money line | S | Lina |
+| Debts: lent and borrowed | Simple personal loans: money lent to or borrowed from someone, with the account, the date, a due date and its reminder; close when repaid, forgive what you lent | https://support.budgetbakers.com/hc/en-us/articles/7149520322706 (via search index) | no | `half` | Accounts have `other-debt` and `other-asset` kinds (`DEBT_KINDS`, `ASSET_KINDS` in `lib/accounts/schema.ts:13-15`), with payments on debt kinds only and no "who" or due date for money lent | The deeper part: "Lent" and "Borrowed" entries with a name, a due date (with a reminder), repayments in parts, and Close or Forgive, kept apart from bank-style debts and counted in net worth | S | Lina |
+| Loyalty and club cards | Club and membership cards kept in the app, always with you | https://apps.apple.com/us/app/wallet-budget-money-manager/id1032467659 ("vouchers, club cards") ; https://apps.apple.com/hk/app/wallet-%E9%8C%A2%E5%8C%85-%E5%80%8B%E4%BA%BA%E7%90%86%E8%B2%A1%E7%B6%93%E7%90%86/id1032467659 (via search index) | no | `missing` | A search of `lib` and `components` for loyalty, store card or club card finds nothing. The food scanner reads barcodes with the existing `@zxing/browser` (`components/health/barcode-food-lookup.tsx`); the installed `@zxing/library` 0.23.0 writes QR codes only (`MultiFormatWriter`) | Store cards (a name and a number) on the device, read once with the existing scanner or typed, and shown full-screen as an EAN-13 or Code 128 barcode (drawn by a small encoder of ZIGoals' own, so no new package) or as a QR code with the existing writer. Adding to Apple or Google Wallet is native-only | M | Lina, Sanne |
+
+Not rowed:
+- Server service and against a rule (no bank connections): automatic bank updates from about 4,000 banks, card-to-account linking and imports (5.7.5).
+- Native-only: Apple Pay integration (5.5, 5.7.5), widgets, the Liquid Glass redesign (5.0).
+- Server service, and against the rule that nothing is shared between people: sharing budgets and accounts with others.
+- Server service: live stock prices for stock tracking. Holdings you enter yourself are Kubera's and Copilot's rows.
+
+Already in COMPETITORS.md:
+- Copilot and Kubera: net worth with stocks and manual assets ("Other" asset type with manual prices, 5.3).
+- Monarch and Copilot: reports, cash flow and the balance outlook; automatic rules (Name rules).
+- YNAB and Monarch: goals (Targets; Goals).
+- MyFitnessPal: the shopping list (Meal Planner and grocery list; built in `lib/grocery`).
+- Kubera: multiple currencies.
+
+#### Emma
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Subcategories | Spending split into more specific categories under each main one (built in 2025) | https://emma-app.com/blog/what-we-chose-to-build-at-emma-in-2025 | yes | `missing` | `category` is one string on an entry (`lib/money-log/schema.ts:34`), with the fixed `EXPENSE_CATEGORIES` (`:11`) and your own categories (`own`, `:82`). A search for subcategory finds only the Copilot CSV's "parent category" column (`lib/csv/templates/app-exports.ts:16`) | Your own subcategories under any category ("Food & drink › Coffee"), chosen in the form, rolled up into the main category's totals and budgets and shown apart in drill-down. TIER 3 (stored format): additive, so older builds read the main category | M | Lina |
+| Merchant-based budgets | A budget for one merchant (for example a supermarket or a takeaway app) | https://apps.apple.com/gb/app/id1270062373 | no | `half` | Payees watched this month against last (`payees` in `lib/budgets/schema.ts:71-76`; Rocket Money's Watchlist, built), with no amount or limit; `withWatch` in `lib/budgets/watch.ts` | The deeper part: an amount on a watched payee, so the payee's row shows spent and left for the month and the near-limit line, like a category budget | S | Lina |
+| Unusual-transaction alerts | Real-time alerts for unusual transactions, beside budget limits and bills due | https://apps.apple.com/gb/app/id1270062373 | no | `half` | The category pace "faster than the month" (`lib/budgets/pace.ts`) and Copilot's Custom alerts row (built in part, LEDGER #150) look at a category's total, not at one entry | The deeper part: a calm line when one entry is well above that payee's or category's usual (for example over twice the median of its last ten), on the money log and Today's money line, as a fact with "That's fine" to dismiss | S | Lina |
+| Custom Split and Settle in Group | Split a shared cost by percentage, share or exact amount; settle all shared balances at once (2025) | https://emma-app.com/blog/what-we-chose-to-build-at-emma-in-2025 ; https://apps.apple.com/gb/app/id1270062373 (Emma Groups) | yes | `half` | `moneyPartSchema` in `lib/money-log/schema.ts:19-31` splits an entry across categories or a Goal (two to five parts). There is no "my share" and no record of what others owe | The deeper part: "my share" on an entry (a percentage or an amount), with what others owe kept as a list by name on this device, and Settle (an income entry that clears it). Budgets count only my share. A group shared with other people's devices is against the rule that nothing is shared between people | M | Lina, Jules |
+| Spaces: personal and business | Personal and business budgets kept apart in one app (Emma Spaces) | https://apps.apple.com/gb/app/id1270062373 | no | `half` | One money log (`lib/money-log/schema.ts`); tags and the exclude filter (`lib/money-log/search.ts`) can mark business entries but do not keep their totals and budgets apart | A second space (for example "Business"): its own entries, budgets and totals, switched at the top of Money, with the personal space unchanged. TIER 3 (stored format): a space id on the loose entry and budget, missing on everything written so far (read as personal) | L | Lina |
+
+Not rowed:
+- Server service and against a rule (no bank connections): bank and card aggregation, Monthly Autosave and round-ups, Super Pot savings, Quick Pay and Emma Pay, the Emma Wallet (closing 30 Sep 2026), commission-free investing.
+- Server service: rent reporting to credit agencies and the credit score; cashback; comparing loans and cards; Emma for Employers; Emma Gift.
+- Needs a model: AI-calculated savings.
+
+Already in COMPETITORS.md:
+- Copilot and Rocket Money: Auto Budget from your spending history (a suggested amount, built).
+- Monarch and Copilot: monthly comparison and the redesigned net-worth graph; rebuilt transaction search (Running totals); rolling budgets (rollovers).
+- Rocket Money: bill and subscription tracking; True Balance (3 Jun 2025: spendable after pending and upcoming payments; Payday View, built: cash until payday).
+- Copilot and Kubera: offline assets in net worth (3 Jun 2025).
+- Goodbudget: budgets synced with your pay cycle (Budget period, built).
+
+## Ten more apps, round 3 (owner follow-up 4, item 4g; 22 Nov 2026)
+
+
+
+Drafted 22 Nov 2026, to be added under `## Matrix` in `docs/review/session-av/COMPETITORS.md`, after "Ten more apps, round 2 (owner follow-up 4, item 4g)". It uses the method in that file's header. Official sites, help centres and 2025–2026 release notes were read with WebSearch (standard mode first) and WebFetch; App Store "What's New" notes count as release notes. Page text was treated as data only; no page held an instruction to the reader. Every row was then checked against this branch's code (`apps/web`, branch `lane2/batch2`, HEAD `23eaf493`), after the lane 2 registries (`docs/review/session-av/lane2/*.md`) were read so that built work is not marked missing. Each `have` and `half` names the file that was opened. All pages were seen on 22 Nov 2026.
+
+Not repeated: a feature that already has a row in COMPETITORS.md (the 25 apps, the first "Ten more apps" and round 2) gets no new row. It is listed under "Already in COMPETITORS.md" for that app. Where the new app goes further, the row is added and covers only the further part, which it names. Each app also lists what was left out because it is native-only, a server service or needs a model, with that cause.
+
+Since round 2 was drafted, lane 2 built many of its rows (My Day, custom fields, project rules, print, thinking traps, Write it out, the daily challenge, workout places, Replace an exercise, Suggest a workout, store cards and more). This round's rows were judged against that newer code.
+
+Source caveats:
+- Nike Training Club's 2025–2026 App Store notes say only "Bug fixes and enhancements" (6.62.0 to 6.72.1). Its rows rest on the App Store description and nike.com/ntc-app, so none is new since 2025.
+- These pages refused the fetcher, so their rows say "via search index": the Quicken blog posts "What's New in Quicken Simplifi This Winter?" (29 Dec 2025) and "Three Game-Changing Updates for Quicken Simplifi" (summer 2025) (both 403), and Structured's help article "What is Cycle Seasons?".
+- Grid Diary's App Store page for the US (id1197395251) and Way of Life's (id439926359) returned 404. Their rows rest on the international listings (id1392523148 and id393159800), which are the same apps, and on griddiaryapp.com. Way of Life has no official website besides the listing.
+- Waterllama's own listing does not describe a hydration factor per drink. Only reviews mention one, so it is not rowed.
+- App Store notes often print no year. Where the year was read from the version order, the row says so. Grid Diary 4.0.0–4.0.6 (14 Sep to 14 Oct) carry no year; they follow 3.8.4 (18 Jun 2025), so they are from 2025 or 2026, and new since 2025 either way.
+
+### Totals (the ten apps)
+
+| Status | Tasks, notes and journal (Structured, Obsidian, Grid Diary) | Habits and mind (Stoic, Way of Life) | Food, drink, workouts and body (Carb Manager, Waterllama, Nike Training Club) | Money (PocketGuard, Simplifi) | All |
+|---|---|---|---|---|---|
+| `have` | 2 | 1 | 0 | 0 | 3 |
+| `half` | 8 | 5 | 5 | 6 | 24 |
+| `missing` | 11 | 0 | 6 | 3 | 20 |
+| `not web-possible` | 0 | 0 | 0 | 0 | 0 |
+| `against a rule` | 0 | 1 | 3 | 0 | 4 |
+| **Rows** | **21** | **7** | **14** | **9** | **51** |
+
+Rows per app: Structured 8, Obsidian 9, Grid Diary 4, Stoic 3, Way of Life 4, Carb Manager 5, Waterllama 6, Nike Training Club 3, PocketGuard 3, Simplifi 6.
+
+Every app had at least 15 features read; its rows, "Not rowed" and "Already in COMPETITORS.md" together name them, read from the pages cited in that app's rows. The fewest are Way of Life's (16) and Grid Diary's (18).
+
+### Tasks, planning, notes and journaling (third additions)
+
+#### Structured (daily planner)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Morning planning and overdue reminders | Separate notifications: one in the morning to plan the day, one about overdue tasks (4.4.9) | https://apps.apple.com/us/app/structured-daily-planner/id1499198946 (4.4.9, May 14; year read as 2026) | yes | `half` | The morning notification opens the Checklist (`lib/notify/plan.ts:107`); each task has its own reminder (`:144-147`). Plan my day is built (`components/tasks/plan-day.tsx`) | The deeper part: an opt-in "Plan your day" notification at a chosen time that opens Plan my day, and one quiet morning line with the count of overdue tasks (not one notification per task) | S | Max |
+| Task icons and colours | Every task takes a colour and an icon (hundreds); Smart Task Icons pick one from the title (2.0 beta in 4.6.7) | https://apps.apple.com/us/app/structured-daily-planner/id1499198946 (4.6.7, Oct 28; year read as 2026) ; https://help.structured.app/en/articles/1897986 | yes | `missing` | `taskSchema` has no icon or colour; colours belong to projects and labels only (`TASK_COLOURS`, `lib/tasks/schema.ts:35,173`). Habits have a symbol and colour (`lib/habit-look.ts`, Streaks' row) | An optional symbol and colour per task from the habit-look set, shown in lists and on the timeline, with a symbol suggested from words in the title (a written word list in English and Dutch, no model). Additive on the loose task, TIER 3 (stored format) | S | Max |
+| A timeline for any day | The day as one timeline with tasks, events and their lengths, for any date; week and month views around it | https://structured.app/ ; https://apps.apple.com/us/app/structured-daily-planner/id1499198946 | no | `half` | The Day Timeline is today only (`components/timeline/day-timeline.tsx:26`; `lib/timeline/build.ts`: habits, meals, sleep, fasts, reminders, Checklist dots, and tasks through `lib/tasks/timeline-source.ts`). Other days are on the Agenda's hour grid (`components/agenda/agenda-hour-grid.tsx`; Sunsama's Timeboxing row) | The deeper part: the same timeline for tomorrow or a chosen day, to plan ahead: tasks with their minutes, the habits due that day, planned meals and planned workouts. A block moved on another day keeps its time for that date only (the timeline record keeps one time per habit or meal slot today, `lib/timeline/store.ts`), TIER 3 (stored format) | M | Max |
+| Energy Monitor | Each task gets an energy level (relaxing, neutral, low, medium, high); points from its length add up against a daily limit (20 by default) shown green, orange or red; heavy work timed for high-energy windows | https://help.structured.app/en/articles/998530 ; https://structured.app/align-your-rythm | no | `missing` | `energySchema` in `lib/energy/schema.ts` is one 1–5 rating per day. Tasks carry `minutes` (`lib/tasks/schema.ts:116`) and the day threshold `dayLimit` counts minutes only (`lib/tasks/plan-record.ts:32`; Sunsama's Workload row, built). The focus window is worked out from sleep (`lib/sleep/focus-window.ts`) | An optional weight per task (restful, neutral, light, medium, heavy), the day's total against an amount the person sets, in calm words ("room for more", "near your amount", "more than your amount"), never red. Heavy tasks planned outside the day's focus window get a quiet mark. Additive on the loose task and task plan, TIER 3 (stored format) | M | Max, Sanne |
+| Notes during a focus session | The redesigned Focus Timer takes notes while it runs; Intervals of focus and break blocks (4.5.1) | https://apps.apple.com/us/app/structured-daily-planner/id1499198946 (4.5.1, Jun 6; year read as 2026) | yes | `half` | `focusSessionSchema` (`lib/focus-sessions/schema.ts:14-31`) keeps times, the mode, the block and the task; no note. A finished session adds one line to its goal's notes (`lib/focus-session.ts`). Intervals are the Pomodoro (TickTick's row, have) | The deeper part: a note box while the timer runs, kept with the session and added to the task's description when it ends, on the person's tap. Additive on the loose session, TIER 3 (stored format) | S | Max |
+| Copy and clear a day | Long-press a day to copy its tasks onto another day, or to clear the whole day (4.1) | https://feedback.structured.app/changelog/structured-41-copy-day-and-cycle-seasons-10 (1 Mar 2025) | yes | `missing` | A search of `lib/tasks/engine.ts`, `components/tasks/tasks-organise.tsx` and `components/tasks/task-editor.tsx` for duplicate, copy or copy-to finds none. `editMany` moves tasks; it never copies them | "Copy this day to…": a day's tasks copied as new tasks onto another day, keeping times and minutes. "Clear this day": the day's open tasks moved to no day, with Undo; nothing is deleted | S | Max |
+| Cycle Seasons on the day plan | The menstrual cycle on the timeline, its phases shown as seasons, with planning suggested by phase (1.0 out of beta in 4.1) | https://structured.app/align-your-rythm ; https://help.structured.app/en/categories/1824002 ("What is Cycle Seasons?", via search index) ; https://feedback.structured.app/changelog/structured-41-copy-day-and-cycle-seasons-10 | yes | `half` | `lib/cycle/engine.ts` (the cycle log; the next period as a range after three cycles; `CYCLE_LINE`). Nothing from it reaches the Day Timeline (`BlockKind` in `lib/timeline/build.ts` has no cycle) or the Agenda (`lib/agenda/build.ts`: no cycle) | The deeper part, opt-in: the cycle day ("Day 3 of your cycle") and logged or estimated period days on the timeline's all-day row and on the Agenda. Phase seasons with advice on what to plan in each are not proposed (no medical advice) | S | Sanne |
+| A font for reading with dyslexia | A dyslexia-friendly font, beside font size and layout choices | https://apps.apple.com/us/app/structured-daily-planner/id1499198946 ; https://help.structured.app/en/articles/1897986 | no | `missing` | `Look.font` (`lib/ui-prefs/look.ts:12,16`): system, Inter, serif, rounded, monospace. Daylio's Custom fonts row is built | One more font choice made for easier reading (Atkinson Hyperlegible or OpenDyslexic, both under the SIL Open Font License), self-hosted as files the way Inter is (`public/fonts/inter`), so no font package | S | Sanne, Max |
+
+Not rowed:
+- Needs a model: Structured AI planning, Siri AI task creation, AI subtask breakdowns, Colour Prediction, Task Suggestions.
+- Native-only: the Apple Watch app, Live Activities, interactive widgets, the iPhone Duo layout, Shortcuts automations.
+- Server service: Structured Cloud sync; live calendar and Reminders sync (a calendar file import is Things' row).
+
+Already in COMPETITORS.md:
+- Sunsama: Daily shutdown (Replan: review unfinished tasks and move, tick or let go; ZIGoals' day's end card in `components/timeline/replan-card.tsx` and `lib/wrap-up-tasks/move.ts`); Workload counter (built, LEDGER #26).
+- Todoist: Projects, sections and sub-tasks (subtasks with notes); Recurring dates (recurring tasks); Quick Add with natural language (4.5.5).
+- TickTick: Notes and Markdown editing (the Inbox; Notes' inbox kind); Pomodoro (Intervals); Calendar views (weekly and monthly views).
+- Fabulous: Routines played step by step (routines).
+
+#### Obsidian (notes)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Plain Markdown files you own | Notes are plain Markdown files on the device, in an open format, so you are never locked in | https://obsidian.md/ | no | `have` | `lib/notes/markdown.ts` (a ZIP of .md files with front matter, goals and habits as stub files, and import of .md, .markdown and .txt at `:116`), `lib/notes/zip-read.ts`; "Export notes as Markdown … for Obsidian" (`lib/search/notes.ts:22`) | — | — | — |
+| Search that ignores accents, best match first | Search ignores accents ("cafe" finds "café"); a Relevance sort ranks the best match first (1.15.1) | https://obsidian.md/changelog/ (1.15.1, 12 Nov 2026) | yes | `have` | `normalize` (accents removed, `lib/search/engine.ts:17`); `searchNotes` puts title matches above body matches, then the newest (`lib/search/notes.ts:35-42`) | — | — | — |
+| Tick boxes in notes, gathered | "- [ ]" lines are tick boxes in any note; the Tasks plugin tracks them across the vault | https://obsidian.md/help/syntax ; https://obsidian.md/ | no | `missing` | Notes are drawn by the safe Markdown parser (`lib/ai/safe-render.ts`: headings, lists, quotes, code, tables) through `components/notes/note-render.tsx`; a "- [ ]" line is plain text | "- [ ]" drawn as a tick box that can be ticked in the reading view (the note's text becomes "- [x]", with Undo and a version in `lib/notes/versions.ts`), and an "Open tick boxes" list across notes, each linking back to its note. They stay note lines, not tasks | S | Max |
+| Highlights in six colours | ==text== highlights, in six colours chosen by emoji or the formatting menu (1.14.4); shown on Publish (27 Oct 2026) | https://obsidian.md/help/syntax ; https://obsidian.md/changelog/ (1.14.4, Oct 2026) | yes | `missing` | The inline marks are text, bold, italic, code and links (`Inline`, `lib/ai/safe-render.ts:7`). TickTick's Notes row names highlight colours as not covered | ==text== drawn as a highlight in six named colours that each theme draws (as `TASK_COLOURS` are), and kept as written in the Markdown export | S | Max, Sanne |
+| Outline of a note | A list of the current note's headings; tap one to jump to it; drag to reorder sections | https://obsidian.md/help/plugins/outline | no | `missing` | Headings are drawn (`components/notes/note-render.tsx:42`) but never listed; a search of `components/notes` for outline or headings finds nothing | A list of a long note's headings above it, each jumping to its section. Reordering sections by dragging is left out | S | Max |
+| Print a note or save it as PDF | PDF export of a note, now on iOS and Android too (1.15) | https://obsidian.md/changelog/ (1.15, 22 Oct to 2 Nov 2026) | yes | `missing` | No `@media print` in `components/notes/notes.css`; a tasks list prints (`components/tasks/tasks-print.css`) | "Print this note" (title, day, text, photo) with print CSS on the page, and Save as PDF in the print window, as the tasks list does | S | Max, Sanne |
+| Bases: views of notes by their properties | Table, list, cards, kanban and map views over notes, from each note's properties, with filters, formulas, groups and sorting (kanban 1.14.4; groups 1.14.3; drag filters 1.15) | https://obsidian.md/help/bases ; https://obsidian.md/changelog/ (1.14.3–1.15, Sep–Oct 2026) | yes | `half` | `lib/notes/table.ts` (a sortable table of name, tags, words, links, changed and made, and a notes-per-tag chart; LEDGER #29, #30, built). `noteSchema` (`lib/notes/schema.ts`) has no properties; an import reads only title, tags, type, day and the ZIGoals id from front matter (`lib/notes/markdown.ts:146-172`). Notion's Database views row covers tasks | The deeper part: your own properties on a note (text, number, date, a choice, a tick; up to ten), kept from imported front matter and written back on export, shown as table columns with filters, and a board grouped by a choice property. An additive, optional `props` on the loose note, TIER 3 (stored format) | M | Max |
+| Canvas | An endless board of cards (notes, text, images, PDFs) joined by labelled lines, in named groups and colours; saved as an open .canvas file; larger canvases faster (1.15.1) | https://obsidian.md/help/plugins/canvas ; https://jsoncanvas.org/ ; https://obsidian.md/changelog/ (1.15.1, 3 Nov 2026) | no | `missing` | No board in `lib/notes` or `components/notes` (a search for canvas finds only NOVA's star field and the photo code). The graph (`components/notes/graph-view.tsx`) is laid out from links, not placed by hand | A board where note cards, text cards and photos are placed by hand, joined by labelled lines and gathered in named groups, usable by touch and keyboard, kept on the device and exported as a .canvas file in the open JSON Canvas format (MIT). A new device record, TIER 3 (stored format) | L | Max |
+| Diagrams from text (Mermaid) | Mermaid diagrams drawn in notes, fitting the theme and note width (1.15), with zoom and pan on Publish | https://obsidian.md/changelog/ (1.15, Oct 2026; Publish, 27 Oct 2026) | yes | `missing` | A fenced code block is drawn as code (`lib/ai/safe-render.ts:81`); nothing draws a diagram | Drawing Mermaid code needs the Mermaid package, a new dependency. A mermaid block stays readable as code | — | Max |
+
+Not rowed:
+- Server service: Obsidian Sync, Publish, shared vaults (also against the rule that nothing is shared between people), the Web viewer.
+- Native-only: Quick Capture from the Lock Screen, Control Center and widgets (iOS), the Android "View note" widget, Quick Look previews, the CLI and URI commands; the Web Clipper (a browser extension).
+- Community plugins and themes: code from outside the app, which ZIGoals never loads.
+
+Already in COMPETITORS.md:
+- TickTick: Notes and Markdown editing ([[links]], backlinks and the graph view, built; pinned notes for bookmarks).
+- Notion: Version history (one year of versions; lane 2 note versions, `lib/notes/versions.ts`); Database views (the kanban board for tasks); the daily note from a template (LEDGER #32, `components/notes/daily-template.tsx`).
+- Todoist and MyFitnessPal: Ramble and Voice Log (voice capture in Quick Capture, 1.15).
+
+#### Grid Diary (journal)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Every answer to one prompt | Explore and the Timeline show what you wrote under one grid prompt across days (search in Explore, 3.7.2; redesigned Timeline, 3.6.0) | https://apps.apple.com/app/id1392523148 (3.7.2, 09/29/2024; 3.6.0, 06/19/2024) | no | `missing` | Entries keep the template they began from (`template`, `lib/journal/schema.ts:41`), but `EntryFilter` takes words, a tag, a journal and dates only (`lib/journal/search.ts:11`) | "Every answer to this prompt": a filter by the template an entry began from, listing what was written under each heading, oldest first. Derived, nothing stored | S | Sanne |
+| Grid layout and the Mandala | An entry is a grid of prompt cells on one page; the Mandala is a 3×3 grid with a fixed centre, like a mind map; cells edited in place (4.0.5) | https://apps.apple.com/app/id1392523148 (4.0.5, Sep 29; year 2025 or 2026) ; https://griddiaryapp.com/ | yes | `half` | Your own templates with two to six headings (`ownTemplateSchema`, `lib/journal/schema.ts:59-62`), written as one text | The deeper part: a templated entry written as a grid of cards (one box per heading), and a 3×3 template with a centre theme and eight cells around it. It is still saved as text with headings, so the export and older builds read it as before | S | Sanne |
+| Entries for a week, a month or a year | Day, week, month and year "dimensions": a diary and planner with its own templates for each period | https://griddiaryapp.com/ ; https://apps.apple.com/app/id1392523148 | no | `half` | An entry has one `date` (`lib/journal/schema.ts:31`); the "Week look-back" template exists (`lib/journal-prompts/templates.ts:20`) | The deeper part: an entry that belongs to a week, a month or a year, with written look-back templates for each in English and Dutch, listed under its period on the journal calendar (`components/journal/journal-calendar.tsx`). An additive, optional `period` on the loose entry, TIER 3 (stored format) | M | Sanne |
+| Export as Markdown | Export to PDF, MD, JPG and other formats | https://griddiaryapp.com/ | no | `half` | The journal exports Day One's JSON with photos and voice notes (`lib/journal/export.ts:16`) and prints in the visit report (`lib/journal/report.ts`); notes export Markdown (`lib/notes/markdown.ts`) | The deeper part: one .md file per entry (its day, journal and tags in front matter, photos beside it) in the same ZIP, for Obsidian and other apps | S | Sanne |
+
+Not rowed:
+- Native-only: Diary Widgets with 1–9 cells (3.8.0), the Health app (steps and activity in an entry; journaling time saved as mindful minutes).
+- Server service: Cloud Input by QR code (4.0.6), sync between devices, sharing to Evernote.
+
+Already in COMPETITORS.md:
+- Day One: Templates (your own templates, built); Prompt Packs (the prompt and template library, built); Journal Collections (several journals for family, work, travel, built); Journaling reminders; End-to-end encryption and passcode (passcode lock); Automatic metadata (steps and activity in an entry); Rich journal entries (photos).
+- Bearable and Daylio: moods (stickers for mood).
+- TickTick: Notes and Markdown editing (the Markdown editor with a preview).
+
+### Habits, mood and mind (third additions)
+
+#### Stoic (journal and mind)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Quotes from Stoic writers | A daily quote and affirmations based on Stoic philosophy, with writing suggestions tied to the quote (Quotes redesign, 2026.21; "Ideas" renamed Quotes, 2026.15) | https://apps.apple.com/us/app/stoic-journal-mental-health/id1312926037 (2026.21, Oct 26; 2026.15, Jul 29) ; https://www.getstoic.com/ | yes | `half` | `AFFIRMATIONS` in `lib/journal/affirmations.ts` (28 lines in English and Dutch, off by default, on Today through `components/journal/today-affirmation.tsx`); no quote | The deeper part: an optional quote of the day from public-domain translations (Marcus Aurelius' Meditations, Seneca's letters, Epictetus), the writer named, in English and Dutch, with "Another one" and "Write about this" (an entry that starts with the quote). Written text, not content | S | Sanne |
+| A letter to open later | "Think Ahead": write about where you will be a year from now | https://www.getstoic.com/ | no | `half` | The "A letter to future you" template (`lib/journal-prompts/templates.ts:27`); On This Day shows entries from a year ago (`components/journal/on-this-day.tsx`) | The deeper part: a day to open the letter on (in a month, six months or a year). The entry stays folded away until then, then shows on Today with a journal reminder that day. An additive, optional `opensOn` on the loose entry, TIER 3 (stored format) | S | Sanne |
+| Dream journal from the sleep log | Sleep Better: a dream journal and lessons for insomnia | https://apps.apple.com/us/app/stoic-journal-mental-health/id1312926037 | no | `half` | A journal can be named Dreams (`components/journal/journal-books.tsx:61`). A note on a night is Sleep Cycle's Sleep notes row | The deeper part: "Write down a dream" on the morning's sleep entry, opening an entry in a Dreams journal (made on first use) linked to that night, and the night's dream entries shown on the sleep log. Insomnia lessons need content made for ZIGoals | S | Sanne |
+
+Not rowed:
+- Needs a model: the four AI mentors and their guided journals (2026.2), Stoic Intelligence and on-device AI replies (2026.23), AI check-in reactions, photo descriptions.
+- Native-only: Stoic Shield (blocks other apps), Siri and App Intents (2026.19), widgets, Apple Health.
+- Server service: iCloud sync and backup, the newsletter, gift vouchers.
+
+Already in COMPETITORS.md:
+- Calm: Check-ins; Sunsama: Daily shutdown (the morning and evening routines: `lib/checkin/checkin.ts`, `lib/wrap-up/engine.ts`; the morning focus choice, 2026.6, is Sunsama's Guided daily planning).
+- Day One: Prompt Packs (guided journals, daily prompts and weekly themes); Journaling reminders and streaks (streaks, badges, journaling suggestion notifications, 2026.17); Rich journal entries (voice notes, photos and video).
+- Insight Timer: Meditation timer (timed chimes); Calm: Breathing exercises.
+- Bearable: Trends & Insights (mood, sleep and writing trends, back in 2026.9); Doctor sharing and export (export for a therapist).
+- Moodnotes: Feelings with a strength (the improved emotions check-in, 2026.7). Finch: Seasonal events (mindful events).
+- Grid Diary (above): Every answer to one prompt (Journey's search by prompt).
+
+#### Way of Life (habits)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Reminders in your own words | Reminders with flexible schedules and custom messages | https://apps.apple.com/us/app/-/id393159800 | no | `half` | A habit reminder is one time (`habits: {time}` in the strict `remindersSchema`, `lib/reminders/schema.ts:17`); its words are the habit's name (`lib/notify/plan.ts`) | The deeper part: an optional line of the person's own per habit reminder ("Shoes by the door?"), up to 80 characters, and up to three times a day. Kept in the loose habit extras (`zigoals:habit-extras:v1`), since the reminders record is strict, TIER 3 (stored format) and TIER 3 (PWA) | S | Max |
+| Trend per habit | A Trend pill that spots the habits whose rate is changing; a frequency chart by weekday (4.6.0) | https://apps.apple.com/us/app/-/id393159800 (4.6.0, Oct 2; year read as 2026) | yes | `half` | `habitTrends` (`lib/habits.ts:605-613`: the done share for the day, week, month and year) | The deeper part: per habit, the last 30 days beside the 30 before, as a plain word (more often, about the same, less often) with both shares, and the habits listed by it. No "needs attention" wording. Derived, nothing stored | S | Max |
+| Colour-blind mode | A colour-blind mode for the green and red days | https://apps.apple.com/us/app/-/id393159800 | no | `have` | A habit's day is drawn with a mark as well as a colour: ✓ done, × missed, – skipped, ○ open (`components/habits/habit-week-grid.tsx:62`), and each cell's label names it (caption at `:57`) | — | — | — |
+| Red chains | Streaks of bad (red) days counted as chains, with a sound and animation when a green chain breaks | https://apps.apple.com/us/app/-/id393159800 (3.16; 4.3.2, Apr 20, fix for a broken chain) | no | `against a rule` | Calm design that takes nothing away: a missed day is one mark (`components/habits/habit-week-grid.tsx:62`) and is never counted as a run or announced. Skip and Fail are Habitify's row | — | — | — |
+
+Not rowed:
+- Native-only: widgets, Siri, Shortcuts (update a habit by colour, 4.6.0), URL schemes.
+- Server service: cloud backup to the person's own provider (the local backup folder is Loop's Automatic backups row).
+
+Already in COMPETITORS.md:
+- Habitify: Skip vs Fail statuses (marking a day green, red or skipped).
+- Streaks: Statistics and export (chains, pie and bar charts, the weekly and monthly scoreboard: `habitTrends` and `components/habits/habit-consistency.tsx`; CSV and JSON export); Themes and icons (themes, made free in 4.2.0).
+- Loop: History and frequency charts (the weekday frequency chart, 4.6.0); Notes on specific dates (notes); Automatic backups (Backup and Restore, free in 4.3.0).
+- Habitify: Time of Day and Areas (tags).
+
+### Food, drink, workouts and body (third additions)
+
+#### Carb Manager (keto and low carb)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Weigh-in reminders | Daily, weekly or monthly weight reminders at a chosen time, shown in the daily log (10.0.0) | https://apps.apple.com/us/app/carb-manager-keto-diet-app/id410089731 (10.0.0, 10/31/2024) | no | `missing` | `ItemKind` (`lib/notify/plan.ts:13`) has no weigh-in kind; a search of `lib/reminders`, `lib/notify` and `lib/reminders-plan` for weigh finds nothing | An opt-in weigh-in reminder every day, on chosen weekdays or once a month at a chosen time, skipped when a weight is already logged that day. TIER 3 (PWA) | S | Tom |
+| Goals on any health number | Progress toward a goal on any health number: calories, protein, fibre, BMI, waist size, ketones, hydration and more (12.5.1) | https://apps.apple.com/us/app/carb-manager-keto-diet-app/id410089731 (12.5.1, 09/05/2025) | yes | `half` | `HEALTH_GOAL_MEASURES` are weight, steps, water, exercise and active minutes (`lib/health-goals/schema.ts:13`); average goals take sleep, steps, water or a measure typed by hand (`AVERAGE_METRICS`, `lib/average-goals/store.ts:15-20`) | The deeper part: a goal on a nutrient's daily average from the food log (protein, fibre), on a body measurement (waist, `lib/body-measurements.ts`) or on one of your own numbers (`lib/health-numbers`), over a rolling window. The goals record is strict (`healthGoalFields`, `lib/health-goals/schema.ts:16`), so these go in a new device record, TIER 3 (stored format). A BMI goal is left out (Yazio's row: the number only); a ketone target is left out (no medical advice) | S | Tom |
+| Glucose and ketones beside meals | Blood glucose, ketones and insulin logged per meal; glycemic load and the glucose-ketone index (GKI) worked out | https://apps.apple.com/us/app/carb-manager-keto-diet-app/id410089731 ; https://www.carbmanager.com/ | no | `half` | Lab markers with their own unit and range (`lib/health-numbers/engine.ts:6-7`; Cronometer's Biometrics row, have). A reading has no meal or time of day | The deeper part: a reading marked before or after a meal (Breakfast, Lunch, Dinner, Snacks) and shown beside that meal on the food day, and the GKI as a plain number when a glucose and a ketone reading share a time, labelled a calculation with no verdict. Insulin doses are medication (Bearable's Medication row). An additive, optional `meal` on the loose reading, TIER 3 (stored format) | S | — (none of the five) |
+| Glycemic load per food | Glycemic load worked out for foods and meals | https://www.carbmanager.com/ | no | `missing` | Foods keep label nutrients only (Open Food Facts and USDA FoodData Central, `components/health/barcode-food-lookup.tsx`); neither source gives a glycemic index | A glycemic index for each food, which needs a licensed GI table made for ZIGoals | — | — (none of the five) |
+| Allergy and preference filtering | Meal plans and grocery lists tailored to allergies and food preferences | https://www.carbmanager.com/ | no | `against a rule` | The food pages say "no dietary or allergy suitability is inferred" (`components/health/additional-nutrition.tsx:6`) and "not verified medical or allergen advice" (`components/health/barcode-food-lookup.tsx:159`). Marking a plan safe for an allergy is medical advice. Preferences are Lose It!'s Diet plans row | — | — | — |
+
+Not rowed:
+- Needs a model: photo food logging.
+- Server service: the community forum, friends, private groups and weekly challenges with others (also against the rule that nothing is shared between people); Fitbit (through Google Health, 12.7.0), Garmin and Biosense sync.
+- Native-only: Apple Health and Google Fit step sync.
+
+Already in COMPETITORS.md:
+- MyFitnessPal: Custom macro goals and Net Carbs mode (net carbs and sugar alcohols); Food search and Barcode Scan (1M+ foods, UPC-E); Meal Planner and grocery list; Intermittent fasting tracker; Water and weight log.
+- Yazio: Calculators (the keto macro calculator); Recipes with a cooking mode (5,000+ recipes).
+- MacroFactor: Per-day macro targets (carb cycling); Weekly check-in (Weekly Food Insights, 12.4.1, 2025); Verified food search and smart history ("Previously Logged" and "Frequent For", 11.0.0: `usualForMeal`); Weight Trend (the weight loss prediction: `goalDate` in `lib/health-aa/coach.ts:23`).
+- Cronometer: Custom Charts and Reports (advanced reports and correlations); Biometrics (blood glucose and ketones as markers).
+- Strong and Hevy: exercise logging. Nike Run Club and Calm: Training tips and the Lifestyle hub (Keto Academy articles, needs content).
+
+#### Waterllama (water)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Reminders through the day | Smart reminders spread through the day, with Add Water buttons in them (1.87.0) | https://apps.apple.com/us/app/id1454778585?l=en-us (1.87.0, Jan 23, 2025) | yes | `half` | One water reminder a day (`water: {time}`, `lib/reminders/schema.ts:18`), with how much is still to go (`daily('water', …)`, `lib/notify/plan.ts:101`) | The deeper part: several water reminders between a start and an end time (every two or three hours), each skipped when the day is on pace for the target, and quiet hours kept. In a loose device record beside the strict reminders, TIER 3 (stored format) and TIER 3 (PWA) | S | Sanne |
+| Your own drinks | 150+ drinks; a redesigned drink menu and a drink creator with a colour mixer and icons (1.89.0) | https://apps.apple.com/us/app/id1454778585?l=en-us (1.89.0, Jul 14, 2025) | yes | `half` | `DRINK_TYPES` are seven fixed kinds (`lib/health-extras.ts:17`), each entry with its caffeine. MyFitnessPal's Water row covers own amounts and caffeine | The deeper part: your own drinks (a name, a symbol, a colour, a usual size, caffeine), up to 30, as one-tap buttons in the water log; each tap a water entry with its drink. Additive on the loose health extras, TIER 3 (stored format) | S | Sanne |
+| Calories from drinks | Calories from your drinks tracked, beside water and caffeine (1.92.5) | https://apps.apple.com/us/app/id1454778585?l=en-us (1.92.5, Mar 18; year read as 2026) | yes | `missing` | "Every drink still counts as water as you logged it": a drink keeps a type and caffeine only (`lib/health-extras.ts:13-14,24`), so a juice adds nothing to the food day | An optional energy (kcal) and sugar per drink, typed or from your own drink, counted in the day's food totals as a drink line, never guessed | S | Sanne, Tom |
+| Hydration tips | 50+ hydration tips, three a day with illustrations (1.86.8) | https://apps.apple.com/us/app/id1454778585?l=en-us (1.86.8, Dec 23, 2024) | no | `missing` | No water tip list in `lib` (the only tips are for runs, `lib/workouts/run-tips.ts`) | One practical tip a day on the water card ("a glass by the kettle", "a bottle in your bag"), from a written list in English and Dutch, off by default. No health claims | S | Sanne |
+| A water goal from weight, activity and weather | A daily goal calculated from body weight, activity and the weather | https://apps.apple.com/us/app/id1454778585?l=en-us | no | `against a rule` | The target is the person's own number (`waterTargetMl`, `lib/health-daily.ts:183`; `WATER_NO_TARGET`). An intake worked out from the body is health advice (no medical advice), and the weather needs an outside service | — | — | — |
+| Dehydration mode and collectible characters | The llama and widgets turn "dehydrated" after five days without logging (1.92.1); 140 collectible characters | https://apps.apple.com/us/app/id1454778585?l=en-us (1.92.1, Feb 7; year read as 2026) | yes | `against a rule` | Calm design that takes nothing away: nothing changes for the worse when a day is not logged. Characters are a pet (owner amendment 3) | — | — | — |
+
+Not rowed:
+- Needs a model: AI daily and weekly recaps (1.94.10).
+- Native-only: the Apple Watch app (up to 2,000 ml at once), widgets and Control Center, Live Activities, Siri lookup of the last drink, Apple Health sync of water, caffeine and dietary energy.
+
+Already in COMPETITORS.md:
+- MyFitnessPal: Water and weight log (cup sizes, drink types, caffeine, editing past intake, oz and ml).
+- Daylio: Monthly and yearly statistics, and Copilot: Month and Year in Review (Monthly Recaps, 1.93.0, and "Hydration Wrapped", 1.91.1; `lib/wrapped/build.ts` reads water).
+- Finch: Goal Challenges (water challenges; challenges with yourself in `lib/habits-v2/challenge.ts`); Pet energy (characters).
+- Streaks: Smart reminders and statistics (streaks, the log calendar).
+
+#### Nike Training Club (workouts)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Find a workout by length, muscle and place | Workouts for every level and muscle group (arms, legs, abs), at home or in the gym, short or long | https://apps.apple.com/us/app/nike-training-club-wellness/id301521403 ; https://www.nike.com/ntc-app | no | `half` | The routine library (`lib/workouts/routine-library.ts`: 12 routines with a folder, level and minutes) is one list (`components/health/workouts/routine-library-view.tsx:36`); places with their equipment are built (`lib/workouts/places.ts`) | The deeper part: filters on the library for length (up to 30, 45 or 60 minutes), main muscle group, level and the chosen place's equipment | S | Tom |
+| Timed circuit workouts | Self-guided "whiteboard" workouts and HIIT: moves done for a time or count, with rest and rounds | https://apps.apple.com/us/app/nike-training-club-wellness/id301521403 | no | `missing` | A search of `lib` and `components` for interval, circuit, tabata, EMOM, AMRAP or HIIT finds nothing in workouts; workouts are sets × reps with a rest timer (Hevy's row) | A workout of timed moves (work seconds, rest seconds, rounds) from the library's own exercises (`lib/workouts/library.ts`), played with a countdown, the next move named and a bell (`lib/meditation/bells.ts`); saved like a routine and logged as a workout with its minutes, no calories | M | Tom |
+| Trainer-led classes, yoga, Pilates and recovery | On-demand video classes, yoga and Pilates flows, recovery (stretching, foam rolling) and weeks-long programmes | https://apps.apple.com/us/app/nike-training-club-wellness/id301521403 ; https://www.nike.com/ntc-app | no | `missing` | No video or class in `lib/workouts`; the written how-tos are in `lib/workouts/howto.ts` | Video classes and programmes made for ZIGoals | — | Tom |
+
+Not rowed:
+- Native-only: the Apple Watch app (advance, pause and skip moves, heart rate), casting and NTC TV, Apple Music during workouts, Apple Health sync.
+- Server service: the Nike Member account, runs recorded from Nike Run Club, NTC Live classes.
+- Against a rule: calories burned on the watch (no calorie-burn guessing).
+
+Already in COMPETITORS.md:
+- Hevy: Workout logging (other daily workouts in the Activity tab); Exercise library (instructions per move).
+- Strong: Workout scheduling (scheduling sessions for later).
+- Hevy Trainer, Strava + Runna: programmes ("Train for something").
+- Fitbod: Gym profiles and equipment (home and no-equipment workouts, built).
+- Nike Run Club: Training tips (the training guidance library); Achievements for personal records.
+- Headspace and Calm: meditation (mindfulness). Strava: Goals.
+
+### Money, debt and crypto (third additions)
+
+#### PocketGuard
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Leftover for the month | "Leftover" (In My Pocket): the month's income minus bills, budgets, debt plans and goal contributions; clearer Rollover and Leftover figures (5.18) | https://pocketguard.com/help/leftover/ ; https://apps.apple.com/us/app/pocketguard-budget-tracker/id949414211 (5.18, Nov 25, 2025) | yes | `half` | "Ready to assign" is the month's logged income minus the budgets' amounts (`lib/budgets/ready-to-assign.ts`); cash until payday (`paydayCash`, `lib/money-notices.ts:100`; Rocket Money's Payday View row) | The deeper part: "Left this month": the month's income minus the bills still due that no budget covers, the budgets' amounts and the month's planned Goal contributions (`PlannedContribution`, `lib/cash-forecast/model.ts:43`), each part listed. A fact, not advice. Derived, nothing stored | S | Lina |
+| Needs, wants and saving | Budgeting methods to choose from: zero-based, envelope, 50/30/20 (needs, wants, savings) or your own; a 50/30/20 calculator | https://pocketguard.com/ ; https://apps.apple.com/us/app/pocketguard-budget-tracker/id949414211 | no | `missing` | A category has no need or want mark; a budget's `group` only groups rows for display (`lib/budgets/schema.ts:55`). Zero-based is YNAB's row (Ready to assign) | Each category marked need, want or saving (the person's choice), and the month's spending and saving as three shares of income, as facts. The 50/30/20 target itself is not shown (no money advice). Additive and optional, TIER 3 (stored format) | S | Lina |
+| Spending beside daily routines | "Financial Wellness" links daily routines to spending and shows the trends (5.20.5) | https://apps.apple.com/us/app/pocketguard-budget-tracker/id949414211 (5.20.5, Oct 6; year read as 2026) | yes | `half` | Compare takes spending above an amount as a factor only; its outcomes are mood, energy, sleep, habit completion, steps and feeling words (`lib/compare/engine.ts:1-15`) | The deeper part: the day's spending (all, or one category) as an outcome, so a short night, a gym day or a done habit can be set beside what was spent that day or the next, under Compare's own rules (90 days, 14 days a side, never a cause). Derived, nothing stored | S | Lina, Jules |
+
+Not rowed:
+- Server service and against a rule (no bank connections): Plaid, Finicity, Salt Edge and Apple Wallet connections.
+- Server service: bill negotiation, cancelling subscriptions for you, the online course and financial coaching.
+
+Already in COMPETITORS.md:
+- Copilot and Rocket Money: Auto Budget (Suggested Budgets from recent spending, 5.21, Nov 2026, built); Custom alerts (near or over a category limit).
+- Monarch: Category budgets with rollovers (Rollover Budgets); Reports (Insights 2.0: donut, drill-downs, date presets, 5.20.1–5.20.7); Exclude filters ("Don't count").
+- Spendee: Daily amount left (Pace, 5.19, Feb 2026; `lib/budgets/pace.ts`).
+- Rocket Money: Watchlist and Copilot's Month in Review (this month against last, 5.20.3: `lib/money-insights/month-compare.ts`; past months' budget review, 5.18.1: `components/wealth/budgets/budgets-month.tsx`); Subscriptions and bills list; Transaction tools (hashtags, renamed merchants); Net worth.
+- Copilot: Name rules (Smart Transaction Rules). YNAB: Targets (financial goals).
+- Undebt.it: Debt payoff planner and calculators (debt payoff and student loan calculators; `lib/money-calc`).
+
+#### Quicken Simplifi
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Planned spending | The Spending Plan takes bills, subscriptions and savings from income; you add planned future spending to set money aside | https://www.quicken.com/simplifi/ | no | `missing` | The cash forecast counts the latest balances, bills, detected repeats, budgets and planned Goal contributions (`lib/cash-forecast/model.ts:15-44`); a one-off cost you expect has no place | Planned one-off costs (a name, an amount and a day: "Birthday present €60 on the 14th"), counted in the forecast and in "Left this month" until an entry matches or the person clears it. A new device record, TIER 3 (stored format) | S | Lina |
+| A credit card's limit and use | A Credit Card Dashboard: balance, limit, use and payments (updates in 6.37.0 and 6.39.0) | https://apps.apple.com/us/app/quicken-simplifi-budget-smart/id1449777194 (6.37.0, Sep 16; 6.39.0, Sep 30; year read as 2026) | yes | `missing` | A credit card is an account kind with a balance and payments (`DEBT_KINDS`, `lib/accounts/schema.ts:14`); no limit, statement day or share used (a search for utilisation and credit limit finds nothing). YNAB's Credit card interest row covers interest | Per card: the limit, the share used, the statement day and the due day (with a bill reminder), from numbers the person types. The accounts record is strict, so these live in the lane 2 sheet record (`lib/wealth-sheet/schema.ts`) or a new device record, TIER 3 (stored format) | S | Lina |
+| Projected balances a year ahead | Projected Cash Flow forecasts account balances up to 12 months ahead | https://www.quicken.com/simplifi/ | no | `half` | `FORECAST_DAYS = 60` (`lib/cash-forecast/model.ts:31`); the model takes up to 366 days (`:141`) but the card asks for 60 (`components/cash-forecast/cash-forecast.tsx`). Monarch's Forecasting row is the long-term model | The deeper part: 60 days, 6 months or 12 months on the forecast card, with each month's lowest point listed, labelled an estimate from your own records | S | Lina |
+| Comparison report with a waterfall | Comparison reports with a waterfall chart of what changed between two periods (6.42.0) | https://apps.apple.com/us/app/quicken-simplifi-budget-smart/id1449777194 (6.42.0, Oct 22; year read as 2026) | yes | `half` | Each category this month beside last month (`lib/money-insights/month-compare.ts`) | The deeper part: a waterfall from last month's spending total to this month's, one step per category that moved it, largest first, per currency. Derived, nothing stored | S | Lina |
+| What moved your net worth this month | Tracks assets and debts and shows which accounts changed net worth this month | https://www.quicken.com/simplifi/ | no | `half` | Net worth by source over time, one line per source and currency (`components/wealth/networth-history.tsx`); owned-wealth changes by kind (`lib/wealth-changes.ts:4,10`) | The deeper part: a short list of the sources and accounts that moved net worth most this month, up or down, each with its amount, per currency. Derived, nothing stored | S | Jules, Lina |
+| Tags from imported files | Imports now carry categories, tags, notes and check numbers, not only transactions and balances (winter 2026 update) | https://www.quicken.com/blog/quicken-simplifi-winter-2026-updates/ (29 Dec 2025, via search index) | yes | `half` | The Mint, Monarch and Copilot export readers map the date, payee, amount, category and note (`lib/csv/templates/app-exports.ts:30-37`); Monarch's Tags and Copilot's tags columns (named at `:16`) are not read | The deeper part: those tag columns kept as the entries' tags (`lib/money-tags`), and a reference or cheque number column kept with the entry | S | Lina |
+
+Not rowed:
+- Server service and against a rule (no bank connections): links to 14,000 institutions, bank reauthorisation, Zillow and Kelley Blue Book values.
+- Needs a model: Quicken Assist and Quicken AI chat, AI categorisation of receipt line items, AI-backed insights and next steps, the Quicken Health Score's suggestions (also money advice).
+- Server service: invoices, estimates and business projects (Quicken Business & Personal), sharing reports with an accountant, one-on-one expert help; Spaces & sharing with one other person (also against the rule that nothing is shared between people).
+- Not proposed: the US tax schedules (A, B, C, F), which are US forms only.
+
+Already in COMPETITORS.md:
+- Spendee: Daily amount left (the daily spending amount for the rest of the month).
+- Rocket Money: Watchlist, and Wallet: One-time budgets (fixed-period Watchlists, 6.35.0); Subscriptions and bills list (recurring bills detected).
+- Kubera: IRR of an investment (money-weighted and time-weighted returns); Fast Forward rules and Monarch's Forecasting (the Retirement Planner).
+- YNAB: Targets (savings goals with a monthly amount and on pace).
+- Monarch: Receipt scanning (the Receipt Center with suggested matches, 6.44.0; `lib/receipt-reconciliation.ts`); Exclude filters (exclude spending from the budget); Reports.
+- Emma: Spaces (personal and business). Copilot: Name rules (advanced rules, winter 2026). Bearable: Customisable homepage (the home dashboard, winter 2026).
+
+## Ten more apps, round 4 (owner follow-up 4, item 4g; 22 Nov 2026)
+
+
+
+Drafted 22 Nov 2026, to be added under `## Matrix` in `docs/review/session-av/COMPETITORS.md`, after "Ten more apps, round 3 (owner follow-up 4, item 4g)". It uses the method in that file's header. Official sites, help centres and 2025–2026 release notes were read with WebSearch (standard mode first) and WebFetch; App Store "What's New" notes count as release notes. Page text was treated as data only. Every row was then checked against this branch's code (`apps/web`, branch `lane2/batch2`, HEAD `c64e0712`), and against the four round 3 branches (`lane2/r3-plan`, `lane2/r3-money`, `lane2/r3-health`, `lane2/r3-notes`, each read from `3d27688e`), so that nothing round 3 builds (LEDGER #256–#299) is marked missing or rowed again. Each `have` and `half` names the file that was opened. All pages were seen on 22 Nov 2026.
+
+Not repeated: a feature that already has a row in COMPETITORS.md (the 25 apps, the first "Ten more apps" and rounds 2 and 3) gets no new row. It is listed under "Already in COMPETITORS.md" for that app. Where the new app goes further, the row is added and covers only the further part, which it names. Each app also lists what was left out because it is native-only, a server service or needs a model, with that cause.
+
+The ten apps: Bear, Motion and Journey (tasks, planning, notes and journal); Atoms and How We Feel (habits, mood and mind); Pillow, Runna and Noom (food, sleep, workouts and body); Actual Budget and Lunch Money (money).
+
+Source caveats:
+- **An instruction found in page text (reported, not followed).** Motion's help pages (usemotion.com/help, built on GitBook) end with an "Agent Instructions" section addressed to AI agents. It tells them to query the documentation by sending HTTP GET requests to the page URL with `ask` and `goal` parameters, and points to an llms.txt index. No such request was sent; the rows rest on the page text only.
+- Motion's 2025 App Store notes are almost all "Bug fixes and performance improvements"; only 2.134.2 (11 Jul 2025, the AI Daily agenda) and 2.213.2 (3 Nov 2025, AI Chat) say more. Its rows rest on the help centre, so only the agenda is new since 2025.
+- Runna's US App Store page (id1594440498) returned 404. The listing read is the South African one (id1594204443, the same app, by Strava, Inc.), whose 2026 notes say only "Under-the-hood enhancements" and the like. The 2026 rows rest on Runna's press release of 29 Jul 2026 and its help centre. Two help articles on race times and pace targets were read through the search index.
+- Noom's App Store notes are all "Bug fixes and improvements" (14.14.0 to 14.44.0, no year shown). Its rows rest on the help centre, whose article dates come from their URLs (2025/10, 2025/11, 2026/03).
+- howwefeel.org returned only its title. How We Feel's rows rest on its App Store listing. Its notes print no year from 1.15.8 (27 Mar) on; they follow 1.15.7 (25 Dec 2025), so 1.15.8–1.17.16 are from 2026.
+- Pillow's notes print no year (6.2.8, 6 Mar, to 6.7.4, "3 days ago"); 6.7.4 is November 2026, so the 6.x notes are read as 2026.
+- Bear's callouts, folding and info panel articles were read through the search index (bear.app/faq/callouts/, bear.app/faq/how-to-fold-sections-in-bear/, bear.app/faq/how-to-use-the-info-panel-table-of-contents-and-backlinks-in-bear/). The EveryDollar help centre refused the fetcher (403), so EveryDollar was not chosen; Lunch Money took its place.
+
+### Corrections to earlier rows
+
+- Strong's "Workout scheduling" (first matrix, `have`, "Planned workouts on the Agenda, `lib/agenda/build.ts:189`") is thinner than it says. The Agenda draws planned workouts that are passed in, but nothing keeps any: `agendaExtras` returns `plannedWorkouts: []` outside the Showcase (`components/agenda/agenda-extras.ts:21`; its header says "Planned workouts stay empty until a feature keeps them"). Round 3's Day Timeline source on `lane2/r3-plan` (`lib/timeline/workout-source.ts`) draws Showcase examples only. A person cannot plan a workout on a day. Runna's row below ("Plan, move and realign workouts") covers the build; Strong's row should read `half`.
+
+### Totals (the ten apps)
+
+| Status | Tasks, notes and journal (Bear, Motion, Journey) | Habits and mind (Atoms, How We Feel) | Food, sleep, workouts and body (Pillow, Runna, Noom) | Money (Actual Budget, Lunch Money) | All |
+|---|---|---|---|---|---|
+| `have` | 1 | 3 | 1 | 2 | 7 |
+| `half` | 11 | 3 | 6 | 3 | 23 |
+| `missing` | 12 | 2 | 4 | 7 | 25 |
+| `not web-possible` | 0 | 0 | 0 | 0 | 0 |
+| `against a rule` | 0 | 0 | 2 | 0 | 2 |
+| **Rows** | **24** | **8** | **13** | **12** | **57** |
+
+Rows per app: Bear 13, Motion 6, Journey 5, Atoms 5, How We Feel 3, Pillow 5, Runna 4, Noom 4, Actual Budget 6, Lunch Money 6.
+
+Every app had at least 12 features read (most had 20 or more); its rows, "Not rowed" and "Already in COMPETITORS.md" together name them, read from the pages cited in that app's rows. The fewest are How We Feel's (17) and Atoms' (19).
+
+### Tasks, planning, notes and journaling (fourth additions)
+
+#### Bear (notes)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Tags in the text, nested, and a tag as a workspace | Tags typed in the note (#work/meetings) form a nested sidebar with icons (TagCons redesigned, 2.7); any tag can be set as a workspace that shows only its notes (2.9) | https://bear.app/ ; https://blog.bear.app/category/updates/ (2.7, 19 Mar 2026; 2.9, 16 Jul 2026) | yes | `half` | `tags` on a note (`lib/notes/schema.ts:39`, up to 12) are kept from imported front matter (`lib/notes/markdown.ts:172`) and shown in the table and the per-tag chart (`components/notes/notes-views.tsx:29,59`). The chart says a tag comes only from an import or the Showcase (`:64`); the editor has no tag field (`components/notes/note-editor.tsx`) | The deeper part: #tags written in a note's text (and in the editor's tag field) kept as the note's tags; a "/" in a tag nests it (#work/meetings under #work); a tag list in Notes with counts that filters the list; one tag chosen as Notes' focus, so the list, search and graph show only its notes until cleared. The tags stay the note's own field, so the Markdown export keeps them | M | Max |
+| Several photos placed in a note | Text, photos, tables and to-do lists in the same note, with images resized and cropped in place | https://bear.app/ | no | `half` | One photo per note: `photoId` (`lib/notes/schema.ts:37`), loaded once in the editor (`components/notes/note-editor.tsx:80`) and kept in IndexedDB (`lib/notes/photos.ts`) | The deeper part: up to eight photos in a note, each placed in the text where it was added (a written `![photo](id)` line the reader draws), with the one photo today read as the first. An additive, optional `photos` on the loose note, TIER 3 (stored format); older builds keep showing `photoId` | M | Max, Sanne |
+| Note info | Words, characters, minutes to read and the last change in the note's info panel | https://bear.app/faq/how-to-use-the-info-panel-table-of-contents-and-backlinks-in-bear/ (via search index) | no | `half` | Words per note in the table (`lib/notes/table.ts:15`, the Words column); round 3's outline lists the headings (`components/notes/note-render.tsx` on `lane2/r3-notes`) | The deeper part: on the open note, its words, characters, minutes to read (at 230 words a minute, said as an estimate), when it was made and last changed. Derived, nothing stored | S | Max |
+| Find and replace in a note | Search and replace text inside a note | https://bear.app/faq/ | no | `missing` | A search of `components/notes` for replace finds nothing; Search finds notes, not places in one (`components/notes/notes-search.tsx`) | In the editor: find a word or phrase (each match counted and stepped through) and replace one or all, with the earlier words kept as a version (`lib/notes/versions.ts`) | S | Max |
+| Fold a section | Fold any heading (H1–H6) or a multi-level list, to-dos included; collapse all headings at once | https://bear.app/faq/how-to-fold-sections-in-bear/ (via search index) ; https://bear.app/ | no | `missing` | Headings are drawn (`components/notes/note-render.tsx:42`); round 3's outline is one fold above the note that jumps to a heading (`Outline`, `note-render.tsx:63-65` on `lane2/r3-notes`), not a fold per section | In the reading view, each heading folds the text under it to the next heading of its level, and "Fold all" and "Open all", for this visit. Nothing stored | S | Max |
+| Callouts | Styled blocks for a note, tip, important, warning or caution, typed as `> [!TIP]` (2.4.5) | https://blog.bear.app/2025/06/bear-2-4-5-introducing-callouts/ (Jun 2025, via search index) ; https://bear.app/faq/callouts/ (via search index) | yes | `missing` | `lib/ai/safe-render.ts` draws quotes but no callout; a `> [!TIP]` line shows as a quote with its marker | `> [!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]` and `[!CAUTION]` drawn as five calm boxes with their word (not colour alone), in Notes only, as round 3's highlights are; kept as written in the Markdown export (Obsidian reads the same marker) | S | Max |
+| Archive a note | Archive notes out of the list, keeping them searchable | https://bear.app/faq/ | no | `missing` | A note can be pinned (`pinned`, `lib/notes/schema.ts:40`) or deleted; nothing hides it and keeps it | "Archive": the note leaves the list, the graph and the daily strip, stays in Search (marked archived) and in the export, and "Back to the list" undoes it. An additive, optional `archived` on the loose note, TIER 3 (stored format) | S | Max |
+| A writing view (typewriter mode) | A focused writing mode that keeps the line being written in the middle of the screen | https://bear.app/faq/ | no | `missing` | A search of `components` and `lib` for typewriter or distraction finds nothing; the editor sits inside the Notes workspace (`components/notes/notes-workspace.tsx`) | "Write in full screen": the note alone, the line being written kept in the middle, the rest of the page hidden until Esc or Done. A device preference for the typewriter part, nothing else stored | S | Max, Sanne |
+| Lock a note | Encrypt single notes behind a password, beside the app lock | https://bear.app/ ; https://bear.app/faq/ | no | `missing` | `lib/device-lock.ts` is a PIN screen lock with a PBKDF2 hash; it encrypts nothing. Notes are plain text in `zigoals:notes:v1` (`lib/notes/schema.ts:12`) | "Lock this note": its words encrypted on the device with a passphrase the person sets (the browser's Web Crypto, AES-GCM from PBKDF2, no package), shown only after the passphrase, and left out of Search, the graph, NOVA's notes context (`lib/notes/pack.ts`) and the plain export. A forgotten passphrase cannot be recovered, and the note says so. An additive, optional `locked` on the loose note, TIER 3 (stored format) | M | Max, Sanne |
+| More ways to export a note | Export as TXT, Markdown, TextBundle, RTF, PDF, JPG, HTML, DOCX and ePub | https://bear.app/ | no | `half` | A ZIP of Markdown notes (`lib/notes/markdown.ts:94`); round 3 prints one note or saves it as PDF in the print window (`components/notes/note-print.tsx` on `lane2/r3-notes`). The ZIP writer is `buildStoredZip` (`lib/export/zip.ts:40`) | The deeper part: one note saved as an HTML page (its photo inside), as plain text, or as a Word file (.docx written as Office Open XML through the same ZIP writer, no package) | S | Max |
+| Imports from Evernote and Bear | Move from Evernote, Apple Notes, Obsidian, Drafts, Day One and UpNote, or import files | https://bear.app/faq/ | no | `half` | Notes import reads .md, .markdown and .txt files and ZIPs of them (`isNoteFile`, `lib/notes/markdown.ts:116`; `lib/notes/zip-read.ts`). Day One's journal export is read by the journal (`lib/journal/import.ts`) | The deeper part: Evernote's .enex export (its documented XML, read with the browser's DOMParser: title, created day, tags and the text, with the first image as the note's photo) and Bear's own TextBundle export (.textbundle and .bear2bk ZIPs of text.md and assets), under the importer's caps | S | Max |
+| Math formulas | Formulas written in notes and drawn as maths (Aug 2025) | https://blog.bear.app/category/updates/ (5 Aug 2025) | yes | `missing` | A `$…$` span is plain text and a fenced block is drawn as code (`lib/ai/safe-render.ts`) | Drawing TeX formulas needs a maths typesetting package (KaTeX or MathJax), a new dependency. A formula stays readable as written | — | Max |
+| Read-only mode | Open a note read-only so it is not changed by accident | https://bear.app/faq/ | no | `have` | A note with words opens in reading mode (`mode`, `components/notes/note-editor.tsx:35`) and changes only after "Edit" (`:64`) | — | — | — |
+
+Not rowed:
+- Needs a model: OCR search in photos and PDFs (Pro), document scanning's edge detection (a photo into a note is the inbox's photo capture, `NOTE_SOURCES`, `lib/notes/schema.ts:18`).
+- Native-only: the Apple Watch app, widgets (and the Kumagotchi widget, also a pet), Siri, Shortcuts, the share extension, AirDrop, separate windows, custom app icons.
+- Server service: iCloud sync, Advanced Data Protection, blogging from Bear, link previews (they fetch the linked page), the Web Clipper (a browser extension), BearCLI, the Claude Connector and the MCP server (2.8, 29 Apr 2026).
+
+Already in COMPETITORS.md:
+- Obsidian: Diagrams from text (Mermaid, 28 Jul 2026); Outline of a note (the info panel's table of contents); Tick boxes in notes, gathered (to-do lists); Highlights in six colours; Print a note or save it as PDF (PDF export); Plain Markdown files you own (live Markdown, local access).
+- TickTick: Notes and Markdown editing (backlinks, [[wiki links]], pinned notes and tags; search).
+- Day One: Rich journal entries (sketching and drawing).
+- Notion: Version history across workspace (note history).
+- Streaks: Themes and icons (themes); Daylio: Custom fonts (typography).
+
+#### Motion (planning)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Auto-scheduling over the coming days | Every open task is placed into free time on the coming days, ranked by deadline, priority, start date and length, around fixed events; re-planned as things change; a hard deadline may go outside working hours | https://www.usemotion.com/help/time-management/auto-scheduling/reference-auto-scheduling/what-auto-scheduling-considers ; https://www.usemotion.com/help/project-management/task/task-scheduling-faq | no | `half` | `fitDay` places today's tasks with no time into today's free time, first fit, in the order given (`lib/tasks/layouts.ts:29-47`), from Plan my day (`components/tasks/today-planner.tsx:46`); tasks keep a `deadline` and `minutes` (`lib/tasks/schema.ts:110,116`). Round 3 adds a Day Timeline for any day (`lane2/r3-plan`, LEDGER #258) | The deeper part: "Plan my week": the open tasks with minutes placed over the next 7 days (each day's own free time, fixed tasks and imported events), the earliest deadline first, then priority, never before a task's start-early day, shown as a proposal the person keeps in whole or in part, with Undo. Nothing moves by itself | M | Max |
+| Working hours per day | Several schedules (work, weekend) with their hours and breaks; each task is placed in its own schedule | https://www.usemotion.com/help/time-management/auto-scheduling/reference-auto-scheduling/what-auto-scheduling-considers ; https://www.usemotion.com/help/project-management/task/task-scheduling-faq | no | `half` | Plan my day starts at 09:00 (or now) and ends at a time typed each visit and not kept (`until`, default 18:00, `components/tasks/today-planner.tsx:29,46,77`) | The deeper part: the hours tasks may be placed in, per weekday (two blocks at most, for a lunch break), kept, and a task's own "after hours" choice, so a night owl's evening tasks land after 20:00. In the loose task plan (`zigoals:task-plan:v1`, `lib/tasks/plan-record.ts`) and the loose task, TIER 3 (stored format) | S | Max |
+| A deadline at risk | Tasks that cannot fit before their deadline are flagged "Could not fit"; a missed deadline is explained by the tasks ahead of it or too few hours | https://www.usemotion.com/help/project-management/task/task-scheduling-faq ; https://www.usemotion.com/help/time-management/auto-scheduling/reference-auto-scheduling/what-auto-scheduling-considers | no | `half` | `fitDay` returns the tasks that did not fit today (`left`, `lib/tasks/layouts.ts:29`); `deadline` is shown on the task (`lib/tasks/schema.ts:110`) | The deeper part: one quiet line in Upcoming when the minutes of open tasks due by a deadline are more than the free hours until it ("3 h of tasks, about 2 h free before Friday"), naming the tasks, as a fact. Derived, nothing stored | S | Max, Lina |
+| Split a long task | A long task is cut into pieces of at least a chosen length and placed across the free time (a 10-hour task in 2-hour blocks) | https://www.usemotion.com/help/project-management/task ; https://www.usemotion.com/help/time-management/auto-scheduling/reference-auto-scheduling/what-auto-scheduling-considers | no | `missing` | A task has one `minutes` (`lib/tasks/schema.ts:116`) and is placed whole (`fitDay`, `lib/tasks/layouts.ts:41`) | A smallest piece per task (15 to 240 minutes): Plan my day and "Plan my week" place it in pieces, each shown as "part 2 of 4", and time spent (`spent`) counts against the whole. An additive, optional `chunk` on the loose task, TIER 3 (stored format) | S | Max |
+| A task that waits for another | Blockers: one task is always scheduled after another | https://www.usemotion.com/help/project-management/task/task-scheduling-faq | no | `missing` | A search of `lib/tasks` for blocked, blocker, depends or waiting finds nothing; subtasks are `parentId` only (`lib/tasks/schema.ts:95`) | "After …": a task names up to three tasks it waits for; it shows as waiting (not placed, not in Today's count) until they are done, then joins its day. An additive, optional `after` on the loose task, TIER 3 (stored format) | S | Max |
+| A repeat that floats in its week | A recurring task may move within its repeat window (a weekly task any day of the week); a missed one is overdue and the next keeps its date | https://www.usemotion.com/help/time-management/auto-scheduling/reference-auto-scheduling/what-auto-scheduling-considers ; https://www.usemotion.com/help/project-management/task/task-scheduling-faq | no | `missing` | `recurSchema` repeats on a day, weekdays, a day of the month or the nth weekday, or after done (`lib/tasks/schema.ts:50-62`); every repeat has a fixed day | "Once this week (any day)" and "once this month": the task shows in This week until done, then comes back next week; a week missed is one overdue mark, never a pile. An additive, optional `flex` on the loose repeat, TIER 3 (stored format) | S | Max |
+
+Not rowed:
+- Needs a model: the AI Daily agenda (2.134.2, 11 Jul 2025), AI Chat (2.213.2, 3 Nov 2025), the AI Notetaker's action items, tasks from AI Chat.
+- Server service: one-click meeting booking, calendar sync for "My Calendars" (a calendar file import is Things' row), tasks by email; team workspaces (also against the rule that nothing is shared between people).
+- Native-only: Siri task creation, push notification actions.
+
+Already in COMPETITORS.md:
+- Todoist and Things: Deadlines (the hard deadline; built, `deadline`); Labels, priorities and filters (ASAP as the top priority); Projects, sections and sub-tasks (projects, stages and folders).
+- Things: When scheduling (the start date; `early` start-early days built).
+- Sunsama: Timeboxing / auto-scheduling (the next free slot, built); Workload counter (built); Planned vs actual time.
+- Any.do: Custom fields (round 2, built). Notion: Database views (docs and project views).
+
+#### Journey (journal)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Formatting and tick boxes in an entry | Paragraph styles, bold, italic, strikethrough, bullets, tables and checklists in an entry | https://journey.cloud/ ; https://apps.apple.com/us/app/journey-diary-journal/id1300202543 | no | `missing` | An entry is plain text (`text`, up to 5,000 characters, `lib/journal/schema.ts:31`) drawn with its [[links]] only (`components/journal/entry-rich-text.tsx`) | An entry's Markdown drawn as Notes draw theirs (headings, bold, italics, lists, quotes, and round 3's "- [ ]" tick boxes, `lane2/r3-notes`), with a small format bar in the composer. The text stays as written, so the export and older builds read it as before | S | Sanne |
+| Throwback a week, a month and a year back | Notifications about entries from a week, a month, or a year or two ago | https://apps.apple.com/us/app/journey-diary-journal/id1300202543 ; https://journey.cloud/ | no | `half` | `onThisDay` shows entries from today's date in earlier years, or a month ago when no year matches (`lib/on-this-day/on-this-day.ts`), on the journal card (`components/journal/on-this-day.tsx`). The notification plan's journal kind is a writing reminder (`ItemKind`, `lib/notify/plan.ts:13`) | The deeper part: "A week ago" beside a month and the years, and an opt-in morning notification on a day with a memory that says only "A memory from a year ago" (never a word of it), under the journal switch and quiet hours. TIER 3 (PWA); the choice joins the loose on-this-day record (`lib/on-this-day/store.ts`) | S | Sanne |
+| Favourites, mood and order in the list | Search by activity, mood and favourites; entries sorted in more ways (5.5.6) | https://apps.apple.com/us/app/journey-diary-journal/id1300202543 (5.5.6, 03/05/2025) | yes | `half` | `EntryFilter` takes words, a tag, a journal and dates (`lib/journal/search.ts:11`); the list is newest first (`components/journal/journal-page.tsx:61`). Round 3 adds "Every answer to this prompt" (`lane2/r3-notes`, LEDGER #265) | The deeper part: a star on an entry and a Favourites filter; a filter by the day's mood or feeling word (from `lib/moods` and `lib/mood-words`); and "Oldest first". The star is an additive, optional `star` on the loose entry, TIER 3 (stored format) | S | Sanne |
+| More photos in an entry | Up to 20 photos, videos or audio clips in one entry (5.5.0) | https://apps.apple.com/us/app/journey-diary-journal/id1300202543 (5.5.0, 11/01/2024; 5.5.6, 03/05/2025) | yes | `half` | `MAX_ENTRY_PHOTOS = 4`, `MAX_ENTRY_AUDIO = 3` (`lib/journal/schema.ts:21`); `photos` is `.max(4).optional().catch(undefined)` (`:49`) | The deeper part: up to 12 photos in an entry, within the storage headroom check (`lib/storage-headroom.ts`). An older build reads a list longer than four as unreadable and drops it, so the extra photos need a new field beside `photos` (the first four stay in `photos`), TIER 3 (stored format) | S | Sanne |
+| E-book and Word export | Export journals as DOCX and PDF, and as ePub for e-readers (5.4.12) | https://journey.cloud/ ; https://apps.apple.com/us/app/journey-diary-journal/id1300202543 (5.4.12, 10/15/2024) | no | `missing` | The journal ZIP holds Day One's JSON with photos and voice notes (`lib/journal/export.ts:16`); round 3 adds one Markdown file per entry (`lane2/r3-notes`, LEDGER #272); the visit report prints (`lib/journal/report.ts`) | A chosen journal and date range as an .epub (XHTML chapters by month, photos inside, a contents page) and as a .docx, both written through `buildStoredZip` (`lib/export/zip.ts:40`), no package | M | Sanne |
+
+Not rowed:
+- Needs a model: Pal, the journaling companion (6.0.0, Oct 21; year 2026), Journey Odyssey AI, on-device Reflections and Apple Intelligence tools (5.6.0–5.6.4, Sep–Nov 2025), photo moments grouped by theme.
+- Server service: Journey Cloud Sync and self-hosted sync, entries by email and WhatsApp, Zapier, blog publishing and shared web links (also against the rule that nothing is shared between people), Cloud Print e-books, the Legacy backup, weather tagging.
+- Native-only: the Apple Watch app with moods (6.0.5), HealthKit steps and distance, iOS journaling suggestions, Siri shortcuts.
+
+Already in COMPETITORS.md:
+- Day One: Rich journal entries (photos, video, audio, text colour and highlighting); On This Day (years back, built); Templates (create, duplicate and delete templates, built); End-to-end encryption and passcode; Shared Journals (against a rule); Journal Collections, Themes and search (14 colour themes); Automatic metadata (steps); Book printing.
+- Notion: Map view and Place property (the Atlas map).
+- Calm: Multi-day programs, and Day One: Prompt Packs (Coach programmes in gratitude, mental wellness and fitness).
+- Daylio and Bearable: mood over 30 days (Monthly and yearly statistics; Mood and emotions).
+- Copilot and Strava: Month and Year in Review (Stories, redesigned in 5.5.6; ZIGoals' `lib/stories/build.ts`).
+
+### Habits, mood and mind (fourth additions)
+
+#### Atoms (habits)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| The person behind the habits | Habits start from the kind of person you want to become; each action is a vote for that identity | https://atoms.jamesclear.com/ ; https://apps.apple.com/us/app/-/id6474421906 | no | `half` | Each habit's own why (`why`, up to 160 characters, `lib/habits-extras/schema.ts:21-22`; `lib/habit-intentions/intentions.ts:24`) | The deeper part: up to five lines of the person's own ("I am someone who moves every day"), each joined to the habits that serve it, with the ticks this week and this month counted toward it ("12 times this month"), on the Habits page. Counts only, never a score. In the loose habit extras, TIER 3 (stored format) | S | Max |
+| Start small, then step up | Guidance on starting a habit at a size that fits; adjust habits that aren't sticking and raise the difficulty as you progress | https://atoms.jamesclear.com/ | no | `missing` | A measured habit has one target (`lib/habit-number.ts`); a search of the habit libraries for step up, progression or graduate finds nothing | A habit's small version ("one page") beside its full one, and an opt-in step-up: after four weeks done on most due days, one quiet card offers the next step the person wrote ("two pages"); after two thin weeks, it offers the small version again. The person decides; nothing changes by itself. In the loose habit extras, TIER 3 (stored format) | S | Max |
+| A time and place for each habit | Commit each habit to a set time and place | https://atoms.jamesclear.com/ | no | `have` | Implementation intentions, "when" and "where" in the person's words (`lib/habit-intentions/intentions.ts`), shown by `components/habits/intention.tsx` | — | — | — |
+| A sound and a vibration on a tick | Sounds when logging habits and unlocking milestones, which can be turned off (2.3.0); an expanding circle and a vibration on completion | https://apps.apple.com/us/app/-/id6474421906 (2.3.0, 12/10/2024) ; https://atoms.jamesclear.com/ | no | `have` | `tickFeedback` (`lib/checklist/feedback.ts:26`): a bell and a vibration where the device has one, each the person's choice (`sounds`, `haptics` in `ChecklistPrefs`, `lib/ui-prefs/schema.ts:104`), quiet in quiet hours | — | — | — |
+| Habit suggestions | A habit suggestion screen when creating a habit | https://atoms.jamesclear.com/ | no | `have` | The starter habits (`HABIT_TEMPLATES`, `lib/templates/habits.ts:92`), offered in Habit ideas and in the empty card (`components/habits/empty-ideas.tsx`) | — | — | — |
+
+Not rowed:
+- Server service: Spotify in Focus mode (2.6.0, Feb 2025), the update alerts on the Profile page (3.3.0); sharing Atoms with a friend (also against the rule that nothing is shared between people).
+- Native-only: the Apple Watch app, widgets with daily goals (3.2.0).
+- Needs content made for ZIGoals: the Atoms Music Library for Focus mode (2.4.0, Dec 2024).
+
+Already in COMPETITORS.md:
+- Habitify: Habit stacking in reminders (Habit Stacking, 3.3.1, 15 Oct 2025).
+- Streaks: Habit slots and pages (Perfect Days, 3.2.0 and 3.3.0; `lib/habits-extras/perfect-days.ts`).
+- Loop: Measurable habits (Daily Goals, several times a day, 3.1.0, 31 Jul 2025).
+- Habitica: Record Yesterday's Activity (log any day in the past, 2.5.0).
+- Way of Life (round 3): Reminders in your own words (reminders several times a day).
+- Calm: Calm Lifestyle hub (daily lessons with favourites and "save for later", 2.1.0; needs content). TickTick: Pomodoro / Focus (Focus mode). Streaks: Statistics and export (progress insights).
+
+#### How We Feel (mood)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| What a feeling word means | 144 words over four quadrants of energy and pleasantness, each with a description; your own emotions with your own descriptions (1.17.4) | https://apps.apple.com/us/app/how-we-feel/id1562706384 (1.17.4, May 6; year 2026) | yes | `half` | Four quadrants of twelve words (`QUADRANTS`, `lib/mood-words/words.ts:17-22`), your own words (Bearable's row) and up to three words with a strength (`lib/mood-words/more.ts`, LEDGER #232) | The deeper part: one plain line for what each of the 48 words means ("restless: can't settle, the body wants to move"), shown on a long press or the ⓘ beside it, and a line of the person's own on their own words. Written text in English (the check-in has no Dutch path, `words.ts:3`); the own line additive on the loose own words, TIER 3 (stored format) | S | Sanne |
+| Strategies for a feeling | Short strategies in four themes (Change Your Thinking, Move Your Body, Be Mindful, Reach Out), suggested for the emotion picked (1.15.3 fixed missing suggested tools) | https://apps.apple.com/us/app/how-we-feel/id1562706384 (1.15.3, Oct 23, 2025) | yes | `half` | One next step for an unpleasant word: breathe, a short walk or write (`nextStepFor`, `lib/mood-words/words.ts:27`); a pleasant word gets none | The deeper part: two or three written choices per quadrant, each opening an existing tool (breathing, Write it out, the thought checker, Three good things, a walk timer) or a one-line action ("text someone you like"), never advice; pleasant feelings get "savour it" choices. The four themes' videos need content made for ZIGoals | S | Sanne |
+| Where you feel it | Mind-body scanning: the physical sensations of a feeling, and where in the body, added with the tags (1.14.13) | https://apps.apple.com/us/app/how-we-feel/id1562706384 (1.14.13, Jun 20, 2025) | yes | `missing` | A search of `lib/mood-words`, `lib/checkin` and `lib/mood-tags` for body or sensation finds nothing | An optional "Where do you feel it?" after a feeling word: up to three body areas (head, jaw, throat, chest, shoulders, stomach, hands, legs) each with a sensation word (tight, warm, heavy, buzzing, calm), and the most common per quadrant over 90 days as counts. No medical meaning. Additive on the loose mood-word day, TIER 3 (stored format) | S | Sanne |
+
+Not rowed:
+- Server service: Friends, sharing check-ins in real time (1.15.4–1.15.7; also against the rule that nothing is shared between people); iCloud sync (1.17.5); sending anonymised check-ins for research.
+- Native-only: HealthKit sleep, exercise and health trends, the widget (1.17.12).
+- Not proposed: the Spanish edition (1.17.0, Apr 2026) is a translation of the whole app, not a feature; ZIGoals speaks English and Dutch.
+
+Already in COMPETITORS.md:
+- Bearable: Mood and emotions (the four-quadrant grid and your own emotions); Trends & Insights baselines and weekly report (weekly insights, 1.15.4); Factor Effect report (sleep and exercise beside mood); Privacy (on the device by default).
+- Moodnotes: Feelings with a strength (several check-ins and words a day); Thinking traps (Change Your Thinking).
+- Daylio: Activities with icons and groups (tags for who, where and what).
+- Headspace: My Progress check-in (the Seasonal Snapshot, a wellbeing assessment, 1.14.12; against a rule).
+
+### Food, sleep, workouts and body (fourth additions)
+
+#### Pillow (sleep)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Sleep beside caffeine, steps and weight | Trends compared with steps, weight and caffeine | https://pillow.app/ | no | `half` | Compare takes sleep as an outcome; its factors are habits, night and journal tags, workout days, fasting, spending, scales, the cycle, doses and symptoms (`FactorKind`, `lib/compare/engine.ts:86`). A drink keeps its caffeine (`lib/health-extras.ts:24`); round 3 adds your own drinks with caffeine (`lane2/r3-health`, LEDGER #281) | The deeper part: three more factors for the night: caffeine logged that day above an amount, caffeine after a chosen time (14:00 by default), and steps above an amount, under Compare's own rules (90 days, 14 days a side, never a cause). Derived, nothing stored. Weight is already a Compare outcome | S | Sanne |
+| Your sleep timing on free days | Advanced insights: optimal bedtime and chronotype | https://apps.apple.com/us/app/pillow-sleep-tracker/id878691772 | no | `missing` | Weekend nights feed the sleep need (`lib/sleep/naps-need.ts:55`), and the energy curve has a bedtime window (`lib/energy-curve/curve.ts`); nothing compares the timing of free and work nights | "Your timing": the middle of sleep on weekend nights beside weekday nights over 30 days ("on weekends you sleep about 1 h 20 min later"), and an earlier, middle or later sleeper word from that middle, labelled an estimate from the person's nights, never a type to change. Derived, nothing stored | S | Sanne, Max |
+| A sleep tip a day | Regularly updated sleep tips | https://apps.apple.com/us/app/pillow-sleep-tracker/id878691772 ; https://pillow.app/ | no | `missing` | No sleep tip list in `lib` (the run tips are `lib/workouts/run-tips.ts`; round 3 adds water tips, `lib/water-tips.ts` on `lane2/r3-health`, LEDGER #283) | One practical tip a day on the sleep card ("phone charging outside the bedroom", "the same wake time on Saturday"), from a written list in English and Dutch, off by default, with no health claims. The on/off choice is one device preference | S | Sanne |
+| A nap timer | Power nap, recovery and full-cycle nap modes | https://apps.apple.com/us/app/pillow-sleep-tracker/id878691772 ; https://pillow.app/ | no | `missing` | Naps are logged (`napOrNight`, `kind: 'nap'`, `lib/sleep/engine.ts`); there is no nap timer (a search for nap timer and power nap finds nothing) | "Start a nap": 20, 30 or 90 minutes, a soft bell at the end while the page stays open (`lib/meditation/bells.ts`, a screen wake lock where the browser allows it), and the nap logged when it ends. Ringing with the screen locked is native-only | S | Sanne |
+| Sleep data as a file | Unlimited history and CSV data export (Premium) | https://apps.apple.com/us/app/pillow-sleep-tracker/id878691772 | no | `have` | `sleep.csv` in Export everything, every night with its times, stages, quality, tags and note (`lib/export/everything.ts:294,427`) | — | — | — |
+
+Not rowed:
+- Native-only: automatic tracking with the Apple Watch, the smart alarm at the lightest stage, heart rate, blood oxygen and respiratory rate (6.2.10), sleep stages, snoring and sleep-talk recordings, Breathing Disturbances (6.4, Apr 2026; also medical), recurring alarms with Live Activity (6.5, Jul 2026), Siri Wind Down, widgets, Apple Health comparisons.
+- Server service: iCloud backup and sync (6.4.6), in-app feature voting (6.3), referral rewards.
+
+Already in COMPETITORS.md:
+- Sleep Cycle: Wake-up mood (mood on waking); Sleep notes (their effect on sleep); Statistics tab (week, month, year and all-time trends, built); Sleep goal and sleep programs (the personalised sleep program); Sleep Aid audio (meditations, stories and soundscapes, 6.4).
+- Rise: Energy schedule and its reminders (the bedtime window); Naps and their effect.
+
+#### Runna (runs)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Plan, move and realign workouts | A training calendar where workouts are dragged between days; a Plan Adjustment Tray realigns the plan after missed workouts; Holiday mode and "Not feeling 100%" adapt it (expanded 2026) | https://support.runna.com/en/articles/10473504-guide-to-key-runna-features ; https://www.runna.com/press/runna-announces-new-updates (29 Jul 2026) | yes | `half` | The Agenda draws planned workouts passed to it (`lib/agenda/build.ts:186`), but nothing keeps any: `plannedWorkouts: []` outside the Showcase (`components/agenda/agenda-extras.ts:21`); round 3's timeline source draws Showcase examples only (`lib/timeline/workout-source.ts` on `lane2/r3-plan`). See "Corrections" | The deeper part, and Strong's row with it: plan a routine, a circuit (round 3, LEDGER #289) or a run (a distance and an easy, steady or fast word) on a day and time; drag it to another day on the workout calendar; "I missed some": the week's missed planned workouts moved on in order, with Undo; "Away until …": planned workouts in a range set aside. A new device record, in Export everything and the erase, TIER 3 (stored format) | M | Tom |
+| Heart-rate zones | View and adjust your heart-rate zones; pace or effort targets | https://support.runna.com/en/articles/10473504-guide-to-key-runna-features | no | `half` | A GPX or TCX import reads each point's heart rate and keeps the average only (`lib/workouts/import-file.ts:51,137-138`), shown on the run's summary (`avgHr`, `lib/workouts/runs.ts:25`) | The deeper part: five zones from a maximum heart rate the person types (never worked out from age), and the minutes in each zone counted at import from the file's own points and kept with the run, shown as a bar. Additive on the loose splits record, TIER 3 (stored format) | S | Tom |
+| Races ahead in one view | Upcoming Plans: a year of races, stepping-stone goals and training blocks in one view (Aug 2026); B-races; parkrun efforts | https://www.runna.com/press/runna-announces-new-updates (29 Jul 2026) ; https://support.runna.com/en/articles/10473504-guide-to-key-runna-features | yes | `half` | A countdown is a title, a date and a note (`countdownSchema`, `lib/countdowns/schema.ts:16`), with yearly repeats (`lib/countdowns/extras.ts`) | The deeper part: a race (its name, day, distance, a goal time, a main or B mark) listed with the year's other races and the weeks between them, and after race day the run that matches (that day, the distance within 5 %) shown as its result beside the goal time. A new device record, since the countdowns record is strict, TIER 3 (stored format) | S | Tom |
+| Adapt for Heat | Pace targets adjusted for heat and humidity from the local forecast, with an hourly forecast for cooler times (29 Jul 2026) | https://www.runna.com/press/runna-announces-new-updates (29 Jul 2026) | yes | `against a rule` | The forecast needs an outside service (a weather API), and changing a person's targets for heat is a judgement about the body (no medical advice). Run paces are the person's own (`lib/workouts/runs.ts`) | — | — | — |
+
+Not rowed:
+- Native-only: live workouts on the Apple Watch, Garmin, COROS, Suunto and Fitbit, audio cues and phone recording (background GPS), Apple Health heart rate.
+- Server service: Race Discovery, the Runna Podcast, featured milestones on Runna's socials, club perks and live classes, in-app coaches and support, Strava sync and Connected Apps, Runna Labs.
+
+Already in COMPETITORS.md:
+- Strava: Strava + Runna training plans (5K to ultra plans, pacing and finish-time estimates; Plan realignment, Holiday mode, B-races, Upcoming Plans, the Post-Race Recovery Plan, Pace Insights, Mileage Insights and the rebuilt New to Running plans all rest on a plan; LEDGER #113, Carried: needs content made for ZIGoals).
+- Nike Run Club: Shoe tagging (shoe mileage, built: `components/health/workouts/shoes.tsx`); Achievements for personal records (performance stats).
+- Wallet by BudgetBakers: Loyalty and club cards (the parkrun barcode, built in `lib/store-cards`).
+- Hevy: Workout logging (manual workouts and history filters); Calendar and streaks (the training calendar). Fitbod: A workout made for today (Instant Workouts). Strong: Workout scheduling. Strava: Goals, challenges and Fitness Score (mileage trends). Hevy: RPE in Workout logging (effort targets instead of pace).
+
+#### Noom (food and weight)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Keep your weight in a band | Maintenance Mode: a band around the weight you want to keep instead of a downward goal line, with a maintenance calorie zone (Mar 2026) | https://www.noom.com/support/faqs/using-the-app/daily-features/2026/03/maintenance-mode/ | yes | `half` | A weight goal goes down or up to a target (`direction`, `lib/health-goals/schema.ts:18`, a strict record); round 3's goals on other numbers are "at least" or "at most" (`lib/health-goals/more.ts` on `lane2/r3-health`, LEDGER #287); the owner-approved maintenance estimate is built (`lib/health-aa/energy.ts`) | The deeper part: "Keep my weight between …": a band the person sets, drawn on the weight trend (`components/health/weight-trend.tsx`) as a shaded band, with the trend's days inside it in the last 30 counted. In round 3's loose goals record (a "between" kind), since the health goals record is strict, TIER 3 (stored format). Noom's Harris-Benedict calorie zone is not added (the owner-approved estimate stays the one) | S | Tom |
+| A planned free day | Treat Days: schedule or cancel a day to enjoy favourite foods, banked by coins; skipping them does not affect progress | https://www.noom.com/support/faqs/using-the-app/daily-features/2025/10/whats-a-treat-day/ | no | `half` | The weekly calorie budget's "Shift" moves calories between weekdays as a repeating pattern and "Roll over" carries a past day's unused budget (`lib/health-aa/calorie-week.ts`) | The deeper part: one planned day (a birthday dinner) with the extra the person chooses, taken evenly from that week's other days above the coach's floor, shown on that day only and gone the week after. No coins. Additive on the loose calorie week (`zigoals:calorie-week:v1`), TIER 3 (stored format) | S | Tom |
+| A note for a harder week | The Motivation SOS Plan: made on day 2; when app use slows, reminders by text or email | https://www.noom.com/support/faqs/using-the-app/daily-features/2025/10/motivation-sos-plan/ | no | `missing` | After days away ZIGi says only "Welcome back. Good to see you." (`components/ai/zigi-brief.tsx:85`); nothing the person wrote comes back | "A note for a harder week": a few lines the person writes to themselves (why it matters, one small thing to do), shown once on Health's food day when they return after three or more days without a food log, never a count of days missed. Texts and emails are a server service and left out. A device preference holds the words | S | Tom |
+| Food colours by calorie density | Foods coloured green, yellow or orange by calories per gram; orange foods to be eaten less often; a colour breakdown after each meal | https://www.noom.com/support/faqs/using-the-app/logging-and-tracking/food-and-water/2025/10/how-nooms-food-color-system-works/ | no | `against a rule` | A colour that says which foods to eat less is diet advice (no medical advice; calm design). The food pages say "no dietary or allergy suitability is inferred" (`components/health/additional-nutrition.tsx:6`). Yazio's Food ratings and Lose It!'s Diet plans rows are the person's own "fits" marks | — | — | — |
+
+Not rowed:
+- Needs a model: AI food logging by photo, voice and text, Glucose Forecasting (2025/11), Face Scan with a health report, Body Scan.
+- Server service: GLP-1 medications, 1:1 coaching, communities (also against the rule that nothing is shared between people), Noom Rewards and NoomCoin, the Welli Meal Planner's recipes.
+- Native-only: Apple Health, Fitbit and Garmin sync.
+
+Already in COMPETITORS.md:
+- MyFitnessPal: GLP-1 support (GLP-1 Companion); Food search and diary, Barcode Scan (food lookup); Saved meals, recipes and Recipe Importer (custom meals with portions); Water and weight log; Meal Planner and grocery list.
+- Lose It!: Exercise calories in the budget (Dynamic Calorie Goals and the weight loss zone from steps; against a rule). MacroFactor: Expenditure estimate (the maintenance calorie zone). Yazio: Food ratings and Lose It!: Diet plans that flag foods (the protein colour system).
+- Calm: Calm Lifestyle hub (daily lessons and the Success Kit; needs content). Habitica: Custom rewards and gold (NoomCoin).
+
+### Money, debt and crypto (fourth additions)
+
+#### Actual Budget
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Sums in an amount | A calculator for amount inputs: type 12.50+4 and get 16.50 (26.7.0, experimental on mobile) | https://actualbudget.org/blog/ (26.7.0, 2 Jul 2026) | yes | `missing` | `lib/amount-input.ts` reads one amount (decimal comma and grouping); "12+4" is refused | + − × ÷ in the money log's amount field, worked out exactly in cents (BigInt, as `lib/money-insights/age-of-money.ts` sums), with the result shown before saving; the entry keeps only the result | S | Lina |
+| Reconcile an account | Reconcile an account against the bank's balance, on mobile too (26.8.0) | https://actualbudget.org/blog/ (26.8.0, 2 Aug 2026) | yes | `missing` | Entries keep an `account` and a `ref` (`lib/money-log/schema.ts:59-60`); nothing marks an entry as checked (a search of `lib/money-log`, `lib/accounts` and `components/wealth` for cleared or reconcile finds nothing) | "Check against my bank": the balance from the person's statement on a day, the entries in that account up to it ticked as checked, and the difference shown until it is zero; checked entries then carry a quiet mark. An additive, optional `checked` day on the loose entry, TIER 3 (stored format) | S | Lina |
+| Monthly spending with an average and a trend | Configurable average ranges in the Monthly Spending report, and trend lines in line reports (26.7.0) | https://actualbudget.org/blog/ (26.7.0, 2 Jul 2026) | yes | `half` | Each category over 12 months with its total and a month table (`components/wealth/spending/insights/category-trend-view.tsx`); no average line | The deeper part: the 3-, 6- or 12-month average drawn as a dashed line on each category and on the total, the month beside it in words ("€40 above your 6-month average"), as a fact. Derived, nothing stored | S | Lina |
+| Investment income against spending | The Crossover report: investment income against expenses, to the month it crosses (standard in 26.6.0) | https://actualbudget.org/blog/ (26.6.0, 1 Jun 2026) | yes | `half` | The Financial freedom model projects when invested money covers spending at a withdrawal rate (`lib/fi-model/model.ts`), from typed figures | The deeper part: from the person's own records, each month's income in the categories they mark as investment income (staking rewards, interest, dividends) beside that month's spending, over 24 months, as a share ("covers 6 % of spending"). Derived; the marks are the person's choice, additive on the loose money log, TIER 3 (stored format) | S | Jules |
+| Payee places | Payee Locations: payees kept with a place (standard in 26.8.0) | https://actualbudget.org/blog/ (26.8.0, 2 Aug 2026) | yes | `missing` | Payees are suggested from the log's own words and recent categories (`lib/money-log/suggest.ts`, `lib/recent-categories/recent.ts`); no place | Opt-in: Quick log asks the browser for the place once, on the person's tap, and offers the payees logged within about 200 m first. The place is rounded and kept on the device with the payee, never with the entry, and "Forget places" clears them. A new device record, TIER 3 (stored format) | S | Lina |
+| Age of Money | The Age of Money report (standard in 26.8.0) | https://actualbudget.org/blog/ (26.8.0, 2 Aug 2026) | yes | `have` | `lib/money-insights/age-of-money.ts` (first in, first out over 90 days, per currency), drawn by `components/wealth/spending/insights/age-view.tsx` | — | — | — |
+
+Not rowed:
+- Server service and against a rule (no bank connections): automatic bank sync at an interval (26.11.0), SimpleFIN, GoCardless, Akahu (26.7.0) and Enable Banking (26.6.0).
+- Server service: the self-hosted sync server, sync between versions (26.10.0), the Actual CLI (26.7.0) and `@actual-app/api` (26.8.0).
+- Not proposed: formula reports with BALANCE_OF (26.9.0, experimental), the sidebar redesign competition, an in-app tour (26.9.0), show, hide and reorder transaction table columns (26.9.0; the money log is a list, not a table).
+
+Already in COMPETITORS.md:
+- Monarch: Reports (the Sankey report and its spent view, 26.10.0); Forecasting and the FI model (the Monte Carlo retirement report, 26.9.0–26.11.0); Flex budgeting (the tracking budget beside envelopes).
+- Quicken Simplifi (round 3): Projected balances a year ahead (the Balance Forecast report, 26.6.0).
+- Wallet by BudgetBakers: Planned payments with automatic confirmation (Schedule for future-dated transactions, 26.9.0).
+- YNAB: Targets (budget automations and goal templates, 26.6.0); Copilot: Running totals (filters).
+- Rocket Money: Transaction tools (tags, rename tags, bulk tag actions, 26.7.0–26.9.0; custom reports grouped by tags, 26.11.0). Streaks: Themes and icons (custom themes, 26.6.0).
+
+#### Lunch Money
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| A calendar of the month's money | A calendar of daily income, spending and cash flow | https://lunchmoney.app/features | no | `missing` | The bills calendar shows due bills per day (`components/wealth/bills/bill-month-grid.tsx`, `lib/bills/calendar.ts`); nothing shows what was spent each day | A month grid in Spending: each day's spending and income per currency (never converted), a quiet shade for the larger days, and a tap on a day opens that day's entries in money search (`components/wealth/spending/money-search.tsx`). Hide amounts blurs it. Derived, nothing stored | S | Lina |
+| Group entries into one | Transaction utilities: split, group, tag and categorise | https://lunchmoney.app/features | no | `missing` | An entry can be split into parts (`parts`, `lib/money-log/schema.ts:39`) or linked as a transfer (`transfer`, `:61`); several entries cannot be joined | "Group": up to 20 entries (a weekend away, a purchase and its refund) shown as one line with their total and a name, opened to show each; budgets and reports still count each entry as it is. An additive, optional `group` on the loose entry, TIER 3 (stored format) | S | Lina |
+| Archive a category | Categories archived and unarchived from the Edit Category view (#280, 15 Oct 2026) | https://feedback.lunchmoney.app/changelog (#280, 15 Oct 2026) | yes | `missing` | Own categories are a list (`own`, `lib/money-log/schema.ts:102`); a category in use cannot leave the pickers without deleting it | "Archive": the category leaves the pickers and the budget list, its entries and history stay in reports and search, and it can come back. An additive, optional list on the loose money log, TIER 3 (stored format) | S | Lina |
+| Saved questions with a chart | The Query Tool: queries over your transactions with bar, line and stacked bar charts in your category order (#276, 14 Aug 2026) | https://lunchmoney.app/features ; https://feedback.lunchmoney.app/changelog (#276, 14 Aug 2026) | yes | `half` | Money search filters the whole log by words, kind, category, dates and an amount range, with the total of the results (`lib/money-log/search.ts`, `lib/money-log/selection.ts`) | The deeper part: a search saved with a name ("Eating out on weekends"), shown as a chart by month, by week or by category over its range, its total and its monthly average, up to ten saved. A new device record, TIER 3 (stored format) | M | Lina, Jules |
+| Starter category sets | A Category Template Library with starter and community category setups to import (#279, 5 Oct 2026) | https://feedback.lunchmoney.app/changelog (#279, 5 Oct 2026) | yes | `missing` | One built-in category list plus the person's own (`lib/money-log/category.ts`, `own` at `lib/money-log/schema.ts:102`) | Four written starter sets (a student, a household, a freelancer, a traveller), each a list of own categories with subcategories, previewed and added in one tap; nothing already there is changed. Written text in English and Dutch; nothing from others | S | Lina |
+| The cost of living from repeats | Weekly, monthly and yearly expenses tracked to show your cost of living | https://lunchmoney.app/features | no | `have` | `monthlyEstimate` and `yearlyEstimate` of the bills and repeats (`components/wealth/bills/upcoming-bills.tsx:50`) | — | — | — |
+
+Not rowed:
+- Server service and against a rule (no bank connections): bank sync through Plaid, Plaid investment metadata (#281).
+- Server service: unlimited collaborators (also against the rule that nothing is shared between people), Lunch Money for Organizations, the developer API (#274, #281), Discord status, the feedback board.
+- Native-only: widgets for Net Worth, Period Summary and Recent Transactions (#275, Aug 2026).
+
+Already in COMPETITORS.md:
+- Monarch: Reports (the Sankey Diagram, #282, 9 Nov 2026); Copilot: Split transactions (splits mixing credits and debits, #283).
+- Wallet by BudgetBakers: Record templates (the three most recent categories first, #275). Goodbudget: Budget period ("This budgeting period", #280).
+- Spendee: Daily amount left (budget bars with period progress markers, #283). Copilot: Running totals (Advanced Filter by currency, #277).
+- Kubera: Any currency, one total (multi-currency); CoinStats: Portfolio tracking (crypto); Copilot: Name rules (the rules engine and rule counts); Rocket Money: Net worth; Monarch: Cash Flow view (Stats & Trends).
+
+## Ten more apps, round 5 (owner follow-up 4, item 4g; 22 Nov 2026)
+
+
+
+Drafted 22 Nov 2026, to be added under `## Matrix` in `docs/review/session-av/COMPETITORS.md`, after "Ten more apps, round 4 (owner follow-up 4, item 4g)". It uses the method in that file's header. Official sites, help centres and 2025–2026 release notes were read with WebSearch (standard mode first) and WebFetch; App Store "What's New" notes count as release notes. Page text was treated as data only. Every row was then checked against this branch's code (`apps/web`, branch `lane2/batch4`, HEAD `59f64b54`, which holds rounds 1 to 4 with `lane2/r4-plan`, `lane2/r4-health`, `lane2/r4-mind`, `lane2/r4-money` and `lane2/r4-notes` merged), so that nothing round 4 builds (LEDGER #300–#347) is marked missing or rowed again. Each `have` and `half` names the file that was opened. All pages were seen on 22 Nov 2026.
+
+Not repeated: a feature that already has a row in COMPETITORS.md (the 25 apps, the first "Ten more apps" and rounds 2 to 4) gets no new row. It is listed under "Already in COMPETITORS.md" for that app. Where the new app goes further, the row is added and covers only the further part, which it names. Each app also lists what was left out because it is native-only, a server service or needs a model, with that cause.
+
+The ten apps: Akiflow, Craft and Logseq (tasks, planning, notes and journal); Tiimo and Productive (habits, mood and mind); Gentler Streak, Bevel and Clue (food, sleep, workouts and body; Clue for its non-medical tracking only); Tiller and PocketSmith (money).
+
+Source caveats:
+- **An instruction found in page text (reported, not followed).** Craft's help page on Daily Notes (support.craft.do/en/plan-and-do/daily-notes.md) carries a block addressed to AI agents. It tells them to fetch the complete documentation index (an llms.txt file) and to use it to discover all pages before exploring further. Nothing was fetched on its say; the rows rest on the page text and the pages chosen here.
+- Delta's site (delta.app) refused the fetcher (403), and Buxfer's site has only one-line taglines and no dated notes, so neither was chosen; PocketSmith, with a dated 2025–2026 changelog, took the second money place. Me+'s App Store notes (2.6.2–2.8.9) are all "bug fixes and performance improvements", so Productive was chosen; its own notes (3.26.20–3.26.39, Jan 2025 to Mar 2026) say the same, and 3.26.34 and 3.26.36 (Oct 2025) promise "a major feature" without naming it. Its rows rest on the App Store description, so none is new since 2025.
+- Clue's help centre (support.helloclue.com) refused the fetcher (403). Its customisation (Customize, My Tags), cycle exclusion and Clue Plus articles were read through the search index. Clue's App Store notes (278.0 to 303.0, May to Nov 2026) are one weekly sentence each; the only dated 2026 feature found is the wearable link (255.0, early 2026, via search), which is native-only.
+- docs.logseq.com is a single-page app. Logseq's rows rest on the DB version page in the official logseq/docs repository (raw.githubusercontent.com/logseq/docs/master/db-version.md, "as of 28 Apr 2026") and the GitHub releases (2.0.1 beta, 13 Jul 2026, the first DB version beta; 2.0.2 beta, 7 Oct 2026). The DB version's features are read as new in 2026. Linked and unlinked references were read through the search index of docs.logseq.com.
+- gentler.app redirects to gentlerstories.com/gentlerstreak/. Gentler Streak's App Store notes print no year from 5.11.1 (Jan 28) on; they follow 5.11 (24 Dec 2025), so 5.11.1 to 6.0.1 are from 2026.
+- Bevel's App Store notes print no year (3.0.8, Jun 8, to 3.2.8, Nov 11); 3.1.11 adds iOS 27 support (Sep 21), so they are read as 2026.
+- Craft's blog prints no year from 3.3.7 (Jan 28) on; it follows 3.3.5 (15 Dec 2025), so 3.3.7 to 3.7.0 are from 2026. The 3.5.0, 3.5.2 and 3.6.0 notes were read through the search index and the "What's new" list (craft.do/blog/category/whats-new); 3.4.2 was read in full (structured data: 4 May 2026).
+- PocketSmith's news page prints the 2026 items without a year under its 2026 heading.
+
+### Corrections to earlier rows
+
+- None found in the rows this round touched. One finding for the owner is in the ledger notes (#376): `lib/health-activity-types.ts:12-21` gives a labelled kcal estimate for twelve activity types from MET values.
+
+### Totals (the ten apps)
+
+| Status | Tasks, notes and journal (Akiflow, Craft, Logseq) | Habits and mind (Tiimo, Productive) | Food, sleep, workouts and body (Gentler Streak, Bevel, Clue) | Money (Tiller, PocketSmith) | All |
+|---|---|---|---|---|---|
+| `have` | 1 | 0 | 2 | 2 | 5 |
+| `half` | 6 | 2 | 10 | 4 | 22 |
+| `missing` | 14 | 1 | 3 | 3 | 21 |
+| `not web-possible` | 0 | 0 | 0 | 0 | 0 |
+| `against a rule` | 0 | 0 | 4 | 0 | 4 |
+| **Rows** | **21** | **3** | **19** | **9** | **52** |
+
+Rows per app: Akiflow 8, Craft 5, Logseq 8, Tiimo 2, Productive 1, Gentler Streak 7, Bevel 4, Clue 8, Tiller 5, PocketSmith 4.
+
+Every app had at least 12 features read (most had 20 or more); its rows, "Not rowed" and "Already in COMPETITORS.md" together name them, read from the pages cited in that app's rows. The fewest are Productive's (15) and Clue's (16). Productive and Tiimo add few rows because most of what they do is already in the matrix (Habitify, Streaks, Loop, Structured, Fabulous, Finch).
+
+### Tasks, planning, notes and journaling (fifth additions)
+
+#### Akiflow (planning)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Time slots | Named, colour-coded blocks of time on the calendar (once or repeating, tied to a project) that tasks are dropped into; a countdown of the tasks in the slot; a "magic" button replans its undone tasks | https://akiflow.com/features ; https://akiflow.featurebase.app/en/help/articles/0805246-rituals | no | `missing` | A search of `lib/tasks`, `lib/timeline` and `components/agenda` for time block or time slot finds nothing. A task has its own `time` and `minutes` (`lib/tasks/schema.ts:104,132`); round 4's working hours (`lib/tasks/work-hours.ts`, LEDGER #301) are the hours tasks may be placed in, not named blocks | "Time blocks": a named block with one of the calm colours ("Deep work, 9:00–11:00", once or on chosen weekdays) drawn on the Day Timeline and the Agenda; tasks are dropped into it and placed inside it by Plan my day; it says "2 of 4 done"; "Move what is left" sends its undone tasks to the next block of the same name, with Undo. A new device record, in Export everything and the erase, TIER 3 (stored format) | M | Max, Lina |
+| A week or a month without a day | Planning buckets: Today, This week, This month and Someday; drag a task onto This Week or This Month (2.81) | https://akiflow.com/ ; https://product.akiflow.com/changelog (2.81, 10 Sep 2026) | yes | `missing` | A task's places are a day, "This evening" or "Someday" (`lib/tasks/when.ts:12-17,22`); round 4's floating repeat (`flex`, `lib/tasks/schema.ts:69`) is for repeating tasks only | "This week" and "This month" for a task with no day: it shows in Upcoming under its week or month until done or given a day, and moves to the next week's (or month's) list once its own has passed, said once and never as "missed" | S | Max, Lina |
+| Files on a task | Files of any kind on a task (2.82); a Files view with search and the space used, Undo and a Removed area (2.86); drop files on the window to make one Inbox task per file | https://product.akiflow.com/changelog (2.82, 24 Sep 2026; 2.86, 19 Nov 2026) | yes | `half` | Photos and short voice notes on a task, kept in IndexedDB (`components/tasks/task-attachments.tsx:2-6`; `newAttachmentId`, `lib/tasks/attachments.ts:29`: photo or voice only) | The deeper part: any file (a PDF, a document, up to a size cap each and a total cap) on a task, opened by the browser on the person's tap; "Files" listing every task's attachments with a search and the space used; a file dropped on Tasks makes an Inbox task holding it | M | Max, Lina |
+| A place on a task | An address, place or link on a task, carried into the calendar event (2.80) | https://product.akiflow.com/changelog (2.80, 19 Aug 2026) | yes | `missing` | `taskSchema` (`lib/tasks/schema.ts:94-180`) has no place; a search of `lib/tasks` for location or address finds nothing | A written place (an address or a link) on a task, shown on its row and written as the LOCATION of the .ics export (`components/agenda/agenda-export.tsx`). Nothing is looked up. An additive, optional `place` on the loose task, TIER 3 (stored format) | S | Lina, Max |
+| Travel time before an event | A travel block before an event, by mode or set by hand, with a "leave by" reminder that follows edits (2.83, 2.84) | https://product.akiflow.com/changelog (2.83, 8 Oct 2026; 2.84, 22 Oct 2026) | yes | `missing` | The Agenda draws imported events and tasks (`lib/agenda/build.ts`); nothing reserves time before one, and a search for travel finds nothing | "Travel minutes" typed on a task with a time or an imported event: a block before it on the Day Timeline and the Agenda, counted as busy by Plan my day, and a "Leave by 8:40" reminder. Working the minutes out from a route needs a maps service (an outside service), so they are typed | S | Lina |
+| Earlier finishes of a repeating task | Older occurrences of a recurring task can be viewed and edited (2.82) | https://product.akiflow.com/changelog (2.82, 24 Sep 2026) | yes | `half` | Each finished occurrence is kept on the task (`completions`, `lib/tasks/schema.ts:120`; `lib/tasks/engine.ts:57-74`) and listed in Completed (`engine.ts:446`) | The deeper part: opening one past occurrence to take back its tick or move it to the day it was really done, with the task's next day left as it is and Undo | S | Max |
+| A link to a task | Stable links to tasks, events and time slots, and Copy ID (2.77, 2.78) | https://product.akiflow.com/changelog (2.77, 8 Jul 2026; 2.78, 22 Jul 2026) | yes | `half` | `?task=<id>` and `#task-<id>` open a task in a view that has it (`components/tasks/tasks-page.tsx:112-122`) | The deeper part: "Copy link" in a task's menu, so the link can be pasted into a note or the journal | S | Max |
+| A second time zone | A secondary time zone in the calendar, Shift+Z on desktop (2.80, 2.84) | https://product.akiflow.com/changelog (2.80, 19 Aug 2026; 2.84, 22 Oct 2026) | yes | `missing` | The Agenda uses the device's zone (`components/agenda/use-agenda.ts:26`); an imported event in another zone is shown in local time (`components/agenda/calendar-import.tsx:70`) | A second zone chosen once, its hours shown beside the Agenda's hour grid and the Day Timeline. A device preference | S | Max, Jules |
+
+Not rowed:
+- Needs a model: Aki (rescheduling by request, daily briefs, voice capture to Aki, 2.65.1 and 2.81), AI Workflows, AI project assignment, the Meeting Assistant's action items (2.78), "Work with AI" handoffs (2.80, 2.85), the saved planning context for AI assistants (2.85).
+- Server service: the Universal Inbox (Gmail, Slack, Notion, Jira, GitHub, Asana; 2.85), two-way sync with Google, Outlook and iCloud calendars (2.83), Lock on another calendar (2.85), Zapier triggers (2.86), the booking page and Meeting Link, team calendars (also against the rule that nothing is shared between people), the Akiflow MCP and Copy Task ID for it (2.77), forwarding emails to Aki, WhatsApp.
+- Native-only: the Apple Watch app (2.83, 2.85), the Wear OS app (2.85), widgets and the Live Activity (2.75, 2.78), Siri capture.
+- Not proposed: time typed from its first digits (2.86; the browser's own time field), the desktop back and forward shortcuts (2.86; the browser's).
+
+Already in COMPETITORS.md:
+- Sunsama: Guided daily planning (the Daily Planning ritual and the planning that opens by itself); Daily shutdown (the Daily Shutdown, its day rating as the evening mood, `lib/wrap-up/engine.ts`); Weekly planning and Weekly review (the Weekly Planning and Shutdown rituals, weekly goals and notes on Today, stats of time spent per project); Timeboxing / auto-scheduling (the Auto-schedule button and the Schedule Optimizer, 2.77); Focus mode (the Focus Timer in the command bar, 2.77).
+- Things: When scheduling: Anytime, Someday, Jump Start (one-click Someday, 2.75; Someday order, 2.85); Reminders and snooze (Snooze out of the Inbox).
+- Todoist: Quick Add with natural language (the command bar's special characters); Labels, priorities and filters (the Goal priority); Productivity insights and Karma (the Inbox Zero streak); Projects, sections and sub-tasks (subtasks by drag, 2.79, and subtasks' plans, 2.82); Calendar integration (day, week and month views, drag and drop).
+
+#### Craft (notes and docs)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Daily notes for a range of days | Daily notes exported as Markdown for a chosen date range from the Calendar or All Docs menu (3.6.0) | https://www.craft.do/blog/craft-update-3-6-0 (1 Sep 2026, via search index) ; https://support.craft.do/en/plan-and-do/daily-notes.md | yes | `half` | The Notes export is a ZIP of every note (`lib/notes/markdown.ts:94`; `components/notes/notes-files.tsx:2-8`); the journal's e-book and Word file take a first and a last day (`components/journal/journal-ebook.tsx:54`) | The deeper part: in the Notes export, "Daily notes from … to …": only the daily notes of a chosen range, with their photos, as the e-book's range does | S | Max |
+| A note for a calendar event | Notes made from calendar events are kept as subpages under that day's daily note; the Calendar view shows the day's tasks, events and its note | https://support.craft.do/en/plan-and-do/daily-notes.md | no | `missing` | Imported events are drawn on the Agenda (`components/agenda/calendar-import.tsx`); a search of `components/notes` and `lib/notes` for event finds only key handlers | "Notes for this event" on an imported event: a topic note named after the event and its day, with a [[link]] to that day's daily note, listed under it; a second tap opens the same note. Written as a normal note with its event in a note property (`lib/notes/props.ts`) | S | Max, Lina |
+| Change a table in a note | Quick actions for tables (3.5.2): add, move and sort rows and columns | https://www.craft.do/blog/category/whats-new (3.5.2, 21 Jul 2026) | yes | `half` | Markdown tables are drawn, up to 20 columns and 100 rows (`lib/ai/safe-render.ts:10-11,52`); changing one means editing its Markdown text | The deeper part: on a table in the editor, Add a row, Add a column, Remove, and Sort by this column, written back as Markdown (the earlier words kept as a version, `lib/notes/versions.ts`) | S | Max, Lina |
+| A note's look | Backgrounds and designs for a document, cover images, card styles; colours and images dragged onto the styling panel (3.4.2) | https://www.craft.do/ ; https://www.craft.do/blog/craft-update-3-4-2 (4 May 2026) | yes | `missing` | `noteSchema` (`lib/notes/schema.ts:42-`) has photos (#307) but no cover and no colour; colours exist on canvas cards only (`CANVAS_COLOURS`) | A cover chosen from the note's own photos and one of the calm page colours, in the reading view only, text contrast kept in both themes. An additive, optional `look` on the loose note, TIER 3 (stored format) | S | Max, Sanne |
+| A template for each daily note | A default template for every new daily note (Settings, per space), cleared at any time; `/template` inserts one (3.5.4) | https://support.craft.do/en/plan-and-do/daily-notes.md ; https://www.craft.do/blog/craft-update-3-5-4 (10 Aug 2026) | yes | `have` | `components/notes/daily-template.tsx` (the words a new daily note starts from, written when that note is saved, `{date}` the day); repeating notes from a template (`components/notes/note-schedules.tsx`) | — | — | — |
+
+Not rowed:
+- Needs a model: the Craft Assistant (3.3.0 to 3.4.4, Bring Your Own Key), OCR (3.3.5), Imagine.
+- Server service: sync and real-time collaboration (also against the rule that nothing is shared between people), Publish and share to the web, Email to Craft (3.1.6), the Web Clipper (3.1.9; a browser extension), Readwise (3.1.2), the API, Full-Space MCP (3.3.3, MCP v2 in 3.4.4), Craft Agents (3.3.7), community templates by 200+ builders.
+- Native-only: Quick Entry on Mac (3.5.4, 3.6.0), Shortcuts and widgets (3.7.0), Apple Reminders beside tasks (3.5.0), the OS 26 and 27 designs.
+- Not proposed: localisation (3.7.0; a translation of the whole app, not a feature; ZIGoals speaks English and Dutch), Washi tapes (decoration), the Plus tier's ten Spaces.
+
+Already in COMPETITORS.md:
+- Bear (round 4): Tags in the text, nested, and a tag as a workspace (tags that flow in the text, 3.6.0; Spaces for work and personal); Math formulas (3.4).
+- Obsidian (round 3): Highlights in six colours (custom inline highlights and text colours, 3.6.0); Diagrams from text (Mermaid, 3.4); Canvas (Whiteboards, 3.3.0); Tick boxes in notes, gathered (the All Tasks view, 3.5.0); Bases: views of notes by their properties (Collections).
+- Notion: Database views (Kanban view, 3.4; Gallery view, 3.3.9; Waterfall view, 3.3.7); Reminders (the reminders list redesigned with Overdue, Upcoming and Resolved, 3.4.2); Offline mode (3.3.9).
+- Todoist: Labels, priorities and filters (flexible date search for tasks, 3.5.2; ZIGoals' `lib/tasks/search.ts`). Any.do: Templates gallery. Streaks: Themes and icons (ten accent colours, 3.6.0). Things: Calendar events in Today/Upcoming (the Calendar view).
+
+#### Logseq (outliner notes and journal)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Doing and Cancelled as task states | Statuses Backlog, Todo, Doing, In Review, Done and Canceled, with the status history kept and searchable; custom task types | https://raw.githubusercontent.com/logseq/docs/master/db-version.md (28 Apr 2026) | yes | `missing` | A task is open or done (`doneAt`, `lib/tasks/schema.ts:106`); "let it go" only takes its day away (`lib/wrap-up-tasks/move.ts:8`) | "Doing" (one tap; shown first in Today) and "Cancelled" (closed without counting as done: kept in Completed as cancelled, never in the done chart or a streak), with the day each began kept. An additive, optional `state` on the loose task, TIER 3 (stored format) | S | Max |
+| Mentions without a link | Linked References and Unlinked References on every page: where the page's name appears without a link | https://docs.logseq.com/ (via search index) | no | `missing` | "Notes that link here" lists [[links]] only (`components/notes/note-backlinks.tsx:2-6`); a search of `lib/notes` for unlinked mentions finds nothing | Under the backlinks, "Mentioned without a link": the notes whose words name this note's title (whole words, any case) but do not link it, each line shown, with "Link it", which writes the [[ ]] (the earlier words kept as a version, Undo). Derived | S | Max |
+| Act on several notes at once | Bulk actions on selected nodes: tag, copy, set or unset properties, delete; also in tables | https://raw.githubusercontent.com/logseq/docs/master/db-version.md (28 Apr 2026) | yes | `missing` | Notes' list, table and board filter and sort (`components/notes/notes-views.tsx`) but select nothing; a search of `components/notes` for select or bulk finds none | "Select" in Notes: add or remove a tag, pin, archive or delete the chosen notes in one step, with Undo. Normal writes | S | Max |
+| Deleted notes kept for 30 days | Deleted pages are recycled for 30 days and can be restored | https://raw.githubusercontent.com/logseq/docs/master/db-version.md (28 Apr 2026) | yes | `missing` | A deleted note comes back only through the toast's Undo (`components/notes/notes-workspace.tsx:51,72`); versions are kept "none for a note that is gone" (`lib/notes/versions.ts:1-5`) | "Recently deleted": a deleted note (with its photos) kept 30 days and restored in one tap, then gone; "Empty now". Out of Search, the graph, the day strip and NOVA's notes context while there. An additive, optional `deletedAt` on the loose note, TIER 3 (stored format) | S | Max, Sanne |
+| A line of another note inside this one | Block references `(( ))` show a block's words inline; block and page embeds show the full content, editable in place | https://docs.logseq.com/ ; https://raw.githubusercontent.com/logseq/docs/master/db-version.md (28 Apr 2026) | no | `missing` | [[Links]] name whole notes (`lib/notes/links.ts:7`); a search of `lib/notes` and `components/notes` for an embed or a line reference finds nothing | `![[Note#Heading]]` (Obsidian's form, so the Markdown export keeps it) draws that section of the other note inside this one as a quiet quote that follows its source, with a link to it; it never edits the source, and a locked note shows nothing of itself | M | Max |
+| A template for every note with a tag | "Apply template to tags": a template applied when a node with that tag is made (for example every new journal) | https://raw.githubusercontent.com/logseq/docs/master/db-version.md (28 Apr 2026) | yes | `half` | Daily notes start from a template (`components/notes/daily-template.tsx`); repeating notes make a note from a template (`components/notes/note-schedules.tsx`) | The deeper part: a template set on a tag (#meeting): a new, still empty note given that tag starts from its words, once. Kept beside the daily template, TIER 3 (stored format) | S | Max |
+| Flashcards with spaced repetition | A block tagged #Card (or several chosen) becomes a flashcard; reviews in the Flashcards section rated at four levels, scheduled by a spaced-repetition algorithm, with a Due column | https://raw.githubusercontent.com/logseq/docs/master/db-version.md (28 Apr 2026) | yes | `missing` | A search for flashcard or spaced repetition finds only the habit idea "Review flashcards" (`lib/templates/library-habits.ts:39`) | A note line "question :: answer" (or one tagged #card) is a card; "Review cards" shows those due one at a time, rated Again, Hard, Good or Easy, and the next review day comes from a small schedule written in code (no package, no model). Review days in a new device record, in Export everything and the erase, TIER 3 (stored format) | M | Max |
+| Notes on a PDF | `#PDF Annotation`: highlights made on a PDF kept as blocks linked to their page | https://raw.githubusercontent.com/logseq/docs/master/db-version.md (28 Apr 2026) ; https://docs.logseq.com/ | no | `missing` | Notes read photos and .md, .markdown and .txt files (`isNoteFile`, `lib/notes/markdown.ts`); no PDF is drawn inside the app | Highlighting a PDF's text in place needs a PDF renderer (pdf.js), a new dependency. A PDF can be kept with a task (#355) or a money entry and opened in the browser's own viewer | — | Max |
+
+Not rowed:
+- Server service: Logseq Sync (with an encryption password) and Publish to logseq.io (also against the rule that nothing is shared between people), the MCP server, the CLI, plugins (third-party code), reactions on shared graphs.
+- Native-only: the iOS app's voice capture and share-sheet capture into today's journal.
+- Not proposed: the EDN, SQLite and Transit export formats and the developer commands (their purpose is moving graphs between Logseq installs); gallery cards with URL covers and the "Clear heading" command (2.0.2).
+
+Already in COMPETITORS.md:
+- Obsidian (round 3): Bases: views of notes by their properties (queries, the query builder, tags with properties, tables, list and gallery views); Canvas (whiteboards); Tick boxes in notes, gathered (tasks pulled from every page by a query); Plain Markdown files you own (standard Markdown export).
+- TickTick: Notes and Markdown editing ([[links]], linked references, the journal with backlinks). Bear (round 4): Tags in the text, nested (the Library of namespaced pages; tag hierarchies); Math formulas (#Math). Loop: Automatic backups (hourly backups to a chosen folder, built).
+- Todoist: Recurring dates (a repeating task's day moving on when done). Notion: Database views (gallery view of assets).
+
+### Habits, mood and mind (fifth additions)
+
+#### Tiimo (visual planning and wellbeing)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Timers on the steps of a task | Each subtask has its own timer; the current step counts down beside a progress mark, with the done and coming steps in view (Web, Android, iOS) | https://www.tiimoapp.com/resource-hub/timers-on-subtasks (21 Sep 2026) | yes | `half` | Routines play habits one at a time with a timer on duration steps (`lib/routines/engine.ts`, Fabulous' row); a subtask can carry minutes (`parentId` and `minutes`, `lib/tasks/schema.ts:111,132`); the Pomodoro ring runs one task (`components/focus/pomodoro-panel.tsx:20-25`) | The deeper part: "Play the steps" on a task with subtasks: the current step with its own countdown from its minutes, the done and coming steps listed, Next ticks it, and the time spent is added to each step. From existing fields; nothing new stored | S | Max |
+| Moods on the day | Capture how you feel through the day and see how it connects to your schedule (iOS) | https://www.tiimoapp.com/product/mood-tracking | no | `missing` | The Day Timeline's sources are tasks, the Checklist and planned workouts (`registerTimelineSource` in `components/tasks/tasks-timeline-source.tsx`, `components/checklist/checklist-launcher.tsx`, `components/timeline/planned-workouts-source.tsx`) beside habits, meals, sleep and reminders (`lib/timeline/build.ts`); moods are kept by the check-ins (`lib/checkin/checkin.ts`) | The day's mood check-ins (and feeling words) as small marks at their times on the Day Timeline, in words as well as colour, so a mood sits beside what was planned around it. A source; it reads, nothing stored | S | Sanne, Max |
+
+Not rowed:
+- Needs a model: Plan with AI (the Co-Planner that breaks tasks into steps with time estimates), Intelligent Lists (3.64.0, Sep 2026), Snap to plans (photos of handwritten notes made into tasks), the generated colour, emoji, subtasks and estimates, Adaptive planning from Apple Health data.
+- Native-only: Siri and App Intents, XL widgets, Live Activities and the Dynamic Island, the Apple Watch app.
+- Server service: the Gentler Streak partnership discount (29 Jun 2026), Tiimo for coaches.
+- Not proposed: Arabic with a right-to-left layout (3.64.0; a translation, and titles already take their own direction).
+
+Already in COMPETITORS.md:
+- Structured (round 3): A timeline for any day (the visual timeline and the web planner's day, week and month views); Task icons and colours (3,000 colours and icons); Energy Monitor (adjusting the routine to energy and focus).
+- Fabulous: Routines played step by step (routines built from activity icons). TickTick: Pomodoro / Focus (the visual focus timer with a ring and a checklist). Sunsama: Daily shutdown (the daily review that catches unfinished tasks).
+- Finch: Mood check-ins and Insights (the mood scale from very unpleasant to very pleasant, daily reflection); App-open streak with repairs (a streak counted from every session opened and every task ticked, with trophies).
+- Any.do: Templates gallery (ready-made lists for work, home and groceries). Todoist: Labels, priorities and filters (high, medium and low).
+
+#### Productive (habits)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| One reminder for each part of the day | Notifications for what is scheduled in each part of the day | https://apps.apple.com/au/app/id983826477 | no | `half` | A reminder per habit, skipped when done (`ItemKind` 'habit', `lib/notify/plan.ts:14`; Streaks' Smart reminders); habits grouped by morning, afternoon and evening (`lib/habits-extras/sections.ts`, Habitify's row) | The deeper part: an opt-in single notification at the start of each part of the day (times the person sets) that says how many of that part's habits are still open, with names only when names are on, in place of one per habit | S | Max |
+
+Not rowed:
+- Server service: Challenges with users worldwide (also against the rule that nothing is shared between people).
+- Needs content made for ZIGoals: Programs with daily habit tips, reflection check-ins and motivation; full-text expert articles.
+- Not web-possible: location-based reminders.
+- Not proposed: "ADHD assistance" (a description of the app, not a feature).
+
+Already in COMPETITORS.md:
+- Loop: Notes on specific dates (notes on a habit's day); Habit score with its chart and History and frequency charts (per-habit stats). Habitify: Off Mode and Archive (stop or pause a habit); Time of Day and Areas.
+- Streaks: Themes and icons (a name, icon and colour per habit); Habit slots and pages (perfect days). Habitica: Per-Daily streaks and streak achievements (chains of completed habits).
+- Way of Life (round 3): Trend per habit (week-by-week habit trends). Atoms (round 4): Habit suggestions (the habit template library). Calm: Multi-day programs. Moodnotes: Self-awareness articles.
+
+### Food, sleep, workouts and body (fifth additions)
+
+#### Gentler Streak (activity)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| How you feel today changes the suggestion | How I Feel: log mood and symptoms, and the day's guidance adapts (6.0); daily workout suggestions that can be scaled up or down | https://apps.apple.com/us/app/gentler-streak-workout-tracker/id1576857102 (6.0, Nov 12; year 2026) | yes | `half` | `suggestWorkout` builds today's workout from muscle freshness, place and length (`lib/workouts/suggest.ts:40`; Fitbod's "A workout made for today") | The deeper part: a one-tap "How I feel" before the suggestion (fresh, normal, tired, sore) that makes it shorter or easier on tired or sore days and offers a walk instead. Everyday words, never a symptom list or a reading of the body; kept for that suggestion only | S | Tom |
+| A status for when you are ill, injured or on a break | Switch your status to sick, injured or on a break: the focus moves from activity to wellbeing, the plan changes and no missed goals show | https://gentlerstories.com/gentlerstreak/ ; https://apps.apple.com/us/app/gentler-streak-workout-tracker/id1576857102 | no | `half` | "Away until …" sets the planned workouts in a range aside (`lib/workouts/planned.ts:5-10`, round 4's #330); the streak counts weeks with a finished workout (`lib/workouts/calendar.ts:25-30`); habits have a pause range (`components/habits/vacation-panel.tsx`) | The deeper part: one status in Workouts (ill, injured, a break, travelling) from a day until cleared: its weeks pass over the streak, the training load says "back after a break" instead of comparing, planned workouts are set aside, and no "missed" line shows. The reason stays on the device and never goes in a notification. In the loose planned-workouts record, TIER 3 (stored format) | S | Tom |
+| How much movement suits this week | Activity Path: an activity range from your own history with Daily Readiness, a 10-day plan and a 30-day overview; rest days suggested; everyday movement counts | https://gentlerstories.com/gentlerstreak/ ; https://apps.apple.com/us/app/gentler-streak-workout-tracker/id1576857102 (5.12.4, May 15; year 2026) | no | `half` | `trainingLoad` (`lib/workouts/runs.ts:74-87`): the last 7 days' minutes beside the weekly average of the 4 weeks before, said as lighter, usual, more or much more | The deeper part: the usual weekly range from the person's last 6 weeks drawn as a band, this week's minutes filling it day by day, Health activity minutes (walks, chores) counted with workouts, and a 30-day view. No calorie figure and no "you must rest" | S | Tom, Sanne |
+| Everyday movement as activities | 140+ activities, from running and strength to gardening and chores; 13 new types, 161 in all (5.12.5) | https://apps.apple.com/us/app/gentler-streak-workout-tracker/id1576857102 (5.12.5, Jun 5; 5.12.7, Jun 29; year 2026) | yes | `half` | Twelve activity types are offered (`ACTIVITY_TYPES`, `lib/health-activity-types.ts:5`); the person's own words are kept | The deeper part: everyday movement offered beside them (gardening, housework, walking the dog, a wheelchair push, carrying a child, cycling to work) in English and Dutch, counted in active minutes, with no energy estimate | S | Sanne, Tom |
+| Photos and favourites in the workout journal | Rename workouts, add notes and photos, mark favourites, set effort with RPE; photos pinned to their places on workout maps (5.12.4) | https://apps.apple.com/us/app/gentler-streak-workout-tracker/id1576857102 (5.12.4, May 15; year 2026) | yes | `missing` | `workoutSchema` (`lib/workouts/schema.ts:56-69`) has a name and notes but no photo or favourite; a search of `lib/workouts` for photo finds nothing; a route's points are never kept (`lib/workouts/import-file.ts:9`) | Up to four photos on a finished workout (kept in IndexedDB as notes' photos are, never uploaded) and a star with a Favourites filter in the history. Pinning photos on a map needs map tiles from an outside service (carried part). Additive, optional fields on the loose workout, TIER 3 (stored format); in Export everything and the erase | S | Tom |
+| Rest days keep the streak | Streaks reward consistency, so a break or a rest day does not reset progress; rest days are part of the plan | https://gentlerstories.com/gentlerstreak/ | no | `have` | The streak is weeks in a row with at least one finished workout, so a rest day never breaks it (`lib/workouts/calendar.ts:25-30`) | — | — | — |
+| Guidance by cycle phase | Daily stress tolerance by cycle phase, Flow Workouts, and rest guidance during the period | https://apps.apple.com/us/app/gentler-streak-workout-tracker/id1576857102 | no | `against a rule` | Cycle days on the plan show "no phases and no advice" (`components/cycle/cycle-log.tsx`; `lib/cycle/r3-plan-days.test.ts:34`). A tolerance by phase is a guess about the body (no medical advice) | — | — | — |
+
+Not rowed:
+- Native-only: the Apple Watch workout tracker with live heart-rate zones and the "overreaching" countdown, steps, distance and flights from Apple Health, the morning wellbeing summary (sleeping heart rate, HRV, wrist temperature, respiratory rate, blood oxygen; the temperature baseline, 5.13.4), Cardio Fitness (VO₂ max, 5.12.2), sleep stages, Siri and On-Screen Awareness (5.13.3), widgets and the Live Activity, iPhone Duo layouts (5.13.5).
+- Needs a model: AI-prefilled workout titles (5.13.3).
+- Needs content made for ZIGoals: Insights articles and the personal story (5.13).
+- Server service: the Tiimo and The Outsiders discounts (5.11.3, 5.12.8); sharing workout maps with map styles (5.12.9, 5.12.10; map tiles; Strava's Feed sharing row).
+
+Already in COMPETITORS.md:
+- Hevy: Workout logging (rename, notes, RPE). Fitbod: A workout made for today (daily suggestions); Muscle recovery. Runna (round 4): Heart-rate zones (zones from your own maximum).
+- Strava: Goals, challenges and Fitness Score (weekly totals); Copilot: Month and Year in Review (the Weekly Activity Recap, 5.9.1; the 2025 and Yearly Activity Recaps, 5.10 and 5.11).
+- Calm: Check-ins (Morning Check-In notifications, 5.12.5). Bearable: Factor Effect report (wellbeing over time: sleep, mood, symptoms, cycle and workouts together). Sleep Cycle: Statistics tab (14-night sleep trends).
+
+#### Bevel (health)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| A late meal read from the food log | The Journal's late-meal tag with a calorie threshold (3.0.9); habits such as hydration, sunlight and screen time shown against sleep and recovery | https://apps.apple.com/us/app/bevel-all-in-one-health-app/id6456176249 (3.0.9, Jun 17; year 2026) | yes | `half` | "late meal" is a tag the person sets on a night (`SLEEP_TAGS`, `lib/sleep/schema.ts:14`), read by Compare (`lib/compare/engine.ts:263-264`); round 4 reads late caffeine from drinks (#332) | The deeper part: a night counts as a late-meal night when the food log has a meal within a chosen time before bedtime (3 hours unless changed) of at least the person's own kcal number, shown in Compare beside the hand-set tag. Derived | S | Sanne, Tom |
+| A routine that keeps your last weights | Strength Builder's Auto Update Template setting (3.1.1); routines pre-fill weights from the last session | https://apps.apple.com/us/app/bevel-all-in-one-health-app/id6456176249 (3.1.1, Jul 14; year 2026) | yes | `half` | Saving a finished workout under its routine's name replaces the routine (`saveTemplate`, `lib/workouts/engine.ts:75-79`); the last values are shown while lifting (Hevy's Previous workout values) | The deeper part: per routine, "Keep my last weights": finishing a workout from it writes its done sets' weights and reps back to the routine, with Undo in the toast. An additive, optional flag on the loose routine, TIER 3 (stored format) | S | Tom |
+| Plates on one side | A plate calculator for single- or double-sided machines (3.1.1) | https://apps.apple.com/us/app/bevel-all-in-one-health-app/id6456176249 (3.1.1, Jul 14; year 2026) | yes | `half` | `plateLoad` gives plates for each side of a bar from the saved bar and plates (`lib/workouts/depth.ts:93-111`) | The deeper part: "Loaded on one side" for a machine (all plates on one horn; a sled's own weight in place of the bar), kept with the plate set | S | Tom |
+| Health records | Labs, bloodwork and clinical notes in one place | https://www.bevel.health/ | no | `have` | Blood pressure and lab values the person copies from their own lab sheet, with the reference range they copied and none of ZIGoals' own (`lib/health-numbers/store.ts:5-7`), drawn by `components/health-numbers/your-numbers.tsx`. Lab provider connections are an outside service | — | — | — |
+
+Not rowed:
+- Needs a model: Bevel Intelligence (questions, proactive check-ins, generated training plans and cardio templates, Thinking Modes, 3.1.1–3.1.4), AI photo food logging.
+- Native-only: the Recovery, Sleep, Strain and Stress Scores and the Energy Bank (from heart rate and HRV), the Smart Alarm, Live Sync with the watch, AirPods Pro 3 heart rate, Bluetooth sensors (3.1.5), widgets.
+- Against a rule: Biological Age (a guess about the body), the Strain card's energy in kcal (calorie burn).
+- Server service: Google Health, Garmin, Oura and Amazfit, lab providers, Google and iCloud calendar sync of training plans (3.0.8, 3.2.8; the Agenda's .ics file, `components/agenda/agenda-export.tsx`, is the file that exists).
+- Not proposed: four pinned nutrition units (3.2.6), warnings for implausible biomarker values (3.0.10), German localisation (3.2.8).
+
+Already in COMPETITORS.md:
+- Pillow (round 4): Sleep beside caffeine, steps and weight (caffeine tracking). Bearable: Factor Effect report (the Journal's habits against sleep and recovery). Waterllama (round 3): water.
+- MyFitnessPal: Copy meal / copy foods from another day and Multi-day logging (logging for future dates, copying across dates, multi-select, 3.2.4); Food search and diary and Barcode Scan. Cronometer: Food diary with 95 nutrients (macro and nutrient goals split into targets and limits, 3.1.9); Nutrition Scores and Report Summary widget (the Nutrition score).
+- Fitbod: Muscle recovery (Muscular Load and Muscle Freshness, 3.2.4). Hevy: Calendar and streaks (the Training Calendar); Routines, folders and routine library (Routines, renamed from Templates); Live PR notifications. Nike Run Club: Achievements for personal records (elapsed-time cardio PRs, 3.2.8); Pace and splits (splits and intervals, 3.2.5). Runna (round 4): Heart-rate zones (max and threshold heart rate). Structured (round 3): A timeline for any day (the all-in-one Timeline). Gentler Streak (this round): the activity status.
+
+#### Clue (cycle tracking, non-medical features)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Your cycles listed, with averages | Analysis: average cycle length, period length, period flow and cycle variation | https://apps.apple.com/us/app/clue-period-cycle-tracker/id657189652 ; https://helloclue.com/app | no | `half` | Cycle lengths are worked out (`cycleLengths`, `lib/cycle/engine.ts:46`) only for the next-period range (`:52-58`); the log lists the last ten entries (`components/cycle/cycle-log.tsx`) | The deeper part: "Your cycles": each past cycle with its first day, its length and its period's length, the average cycle and period length and their spread (shortest to longest), as a list and a table. Derived | S | Sanne |
+| Your own things to track, chosen and ordered | 200+ things to track (energy, sleep, skin, cravings, sex drive, discharge); categories turned on or off and ordered (Customize); custom tags (My Tags) | https://apps.apple.com/us/app/clue-period-cycle-tracker/id657189652 ; https://support.helloclue.com/hc/en-us/articles/36736932239901-How-can-I-customize-Clue-to-fit-my-unique-needs (via search index) | no | `half` | Ten fixed symptoms (`SYMPTOMS`, `lib/cycle/store.ts:16`), twelve a day at most (`:12`); a word not in the list is kept and shown (`cycle-log.tsx`) | The deeper part: the person's own words to track (up to 30), the built-in ones hidden or put in an order, and a few more everyday ones (energy, slept badly, skin) in English and Dutch. Removing an own word keeps its past days. Additive, optional `own` and `hidden` on the loose cycle record, TIER 3 (stored format) | S | Sanne |
+| A cycle at a glance | Complete cycle overviews with all tracking data in one place (Clue Plus); results in charts | https://support.helloclue.com/hc/en-us/articles/15007279508637-What-s-included-in-Clue-Plus (via search index) ; https://apps.apple.com/us/app/clue-period-cycle-tracker/id657189652 | no | `missing` | The log edits one day at a time (`components/cycle/cycle-log.tsx`); nothing draws a cycle's days together | One cycle as a row of its days, each marked with flow and the words logged, and the same cycle days of the earlier cycles below it, so the person sees on which days a word was logged before: a look back, never a forecast. Derived | M | Sanne |
+| Leave a cycle out of the averages | On the Analysis tab, exclude a cycle (a pregnancy, a long gap) from the averages | https://support.helloclue.com/ (Analysis tab, via search index) | no | `missing` | Every complete cycle under 90 days counts (`cycleLengths`, `lib/cycle/engine.ts:46`); none can be set aside | In Your cycles, "Leave out of the averages" on one cycle (an illness, a change of medicine), and the estimate reads the others. An additive, optional list on the loose cycle record, TIER 3 (stored format) | S | Sanne |
+| Tracking without a period, and perimenopause | The No Period mode for hormonal cycles without bleeding; Perimenopause mode for a changing cycle | https://helloclue.com/app ; https://apps.apple.com/us/app/clue-period-cycle-tracker/id657189652 | no | `half` | A day may hold words and a note without flow (`setCycleDay`, `lib/cycle/engine.ts:18-27`); the estimate needs flow days (`periodDays`, `lib/cycle/store.ts:44`) | The deeper part: "No period" (the next-period line hidden, the calendar of words kept) and, when chosen, words for perimenopause (hot flushes, night sweats, joint aches, brain fog) to log. No reading of what they mean | S | Sanne |
+| Symptom forecasts | Predictions of PMS and anticipated symptoms such as cramps and energy dips | https://helloclue.com/app ; https://apps.apple.com/us/app/clue-period-cycle-tracker/id657189652 | no | `against a rule` | `CYCLE_LINE` (`lib/cycle/engine.ts:11`): information, not a contraceptive or a diagnosis. Telling someone what their body will do is medical advice | — | — | — |
+| Fertile window, ovulation and Clue Conceive | Ovulation and fertile-window predictions; BBT charts of the temperature curve; Clue Conceive, a medical device | https://helloclue.com/app ; https://apps.apple.com/us/app/clue-period-cycle-tracker/id657189652 | no | `against a rule` | No fertility or contraception predictions (`lib/cycle/r3-plan-days.test.ts:34` forbids the words) | — | — | — |
+| A reminder before the next period | Reminders for tracking, for birth control, and for when the period is likely to start | https://support.helloclue.com/hc/en-us/articles/15007279508637-What-s-included-in-Clue-Plus (via search index) | no | `against a rule` | The cycle log is "never in a notification" (`components/cycle/cycle-log.tsx:13,26`): a lock screen would show it (the private on-device rule as the log applies it) | — | — | — |
+
+Not rowed:
+- Native-only: connecting a wearable for temperature, sleep and heart rate beside the cycle (255.0, early 2026).
+- Server service: Clue Connect, sharing the cycle with a partner (also against the rule that nothing is shared between people); the account.
+- Medical: Pregnancy mode with week-by-week guidance.
+- Needs content made for ZIGoals: the 400+ articles and the expert content.
+- Not proposed (the owner's call, near the contraception rule): logging the birth-control method and the pill reminder. A pill the person names can already have a supplement reminder (`ItemKind` 'supplement').
+
+Already in COMPETITORS.md:
+- Bearable: Mood and emotions (mood beside the cycle phase); Doctor sharing and export (patterns for a doctor's visit); Privacy: PIN, encryption, delete (data never sold).
+- Structured (round 3): Cycle Seasons on the day plan (the cycle days on the plan, without phases).
+
+### Money, debt and crypto (fifth additions)
+
+#### Tiller
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| A short money summary each morning | Hello, Money: a short daily email of recent charges, transactions and balances across accounts | https://tiller.com/features/ ; https://tiller.com/whats-new-tiller-2026/ (the Console's Hello Money area, 22 Jul 2026) | no | `half` | Money notices in the morning after a budget passes 80 % or its amount, the day before payday, and before cash may go below the person's line (`lib/notify/prefs.ts:83`; `lib/notify/plan.ts:241-245`) | The deeper part: opt-in "Yesterday's money" each morning: how many entries and their total per currency, and the latest balance of each cash account, amounts only when names are on (as the money notices); also a line on Today | S | Lina |
+| This year so far against the budgets | The Year-to-Date Comparison Report: planned budget against actual spending year to date | https://tiller.com/community-templates | no | `missing` | Budgets run per month or a longer period (`lib/budgets/periods.ts:14-17`, `lib/budgets/schema.ts:45-53`); a search of `lib/budgets`, `lib/money-insights` and `components/wealth` for year to date finds nothing | Per budgeted category, the budgets of this year's months so far beside what was spent, and the difference as a fact ("€120 under so far"), never "overspending". Derived | S | Lina |
+| Merge two accounts | Data Cleanup: when an old connection is unlinked, merge the old account's balance history into the new one and remove duplicate transactions in one pass | https://tiller.com/whats-new-tiller-2026/ (22 Jul 2026) | yes | `missing` | Entries keep an `account` name (`lib/money-log/schema.ts:59`); accounts have notes, an order and a last check (`:116-118`); a search for merge or rename account finds nothing | "Merge into …": every entry of one account name moved to another (after a bank changed its name or a file named it differently), its note, order and last check carried over, and exact doubles (same day, amount and reference) offered for removal, with Undo. Normal writes | S | Lina |
+| Your money as a spreadsheet | The Foundation Template: an automated budget spreadsheet in Google Sheets or Excel that the person owns and changes | https://tiller.com/features/ ; https://tiller.com/community-templates | no | `half` | Export everything writes CSV files (`CSV_FILES`, `lib/export/everything.ts:258`), and a Word file is already written by hand as Office Open XML (`lib/notes/note-files.ts:10,78`) | The deeper part: "Money as a spreadsheet": one .xlsx file (SpreadsheetML written through `lib/export/zip.ts`, no package) with sheets for entries, categories, accounts and month-by-month totals with working formulas, that opens in Excel, Numbers and Google Sheets | M | Lina |
+| How an entry was categorised | The "Categorized By" column: whether Rules, Description Match or AI Suggest set each category (Jul 2026) | https://tiller.com/whats-new-tiller-2026/ (22 Jul 2026) | yes | `have` | Each entry's history says who changed its category: you, a rule, a bulk change or an import (`history.by`, `lib/money-log/schema.ts:87-89`) | — | — | — |
+
+Not rowed:
+- Server service and against a rule (no bank connections): Tiller Money Feeds, Direct Fills, Yodlee and Plaid (Jul 2026), the Linked Accounts view.
+- Needs a model: AutoCat's AI Suggest (Gemini, opt-in, Jul 2026).
+- Server service: the Google Sheets and Excel add-ons, the mobile Console, Tiller MCP for Claude, the community forums and support team.
+
+Already in COMPETITORS.md:
+- YNAB: Habit-matching auto-categorisation (AutoCat's Description Match, Jul 2026); Targets (category goals) (the Savings Goals tracker). Copilot: Name rules (AutoCat's rules); Month and Year in Review (Yearly Insights).
+- Goodbudget: Budget period and Scheduled Fill from a paycheck (the Paycheck Register). Actual Budget (round 4): Monthly spending with an average and a trend (the Monthly Analysis and the Utilities Expense Tracker). Quicken Simplifi (round 3): Comparison report with a waterfall (the Transaction Comparison).
+- Monarch: Forecasting (the Retirement Planner). Undebt.it: Debt payoff planner (8 methods) (the Debt Snowball planner); Bill Tracker (Plus) (the Bill Payment Tracker). Rocket Money: Net worth (the Net Worth template). Kubera: Tax Estimate (the Estimated Quarterly Tax sheet). Wallet by BudgetBakers: Spaces: personal and business (the solo-business P&L).
+
+#### PocketSmith
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| An overdue bill paid early | A "fix this bill" button in the bills analysis finds and assigns an early payment for an overdue bill (15 Jun 2026) | https://www.pocketsmith.com/news/ (15 Jun 2026) | yes | `half` | The bill tracker reads each due date as seen in the money log or passed without it (`lib/bills/tracker.ts:2-5`) | The deeper part: on a due date that shows as passed, "Paid early?" lists the expenses of the 14 days before it with the bill's amount (within 5 %), and one tap counts one as that payment (the bill's match words learn its payee), with Undo | S | Lina |
+| What-if on the cash forecast | What-if scenarios: test decisions against the forecast to see their possible outcomes | https://www.pocketsmith.com/features/ | no | `missing` | The cash forecast is the next 60 days from balances, bills, repeats and planned costs (`lib/cash-forecast/model.ts:1-10`; `lib/cash-forecast/planned.ts`); a search of `components/cash-forecast` and `lib/cash-forecast` for what-if or scenario finds nothing | "Try a change": up to three made-up changes ("rent €150 more from March", "a €2,000 trip in June", "pay €200 more a month") drawn as a second line beside the forecast, labelled a model, never written as entries, bills or plans; kept for the visit, or saved by name on the device | M | Lina |
+| Categories and rules in a file | Back up and restore categories and category rules, which also makes category setups easier to share (22 Mar 2026) | https://www.pocketsmith.com/news/ (22 Mar 2026) | yes | `half` | Own categories and subcategories (`lib/money-log/schema.ts:115,124`), rules (`lib/money-rules`), four starter sets (`lib/money-log/starter-sets.ts`, round 4's #347); Export everything holds them with everything else | The deeper part: "Save categories and rules" as one small file, and "Read categories and rules" from one on another device or from a friend: a plan of what is added (nothing removed), then Undo | S | Lina |
+| A pension account | A "Retirement Fund" account type, shown apart on the Net Worth page (13 Jan 2026) | https://www.pocketsmith.com/news/ (13 Jan 2026) | yes | `have` | `pension` among the asset kinds (`ASSET_KINDS`, `lib/accounts/schema.ts:13`), counted in net worth (`lib/accounts/net-worth.ts`) | — | — | — |
+
+Not rowed:
+- Server service and against a rule (no bank connections): live bank feeds from 12,000+ institutions, the Feeds widget (8 Jun 2026), the Navexa feed (18 Jun 2026).
+- Server service: the MCP server (1 Apr 2026) and its navigation tools (25 Aug 2026), the ChatGPT plugin, email summaries on a schedule (the in-app summary is Tiller's row), sharing with an advisor, friend or family member (also against the rule that nothing is shared between people), two-factor sign-in.
+- Needs a model: Categorise with AI (19 Oct 2026).
+- Not proposed: the future-dated entry warning (9 Jun 2026), page titles with more context (26 Mar 2026), the red exclamation mark on overdue bills (7 Oct 2026; the calm-design rule), mobile layouts of the web app (27 Sep 2026; ZIGoals is one responsive app).
+
+Already in COMPETITORS.md:
+- Quicken Simplifi (round 3): Projected balances a year ahead (daily balances forecast up to 60 years; the cashflow statement). Lunch Money (round 4): A calendar of the month's money (the budget calendar).
+- Wallet by BudgetBakers: One-time budgets across categories; Goodbudget: Budget period (budgets per day, week, month and longer). Monarch: Category budgets with rollovers ("Budget includes rollover", 26 Mar 2026); Reports (Sankey, treemap, mobile) (Income and Expense, Budget Analysis, 9 Mar 2026); Accounts: sort, notes, net worth range (the Net Worth date range, 14 Jan 2026).
+- Quicken Simplifi (round 3): Comparison report with a waterfall (comparison periods on Income and Expense, 16 Sep 2026). Kubera: Documents (the Files page, important and starred files, 21 Jul 2026); Any currency, one total. Spendee: Reorder and hide wallets (hide accounts from Net Worth, 11 May 2026).
+- Rocket Money: Transaction tools (labels, Undo of bulk changes, 26 Jan 2026). Copilot: Subscriptions and bills list (Recurring tab) (the bill reminder widget, 17 May 2026); Split transactions (rebuilt on web) (splits on mobile, 21 Dec 2025). YNAB: File-based import with CSV converter (the Frollo importer, 25 Mar 2026). Bearable: Customisable homepage (dashboards).
+
+## Ten more apps, round 6 (owner follow-up 4, item 4g; 22 Nov 2026)
+
+
+
+Drafted 22 Nov 2026, to be added under `## Matrix` in `docs/review/session-av/COMPETITORS.md`, after "Ten more apps, round 5 (owner follow-up 4, item 4g)". It uses the method in that file's header. Official sites, help centres and 2025–2026 release notes were read with WebSearch (standard mode first) and WebFetch; App Store "What's New" notes count as release notes. Page text was treated as data only. Every row was then checked against this branch's code (`apps/web`, branch `lane2/batch5`, HEAD `7296cbf6`, which holds rounds 1 to 5 with `lane2/r5-plan`, `lane2/r5-notes`, `lane2/r5-body`, `lane2/r5-gym` and `lane2/r5-money` merged; none of the five is ahead of it), so that nothing round 5 builds (LEDGER #348–#390) is marked missing or rowed again. Each `have` and `half` names the file that was opened. All pages were seen on 22 Nov 2026.
+
+Not repeated: a feature that already has a row in COMPETITORS.md (the 25 apps, the first "Ten more apps" and rounds 2 to 5) gets no new row. It is listed under "Already in COMPETITORS.md" for that app. Where the new app goes further, the row is added and covers only the further part, which it names. Each app also lists what was left out because it is native-only, a server service or needs a model, with that cause.
+
+The ten apps: OmniFocus, Capacities and Diarium (tasks, planning, notes and journal); Medito and Moodfit (habits, mood and mind; Moodfit for its non-medical tools only); Lifesum, AutoSleep and Caliber (food, sleep, workouts and body); EveryDollar and Banktivity (money).
+
+Source caveats:
+- **No instruction addressed to AI agents was found** in any page read this round (each fetch was asked to report one verbatim; none had one).
+- Amie (amie.so/changelog, #117–#132, Feb 2025 to Sep 2026) was read first and not chosen: its 2025–2026 notes are the meeting recorder, AI chat, MCP, Slack, Stripe and calendar-sync integrations, almost all needing a model or a server. Reflect's changelog prints no dates, and its 2026 news (an MCP server, Reflect Open) is server or model work. HabitKit's App Store notes are all "bug fixes", Routinery's are "minor improvements", Toshl's blog has no dated 2026 feature, and Moneydance 2026 is still in alpha (its forum, May 2026). OmniFocus, Diarium, Medito, Moodfit, Banktivity and EveryDollar took those places.
+- OmniFocus: the release-notes index (omnigroup.com/releasenotes/omnifocus-mac) dates 4.9 (13 Sep 2026) to 4.10.1 (10 Nov 2026). The 4.7 and 4.8.4 note pages print no date, only "© 2026"; 4.7 is read as 2025 (it comes before 4.8.x, which the index puts in early 2026) and both count as new since 2025. Project types, On Hold and Dropped are read in the OmniFocus 4.8 glossary (support.omnigroup.com).
+- Capacities: the release pages capacities.io/whats-new/release-71 (18 Sep 2026), release-72 (26 Oct 2026) and release-73 (5 Nov 2026) were read in full. The point releases 1.71.24 (9 Oct 2026) and 1.73.8 (17 Nov 2026) and releases 65 to 69 (May to Aug 2026) were read through releasebot.io/updates/capacities, which mirrors the official notes (its rows say so); docs.capacities.io/changelog returned 404.
+- Diarium: diariumapp.com has a feature list but no changelog. The App Store notes print no year from 3.2.0 (Jan 21) on; they follow 3.1.87 (12/21/2025), so 3.2.0 to 3.3.14 (Oct 28) are from 2026.
+- Medito: the App Store notes print no year; the version numbers carry it (2611.17.0 is 2026, month 11; 26.4.28 is 28 Apr 2026). The APKMirror page refused the fetcher (403).
+- Moodfit: getmoodfit.com and its help page were read; the help page names its sections but explains only the passcode. The App Store page (id1054458809) was not fetched (its first id was wrong, 404); version 3.4 (10 Feb 2026, Low Mood and Inbox navigation) was read through the search index of an App Store mirror. Its other rows are not new since 2025.
+- Lifesum: the App Store notes print no year (23.5.0, Jan 26, to 24.1.3, Nov 2026) and say only "bug fixes" and "iPhone Duo"; the help centre's "What is new" page (help.lifesum.com, Dutch edition) has one 2026 entry (March 2026, AI tracking). The Life Score is read in its help article (lifesum.helpshift.com).
+- AutoSleep: the App Store notes print no year for 6.17 (Sep 15) and 6.18 (Nov 3); they follow 6.16 (11/29/2025), so both are from 2026.
+- Caliber: feedback.caliberstrong.com/announcements dates every release (5.3.0, 28 Mar 2025, to 5.18, 5 Nov 2026). The Strength Score's method was read through the search index of Caliber's blog.
+- EveryDollar: the help centre (everydollar.help.ramseysolutions.com) refused the fetcher (403) and the App Store page tried returned 404. The rows rest on ramseysolutions.com/money/everydollar/features and /theplan (read in full); "Left to Budget", paycheck planning and the January 2026 relaunch (Margin Finder, streaks) were read through the search index of the help centre and of two reviews (NerdWallet, The Penny Hoarder), and are marked so.
+- Banktivity: banktivity.com/content/features/whats_new.php (Banktivity 10) prints no date ("© 2026"); 10.1 is dated 2 Sep 2026 on the IGG Software blog, so 10.0 is read as 2026.
+
+### Corrections to earlier rows
+
+- None found in the rows this round touched. One finding for the owner is in the ledger notes (#411): meditation days are calendar days (`sessionDay`, `lib/meditation/stats.ts:10`), so a night owl's 01:00 session is not counted on the day "My day ends at" (`lib/day-boundary.ts`) gives habits and the Checklist.
+
+### Totals (the ten apps)
+
+| Status | Tasks, notes and journal (OmniFocus, Capacities, Diarium) | Habits and mind (Medito, Moodfit) | Food, sleep, workouts and body (Lifesum, AutoSleep, Caliber) | Money (EveryDollar, Banktivity) | All |
+|---|---|---|---|---|---|
+| `have` | 0 | 1 | 2 | 1 | 4 |
+| `half` | 10 | 4 | 4 | 4 | 22 |
+| `missing` | 10 | 3 | 3 | 3 | 19 |
+| `not web-possible` | 0 | 0 | 0 | 0 | 0 |
+| `against a rule` | 0 | 1 | 2 | 3 | 6 |
+| **Rows** | **20** | **9** | **11** | **11** | **51** |
+
+Rows per app: OmniFocus 7, Capacities 6, Diarium 7, Medito 4, Moodfit 5, Lifesum 1, AutoSleep 5, Caliber 5, EveryDollar 6, Banktivity 5.
+
+Every app had at least 12 features read (most had 20 or more); its rows, "Not rowed" and "Already in COMPETITORS.md" together name them, read from the pages cited in that app's rows. The fewest are Moodfit's and Medito's (about 20 each), whose pages are the thinnest. Lifesum adds one row because nearly everything it does is already in the matrix (MyFitnessPal, Yazio, Lose It!, Cronometer, MacroFactor); AutoSleep's sensor features are native-only.
+
+### Tasks, planning, notes and journaling (sixth additions)
+
+#### OmniFocus (tasks and projects)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Change several tasks at once | Batch editing: tags, dates and other fields for several actions in one step | https://www.omnigroup.com/omnifocus/features | no | `half` | Select in Tasks (`components/tasks/tasks-page.tsx:166,433`): the bar finishes, sets a priority, puts on today or tomorrow, moves to a project or removes the chosen tasks (`:441`) | The deeper part: add or remove a label and give any chosen day (or no day) to the selected tasks, with the one Undo the bar already has | S | Max, Lina |
+| A project on hold | On Hold: a project not meant for work now; its actions become unavailable until it is made active again. Dropped hides a project and its actions | https://support.omnigroup.com/documentation/omnifocus/universal/4.8/en/glossary | no | `missing` | `projectSchema` (`lib/tasks/schema.ts:227-234`) has `archived` and nothing between active and archived; a search of `lib/tasks` for hold finds nothing | "On hold" on a project (with an optional day to resume): its tasks leave Today, Upcoming, the matrix, Plan my day and the reminders, are listed under the project with "On hold until …", and come back by themselves on that day or with one tap. An additive, optional `hold` on the loose project, TIER 3 (stored format) | S | Max, Lina |
+| Projects in order | Sequential projects: only the topmost open action is available; the next ones are blocked until it is done or dropped. Parallel and single-action lists beside them | https://support.omnigroup.com/documentation/omnifocus/universal/4.8/en/glossary | no | `half` | A task can wait for up to three other tasks (`after`, `lib/tasks/schema.ts:182`, round 4's #304, `waitingFor` in `lib/tasks/engine.ts`) | The deeper part: "In order" on a project (or a task with subtasks): only its first open task shows in Today, Upcoming and Plan my day, the rest wait under it, and finishing one brings the next forward, without typing a wait on each. An additive, optional flag on the loose project, TIER 3 (stored format) | S | Max |
+| Only some projects in view | Focus: hide everything except the chosen projects or folders for a while (Pro) | https://www.omnigroup.com/omnifocus/features | no | `missing` | The Tasks views (`components/tasks/tasks-nav.tsx:26-28`: Inbox, Today, Upcoming, a project, a label, a filter) show all projects; a saved filter (`filterSchema`, `lib/tasks/schema.ts:242`) is one more view, not a scope over all of them | "Focus on…": one or more projects or areas chosen, and every view (Today, Upcoming, the matrix, Plan my day) shows only their tasks, with a quiet "Focused on Work · Show all" line until it is ended. A device preference, TIER 3 (stored format) | S | Max |
+| Review each project every so often | Review: projects come up for review on their own interval; mark a project reviewed, and on-hold, deferred or blocked items show for a decision | https://www.omnigroup.com/omnifocus/features ; https://support.omnigroup.com/documentation/omnifocus/universal/4.8/en/glossary | no | `missing` | The weekly review (`lib/weekly-review/engine.ts`) and `reviewTaskChoices` (`lib/tasks/review.ts:22-27`) ask about overdue tasks of the week; a search of `lib/weekly-review` and `lib/tasks` for a project review finds nothing | "Review every … weeks" on a project: in Tasks → Review, the projects whose turn has come, each with its open, waiting and on-hold tasks, and "Reviewed", which sets the next turn. An additive, optional `review` on the loose project, TIER 3 (stored format) | S | Max |
+| One label of a group | Mutually exclusive tags: only one tag of a tag group (Low, Medium, High energy) on an item at a time (4.7) | https://www.omnigroup.com/releasenotes/omnifocus/4.7 | yes | `half` | A project's own Choice field holds one value of a list (`FIELD_KINDS`, `lib/tasks/schema.ts:221-226`, round 2's custom fields); labels are free words (`@label`) | The deeper part: a label group ("@home, @office, @errand") across all projects, where giving a task one of them takes the other away. Kept with the labels in the tasks record, additive, TIER 3 (stored format) | S | Max |
+| The second-to-last weekday of a month | Monthly repeats on the "Next to Last" weekday, and on any "Day" of the week counted from the end (4.9, 4.9.2) | https://www.omnigroup.com/releasenotes/omnifocus-mac (4.9, 13 Sep 2026; 4.9.2, 22 Sep 2026) | yes | `half` | Repeats on the nth weekday, the last one included (`nth`, n 1–5 or -1, `lib/tasks/schema.ts:58`; `nthWeekday`, `lib/tasks/recurrence.ts:25-29`), and on the month's last day (`monthDay` -1) | The deeper part: "the second-to-last Friday" and "the last working day of the month" (Monday to Friday). `nth` reads -1 only, so -2 written there would be dropped by an older build (`.catch(undefined)`) and the task would repeat on its day of the month: the new rule goes in its own optional field beside the old one, TIER 3 (stored format) | S | Lina, Max |
+
+Not rowed:
+- Native-only: Nearby (location tags on a map, notifications by place), Apple Watch, widgets and Control Center controls (4.8.4, 4.9), Quick Entry and Quick Open from anywhere, Siri Reminders integration, Spotlight, on-screen awareness and Shortcuts actions (4.9), the Perspectives Bar as a sidebar (4.9), Handoff.
+- Needs a model: Siri AI (Beta) and Apple Intelligence date parsing (4.9, 4.9.3).
+- Server service: Omni Sync Server and own-server sync, Mail Drop, Omni Automation plug-ins and AppleScript (third-party code).
+- Not proposed: Time Sensitive notifications (4.7; a native notification level), the "Due Soon means" setting (Due soon in ZIGoals is the day before), reminder URLs from a note's links (4.9.3).
+
+Already in COMPETITORS.md:
+- Things: When scheduling (defer dates: an item hidden until its day); Deadlines (Planned and Due dates side by side, 4.7); Projects, Areas and Headings (folders, action groups); Tags and Quick Find; Calendar events in Today/Upcoming (Forecast with events).
+- Todoist: Recurring dates (repeat limits by date or count and "catch up automatically" to the next future date, 4.7: `until`, `left` and the skip past missed days in `lib/tasks/recurrence.ts:4-10`); Labels, priorities and filters (Flags and Custom perspectives); Today and Upcoming views and Calendar integration (Forecast's day list, its summary dots and counts, 4.7); Reminders (extra reminders); Task descriptions and comments (rich notes and attachments).
+- Motion (round 4): A deadline at risk (Estimated Duration and the Latest Start Date). Sunsama: Weekly review (the review of the week).
+
+#### Capacities (notes with objects)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Rename or merge a tag | Merge tags: move every use of one tag into another (release 71) | https://capacities.io/whats-new/release-71 (18 Sep 2026) | yes | `missing` | Tags live in a note's text and its Tags field (`lib/notes/tags.ts:4-8`); a search of `lib/notes` and `components/notes` for renaming or merging a tag finds only the tag templates' own rename (`lib/notes/tag-templates.ts:38`) | "Rename tag" and "Merge into …" in the tag list: every note's `#old` (in its words and its Tags field, nested tags under it with it) becomes `#new`, the earlier words kept as a version (`lib/notes/versions.ts`), with one Undo. Locked notes are changed too but never shown. Normal writes | S | Max |
+| Daily notes marked as read back | Reviewed daily notes: mark a day reviewed, green dots in the mini calendar, an Unreviewed section on the Daily Notes dashboard (release 71) | https://capacities.io/whats-new/release-71 (18 Sep 2026) | yes | `missing` | Daily notes are a kind (`NOTE_KINDS`, `lib/notes/schema.ts:21`); the day strip (`components/notes/this-day-strip.tsx`) shows the day's things; nothing records that a daily note was read back | "Read back" on a daily note; a quiet mark on its day in the strip and the calendar; "Not read back yet" listing the last 30 days' daily notes that are not. An additive, optional `readBack` day on the loose note, TIER 3 (stored format) | S | Max, Sanne |
+| A property changed on several notes at once | Bulk property editing: select several objects and edit their shared properties in one pass (release 71) | https://capacities.io/whats-new/release-71 (18 Sep 2026) | yes | `half` | Select in Notes (round 5's #359, `lib/notes/bulk.ts:5-10`, `components/notes/notes-select.tsx`): add or remove a tag, pin, archive, delete | The deeper part: "Set property" in the Select bar: one property (`lib/notes/props.ts`) given one value, or removed, on every chosen note, in the same one Undo | S | Max |
+| Merge two notes | Object merging: merge two objects, the first one's properties kept and its gaps filled from the other (release 72) | https://capacities.io/whats-new/release-72 (26 Oct 2026) | yes | `half` | An inbox note can be filed into a daily or topic note (`fileNote`, `lib/notes/store.ts:159-182`: its words added at the end, Undo) | The deeper part: "Merge into …" on a topic note: its words under the other's, its tags, photos and properties added where the other has none, [[links]] to it pointed at the other, the earlier words of both kept as versions, one Undo | S | Max |
+| Sums under a table of notes | Calculations in data views: sum values or count ticked boxes, at the top of a view or in a table's footer (release 72) | https://capacities.io/whats-new/release-72 (26 Oct 2026) | yes | `missing` | The table of notes sorts and filters by properties (`lib/notes/table.ts:24-35`, `components/notes/notes-views.tsx`); nothing adds a column up | Under each Number column, its sum and average, and under a Tick column how many are ticked, of the notes shown. Derived; a view preference beside the table's own | S | Max, Lina |
+| A repeating task's record | Repeating tasks' stat cards, the last one "Avg. interval": the average time between completions next to the target (v1.73.8); completing or skipping logs each occurrence | https://capacities.io/whats-new (v1.73.8, 17 Nov 2026, read through releasebot.io/updates/capacities) ; https://capacities.io/whats-new/release-64 | yes | `missing` | Every finish of a repeat is kept (`completions`, `lib/tasks/schema.ts:123`) and one can be taken back or moved (round 5's #352, `lib/tasks/occurrences.ts`); no figure is made from them | On a repeating task: how often it was done in the last 3 months, how many on their day, and the average days between finishes beside the rule's ("every 7 days · done on average every 9"), as facts. Derived; nothing stored | S | Max |
+
+Not rowed:
+- Needs a model: AI chats that edit content (release 71), AI "Fill object" (release 72), audio recording with transcription and summaries (releases 71 and 73), AI autofill of covers from web search (release 73).
+- Server service: sync to Capacities' EU servers, external AI connectors (MCP, release 71), the API and date-based listing (release 73), community integrations (Alfred, Farview, Yesteryear), social embeds (release 72; Instagram, TikTok and others), public read access, reminders with an email fallback (release 73).
+- Native-only: home-screen widgets (Day Tasks, New Task, Daily Note; releases 68, 72, 73), the phone share sheet "Save in Space" (release 72), the rebuilt tablet app (release 73).
+- Not proposed: coloured app icons (release 72; decoration), eight-digit date entry (release 72; the browser's date field), application zoom (the browser's zoom), number formats with units and prefixes (release 72).
+
+Already in COMPETITORS.md:
+- Notion: Database views (object types with properties, card and list views per query, releases 71–72; queries 2.0); Offline mode (offline trash viewing, release 72). Obsidian (round 3): Bases (object types and queries; sort and filter from table headers, release 71; "includes all of" filters, v1.73.8); Canvas (whiteboards, release 72); Print a note or save it as PDF (professional PDF export, release 71).
+- Logseq (round 5): Mentions without a link (Related Content); Deleted notes kept for 30 days (the trash); Notes on a PDF (PDF annotations, release 71); A template for every note with a tag (Object Studio templates); Act on several notes at once (selection). Craft (round 5): A template for each daily note (date variables in template properties, release 71); A note's look (covers).
+- TickTick: Notes and Markdown editing (links and backlinks); the graph view is built (`components/notes/graph-view.tsx`; its timeline mode and type filters, release 72, are not proposed). Loop: Automatic backups (a set number of automated backups, release 72). Todoist: Today and Upcoming views (the Task dashboard: Today, Inbox, Next Up, Done; group by and hiding completed tasks, v1.73.8); Recurring dates (monthly on the last day, deadlines that move with the repeat, release 65); Reminders (a reminder added to every task's date, v1.73.8). Logseq (round 5): Doing and Cancelled as task states (the "On hold" status category, release 71; ZIGoals' Doing and Cancelled, `lib/tasks/task-state.ts`).
+
+#### Diarium (journal)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| A daily word goal | Word count tracking with daily goals; diary statistics on journaling habits | https://diariumapp.com/ | no | `half` | The Journal's numbers: words per entry, the writing streak and the words written this year (`wordCount`, `writingStreak`, `wordsThisYear`, `lib/journal/stats.ts:22-38`) | The deeper part: "My goal: 200 words a day", the words of today's entries shown against it while writing ("140 of 200") and the days it was met in the calendar, never a warning when it is not. An additive, optional goal in the loose journal record, TIER 3 (stored format) | S | Sanne, Max |
+| People in an entry | People as entry metadata beside tags, ratings and places; entries found by person | https://apps.apple.com/us/app/diarium-journal-private-diary/id1436044299 ; https://diariumapp.com/ | no | `missing` | `journalEntrySchema` (`lib/journal/schema.ts:38-80`) has tags, photos, audio, a journal and a star; a search of `lib/journal` for people or person finds only comments | "Who was there": up to eight names typed on an entry (chosen again from the names used before), shown on the entry, and "Entries with Anna" from a name. Nothing is read from the device's contacts. An additive, optional `people` on the loose entry, TIER 3 (stored format) | S | Sanne |
+| On this day for any day | "On this day" with navigation to past and future dates (3.2.3) | https://apps.apple.com/us/app/diarium-journal-private-diary/id1436044299 (3.2.3, Jan 29; year 2026) | yes | `half` | "On this day" for today, a month ago and a week ago (`lib/on-this-day/throwback.ts:5-12`, `onThisDay`, `lib/on-this-day/on-this-day.ts:30`) | The deeper part: arrows to the day before and after, and a day chosen from the calendar, each showing that date in earlier years; entries set aside and letters still folded away stay out, as now | S | Sanne |
+| Every photo and voice note in one place | Attachments view of all media in one place; a gallery view of photos and media | https://diariumapp.com/ | no | `missing` | Photos and voice notes are kept per entry in IndexedDB (`JOURNAL_MEDIA_DB`, `lib/journal/media.ts:12`) and shown inside each entry (`components/journal/entry-media.tsx`); a search of `components/journal` for a gallery finds none | "Photos": every journal photo (and voice note) as a grid, newest first, each opening its entry; a journal or a year chosen; entries of a locked or private journal left out as they are from the list. Derived from the store; nothing new stored | S | Sanne, Max |
+| Lock again after a while away | A setting for when the lock engages (3.3.4); password, PIN, Face ID or Touch ID | https://apps.apple.com/us/app/diarium-journal-private-diary/id1436044299 (3.3.4, Sep 7; year 2026) | yes | `half` | The device lock asks for the PIN when a new tab or window opens (`lib/device-lock.ts:4-8`) | The deeper part: "Lock again after 5 / 15 / 60 minutes away": the PIN asked again when the app comes back after that long hidden, in the same tab. `lockSchema` is a plain `z.object` (`lib/device-lock.ts:15`), so an older build would drop the new field when it writes the lock: it goes in its own small device key, TIER 3 (stored format) and TIER 3 (auth: the lock) | S | Sanne, Max |
+| Sunrise, sunset and the moon on the day | Sunrise and sunset and the lunar phase in each day's entry; weather | https://diariumapp.com/ | no | `missing` | A search of `lib` for moon and sunrise finds nothing | On a day's entries, the moon's phase (worked out from the date) and the day's sunrise and sunset for a place the person chose once from a short built-in list of cities (or typed as latitude and longitude); nothing is looked up. The place is a device preference. Weather needs an outside service and stays out | S | Sanne |
+| Imports from more journal apps | Migration from Day One, Diaro, Journey, Daylio, Diarly, Daybook, Evernote and Apple Journal; CSV import (3.3.2) | https://diariumapp.com/ ; https://apps.apple.com/us/app/diarium-journal-private-diary/id1436044299 (3.3.2, Jul 16; year 2026) | yes | `half` | The Journal reads a Day One export, plain text and Markdown (`IMPORT_SOURCES`, `lib/journal/schema.ts:32`; `lib/journal/import.ts:6-12`) | The deeper part: Journey's ZIP of JSON entries and a CSV (date, text, tags), planned first and undone in one step, as the Day One import is. A new source word, additive; older builds read an unknown `imported` as absent (`.catch(undefined)`) | M | Sanne |
+
+Not rowed:
+- Server service: optional sync through iCloud, OneDrive, Google Drive, Dropbox or WebDAV; connected feeds (Facebook, GitHub, Untappd, Last.fm, Trakt, Strava, Todoist, BoardGameGeek, Microsoft To Do, Google Calendar and Tasks, Outlook Calendar; 3.2.5, 3.3.9, 3.3.14), Google Timeline, weather in entries, Instagram account choice (3.3.2).
+- Native-only: Apple Health and Health Connect (3.3.0, 3.3.2), iOS journaling suggestions (3.1.87, 3.2.3), the camera roll and system calendar context, dictation, widgets, Face ID and Touch ID, the share sheet.
+- Needs a model: the AI search for insights and the coach (a monthly pass).
+- Not proposed: a hex colour field in the colour picker (3.3.2), the order of attachments in an entry (3.3.4; small), custom fonts (Daylio's custom fonts row), Liquid Glass and the iPad sidebar (3.1.86).
+
+Already in COMPETITORS.md:
+- Day One: Rich journal entries (rich text, highlight, lists, links; several entries a day); Automatic metadata (places and the map; Location History is native-only); On This Day (its notifications); Templates; Journaling reminders and streaks (daily reminders, the calendar of days written); End-to-end encryption and passcode (the password and PIN); Imports and integrations (the Day One and Apple Journal imports); Journal Collections, Themes and search (search by word or tag, dark and light themes, accent colour).
+- Journey (round 3): E-book and Word export (Word, PDF, HTML, plain text and JSON export, 3.3.14). Daylio: Custom moods and Scales (star ratings and tracker tags with numbers such as weight). Bear (round 4): Several photos placed in a note (unlimited attachments).
+
+### Habits, mood and mind (sixth additions)
+
+#### Medito (meditation)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| When a meditation day ends | A streak day boundary setting (2606.5.0) | https://apps.apple.com/us/app/medito-meditation-sleep/id1500780518 (2606.5.0, Jun 8, 2026) | yes | `half` | "My day ends at" counts a night owl's habits, Checklist and streaks until e.g. 03:00 (`lib/day-boundary.ts:1-9`) | The deeper part: meditation days (`sessionDay`, `lib/meditation/stats.ts:10`) follow the same setting, so a 01:00 session counts on the evening's day in the minutes, the weekly bars and the days in a row. Read only; the synced Health group (strict, `lib/meditation/schema.ts:21`) is not changed | S | Max |
+| Your consistency | A Consistency Score with an explanation of how it is worked out (3.6.17); streak and consistency in widgets | https://apps.apple.com/us/app/medito-meditation-sleep/id1500780518 (3.6.17, Apr 17, 2026) | yes | `missing` | Meditation shows days in a row and eight weekly bars (`daysInARow`, `weeklyBars`, `lib/meditation/stats.ts:25-34`) | "Your consistency": the days with a session in the last 30 (or 90) out of the days, with one line saying how it is counted, and the weeks of a goal met. A number that never falls to zero because of one missed day. Derived; nothing stored | S | Max, Sanne |
+| Log a range of past days | Backfill past sessions across a date range at once by long-pressing two days in the stats calendar (26.4.28); multi-day logging (2606.5.0) | https://apps.apple.com/us/app/medito-meditation-sleep/id1500780518 (26.4.28, Apr 28, 2026; 2606.5.0, Jun 8, 2026) | yes | `half` | Mindful minutes typed for one day at a time (`saveManual`, `lib/meditation/engine.ts:15-29`) | The deeper part: "Several days": a first and a last day, a time and minutes, and one session written for each day (days that already have a session at that time skipped), with one Undo | S | Sanne |
+| Edit or delete a past session | Editing the dates and times of past sessions (2611.1.2); deleting a session from the calendar (3.6.17) | https://apps.apple.com/us/app/medito-meditation-sleep/id1500780518 (2611.1.2, Nov 5, 2026; 3.6.17, Apr 17, 2026) | yes | `have` | `saveManual` edits a logged session by its id, a session ending in the future refused; `deleteSession` (`lib/meditation/engine.ts:15-33`) | — | — | — |
+
+Not rowed:
+- Needs content made for ZIGoals: courses (daily calm, focus, anxiety SOS, mindful walking, loving-kindness), sleep stories and soundscapes, programmes (a 7-day starter, 30-day challenges), packs for students, sleep and anxiety, the beginner session in onboarding (2606.30.0), sessions chosen by mood or goal, body scans, daily quotes shared as cards with eight palettes (2605.25.0, 2606.5.0; ZIGoals' quotes are Stoic's row).
+- Native-only: the Apple Watch app and Home and Lock Screen widgets (2611.17.0), Apple Health export (2611.17.0, 2606.30.0).
+- Server service: sign-in and accounts (2609.27.0), donations (2607.24.0, 2607.28.0), restoring a stats snapshot from another account (26.4.28).
+- Not proposed: a quieter media-permission banner (2606.5.0), the iPad layout (2611.17.0).
+
+Already in COMPETITORS.md:
+- Insight Timer: Meditation timer (the Timer and Stopwatch with interval chimes, 2611.11.0 and 2611.17.0: `intervalMin` in `lib/meditation/schema.ts:29`, the open-ended session in `lib/meditation/timer.ts:12-18`); Milestones (streak tracking). Headspace: Offline downloads (offline mode); Meditation reminders (gentle reminders); Run streak. Calm: Breathing exercises (breathing timers); Sleep Stories; Music and soundscapes.
+
+#### Moodfit (mood tools, non-medical features)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Your own things that lift you | Mood-boosting tool: activities that lift the mood, chosen from a list | https://www.getmoodfit.com/ | no | `half` | Two or three written choices per feeling's corner, each opening a tool ZIGoals has (`STRATEGIES`, `lib/mood-words/strategies.ts:3-11`, round 4's #325); the list is fixed | The deeper part: "What lifts me": the person's own short list (up to 12, "call my sister", "the dog's walk"), offered first beside the built-in choices when a check-in is unpleasant, one tap to make it a task for today. Choices, never advice. An additive, optional list in the loose mood-words record, TIER 3 (stored format) | S | Sanne, Max |
+| Grounding | A grounding tool for the present moment | https://www.getmoodfit.com/ | no | `missing` | The calm tools are breathing, stretches, a still picture and Write it out (`lib/calm/stretches.ts`, `lib/calm/visuals.ts`, `lib/calm/write.ts`, `lib/meditation/breathing.ts`); a search of `lib` for grounding finds none | "Five, four, three, two, one": a step-by-step screen (five things you see, four you can touch, three you hear, two you smell, one you taste), each step answered in a word or skipped, nothing kept unless the person saves it as a journal line. In English and Dutch, under Calm. Nothing stored | S | Sanne, Max |
+| A plan for a low day | Low Mood: a place for a low day that links the tools to use (3.4, improved navigation to and from it) | https://www.getmoodfit.com/ ; Moodfit 3.4 (10 Feb 2026, App Store notes read through the search index of a mirror) | yes | `missing` | A low check-in offers the corner's choices (`lib/mood-words/strategies.ts`); the AI guard has a distress list (`lib/ai/safety-guard.ts:60`); a search for a personal low-day plan finds none | "On a low day": the person's own page, written when they feel well — what helps, people to message, things to leave for another day — opened in one tap from Calm and from an unpleasant check-in, with the app's existing help line. Words of the person, never advice. A new device record, loose and versioned, in Export everything and the erase, TIER 3 (stored format) | S | Sanne |
+| Things to bring up at an appointment | Therapy companion: prepare for therapy and get more from it | https://www.getmoodfit.com/ | no | `half` | "Report for a visit" prints the person's own log for a range of days and chosen sections (`lib/clinician-report/build.ts:1-5`) | The deeper part: "To bring up": a short list kept between visits (a line added from a journal entry or a check-in in one tap), printed at the top of the report and ticked off afterwards. An additive list in the report's own record, TIER 3 (stored format) | S | Sanne |
+| Questionnaires with a score | Mental health assessments: self-assessment questionnaires | https://www.getmoodfit.com/ | no | `against a rule` | — | Scored screening questionnaires read the result as a level of a condition: no medical advice | — | — |
+
+Not rowed:
+- Needs content made for ZIGoals: the Nervous System tool, the mindfulness audio, the education content (difficult emotions, procrastination, rumination), the daily goal programs DESTRESS, GRATITUDE, POSITIVE and RELAX.
+- Server service: the account (email and password), program codes from employers and clinicians.
+- Not proposed: the Inbox (3.4; the help page does not say what it holds).
+
+Already in COMPETITORS.md:
+- Daylio: Custom moods (the Mood Journal). Calm: Check-ins (the Gratitude Journal); Breathing exercises (Breathwork). Moodnotes (round 3): Thinking traps and the thought checker (the CBT thought records). Finch: Goals (daily goals); Bearable: Factors and Factor Effect report (lifestyle tracking against mood); Health Experiments (customized experiments, `lib/experiments`); Trends & Insights baselines and weekly report (insights and weekly reports); Medication schedules and reminders (medication tracking); Privacy (the four-digit passcode). How We Feel (round 4): Strategies for a feeling. Calm: Reminders.
+
+### Food, sleep, workouts and body (sixth additions)
+
+#### Lifesum (food)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Fruit, vegetables and fish counted | One-tap habit trackers for water, fruit, vegetables and fish beside the diary; they add to the weekly Life Score | https://lifesum.com/ ; https://apps.apple.com/us/app/lifesum-healthy-meal-planner/id286906691 ; https://lifesum.helpshift.com/hc/en/3-lifesum/faq/199-life-score | no | `half` | A habit with a number can count portions ("Fruit, 2 a day", `lib/habit-number.ts`); the food diary's quick counters are exercise counters (`lib/health-counters.ts:1-9`, push-ups and squats) | The deeper part: in Health → Food, a row of one-tap portion counters (fruit, vegetables, fish, and up to three of the person's own), each with an own daily or weekly aim and none turned on by default, and no "off track" line (the vegetarian review the App Store page quotes). An additive, optional group in the food record, TIER 3 (stored format) | S | Tom, Sanne |
+
+Not rowed:
+- Needs a model: AI tracking from a photo, voice or chat (renamed in March 2026, help.lifesum.com).
+- Needs content made for ZIGoals: the 41-question health test behind the Life Score, the recipe library, habit tips.
+- Native-only: Apple Health, Apple Watch and Samsung Galaxy Watch sync, real-time steps, iPhone Duo layouts (24.0.0).
+- Server service: Oura, Withings and Runkeeper connections; Lifesum for Work.
+- Not proposed: typed meals that skip the mode choice (March 2026; ZIGoals' quick add has no mode).
+
+Already in COMPETITORS.md:
+- MyFitnessPal: Food search and diary; Barcode Scan; Quick Add (quick tracking); Meal Planner and grocery list (meal plans with grocery lists); Water and weight log (the water tracker). Cronometer: Food diary with 95 nutrients (the macro breakdown with sugars, fibre and saturated fat; adjustable macro goals); Nutrition Scores (the weekly Life Score of 16 nutrition and exercise measures, eating-pattern points). Yazio: Food ratings (the food rating); Recipes with a cooking mode (recipes with filters); Fasting phases (intermittent fasting plans). Lose It!: Diet plans that flag foods (keto, paleo, high protein, Mediterranean); Exercise calories in the budget (exercise calories in the goal, optional). Hevy: Body measurements and progress photos (waist, body fat, chest, arm). MyFitnessPal: Saved meals, recipes and Recipe Importer (favourite foods, recipes and meals).
+
+#### AutoSleep (sleep)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Tonight's bedtime | Tonight's Bedtime: a bedtime worked out from your habits | https://apps.apple.com/us/app/autosleep-track-sleep-on-watch/id1164801111 | no | `half` | The sleep goal holds the hours and a bedtime window the person types (`sleepGoalSchema`, `lib/sleep/schema.ts:36-37`); the wind-down card starts at a time the person sets (`components/health/sleep/wind-down.tsx:25`); time to fall asleep has "your usual" (`lib/sleep/usual.ts:5-9`) | The deeper part: on the evening sleep card, "Bed by 22:50 for your 7 h 30 before your usual 06:45 wake", from the goal, the usual wake time of the last 14 nights (or tomorrow's own alarm time typed) and the usual time to fall asleep, said as a fact; the window the person typed wins when set. Derived; nothing stored | S | Sanne |
+| Time asleep out of time in bed | Sleep Fuel: sleep quality and efficiency | https://apps.apple.com/us/app/autosleep-track-sleep-on-watch/id1164801111 | no | `missing` | A night's time asleep and time in bed are both worked out (`asleep`, `inBedMinutes`, `lib/sleep/night.ts:5-13`), never divided | "Asleep 6 h 50 of 7 h 40 in bed (89 %)" on a night and its weekly average, marked as an estimate when the time to fall asleep or awake time was not typed (as `asleep` says). Derived; never a judgement of the number | S | Sanne |
+| A sleep in the day for shift work | Shift-worker updates to night hours (6.16), so day sleep is a night | https://apps.apple.com/us/app/autosleep-track-sleep-on-watch/id1164801111 (6.16, 11/29/2025) | yes | `have` | `napOrNight` (`lib/sleep/engine.ts:49-53`): a daytime sleep of three hours or more is a night, its day the wake date (`nightDay`, `lib/sleep/night.ts:5`) | — | — | — |
+| Sleep consistency | Sleep Consistency: tracks bedtime behaviour | https://apps.apple.com/us/app/autosleep-track-sleep-on-watch/id1164801111 | no | `have` | `consistency` and `wakeConsistency` (`lib/sleep/engine.ts:142-162`), shown on the sleep view | — | — | — |
+| A morning line about the night | A smarter morning notification with Sleep Fuel and readiness (6.18) | https://apps.apple.com/us/app/autosleep-track-sleep-on-watch/id1164801111 (6.18, Nov 3; year 2026) | yes | `against a rule` | — | Health content is never in a notification (ADR-010's rule, `lib/notify/plan.ts:24`; "Never a weight", "never what you ate", `lib/notify/prefs.ts:100,105`; "Never a sleep figure", `lib/notify/plan.ts:101`), so a lock screen never shows a night. The night is on Today's sleep card | — | — |
+
+Not rowed:
+- Native-only: automatic tracking from the Apple Watch, the Sleep Rings from heart rate, deep sleep and REM, Apple Sleep Stages (6.18's source choice), Readiness and sleeping HRV (6.16), Prior Day Stress (6.16), sleep apnea (6.14), blood oxygen, respiration rate, wrist temperature, noise and AutoSnore (6.16), Live Sleep Tracking, the Smart Alarm, complications, widgets, HomeKit, Siri, Shortcuts, Adjust (tuning the watch's detection), HeartWatch and Eclipse Yourself.
+- Not proposed: the Sunrise and Neon themes (6.16; Streaks' themes row), the clock and ring designs.
+
+Already in COMPETITORS.md:
+- Rise: Sleep debt (Time Asleep with the sleep bank). Sleep Cycle: Sleep Score (3 pillars) (the Sleep Rating); Sleep notes (Emojis & Notes); Statistics tab (History and Explore; Lights Off, time to fall asleep: `lib/sleep/usual.ts`, LEDGER #123); Sleep goal and sleep programs (Setup: goals and reminders). Pillow (round 4): Sleep data as a file (Exports).
+
+#### Caliber (strength training)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Favourite exercises | Star exercises, kept in their own tab (5.17) | https://feedback.caliberstrong.com/announcements (5.17, 21 Oct 2026) | yes | `missing` | Workouts can be starred (round 5's #377, `components/health/workouts/workouts-view.tsx:127,331`); the exercise library searches all exercises alike (`searchExercises`, `lib/workouts/library.ts:21`) and has no star | A star on an exercise in the library and the add-exercise sheet, and "Favourites" first when adding one. An additive, optional list of exercise ids in the loose workouts record, TIER 3 (stored format) | S | Tom |
+| A workout left out of your bests | Exclude a workout from the Strength Score, and mark deload workouts so they do not count towards strength metrics (3.1.0) | https://feedback.caliberstrong.com/announcements (3.1.0, via search index; undated) | no | `missing` | Bests come from every finished workout (`setBest`, `lib/workouts/set-best.ts:4-8`; `exerciseHistory`, `lib/workouts/engine.ts:102-106`); a search of `lib/workouts` for deload finds nothing | "Light week (not in my bests)" on a finished workout: its sets stay in the history and the volume, but are left out of the bests, the "new best" marks and the progression's next weights. An additive, optional flag on the loose workout, TIER 3 (stored format) | S | Tom |
+| Your bests with their days, and a fresh start | Reset PRs for one or all exercises while keeping the history, and see the date of each PR (5.12.2) | https://feedback.caliberstrong.com/announcements (5.12.2, 3 Mar 2026) | yes | `half` | Each exercise's best weight, estimated one-rep max, reps, time and distance (`ExerciseHistory`, `lib/workouts/engine.ts:102-105`), with no day beside them | The deeper part: the day each best was set ("100 kg · 12 Oct"), and "Count bests from today" for one exercise or all (after an injury or a new gym), the history kept and the earlier bests shown greyed as "before". An additive, optional per-exercise day in the loose workouts record, TIER 3 (stored format) | S | Tom |
+| An exercise's own defaults | Default exercise targets (sets, reps and rest) when an exercise is added (5.4.0) | https://feedback.caliberstrong.com/announcements (5.4.0, 13 May 2025) | yes | `half` | An exercise in a workout may keep its own rest time (`restSeconds`, `lib/workouts/schema.ts:19-24`); routines keep their own sets; a custom exercise has a name, category, measure and load only (`customExerciseSchema`, `:143`) | The deeper part: on an exercise, its own sets, reps and rest ("3 × 8, 2 min"), used when it is added to a workout that has no earlier values for it. An additive, optional `defaults` on the loose custom exercise (and a small map for library exercises), TIER 3 (stored format) | S | Tom |
+| Strength compared with others | Strength Score: how strong you are against your potential for your age and gender, from sub-scores for five muscle groups in five levels (Caliber Plus); Strength Balance; the progress section rebuilt around it (5.13.0) | https://apps.apple.com/app/id1482405410 ; https://feedback.caliberstrong.com/announcements (5.13.0, 14 May 2026) | yes | `against a rule` | — | A level against people of the same age and gender compares the person with others and reads their body (calm design: ZIGoals never compares the person with anyone, `lib/life-score.ts:12-13`). The person's own progress is built: estimated one-rep max and volume over time (`exerciseSeries`, `lib/workouts/analytics.ts:60`), sets per muscle per week (`muscleWeeks`, `:19`) | — | — |
+
+Not rowed:
+- Server service: coaching and Muse (5.18), MCP for ChatGPT and Muse (5.14, 5.18), the Strava integration (5.10.0; Strava's row), workout summary and PR sharing to social apps (5.10.0, 5.12.0), emailed CSV exports (5.7.0; the file is Strong's row), Health Connect.
+- Needs content made for ZIGoals: 28 new 45-minute library plans (5.7.0), the coach-made plans.
+- Not proposed: popularity-weighted exercise search (5.14), weight before reps (5.4.0), a Sunday or Monday week start (5.4.0; ZIGoals' weeks start on Monday), the confirmation before deleting completed activities (5.18; ZIGoals has Undo), home-screen colours (5.18).
+
+Already in COMPETITORS.md:
+- Hevy: Live PR notifications (realtime PRs, 5.12.0); Workout logging (the workout summary screen, total volume, 5.10.0); Automatic rest timer (5.4.0, finer rest steps); Custom workout keyboard (5.4.0); Progress analytics (customisable charts for all activity types and muscle views, 5.13.0); Body measurements and progress photos (the progress photo gallery with comparisons, 5.14; `lib/photo-compare/compare.ts`); Routines, folders and routine library (the Plans section, plan duplication, 5.7.0); Warm-up and plate calculators (offline plate math, 5.17). Fitbod: Replace an exercise (substitutions in supersets, 5.17). Strong: CSV export with notes. Hevy: Exercise library and custom exercises (the exercise search with a type filter, 5.3.0).
+
+### Money, debt and crypto (sixth additions)
+
+#### EveryDollar (zero-based budget)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Each paycheck's own plan | Paycheck planning (Premium): plan spending around paydays and bill due dates, each paycheck its own income line; aimed at irregular earners | https://www.ramseysolutions.com/money/everydollar/theplan ; https://everydollar.help.ramseysolutions.com/ (paycheck planning, via search index) | no | `half` | One payday a month starts the budget month, and one fill splits a paycheck over the budgets when income is logged (`payday` and `fill`, `lib/budgets/periods.ts:14-27`, LEDGER #212, #213) | The deeper part: two or more paychecks in a month (the 1st and the 15th, or each Friday), each budget and bill set against one of them, and for each paycheck what it holds and what is left once its lines are covered, from the person's own amounts. Never advice. An additive, optional list in the loose budget-periods record, TIER 3 (stored format) | M | Lina |
+| A streak for looking after your money | Streaks for good money habits (the January 2026 relaunch) | https://www.ramseysolutions.com/money/everydollar/features ; NerdWallet's EveryDollar review (Jan 2026 relaunch, via search index) | yes | `missing` | Streaks exist for habits and the journal (`writingStreak`, `lib/journal/stats.ts:28`); a search of `lib/money-log`, `lib/budgets` and `lib/money-more` for a streak finds none | Off by default: "Days in a row you looked at your money" (an entry logged, a bank file read or the day's entries checked), shown on Spending only, never a figure of money, never a lost-streak warning, a day off allowed as the habits' two-day rule does. Derived from entries and checks; one switch in the money preferences | S | Lina |
+| Budgets in your own order | A budget reordering screen (April 2026) | https://faith.tools/app/121-everydollar (April 2026 update, via search index; third-party) ; https://www.ramseysolutions.com/money/everydollar/features | yes | `missing` | `budgetSchema` (`lib/budgets/schema.ts:14-24`) has no order; budgets are listed as the view sorts them | "Reorder" on Budgets: the person's own order (rent first, fun last), kept, and used on Budgets, the month view and the fill. An additive, optional `order` on the loose budget, TIER 3 (stored format) | S | Lina |
+| A plan of steps for your money | The financial roadmap (the Baby Steps): long-term goals in a set order, and when you will reach each money milestone | https://www.ramseysolutions.com/money/everydollar/theplan ; https://www.ramseysolutions.com/money/everydollar/features | yes | `against a rule` | — | A fixed order of money steps (an emergency fund, then debts, then investing) is money advice. The person's own goals, debts and net-worth milestones are built (`lib/networth-milestones/milestones.ts`) | — | — |
+| Ways to free up money | Margin Finder: personalised action steps and a monthly check that surfaces overspending and unallocated income (January 2026) | https://www.ramseysolutions.com/money/everydollar/features ; https://www.thepennyhoarder.com/budgeting/everydollar-app-review/ (via search index) | yes | `against a rule` | — | Action steps to spend less are money advice. The facts are built: "Ready to assign" (`lib/budgets/ready-to-assign.ts:9-13`), budgets against spending, the month compared | — | — |
+| Suggested amounts per category | Guided onboarding with recommended amounts for each budget category and a zero-based progress bar (July 2026) | https://faith.tools/app/121-everydollar (July 2026 update, via search index; third-party) | yes | `against a rule` | — | Recommended amounts are money advice. Budgets from the person's own past spending are already offered (YNAB's and Copilot's suggested budgets, `lib/budgets/assign.ts:9-14`) | — | — |
+
+Not rowed:
+- Server service and against a rule (no bank connections): streaming transactions from the bank (Mastercard Connect, Plaid).
+- Server service: the household budget for couples (also against the rule that nothing is shared between people), live support, coaching, group coaching and Q&A sessions, weekly live trainings and workshops.
+- Needs content made for ZIGoals: bite-sized lessons on money habits.
+- Not proposed: the dark mode and redesign (April 2026), in-app support chat (April 2026).
+
+Already in COMPETITORS.md:
+- YNAB: New Assign Mode (Left to Budget down to zero, the zero-based progress bar); Targets (category goals) (sinking funds); Spending and net worth reports (custom reports comparing spending over time). Copilot: Split transactions. Undebt.it: Debt payoff planner (8 methods) (the debt snowball and the debt payoff tracker). Kubera: Fast Forward rules and Monarch: Forecasting (the projected net worth and the "millionaire date"). Rocket Money: Subscriptions and bills list (bill due dates). Goodbudget: Scheduled Fill from a paycheck (planning a paycheck over the budgets). Copilot: Month and Year in Review and Actual Budget (round 4): Monthly spending with an average and a trend (comparing spending over time). YNAB: File-based import with CSV converter (CSV export of budget data as files; Export everything). Monarch: Accounts (all accounts in one place).
+
+#### Banktivity (personal finance with ledgers)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| A refund that lowers its category | Dedicated refund, charge and payment transaction types for credit cards (Banktivity 10) | https://banktivity.com/content/features/whats_new.php | yes | `half` | A card payment and a move between accounts are kept as a transfer that no total counts (`isCounted`, `lib/money-log/counted.ts:4-10`); a purchase and its refund can be grouped into one line with their total (`lib/money-log/groups.ts:6`) | The deeper part: "Refund" as its own kind of entry on an expense category: it lowers that category's spending, its budget and the month's figures (never counted as income), and can point at the purchase it refunds. An additive, optional `refund` flag on the loose entry (an older build reads it as income), TIER 3 (stored format) | S | Lina |
+| Next month's budgets from this month | Budget one month ahead by funding next month's envelopes early (Banktivity 10); improved category choice when moving envelope cash (10.1) | https://banktivity.com/content/features/whats_new.php ; https://www.iggsoftware.com/blog/?p=2180 (10.1, 2 Sep 2026) | yes | `half` | "Ready to assign" is one month's logged income minus what that month's budgets hold (`lib/budgets/ready-to-assign.ts:9-13`); moves between budgets exist (`MAX_MOVES`, `lib/budgets/assign.ts:7`) | The deeper part: "Set aside for next month": part of this month's ready money given to next month's budgets now, shown there as already held, so next month starts covered. Never advice. An additive, optional list in the loose budgets record, TIER 3 (stored format) | S | Lina |
+| Transfers between your own accounts found | Improved transfer matching to reduce duplicates (Banktivity 10) | https://banktivity.com/content/features/whats_new.php | yes | `have` | `transferPairs` (`lib/bankfiles/reimport.ts:99-102`): a payment leaving one account and arriving in another (two files) is offered to be marked a transfer; the person decides | — | — | — |
+| A check of the money records | Check Ledger Health finds and repairs orphaned or duplicate sidebar groups and items; protection against malformed category hierarchies (10.1) | https://www.iggsoftware.com/blog/?p=2180 (10.1, 2 Sep 2026) | yes | `half` | Settings → Your data shows where each part of the data lives and how much the device holds; it changes nothing (`components/data-health/data-health-view.tsx:1-7`) | The deeper part: "Check my money records": entries naming an account that is gone, a subcategory whose parent was removed, a split whose parts do not add up, a transfer whose other side is gone, budgets of a category no longer used, each listed with one repair and Undo. Read first; nothing changes without a tap | M | Lina |
+| Put old entries away | Remove Historical Data: archive records before a cut-off date, keeping cost basis (Banktivity 10) | https://banktivity.com/content/features/whats_new.php | yes | `missing` | The money log holds up to 10,000 entries (`MAX_ENTRIES`, `lib/money-log/schema.ts:13`); a search of `lib/money-log` for archiving entries finds none | "Put away entries before …": the entries before a chosen day saved to a file (the CSV of Export everything) and replaced by one opening line per account and currency that keeps each balance, with a plan of what changes first and Undo while the file is kept. A new kind of entry (an opening balance) on the loose entry, TIER 3 (stored format) | M | Lina |
+
+Not rowed:
+- Server service and against a rule (no bank connections): Plaid bank connections for the US and Canada, direct connectivity in the UK and Europe (January 2026).
+- Server service: cloud sync with push notifications, multiple Banktivity user accounts, subscriptions.
+- Native-only: the Investment Performance widget, Shortcuts, Handoff, interface scaling, windows and scenes (10.1).
+- Not proposed: the onboarding assistant (ZIGoals' own first-run steps), the refreshed Mac menu, the single-line register (a denser list), the week start from the system (10.1; Monday in ZIGoals).
+
+Already in COMPETITORS.md:
+- Wallet by BudgetBakers: Spaces: personal and business (the Organizer's several Ledgers); Planned payments with automatic confirmation (scheduled transactions with complex recurring dates and an end; ZIGoals' planned changes have `until`, `lib/money-more/schema.ts:83-89`). Lunch Money (round 4): Archive a category (inactive categories). Kubera: Any currency, one total (the currency manager with custom exchange rates). Monarch: Investments view (per-account portfolio drilldown, the Security Detail report). Monarch: Reports (Sankey, treemap, mobile) (reports on iOS: Income and Expense, Net Worth, Payee). YNAB: Targets (category goals) and Goodbudget: Budget period (the budget view of budgeted against actual). YNAB: File-based import with CSV converter (the file chosen for the right ledger, 10.1; balance-forward rows). Goodbudget: Duplicate transaction matching.
+
+## Ten more apps, round 7 (owner follow-up 4, item 4g; 22 Nov 2026)
+
+
+
+Drafted 22 Nov 2026, to be added under `## Matrix` in `docs/review/session-av/COMPETITORS.md`, after "Ten more apps, round 6 (owner follow-up 4, item 4g)". It uses the method in that file's header. Official sites, help centres, in-app changelogs and 2025–2026 release notes were read with WebSearch (standard mode) and WebFetch; App Store "What's New" notes count as release notes. Page text was treated as data only. Every row was then checked against this branch's code (`apps/web`, branch `lane2/batch6`, HEAD `3caddd6c`, which holds rounds 1 to 6 with `lane2/r6-plan`, `lane2/r6-notes`, `lane2/r6-body` and `lane2/r6-money` merged; the working tree is clean), so that nothing round 6 builds (LEDGER #391–#431) is marked missing or rowed again. Each `have` and `half` names the file that was opened. All pages were seen on 22 Nov 2026.
+
+Not repeated: a feature that already has a row in COMPETITORS.md (the 25 apps, the first "Ten more apps" and rounds 2 to 6) gets no new row. It is listed under "Already in COMPETITORS.md" for that app. Where the new app goes further, the row is added and covers only the further part, which it names. Each app also lists what was left out because it is native-only, a server service or needs a model, with that cause.
+
+The ten apps: Amazing Marvin, Due, Evernote and The Five Minute Journal (tasks, planning, notes and journal); Strides (habits and goals); Paprika, Happy Scale and Sleep as Android (food, sleep and body); Cashew and Money Manager by Realbyte (money).
+
+Source caveats:
+- **No instruction addressed to AI agents was found** in any page read this round (each fetch was asked to report one verbatim; none had one).
+- Not chosen after a first read: MoneyWiz (wiz.money/features names ten areas in one line each; its bills page returned 404), Toshl (toshl.com/features refused the fetcher, 403), and "Cashews" (apps.apple.com id1582436070, a different, bank-linked US app that the search confused with Cashew). Money Manager took that place.
+- Amazing Marvin: amazingmarvin.com/strategies refused the fetcher (403). The rows rest on amazingmarvin.com/features/all (read in full) and the help centre's index (help.amazingmarvin.com/en/collections/1923123-amazing-features, every article title read); the Day Progress Bar and the Daily, Weekly and Monthly Time Targets articles were read through the search index of the help centre. The changelog (amazingmarvin.com/changelog) dates versions 1.67.0 (4 Apr 2025) to 1.71.4 (Nov 2026) but prints no feature notes, so no Marvin row is marked new since 2025 except where an article title names 2026 (the new mobile app).
+- Due: dueapp.com and the App Store notes (id390017969) were read; the notes print no year from 26.1 (Feb 3) on and follow 25.8 (Dec 9, 2025), so 26.1 to 26.6.1 are 2026.
+- Evernote: help.evernote.com refused the fetcher (403) and evernote.com/features/note-taking returned 404. The rows rest on evernote.com/features, evernote.com/features/tasks, evernote.com/release-notes and the App Store notes (id281796108; 11.21.4 to 11.43.4, no year printed, read as 2026 because the series ends "3 days ago").
+- The Five Minute Journal: intelligentchange.com's app page returned 404; the rows rest on the App Store listing (id1062945251). Its notes print no year; 4.3.5 (Mar 12) to 4.3.31 (Nov 9) are read as 2026 (the listing's latest is days old). Only 4.3.6 (custom prompts), 4.3.9 (transcription) and 4.3.25 (an AI coach) add features.
+- Strides: stridesapp.com/support returned 404; the rows rest on stridesapp.com and the App Store notes (id672401817), which date 19.2 (12/11/2025) and print no year after it, so 19.3 (Jan 25) to 20.1.1 (Nov 8) are 2026.
+- Paprika: paprikaapp.com/help redirects to a Zendesk help centre that refused the fetcher (403). The rows rest on paprikaapp.com and the Mac App Store notes for Paprika 4 (id1303222628), which date 3.8.3 (12/18/2025) and print no year after it; 4.0.17 (Nov 6) to 4.0.24 are 2026.
+- Happy Scale: happyscale.com and the App Store notes (id532430574; 2026.1, Jan 19, to 2026.9.1, Nov 14; the versions carry the year) were read.
+- Sleep as Android: the documentation (sleep.urbandroid.org/docs, its Tags, Goals and Statistics pages) prints no dates and its release notes page was not read, so no row is marked new since 2025; the chronotype page tried returned 404.
+- Cashew: the README (github.com/jameskokoska/Cashew), the in-app changelog in the repository (budget/lib/widgets/showChangelog.dart, versions 4.4 to 5.3.5) and the App Store notes (id6463662930) were read. The changelog's 5.3.x items match App Store 5.0 to 5.5 (July to September 2024), so the activity log and the repeat count are not new since 2025; App Store 5.6 to 5.10 print no year and name no new feature beyond widgets and settings.
+- Money Manager: the App Store listing (id560481810) was read; 2.12.3 is dated 10/20/2025 and the notes after it print no year, so 2.13.1 (May 31) to 2.16.0 are 2026. Only 2.14 (widgets) and 2.15 (tags) add features.
+
+### Corrections to earlier rows
+
+- None found in the rows this round touched.
+
+### Totals (the ten apps)
+
+| Status | Tasks, notes and journal (Amazing Marvin, Due, Evernote, The Five Minute Journal) | Habits and mind (Strides) | Food, sleep, workouts and body (Paprika, Happy Scale, Sleep as Android) | Money (Cashew, Money Manager) | All |
+|---|---|---|---|---|---|
+| `have` | 0 | 1 | 0 | 0 | 1 |
+| `half` | 7 | 1 | 7 | 2 | 17 |
+| `missing` | 8 | 1 | 5 | 2 | 16 |
+| `not web-possible` | 1 | 0 | 1 | 0 | 2 |
+| `against a rule` | 1 | 1 | 2 | 0 | 4 |
+| **Rows** | **17** | **4** | **15** | **4** | **40** |
+
+Rows per app: Amazing Marvin 8, Due 4, Evernote 3, The Five Minute Journal 2, Strides 4, Paprika 7, Happy Scale 3, Sleep as Android 5, Cashew 3, Money Manager 1.
+
+Every app had at least 12 features read (Amazing Marvin over 100 by its index; most others 15 to 25); its rows, "Not rowed" and "Already in COMPETITORS.md" together name them. Strides, Cashew and Money Manager add few rows because nearly everything they do is already in the matrix and built (habits from Habitify, Loop and Streaks; money from Wallet, Emma, Goodbudget, Lunch Money and Monarch). Amazing Marvin's Procrastination Wizard is a mind feature and goes under Habits and mind in the ledger.
+
+### Tasks, planning, notes and journaling (seventh additions)
+
+#### Amazing Marvin (tasks and strategies)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| How much a task is dreaded | Dread Attribute (Frogs): rate a task by how much you dread it, to spot avoided work and do it first ("eat the frog") | https://amazingmarvin.com/features/all ; https://help.amazingmarvin.com/en/collections/1923123-amazing-features ("Dread levels (frogs)") | no | `missing` | A task carries how much it asks (`energy`, `TASK_ENERGY`, `lib/tasks/schema.ts:94`: restful to heavy, for the day's load), never how the person feels about it; a search of `lib/tasks` and `components/tasks` for dread or frog finds nothing | An optional "I'm dreading this" mark (one to three), shown as a small sign, and "Hardest first" in Plan my day, which puts the most dreaded task in the first free block of the morning. Additive, optional, TIER 3 (stored format) | S | Max |
+| How often a task was put off | Delay Count: how many times a task was rescheduled; a "Most procrastinated tasks" list | https://help.amazingmarvin.com/en/collections/1923123-amazing-features ("Delay Count", "Most procrastinated tasks") | no | `missing` | A task keeps its day (`due`) and earlier versions of its title and notes only (`lib/tasks/versions.ts:5`); nothing counts a day moved later | "Moved 4 times" on a task whose day was moved later (a repeat's next day does not count), and "Moved most" in Tasks → Review with the choices the review already offers. A count, said as a fact. Additive, optional, TIER 3 (stored format) | S | Max |
+| Tasks that have sat for a long time | Staleness Warning and "Screen of old items": items untouched for a long time are flagged | https://help.amazingmarvin.com/en/collections/1923123-amazing-features ("Staleness Warning", "Screen of old items", "How can I see how old a task/project is?") | no | `missing` | The weekly review asks about tasks past their day (`reviewTaskChoices`, `lib/tasks/review.ts:25`); an open task with no day, or one untouched for months, is never brought up | "Open for 60 days or more": the open tasks not changed for 60 days (or 90), oldest first, each with Keep (asked again in 60 days), Give it a day and Remove (one Undo). Derived from `createdAt` and `updatedAt`; nothing stored | S | Max, Lina |
+| Pick one for me | The Task Jar, Random Task and This or That: Marvin picks a task, or offers two to choose between, when deciding is the hard part | https://help.amazingmarvin.com/en/collections/1923123-amazing-features ("The Task Jar", "Random task", "This or That") | no | `missing` | A search of `lib/tasks` and `components/tasks` for a random or picked task finds nothing; Plan my day orders the day, it does not choose one task | "Pick one for me" on Today: one open task of today's (or of a chosen project or label), with "Another" and "This one"; "This or that" offers two. Derived; nothing stored | S | Max |
+| Today's progress and where the day is | Day Progress Bar: fills as the day's tasks are checked off, with a marker for where you should be by this time of day | https://help.amazingmarvin.com/en/articles/1950225-day-progress-bar (via search index) ; https://amazingmarvin.com/features/day-planning | no | `half` | A daily goal of finished tasks, drawn as a line on the done chart (`dailyGoal`, `lib/tasks/done-chart.ts:23`); the working hours (`DEFAULT_WORK`, `lib/tasks/work-hours.ts:13`) | The deeper part: on Today, "4 of 7 planned tasks done" as a thin bar, beside how far the working hours have gone ("the day is 60 % through"), said as two facts, never "behind" | S | Max |
+| Time targets for an area or a label | Daily, Weekly and Monthly Time Targets: hours a week or month for a category or label, shown as progress bars as time is tracked | https://help.amazingmarvin.com/en/articles/1950227-daily-time-targets (via search index) ; https://amazingmarvin.com/features/all ("Time Targets") | no | `missing` | Time worked on a task is kept (`spent`, `lib/tasks/schema.ts:159`) and focus blocks name their task (`taskId`, `lib/focus-sessions/schema.ts:31`); nothing sets hours a week for a project or label | "5 h a week on Writing": a target in hours a week or a month for a project, an area or a label, met from the dated focus blocks of its tasks, as a bar in Tasks → This week. Additive, TIER 3 (stored format) | M | Max |
+| Help getting started on a stuck task | Procrastination Wizard: an interactive guide that asks why you are stuck and suggests what to do next | https://amazingmarvin.com/features/all ("Procrastination Wizard") ; https://help.amazingmarvin.com/en/collections/1923123-amazing-features | no | `missing` | The actions exist: split a task, play its steps one at a time (`components/tasks/play-steps.tsx:13`, LEDGER #351), a two-minute start; nothing asks why a task is stuck | The guide itself: questions on why a task is stuck and a strategy for each answer, written and checked for ZIGoals in English and Dutch | M | Max |
+| Money pledged on a task | Accountability Pledge: pledge money on a task and pay it if you don't finish | https://amazingmarvin.com/features/all ; https://help.amazingmarvin.com/en/collections/1923123-amazing-features ("Accountability Pledge", "Paying for several missed pledges") | no | `against a rule` | No payments, no money held against the person, calm design that takes nothing away | — | — | — |
+
+Not rowed:
+- Native-only: Top of Mind (a floating widget over other apps), iPhone and Android widgets, Lock Screen and Live Activities, Siri and Shortcuts, Apple Watch, the desktop tray and menu bar.
+- Server service: Calendar Sync (Google, Outlook, iCal, CalDAV, two-way), Email to Marvin, Zapier, the API, webhooks, the CLI and the MCP server, the browser extension, cloud sync, task sharing and comments with others (also against the rule that nothing is shared between people).
+- Needs content made for ZIGoals: Focus Music.
+- Not proposed: the Spinning Wheel and the Ball Pit (one picker, "Pick one for me", is enough), confetti in the sidebar, custom squares and text links, the text, line and colour markers, the Bug Me nag (Due's "remind again until done" is rowed instead), habit grades.
+
+Already in COMPETITORS.md:
+- Things: When scheduling: Anytime, Someday (Backburner); snooze and start dates (Start/Defer Dates). Akiflow (round 5): A week or a month without a day (Week planning, Planning Ahead, capacity for weeks and months). Motion (round 4): Auto-scheduling over the coming days (Auto-schedule, the Capacity Estimator). Sunsama: Planned vs actual time and timers (Timers, Time Tracking, Duration Estimates). OmniFocus (round 6): Projects in order (Sequential Projects, Dependencies), Review each project every so often (Review Date), Change several tasks at once (Bulk editing). Structured (round 3): the energy of a task (Energy Level Attribute). TickTick: the Eisenhower matrix (Matrix), Pomodoro (Tomato Tracker). Todoist: Productivity insights and Karma (Kudos, Reward Points, Completed Task Stats). Habitica: Custom rewards and gold (Rewards, Reward Tasks). Tiimo (round 5): timers on the steps (Task Breakdown). Google Tasks (round 2): Print your tasks (Print lists). Daylio and How We Feel: the mood tracker. Logseq (round 5): the daily note (Day Note).
+
+#### Due (reminders and timers)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Remind again until done | Persistent Auto Snooze: a missed reminder repeats every 1, 5, 10, 15, 30 or 60 minutes until it is marked done or rescheduled (5 repeats by default, up to 10) | https://www.dueapp.com/ ; https://apps.apple.com/app/id390017969 | no | `half` | A task reminder goes off once; its notification has Done and "Snooze 1 h" (`public/sw.js:97`), and a reminder snoozed in the app comes back once (`lib/tasks/reminders.ts:22,36`) | The deeper part: "Remind again every 10 minutes, up to 6 times" on a task reminder (and a default), stopped by Done or Snooze on the notification or in the app; quiet hours still hold. Additive, TIER 3 (stored format) and TIER 3 (PWA) | M | Max, Lina |
+| Your own snooze times | Quick Access Times: twelve customisable one-tap times (the next noon, 22:00, plus or minus a while) to set or put off a reminder | https://www.dueapp.com/ ; https://apps.apple.com/app/id390017969 | no | `half` | Three fixed snooze lengths: 15 min, 1 h, Tomorrow (`SNOOZE_CHOICES`, `lib/tasks/reminders.ts:45`); the notification offers "Snooze 1 h" only (`public/sw.js:97`) | The deeper part: up to six of the person's own choices ("10 min", "2 h", "this evening 19:00", "tomorrow 08:00", "Monday 09:00"), in the reminder's snooze menu, with the first one on the notification's button. A device preference, TIER 3 (stored format) | S | Max, Lina |
+| Named timers, several at once | Countdown timers with second precision, several running at once, kept to use again; live countdowns (25.6) | https://www.dueapp.com/ ; https://apps.apple.com/app/id390017969 (25.6, Nov 29, 2025) | yes | `missing` | Timers exist only inside other things: focus blocks (`lib/focus-sessions`), a habit's timer, the steps of a task (`components/tasks/play-steps.tsx:13`); none is a free-standing, named one | "Timers": several named countdowns at once ("Pasta 9 min", "Laundry 45 min"), each kept to start again, a bell in the page and, where notifications are on, a wake at its end. A new device record, TIER 3 (stored format) and TIER 3 (PWA) | M | Max, Sanne, Tom |
+| Alerts that ring through silent mode | Critical Alerts bypass silent mode and Focus; Prominent Alerts ring like an alarm until acted on (26.4, iOS 26) | https://apps.apple.com/app/id390017969 (26.4.1, May 30) | yes | `not web-possible` | A web notification cannot bypass the device's silent mode or ring as an alarm | — | — | — |
+
+Not rowed:
+- Native-only: Apple Watch, Home and Lock Screen widgets, Control Center controls, Shortcuts actions, Siri timer control (26.5), Dynamic Island and Live Activities, the iPhone Duo layout.
+- Server service: iCloud and Dropbox sync, incremental sync (25.3).
+- Not proposed: the "Open Link" notification buttons (26.1), the supporter tip (26.5), the clean-up of duplicated reminders (26.5; a sync repair).
+
+Already in COMPETITORS.md:
+- Todoist: Quick Add with natural language (Due's date parsing, 26.5); Reminders (recurring reminders). TickTick and Things: Reminders and snooze (snoozing from the notification). OmniFocus (round 6): Change several tasks at once (Due's bulk edit, 26.5). Todoist: undo (26.5's undo and redo).
+
+#### Evernote (notes)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| A search kept by name | Advanced search lets you save search terms to run again | https://evernote.com/features | no | `half` | Notes are searched (`components/notes/notes-search.tsx`) and the table and board take up to three property filters (`Filters`, `components/notes/notes-views.tsx:31`); neither is kept. Money keeps saved searches (`lib/money-log/saved-searches.ts`) | The deeper part: "Keep this search": the words, a tag, the kind of note and the filters kept by name (up to 12), listed in Notes to open in one tap. A new small device record, TIER 3 (stored format) | S | Max |
+| Voice notes played faster | A new audio player with a waveform, speaker pins, playback speed and a live transcript (11.41.3) | https://apps.apple.com/app/id281796108 (11.41.3, Nov 3) | yes | `half` | Journal voice notes play in the browser's own player (`<audio controls>`, `components/journal/entry-media.tsx:61`, `components/journal/compose-media.tsx:80`); some browsers' controls offer a speed, Safari's do not | The deeper part: ZIGoals' own 1×, 1.25×, 1.5× and 2×, and back or forward 15 seconds, on every voice note (the entry and the Photos view), the speed remembered on the device. The waveform pins and the transcript are not proposed (the transcript needs a model) | S | Sanne |
+| Words found in photos and PDFs | Search finds text inside images and documents | https://evernote.com/features ; https://apps.apple.com/app/id281796108 | no | `missing` | Notes search reads a note's own words (`lib/notes/find.ts:1-3`); a photo's text is never read | Text recognition in the browser needs an OCR engine, a new dependency (the browser has none built in outside an experimental Chrome API) | M | Max |
+
+Not rowed:
+- Needs a model: the AI Assistant and AI Edit (11.24.2, 11.36.3), AI prompts (11.29.3), transcription and meeting notes (11.27.3, 11.34.3), AI image captions (11.27.3), Semantic Search, AI diagrams and the AI detector.
+- Server service: the Web Clipper, the Google Calendar connection, Slack, Microsoft Teams and Google Drive integrations, shared notes, @mentions of people (11.22.3) and emoji reactions on text (11.42.4) (also against the rule that nothing is shared between people), the Evernote MCP (11.31.7), sync.
+- Native-only: document scanning with the camera (a photo can already be added to a note), Spotlight (11.32.3), dictation (11.23.2), recording while the phone is locked (11.30.5).
+- Not proposed: renaming attachments (11.30.5), frozen table columns (11.21.4), highlighter palettes (11.28.3), the table of contents' colours (11.43.4).
+
+Already in COMPETITORS.md:
+- Bear (round 4): Imports from Evernote and Bear (the .enex import, built as LEDGER #321), Fold a section (toggles, 11.43.4), Note info. Obsidian (round 3): Outline of a note (the table of contents), Tick boxes in notes, gathered (tasks in notes). Notion: "@remind" inside a page (reminders in notes), version history (note history), templates. Craft (round 5): table quick actions (sortable tables, 11.36.3). Capacities (round 6): Rename or merge a tag (easier tag management, 11.38.7). Bear (round 4): tags in the text, nested (notebooks and tags); a pinned note is kept already (`pinned`, `lib/notes/schema.ts:58`).
+
+#### The Five Minute Journal (journal)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| A morning page and an evening page | A guided morning and evening flow for each day's entry, with daily reminders; custom prompts (4.3.6) | https://apps.apple.com/app/id1062945251 (4.3.6, Mar 19) | yes | `half` | One journal reminder a day at one time (`DEFAULT_REMINDER`, `lib/journal/reminder.ts:11`); a "Morning intention" template among the templates (`lib/journal-prompts/templates.ts:19`) | The deeper part: "Morning and evening": one day's page in two parts, each with its own reminder time, the evening part showing the morning's answers above it ("This morning: what would make today great — …"). Additive, TIER 3 (stored format) | S | Sanne |
+| A photo of the day | A daily photo or video attached to the day, and a photographic timeline (Premium) | https://apps.apple.com/app/id1062945251 | no | `half` | Every journal photo and voice note in one grid, newest first (`galleryItems`, `lib/journal/gallery.ts:12-13`, LEDGER #404) | The deeper part: one photo of a day marked "Photo of the day" (the first by default) and "A photo a day": a month's days as a strip of those photos, a day without one left blank and never counted as missed. Additive, TIER 3 (stored format) | S | Sanne, Max |
+
+Not rowed:
+- Needs a model: Eva, the AI journaling coach (4.3.25), audio transcription (4.3.9).
+- Native-only: the Apple Watch companion, mindful minutes in Apple Health, the Home Screen widget, Face ID and Touch ID.
+- Server service: Dropbox backup and export, sync, sharing quotes and challenges on social media.
+- Needs content made for ZIGoals: weekly challenges (ZIGoals has its own daily ones, LEDGER #230).
+
+Already in COMPETITORS.md:
+- Day One: Templates and your own prompts (custom questions, 4.3.6), Journaling reminders and streaks, On This Day. Stoic (round 3): the daily quote (built, LEDGER #277). Reflectly (round 2): the daily challenge. Daylio: Custom moods and PDF export (the mood tracker; PDF and HTML export by date range). Diarium (round 6): Every photo and voice note in one place (the photographic timeline's grid). Day One and Journey: the passcode and the timeline of entries.
+
+### Habits, mood and mind (seventh additions)
+
+#### Strides (habits and goals)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| One report for a year or all time | Reports: every goal and habit in one view by week, month, year or all time; Repeating and Goal Date reports (19.8); a Trends Report for bad habits (19.13) | https://www.stridesapp.com/ ; https://apps.apple.com/us/app/strides-habit-tracker-goals/id672401817 (19.8, Apr 19; 19.13, Aug 16) | yes | `half` | The Life review covers a week or a month across the pillars beside the one before (`reviewPeriod`, `lib/life-review/engine.ts:36`); each life area has its week (`AreaWeekRow`, `lib/habit-areas/week.ts:11`); each habit has a year grid (`lib/habits-extras/year.ts`) | The deeper part: "Your year" (and all time): each habit's check-ins done of due and its longest run, each goal's progress at the start and the end of the period, grouped by life area; counts, never a grade | M | Max |
+| A goal that starts again each period | Projects reused for recurring goals by changing their dates (20.1.1); repeating targets in the Repeating report | https://apps.apple.com/us/app/strides-habit-tracker-goals/id672401817 (20.1.1, Nov 8; 19.8, Apr 19) | yes | `missing` | Goals are a savings goal, a count goal, a project or a rewards goal (`GoalKind`, `lib/goals/kind-names.ts:6`); a search of `lib/goals` for a repeat finds only milestone lines and the what-if | "Starts again each month" (or week, or year) on a count goal or a project ("Read 2 books a month"): each period begins at nothing and the earlier periods are kept as a row of results ("Oct 2 of 2 · Nov 1 of 2"). Additive, TIER 3 (stored format) | M | Max |
+| Perfect days | Perfect day: earned by logging all of the day's trackers; past days can be reviewed and backlogged | https://www.stridesapp.com/ | no | `have` | `lib/habits-extras/perfect-days.ts:20,30` (a day on which every habit due was done, from the Checklist's own rule) | — | — | — |
+| Accountability partners | Invite others to view chosen goals; shared goals for a team (iCloud, Apple only) | https://www.stridesapp.com/ ; https://apps.apple.com/us/app/strides-habit-tracker-goals/id672401817 (18.8, 10/20/2025) | yes | `against a rule` | Nothing is shared between people's devices; no outside service | — | — | — |
+
+Not rowed:
+- Native-only: Apple Health integration, Tasks on the Apple Watch (20.1), backlogging from a notification (19.13), the app icon colour (19.9.2), the iPhone Duo layout.
+- Server service: iCloud sync, the referral programme (19.5), the subscription Customer Center (19.8), achievement images to share by text or email (19.14).
+
+Already in COMPETITORS.md:
+- Habitify: Bad habits: quit or limit, Progress view and streaks (success rates, calendars). TickTick: Habit Tracker (150+ templates, the gallery). Loop: Measurable habits (the Average tracker; ZIGoals' average goals, `lib/average-goals`). YNAB and Yazio: targets by a date and milestones (the Target and Project trackers with pace lines, 19.6). Finch (first matrix): Self-Care Areas (tags to group trackers, built as LEDGER #53). Streaks: Vacation Mode and reminders. Strides' Tasks (20.0) are ZIGoals' Tasks, whose tasks name the goal they serve (`goal`, `lib/tasks/schema.ts`).
+
+### Food, sleep, workouts and body (seventh additions)
+
+#### Paprika (recipes, meal plans and groceries)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Timers from the method | Click-to-start timer detection: a time in the directions starts a timer; several timers in Cook mode | https://www.paprikaapp.com/ ; https://apps.apple.com/app/id1303222628 (Paprika 4, 4.0.17, Nov 6) | yes | `missing` | The cooking view shows the method one step at a time with "Keep the screen on" (`components/health/food-plus/cook-view.tsx:11-18`); a search of it for a timer finds none | "Start 15 min timer" on a step that names a time ("simmer for 15 minutes", "bak 20 minuten"), running beside the steps, several at once, with a bell (Due's named timers) | S | Tom, Sanne |
+| A recipe scaled while cooking | Scale servings and convert measurements | https://apps.apple.com/app/id1303222628 | yes | `missing` | The cooking view lists the ingredients for the recipe as saved ("Makes 4 servings. Gather these first", `components/health/food-plus/cook-view.tsx:56`; `recipeSchema`, `lib/health.ts:43`) | "Cook for 2 / 4 / 6" (and ½×, 2×): the ingredient amounts multiplied for the servings chosen and rounded sensibly on the cooking view only; the recipe and its logging stay as they are | S | Tom, Sanne |
+| Ingredients crossed off while cooking | Cross off ingredients and highlight the current step | https://apps.apple.com/app/id1303222628 | yes | `half` | The method one step at a time with Previous and Next (`components/health/food-plus/cook-view.tsx:11-18`) | The deeper part: tick boxes on the ingredient list and, beside the large step, the whole method with the current step marked, for this cooking only; nothing stored | S | Tom, Sanne |
+| A pantry with use-by days | Pantry items with expiration dates, several pantry locations (Premium) | https://www.paprikaapp.com/ ; https://apps.apple.com/app/id1303222628 | no | `half` | "I have this" keeps a name out of the grocery list (`pantry`, `lib/grocery/schema.ts:8,21`), with the moment it was said | The deeper part: a use-by day on a pantry item and "Use soon": what is within three days, first on the grocery page; a passed day said plainly, never a notification unless chosen. Additive, TIER 3 (stored format) | S | Sanne, Tom |
+| Recipe files from other apps | Import recipe files from other apps; save from websites; scan cookbook pages (Premium) | https://apps.apple.com/app/id1303222628 | yes | `half` | A recipe comes from a web address through ZIGoals' own fetch route (`checkRecipeUrl`, `lib/server/recipe-import.ts:26`), from pasted text (`lib/health-aa/recipe-text.ts:2`) or is typed | The deeper part: Paprika's own export (a .paprikarecipes file of compressed recipes, read with the browser's own decompression) and a Markdown or plain-text recipe file, each ingredient confirmed as the pasted text is, the method kept with it, under the import caps | M | Tom |
+| A week of meals kept as a menu | Meal plans by day, week or month; reusable menus; add a whole week to the grocery list | https://www.paprikaapp.com/ ; https://apps.apple.com/app/id1303222628 | no | `half` | A saved meal can be planned on chosen weekdays for up to 12 weeks (`MAX_REPEAT_WEEKS`, `lib/health-quick/repeat-plan.ts:11`); the grocery list reads the week's plans | The deeper part: "Keep this week as a menu": a whole week's planned meals saved by name and placed on another week in one step (each an ordinary plan, logged by a tap as now). Additive, TIER 3 (stored format) | S | Tom, Sanne |
+| When you last made it | A recipe's rating and its last-prepared date; sort by Top Rated and Most Recent (4.0.22) | https://apps.apple.com/app/id1303222628 (4.0.22, Nov 11; 3.7.0) | yes | `missing` | The recipe record holds a name, portions and ingredients (`recipeSchema`, `lib/health.ts:43`); food marks rate foods, not recipes (`lib/food-plus/marks.ts:5`) | "Last made 12 Nov · 5 times" on a recipe (from its diary entries and "Made it" in the cooking view), the person's own one to five stars, and the recipes sorted by last made or by stars. Additive, TIER 3 (stored format) | S | Tom, Sanne |
+
+Not rowed:
+- Needs a model: ingredient substitutions (Apple Intelligence), recipe text from the clipboard, cookbook page and recipe card scans (Premium), category suggestions (Premium).
+- Server service: saving from TikTok, Instagram, Facebook and YouTube (4.0.20), cloud sync and family sharing, shared cookbooks, calendar feeds of the meal plan, Alexa and the Echo Show.
+- Native-only: widgets, the Apple Watch app, Siri and Shortcuts, Spotlight, voice commands in Cook mode.
+- Not proposed: the duplicate finder (ZIGoals' recipes are few and named), cookbooks as a second grouping beside categories, reading steps aloud.
+
+Already in COMPETITORS.md:
+- Yazio: Recipes with a cooking mode (Cook mode, built as LEDGER #200). MyFitnessPal: Meal Planner and grocery list (grocery lists by aisle, items added by hand, print; `lib/grocery`), Saved meals, recipes and Recipe Importer (saving from websites). Cronometer: Custom recipes (nutrition from the ingredients) and repeating items (planning by day). MacroFactor: Recipe importer (URL or cookbook photo). Lose It!: barcode scanning (the pantry's barcode scan).
+
+#### Happy Scale (weight trend)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| What I'll weigh on a day I name | Predictions: what you will weigh by an upcoming event; named predictions with a full-screen view of how each was calculated (2026.5) | https://happyscale.com/ ; https://apps.apple.com/us/app/happy-scale/id532430574 (2026.5, May 25) | yes | `half` | The day the weight goal is reached at the trend's rate (`GoalEta`, `lib/health-aa/coach.ts:32`), from the last 28 days (`RATE_WINDOW_DAYS`, `weeklyRateOf`, `lib/health-aa/trend.ts:16-18`) | The deeper part: "On 20 Dec (the wedding)": the weight the trend reaches by a day the person names if the last four weeks' rate holds, with the sum shown, up to five kept by name; a fact, never a promise, hidden with the weight figures. Additive, TIER 3 (stored format) | S | Tom |
+| A note on a weigh-in, and new lows | The Logbook: notes on entries (in the CSV, 2026.8.1), a filter for "breakthrough" days (2026.2), editing from a context menu (2026.1) | https://apps.apple.com/us/app/happy-scale/id532430574 (2026.1, Jan 19; 2026.2, Feb 9; 2026.8.1, Oct 19) | yes | `missing` | A weigh-in is a day and a weight (`weightSchema`, `lib/health.ts:47`, strict: no note) | A short note on a weigh-in ("after the holiday", "new scale"), and the list of weigh-ins with "lowest since 3 Mar" marked as a fact and a filter for those days; notes in the weights CSV. Kept beside the strict weights, TIER 3 (stored format) | S | Tom |
+| This week against the week before | An improved 7-day trend comparing the most recent 7 days with the 7 days before (2026.4) | https://apps.apple.com/us/app/happy-scale/id532430574 (2026.4, Mar 3) | yes | `half` | The rate a week over the last 28 days and the smoothed trend (`weeklyRateOf`, `lib/health-aa/trend.ts:18`; `weightTrend`, `:68`) | The deeper part: "This week 81.6 kg on average, 0.4 kg under the week before", the mean of the last 7 days' weigh-ins against the 7 before, said only with three or more weigh-ins in each | S | Tom |
+
+Not rowed:
+- Native-only: Apple Health import and export (iPhone only), iPhone and iPad sync, the iPhone Duo layout (2026.9).
+- Not proposed: the NHS BMI mode (2026.2; ZIGoals shows the BMI number only, no category word), a celebration for each new low (2025.16; ZIGoals celebrates its milestones once), the purple gain and loss colours (2026.6).
+
+Already in COMPETITORS.md:
+- MacroFactor: Weight Trend (the smoothed trend and the weekly rate), the goal ETA. Yazio: Milestones and Calculators (milestone goals and the BMI calculator, built as LEDGER #205 and #210 in `lib/body-extras`). MyFitnessPal: Water and weight log. Bearable: Hide triggering data (the weight figures hidden). Diarium (round 6): Lock again after a while away (the passcode).
+
+#### Sleep as Android (sleep)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Rename or remove a tag on every night | Rename a tag (or delete it, with the new name left blank); this changes all past records and statistics | https://sleep.urbandroid.org/docs/sleep/tags.html | no | `missing` | A night holds up to 12 tags of 24 characters (`tags`, `lib/sleep/schema.ts:23`); a search of `lib/sleep` for renaming a tag finds none (notes and money have their own: `lib/notes/tag-rename.ts`) | "Rename" and "Remove" on a sleep tag: every night's tag changed at once, with one Undo; normal writes of the tags, nothing new stored | S | Sanne |
+| Your sleep goal over 14 days or a month | Goals for bedtime or duration over 14 days or a month, as a bank: a short night borrows minutes and a long one saves them; met if the average holds; a daily column chart and a moving average against the target | https://sleep.urbandroid.org/docs/sleep/goals.html ; https://sleep.urbandroid.org/docs/sleep/statistics.html | no | `half` | The last 7 nights against the goal (`sleepDebt`, `lib/sleep/engine.ts:116`); a goal of minutes with an optional bedtime window (`sleepGoalSchema`, `lib/sleep/schema.ts:36`) | The deeper part: "Over 14 days" or 30: the average asleep against the goal and the nights at or above it, and, with a bedtime window, the average bedtime against its end and the nights inside it; facts, the 7-day line kept. The period chosen is a device preference, TIER 3 (stored format) | S | Sanne, Max |
+| Smart alarm, CAPTCHA and sleep sounds | Sleep tracking by sonar or the accelerometer, smart wake-up in a light phase, CAPTCHA tasks to stop the alarm, noise recording and snore detection, lullabies | https://sleep.urbandroid.org/docs/ | no | `not web-possible` | Needs the microphone and sensors overnight and an alarm that rings with the app closed | — | — | — |
+| A sleep score against others | The Sleep Score's healthy ranges by year of birth, and a row comparing the person's averages with their country's national average | https://sleep.urbandroid.org/docs/sleep/statistics.html | no | `against a rule` | No score that judges the person; no comparison with other people | — | — | — |
+| Money on a sleep goal | Goals with a Small or Large Wager (about $2 or $4) paid through Google Play, credited back when met | https://sleep.urbandroid.org/docs/sleep/goals.html | no | `against a rule` | No payments, no money held against the person | — | — | — |
+
+Not rowed:
+- Native-only: wearables (Garmin, Wear OS, Mi Band, oximeters), smart lights and the Sleep Phaser, automatic tracking, heart rate and blood oxygen, sleep apnea and lucid-dreaming cues, widgets, Tasker and Automate.
+- Server service: SleepCloud backup and the SleepCloud study, Google Fit, Health Connect, Samsung Health, Google Calendar, Spotify, IFTTT, MQTT and webhooks; the automatic weather tags (#rain, #storm, #hot), which need a weather service.
+- Not proposed: the automatic moon tags (a computed full or new moon on a night; the journal shows the moon, LEDGER #409), tag counts (#caffeine_3x), achievements.
+
+Already in COMPETITORS.md:
+- Sleep Cycle: Sleep notes (tags on a night, statistics by tag), Sleep Score (3 pillars). Rise: Sleep debt, Naps and their effect. Pillow (round 4): Your sleep timing on free days (chronotype and social jetlag), A nap timer (power naps), Sleep data as a file (the CSV export). AutoSleep (round 6): sleep consistency (Sleep Regularity), day sleep for shift work (polyphasic sleep).
+
+### Money, debt and crypto (seventh additions)
+
+#### Cashew (budgets and expenses)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| Removed entries kept for a while | Transaction activity log: see recently deleted and modified transactions | https://raw.githubusercontent.com/jameskokoska/Cashew/main/budget/lib/widgets/showChangelog.dart (5.3.0) ; https://apps.apple.com/app/id6463662930 (5.2, 07/02/2024) | no | `missing` | Removing an entry offers "Put back" in the toast only (`removeWithUndo`, `components/wealth/spending/spending-section.tsx:152`); afterwards it is gone | "Removed recently": a removed entry kept for 30 days on this device with "Put back" (its splits and its transfer twin with it), then gone; "Empty now"; left out of every figure and of Export everything. A new device record, TIER 3 (stored format) | S | Lina |
+| A bill that ends | The number of times a repeating transaction will repeat, with an end date (5.3.5) | https://raw.githubusercontent.com/jameskokoska/Cashew/main/budget/lib/widgets/showChangelog.dart (5.3.5) ; https://github.com/jameskokoska/Cashew | no | `missing` | A bill has a cadence and its next due day and no end (`billSchema`, `lib/bills/schema.ts:18-36`); it repeats on the calendar for good (`lib/bills/calendar.ts`) | "Ends after 24 payments" or "Last payment on …" on a bill: afterwards it leaves Upcoming bills, the calendar, the month's bills and the reminders, and its row says "3 of 24 left". Additive, TIER 3 (stored format) | S | Lina |
+| Copy an entry | Duplicate a transaction; long press to duplicate it at the current date and time (5.3.2) | https://raw.githubusercontent.com/jameskokoska/Cashew/main/budget/lib/widgets/showChangelog.dart (5.3.2) | no | `half` | Saved entries are logged in one tap (`SavedInput`, `lib/money-more/quick.ts:18`) once the person has kept one by name | The deeper part: "Copy" on any entry in the list: a new entry with its amount, category, payee, tags and account, dated today or a chosen day, with Undo, without keeping it by name first | S | Lina |
+
+Not rowed:
+- Server service: Google login, Google Drive backup, cross-device sync (Pro), Google Sheets import.
+- Native-only: home and lock screen widgets (5.10), the biometric and pattern lock (5.3.5; ZIGoals has its device lock), Android app links and the deep-linking API.
+- Not proposed: the spending heatmap on the home page (5.3.5; ZIGoals' month calendar shades the larger days, LEDGER #338), the long-term loan offset (interest added to a loan's total), the number pad's haptics and format settings.
+
+Already in COMPETITORS.md:
+- Wallet: One-time budgets across categories (custom budgets and periods, category spending limits), debts lent and borrowed (partial collect and settle). Emma (round 2): custom split and settle (the bill splitter). Goodbudget: Budget period. Monarch: Transaction review and activity log (one entry's edit history). Copilot: Name rules (associated titles that pick a category). Rocket Money: Subscriptions and bills list (upcoming, subscription and repeating transactions). Lunch Money (round 4): the month as a calendar (the calendar page). Kubera: Any currency, one total. The money log's saved searches and filters are built (`lib/money-log/saved-searches.ts`; title contains, amount range). YNAB: Targets (savings goals with installments).
+
+#### Money Manager by Realbyte (accounts and budgets)
+
+| Feature | Competitor (one line) | Source | New since 2025 | ZIGoals status | Evidence (our file) | What is missing (half/missing) | Effort | Personas |
+|---|---|---|---|---|---|---|---|---|
+| What the card's next payment will be | Credit card management: future payment dates show the payment amount and the outstanding balance on the accounts page; a Balance Payable widget (2.14) | https://apps.apple.com/app/id560481810 (2.14.0, Jul 7) | yes | `half` | A credit card's limit, its use and the next statement and due days, with a payment reminder (`components/wealth/credit-card.tsx:15`, LEDGER #293) | The deeper part: "Next payment on 25 Nov: €412.30 (statement of 5 Nov)" and "So far this statement: €96.10": the card's counted entries between statement days, less the payments made since, from the person's own entries; a fact, never advice | S | Lina |
+
+Not rowed:
+- Server service: the Data Sync Service, the PC Manager over Wi-Fi (a server on the phone), backup by email and iCloud.
+- Native-only: the Quick entry, Income/Expense and Balance Payable widgets (2.14).
+- Not proposed: the separate calculator (ZIGoals' amount field takes sums, `lib/money-calc/expression.ts`).
+
+Already in COMPETITORS.md:
+- Goodbudget: Budget period (weekly, monthly and annual budgets). YNAB and Goodbudget: a month that starts on payday (the custom month start; built as LEDGER #212). Lunch Money (round 4): the month as a calendar (the calendar view). Sort by recipient is the top payees view (`components/wealth/spending/insights/top-payees-view.tsx`). Wallet: record templates (payment profiles). Diarium (round 6): Lock again after a while away (the passcode after a set time). Rocket Money: tags (the tags of 2.15). Kubera: Any currency, one total (multi-currency entries).

@@ -1,9 +1,10 @@
+import {formatNumber} from '../../visual-format';
 import type {ToolEnv} from '../tools/env';
 import {text as clean} from '../tools/format';
 import {runTool} from '../tools/registry';
 import type {ToolOk} from '../tools/types';
 import type {LocalReply} from './engine';
-import {amount, dayText} from './words';
+import {amount, dayText, localQty, nlDayText} from './words';
 import {MEMORY_CATEGORIES} from '../store/records';
 import {allowHealth, novaEnvInfo, novaHealthClosed} from './nova-env';
 import {taskIntent} from '../../tasks/intent';
@@ -247,7 +248,7 @@ export function alMoreAnswer(question: string, env: ToolEnv | null, lang: Lang):
     if (!recent.length) return {kind: 'answer', text: `${/not read on this path/i.test(String(d.note)) ? say(lang, 'Your workout log is not read on this path, so I can’t say it here (unknown, not none).', 'Je trainingslog wordt hier niet gelezen (onbekend, niet nul).') : say(lang, 'No workout is logged yet.', 'Er is nog geen training gelogd.')} ${say(lang, 'Health → Workouts shows them.', 'Health → Workouts toont ze.')}` + open('workouts'), calls: [r.record]};
     const last = recent[0]!;
     // Session AL fourth pass (L7-4b; Moscow ZP-06, NP-05): the workout's own name, a readable day, minutes with their unit.
-    const name = clean(String(last.workout ?? last.name ?? last.title ?? say(lang, 'a workout', 'een training')), 60), day = last.day ? dayText(String(last.day), env.healthDay.slice(0, 4)) : '';
+    const name = clean(String(last.workout ?? last.name ?? last.title ?? say(lang, 'a workout', 'een training')), 60), day = last.day ? (lang === 'nl' ? nlDayText : dayText)(String(last.day), env.healthDay.slice(0, 4)) : '';
     const week = d.thisWeek ? say(lang, ` This week: ${d.thisWeek.workouts === 1 ? '1 workout' : `${d.thisWeek.workouts} workouts`}, ${d.thisWeek.minutes} min.`, ` Deze week: ${d.thisWeek.workouts} trainingen, ${d.thisWeek.minutes} min.`) : '';
     return {kind: 'answer', text: say(lang, `Your last workout: ${name}${last.type ? ` (${last.type})` : ''}${day ? ` on ${day}` : ''}${last.minutes ? `, ${last.minutes} min` : ''}${last.sets ? `, ${last.sets === 1 ? '1 set' : `${last.sets} sets`}` : ''}.${week}`, `Je laatste training: ${name}${day ? ` op ${day}` : ''}${last.minutes ? `, ${last.minutes} min` : ''}.${week}`), calls: [r.record]};
   }
@@ -257,7 +258,7 @@ export function alMoreAnswer(question: string, env: ToolEnv | null, lang: Lang):
     if (!rows.length) return {kind: 'answer', text: say(lang, 'No staking is tracked on this device yet, so nothing staked and no rewards to add up (none tracked, not zero). Staking shows a wallet’s delegations once you connect it there.', 'Er wordt op dit apparaat nog geen staking bijgehouden.') + open('staking'), calls: [r.record]};
     // Session AL fourth pass (L7-4b; Tokyo TK #7, TK:Z3, TK-049): a holding marked "for staking rewards" is the person's own
     // entry in Wealth, not a delegation read from the network; said as such, with the amount grouped.
-    const qty = (v: unknown) => { const n = Number(v); return Number.isFinite(n) ? n.toLocaleString('en-GB', {maximumFractionDigits: 8}) : String(v ?? ''); };
+    const qty = (v: unknown) => { const n = Number(v); return Number.isFinite(n) ? formatNumber(n, {maximumFractionDigits: 8}) : String(v ?? ''); };
     return {kind: 'answer', text: [say(lang, 'No delegation is read in a chat: what is staked on the network shows on Staking once a wallet is connected there. In Wealth, your own entries marked for staking (watch-only):', 'In een chat wordt geen delegatie gelezen: wat op het netwerk gestaket is, toont Staking zodra een wallet daar gekoppeld is. In Wealth, je eigen invoer voor staking (alleen bekijken):'), ...rows.slice(0, 8).map(s => `• ${qty(s.quantity)} ${clean(String(s.asset), 20)}${s.value && s.value !== 'no price' ? ` (${money(s.value)})` : ''}${s.held ? ` · ${say(lang, 'held for', 'voor')} ${s.held}` : ''}`), say(lang, 'ZIGoals and ZIGi never stake, unstake, claim or move funds.', 'ZIGoals en ZIGi staken, unstaken of claimen nooit.')].join('\n') + open('staking'), calls: [r.record]};
   }
   // P-NB-60 (NB-105): with no portfolio read here, "what is my portfolio worth" is answered from Wealth's own totals, labelled.
@@ -281,9 +282,9 @@ export function alMoreAnswer(question: string, env: ToolEnv | null, lang: Lang):
  */
 export function targetSaid(target: unknown, lang: 'en' | 'nl'): string {
   if (!target || typeof target !== 'object') return '';
-  const t = target as Record<string, unknown>, en = lang === 'en', head = en ? `; target ${t.amount} by ${t.by}` : `; doel ${t.amount} uiterlijk ${t.by}`;
+  const t = target as Record<string, unknown>, en = lang === 'en', head = en ? `; target ${localQty(t.amount)} by ${t.by}` : `; doel ${localQty(t.amount)} uiterlijk ${t.by}`;
   if (t.state === 'reached') return `${head}: ${en ? 'reached' : 'bereikt'}`;
-  if (t.state === 'past') return `${head}: ${en ? `that month has gone by, ${t.toGo} was still to go` : `die maand is voorbij, er moest nog ${t.toGo} bij`}`;
+  if (t.state === 'past') return `${head}: ${en ? `that month has gone by, ${localQty(t.toGo)} was still to go` : `die maand is voorbij, er moest nog ${localQty(t.toGo)} bij`}`;
   const state = t.state === 'on-track' ? (en ? 'on track' : 'op schema') : (en ? 'short' : 'te weinig');
-  return `${head}: ${t.setAside} ${en ? 'set aside' : 'opzij'}, ${t.perMonthFromNextMonth} ${en ? 'a month from next month' : 'per maand vanaf volgende maand'} (${state})`;
+  return `${head}: ${localQty(t.setAside)} ${en ? 'set aside' : 'opzij'}, ${localQty(t.perMonthFromNextMonth)} ${en ? 'a month from next month' : 'per maand vanaf volgende maand'} (${state})`;
 }

@@ -47,13 +47,16 @@ for (const theme of THEMES) test(`${theme}: 10% down from today's 70,000, and th
   const value = page.locator('details.portfolio-value-alert').first();
   await value.locator('summary').click();
   const vform = value.getByRole('form', {name: 'Value alert for Fictional coins'});
-  await vform.getByLabel('Worth').selectOption('above');
+  // Session AV lane 2 (the radio labels "worth above or below…" share the word, deliberate): the Worth select, whose name
+  // starts with a capital W (the radios' start lower case; a label round a select also names its options).
+  await vform.getByRole('combobox', {name: /^Worth/}).selectOption('above');
   await vform.getByLabel('Value (USD)').fill('30000');
   await vform.getByRole('button', {name: 'Set alert'}).click();
-  await expect(page.getByText('Value alert: Fictional coins is worth above 30000 USD: 35000 USD now.')).toBeVisible();
+  // Session AV lane 2 (loose ends: the value alert's amounts through the app's money formatter, deliberate)
+  await expect(page.getByText('Value alert: Fictional coins is worth above $30,000.00: $35,000.00 now.')).toBeVisible();
   // Session AV (q2 rank 35): a value already passed says so.
-  await expect(vform.getByRole('status')).toHaveText('Fictional coins is already above 30000 USD (worth 35000.00 USD now), so this alert is reached at once.');
-  await expect(value.getByRole('listitem')).toContainText('Fictional coins worth above 30000 USD · reached');
+  await expect(vform.getByRole('status')).toHaveText('Fictional coins is already above $30,000.00 (worth $35,000.00 now), so this alert is reached at once.');
+  await expect(value.getByRole('listitem')).toContainText('Fictional coins worth above $30,000.00 · reached');
   expect(requests.join(' ')).not.toContain('63000');
   expect(requests.join(' ')).not.toContain('30000');
   await page.setViewportSize({width: 320, height: 720});
@@ -70,7 +73,8 @@ test('a value alert set earlier fires on Today and is listed there until seen', 
   if (isMobile) await page.getByRole('region', {name: 'For you'}).getByRole('button', {name: /^Show more/}).click();
   const card = page.getByRole('region', {name: /price alerts? reached/});
   await expect(card).toBeVisible();
-  await expect(card.getByRole('listitem')).toContainText('Fictional coins is worth above 30000 USD: 35000 USD now.');
+  // Session AV lane 2 (loose ends: the value alert's amounts through the app's money formatter, deliberate)
+  await expect(card.getByRole('listitem')).toContainText('Fictional coins is worth above $30,000.00: $35,000.00 now.');
   const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('zigoals:price-alerts:v1') ?? 'null'));
   expect(stored.portfolio[0]).toMatchObject({active: false});
   await card.getByRole('button', {name: 'Seen'}).click();

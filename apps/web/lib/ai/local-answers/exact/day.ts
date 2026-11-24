@@ -3,7 +3,7 @@ import {minutesWords, minutesWordsNl} from '../../../tasks/minutes';
 import {FORECAST} from '../../../goal-forecast';
 import {addLocalDays} from '../../../local-date';
 import {recentNotes} from '../../../nova/holo/lists';
-import {calendarDay, formatClock, formatCurrencyAmount, formatDate, formatNumber, isMoneyCurrency} from '../../../visual-format';
+import {calendarDay, formatClock, formatCurrencyAmount, formatDate, formatNumber, formatPlainDecimal, isMoneyCurrency} from '../../../visual-format';
 import type {ToolEnv} from '../../tools/env';
 import {text as clean} from '../../tools/format';
 import {runTool} from '../../tools/registry';
@@ -11,10 +11,11 @@ import {weekStart} from '../../tools/range';
 import {habitRows} from './habits';
 import {stepsTrack, sleepTrack, waterTrack} from './health';
 import {GOAL_ETA} from './lexicon';
-import {dayWords, nlDay, periodSpan, periodWords, previousPeriod, resolvePeriod, type Period} from './period';
+import {dayIn, dayWords, nlDate, nlDay, periodSpan, periodWords, previousPeriod, resolvePeriod, type Period} from './period';
 import {listWords, t} from './text';
 import {periodFor, trackAnswer, type Track} from './track';
 import type {Ask, Exact, ExactWidget, Lang, Query} from './types';
+import {isFinished} from '../../../tasks/finished';
 
 /**
  * Session AS (ADR-042, Part 1): the day's own records, exactly — tasks, the journal, focus, notes, the agenda, the
@@ -66,12 +67,13 @@ export function tasksAnswer(q: Query, env: ToolEnv): Exact | null {
   if (!record.tasks.length) return out(t(lang, 'No tasks yet.', 'Nog geen taken.'), {tasks: 0}, [{id: 'tasks'}]);
   const r = runTool('tasks', {}, env), open = (r.ok ? r.data.open as {task: string; state: string; due?: string; time?: string; priority: string; deadline?: string; minutes?: number}[] | undefined : undefined) ?? [];
   const name = (x: {task: string; due?: string; time?: string}) => `${plain(x.task)}${x.due ? ` (${t(lang, 'due', 'gepland')} ${x.due === today ? t(lang, 'today', 'vandaag') : day(x.due)}${x.time ? ` ${clock(x.time)}` : ''})` : ''}`;
-  const overdue = open.filter(x => x.state === 'overdue'), doneDay = (x: {doneAt?: string}) => x.doneAt ? calendarDay(x.doneAt, env.habitZone) : null;
+  const overdue = open.filter(x => x.state === 'overdue'), doneDay = (x: {doneAt?: string; state?: {kind?: string}}) => isFinished(x) /* review B5L-3 */ ? calendarDay(x.doneAt!, env.habitZone) : null;
   const base = {open: open.length, overdue: overdue.map(x => plain(x.task))}, timeline: ExactWidget[] = [{id: 'task-timeline', fallback: 'tasks'}];
   // Finished: how many, which, and which of them after their day.
   if (q.ask === 'done' || /\b(?:finished|completed|afgerond|voltooid|gedaan|done)\b/.test(q.read) && q.ask !== 'not-done' && q.ask !== 'open') {
     const p = periodFor({...q, shape: 'list'}, today, 'today'), hit = record.tasks.filter(x => { const d = doneDay(x); return !!d && p.days.includes(d); }), late = hit.filter(x => x.due && doneDay(x)! > x.due);
-    const span = periodSpan(p, lang, today);
+    // Session AV lane 2 (minors, q1 #2 check 5): the span's days the Dutch way too ("deze week (ma 16 nov t/m di 17 nov)").
+    const span = periodSpan(p, lang, today, lang === 'nl' ? nlDay : dayWords);
     if (q.ask === 'late') return out(late.length ? t(lang, `${late.length} of ${hit.length} tasks done ${span} ${late.length === 1 ? 'was' : 'were'} finished after ${late.length === 1 ? 'its' : 'their'} day: ${listWords(late.map(x => plain(x.title)), 'en')}.`, `${late.length} van de ${hit.length} taken gedaan ${span} ${late.length === 1 ? 'is' : 'zijn'} na de geplande dag afgerond: ${listWords(late.map(x => plain(x.title)), 'nl')}.`) : t(lang, `No task done ${span} was finished late (${hit.length} done).`, `Geen taak gedaan ${span} is te laat afgerond (${hit.length} gedaan).`), {...base, done: hit.length, late: late.map(x => plain(x.title))}, timeline);
     return out(hit.length ? t(lang, `${hit.length} ${hit.length === 1 ? 'task' : 'tasks'} done ${span}: ${listWords(hit.slice(0, 8).map(x => plain(x.title)), 'en')}.`, `${hit.length} ${hit.length === 1 ? 'taak' : 'taken'} gedaan ${span}: ${listWords(hit.slice(0, 8).map(x => plain(x.title)), 'nl')}.`) : t(lang, `No task done ${span}.`, `Geen taak gedaan ${span}.`), {...base, done: hit.length, tasks: hit.map(x => plain(x.title))}, timeline);
   }
@@ -112,7 +114,7 @@ export function notesAnswer(q: Query, env: ToolEnv): Exact | null {
   if (!notes) return {kind: 'refusal', text: 'Notes are not shared here: NOVA reads them only when its Notes permission is on (NOVA → Permissions).', facts: {closed: 'notes'}, widgets: [], query: q, source: ''};
   const n = recentNotes(notes, 1), last = n.recent[0];
   if (!n.total) return out(t(lang, 'No notes yet.', 'Nog geen notities.'), {notes: 0}, [{id: 'notes'}]);
-  const when = last ? dayWords(calendarDay(last.at, env.habitZone), env.habitDay) : '';
+  const when = last ? dayIn(lang, calendarDay(last.at, env.habitZone), env.habitDay) : '';
   return out(t(lang, `${n.total} ${n.total === 1 ? 'note' : 'notes'} in all; ${n.inbox} ${n.inbox === 1 ? 'waits' : 'wait'} in your inbox. The newest is from ${when}.`, `${n.total} ${n.total === 1 ? 'notitie' : 'notities'} in totaal; ${n.inbox} ${n.inbox === 1 ? 'wacht' : 'wachten'} in je inbox. De nieuwste is van ${when}.`), {notes: n.total, inbox: n.inbox, newest: last ? calendarDay(last.at, env.habitZone) : null}, [{id: 'notes-constellation', fallback: 'notes'}]);
 }
 
@@ -127,7 +129,7 @@ export function agendaAnswer(q: Query, env: ToolEnv): Exact | null {
   if (!hit.length) return out(t(lang, `Nothing is on your agenda ${label}.`, `Er staat niets op je agenda ${label}.`), facts, widgets);
   if (q.ask === 'next') {
     const clock = `${String(env.now.getUTCHours()).padStart(2, '0')}:${String(env.now.getUTCMinutes()).padStart(2, '0')}`, next = items.filter(i => i.state === 'open' && i.time && (i.day > today || i.time >= clock)).sort((a, b) => `${a.day} ${a.time}`.localeCompare(`${b.day} ${b.time}`))[0];
-    return out(next ? t(lang, `Next on your agenda: ${name(next)}${next.day === today ? '' : `, ${dayWords(next.day, today)}`}.`, `Het volgende op je agenda: ${name(next)}${next.day === today ? '' : `, ${dayWords(next.day, today)}`}.`) : t(lang, 'Nothing with a time is still ahead on your agenda.', 'Er staat niets met een tijd meer op je agenda.'), {...facts, next: next ? plain(next.what) : null}, widgets);
+    return out(next ? t(lang, `Next on your agenda: ${name(next)}${next.day === today ? '' : `, ${dayWords(next.day, today)}`}.`, `Het volgende op je agenda: ${name(next)}${next.day === today ? '' : `, ${nlDay(next.day, today)}`}.`) : t(lang, 'Nothing with a time is still ahead on your agenda.', 'Er staat niets met een tijd meer op je agenda.'), {...facts, next: next ? plain(next.what) : null}, widgets);
   }
   const open = hit.filter(i => i.state === 'open'), timed = open.filter(i => i.time).sort((a, b) => `${a.day} ${a.time}`.localeCompare(`${b.day} ${b.time}`));
   return out(t(lang, `${hit.length} ${hit.length === 1 ? 'item' : 'items'} on your agenda ${label}, ${open.length} still open${timed.length ? `: ${listWords(timed.slice(0, 5).map(name), 'en')}${open.length > timed.slice(0, 5).length ? `, and ${open.length - timed.slice(0, 5).length} more` : ''}` : ''}.`, `${hit.length} ${hit.length === 1 ? 'ding' : 'dingen'} op je agenda ${label}, ${open.length} nog open${timed.length ? `: ${listWords(timed.slice(0, 5).map(name), 'nl')}${open.length > timed.slice(0, 5).length ? ` en nog ${open.length - timed.slice(0, 5).length}` : ''}` : ''}.`), facts, widgets);
@@ -162,10 +164,10 @@ export function checklistWeek(env: ToolEnv, lang: Lang, read: string, now: {tota
   const kept = days.filter(d => c.days.days?.[d]), unknown = days.filter(d => !c.days.days?.[d]);
   const counted = kept.filter(d => dayCounts(c.days.days![d], needOn(goal, d))), not = kept.filter(d => !counted.includes(d));
   const all = (d: string) => { const x = c.days.days![d]!; return x.total > 0 && x.done >= x.total; };
-  const each = (d: string) => { const x = c.days.days![d]!; return `${dayWords(d, today)} (${x.done} ${t(lang, 'of', 'van')} ${x.total}${all(d) ? t(lang, ', every dot', ', elke stip') : ''})`; };
+  const each = (d: string) => { const x = c.days.days![d]!; return `${dayIn(lang, d, today)} (${x.done} ${t(lang, 'of', 'van')} ${x.total}${all(d) ? t(lang, ', every dot', ', elke stip') : ''})`; };
   const need = needOn(goal, today), rule = need === null ? t(lang, 'a day counts as done when every dot is lit', 'een dag telt als gedaan als elke stip brandt') : t(lang, `a day counts as done at ${need} ${need === 1 ? 'dot' : 'dots'} (your rule)`, `een dag telt als gedaan bij ${need} ${need === 1 ? 'stip' : 'stippen'} (jouw regel)`);
   const todayCounts = !last && now ? dayCounts(now, need) : false;
-  const span = last ? t(lang, `Last week on your Checklist (${dayWords(from, today)} to ${dayWords(to, today)})`, `Vorige week op je Checklist (${dayWords(from, today)} t/m ${dayWords(to, today)})`) : t(lang, `This week on your Checklist (${dayWords(from, today)} to today, ${dayWords(today, today)})`, `Deze week op je Checklist (${dayWords(from, today)} t/m vandaag, ${dayWords(today, today)})`);
+  const span = last ? t(lang, `Last week on your Checklist (${dayWords(from, today)} to ${dayWords(to, today)})`, `Vorige week op je Checklist (${nlDay(from, today)} t/m ${nlDay(to, today)})`) : t(lang, `This week on your Checklist (${dayWords(from, today)} to today, ${dayWords(today, today)})`, `Deze week op je Checklist (${nlDay(from, today)} t/m vandaag, ${nlDay(today, today)})`);
   const doneN = counted.length + (todayCounts ? 1 : 0), keptN = kept.length + (todayCounts ? 1 : 0);
   const doneList = [...counted.map(each), ...(todayCounts ? [t(lang, `today (${now!.done} of ${now!.total})`, `vandaag (${now!.done} van ${now!.total})`)] : [])];
   const parts = [
@@ -177,6 +179,15 @@ export function checklistWeek(env: ToolEnv, lang: Lang, read: string, now: {tota
   return {text: `${span}, ${rule}: ${parts.join('; ')}.${tail}`, facts: {from, to, dayGoal: need, done: counted, notDone: not, unknown, everyDot: kept.filter(all), today: now ? {...now, counts: todayCounts} : null}};
 }
 
+/**
+ * Session AV lane 2 (fr-money, FR-L-12, the friend-readiness walk's Lina): the goals tool writes progress in the display
+ * locale ("6,67%" in Dutch, lib/goal-summary.ts progressText); `parseFloat` stopped at the comma and said 6 % where Goals
+ * says 7 %. The display locale's digits and decimal sign are read back first, so every answer rounds the same 6.67.
+ */
+export function progressNumber(text: string): number {
+  const digits = [...formatPlainDecimal('0123456789')], decimal = [...formatPlainDecimal('0.5')][1];
+  return Number.parseFloat([...text].map(ch => { const d = digits.indexOf(ch); return d >= 0 ? String(d) : ch === decimal ? '.' : ch; }).join(''));
+}
 type GoalRow = {handle: string; name: string; status: string; progress: string; now?: string; target?: string; remaining?: string; funding?: string; targetDate?: string; nextPlannedDate?: string; type?: string};
 const amountOf = (text: string | undefined) => { if (!text) return ''; const i = text.lastIndexOf(' '), value = text.slice(0, i), unit = text.slice(i + 1); return i > 0 && isMoneyCurrency(unit) ? formatCurrencyAmount(value, unit) : text; };
 const FUNDING_NL: Record<string, string> = {ahead: 'voor op schema', 'on track': 'op schema', behind: 'achter op schema', completed: 'gehaald', 'no plan': 'geen plan'};
@@ -185,15 +196,15 @@ export function goalsAnswer(q: Query, env: ToolEnv): Exact | null {
   if (!r.ok) return null;
   const all = ((r.data.goals as GoalRow[] | undefined) ?? []).map(g => ({...g, name: plain(g.name)})), active = all.filter(g => g.status === 'active'), widgets: ExactWidget[] = [{id: 'goal-orbits', fallback: 'goals-hud'}];
   if (!all.length) return out(t(lang, 'You have no goals yet.', 'Je hebt nog geen doelen.'), {goals: 0}, [{id: 'goals-hud'}]);
-  const pct = (g: GoalRow) => `${formatNumber(Math.round(Number.parseFloat(g.progress)))}%`, pace = (g: GoalRow) => g.funding ? (lang === 'nl' ? FUNDING_NL[g.funding] ?? g.funding : g.funding === 'ahead' ? 'ahead of plan' : g.funding === 'behind' ? 'behind plan' : g.funding) : '';
+  const pct = (g: GoalRow) => `${formatNumber(Math.round(progressNumber(g.progress)))}%`, pace = (g: GoalRow) => g.funding ? (lang === 'nl' ? FUNDING_NL[g.funding] ?? g.funding : g.funding === 'ahead' ? 'ahead of plan' : g.funding === 'behind' ? 'behind plan' : g.funding) : '';
   const line = (g: GoalRow) => `${g.name} ${pct(g)}${g.funding && g.funding !== 'completed' ? ` (${pace(g)})` : ''}`;
-  const rows = all.map(g => ({goal: g.name, status: g.status, percent: Math.round(Number.parseFloat(g.progress)), funding: g.funding ?? null, targetDate: g.targetDate && g.targetDate !== 'none' ? g.targetDate : null})), facts = {active: active.length, goals: rows};
+  const rows = all.map(g => ({goal: g.name, status: g.status, percent: Math.round(progressNumber(g.progress)), funding: g.funding ?? null, targetDate: g.targetDate && g.targetDate !== 'none' ? g.targetDate : null})), facts = {active: active.length, goals: rows};
   const one = q.subject?.kind === 'goal' ? all.find(g => g.name === plain(q.subject!.name)) : null;
   if (MILESTONE_WORDS.test(q.read)) return milestonesOf(q, env, active, one, out);
   if (one && GOAL_ETA.test(q.read)) return goalEta(q, env, one, out);
   if (one) {
-    const date = one.targetDate && one.targetDate !== 'none' ? t(lang, `; target date ${dayWords(one.targetDate, today)}`, `; streefdatum ${dayWords(one.targetDate, today)}`) : '';
-    return out(t(lang, `${one.name}: ${amountOf(one.now)} of ${amountOf(one.target)} (${pct(one)})${one.funding ? `, ${pace(one)}` : ''}; ${amountOf(one.remaining)} to go${date}.`, `${one.name}: ${amountOf(one.now)} van ${amountOf(one.target)} (${pct(one)})${one.funding ? `, ${pace(one)}` : ''}; nog ${amountOf(one.remaining)} te gaan${date}.`), {...facts, goal: one.name, percent: Math.round(Number.parseFloat(one.progress)), funding: one.funding ?? null}, [{id: 'goal-gauge', ref: q.subject!.id, fallback: 'goal-focus'}]);
+    const date = one.targetDate && one.targetDate !== 'none' ? t(lang, `; target date ${dayWords(one.targetDate, today)}`, `; streefdatum ${nlDay(one.targetDate, today)}`) : '';
+    return out(t(lang, `${one.name}: ${amountOf(one.now)} of ${amountOf(one.target)} (${pct(one)})${one.funding ? `, ${pace(one)}` : ''}; ${amountOf(one.remaining)} to go${date}.`, `${one.name}: ${amountOf(one.now)} van ${amountOf(one.target)} (${pct(one)})${one.funding ? `, ${pace(one)}` : ''}; nog ${amountOf(one.remaining)} te gaan${date}.`), {...facts, goal: one.name, percent: Math.round(progressNumber(one.progress)), funding: one.funding ?? null}, [{id: 'goal-gauge', ref: q.subject!.id, fallback: 'goal-focus'}]);
   }
   if (q.ask === 'late' || q.ask === 'missed' || q.ask === 'worst' && /\b(?:behind|achter)\b/.test(q.read)) {
     const behind = active.filter(g => g.funding === 'behind');
@@ -203,13 +214,13 @@ export function goalsAnswer(q: Query, env: ToolEnv): Exact | null {
   if ((q.ask === 'best' || q.ask === 'worst') && /\b(?:closest|nearest|furthest|farthest|progress|done|dichtst|verst|voortgang|klaar|best|worst|beste|slechtste)\b/.test(q.read)) {
     // A goal that keeps an average over a window is never "done" and has no amount left: closest and furthest rank the
     // goals that finish (ADR-042 D20, once the corpus held the average goals as the app does).
-    const ranked = active.filter(g => g.type !== 'Keep an average' && Number.isFinite(Number.parseFloat(g.progress))).sort((a, b) => Number.parseFloat(b.progress) - Number.parseFloat(a.progress)), hit = q.ask === 'best' ? ranked[0] : ranked.at(-1);
+    const ranked = active.filter(g => g.type !== 'Keep an average' && Number.isFinite(progressNumber(g.progress))).sort((a, b) => progressNumber(b.progress) - progressNumber(a.progress)), hit = q.ask === 'best' ? ranked[0] : ranked.at(-1);
     if (!hit) return out(t(lang, 'No active goal.', 'Geen actief doel.'), facts, widgets);
     return out(q.ask === 'best' ? t(lang, `Closest to done: ${line(hit)}, ${amountOf(hit.remaining)} to go.`, `Het dichtst bij klaar: ${line(hit)}, nog ${amountOf(hit.remaining)} te gaan.`) : t(lang, `Furthest from done: ${line(hit)}, ${amountOf(hit.remaining)} to go.`, `Het verst van klaar: ${line(hit)}, nog ${amountOf(hit.remaining)} te gaan.`), {...facts, goal: hit.name}, widgets);
   }
   if (q.ask === 'next') {
     const dated = active.filter(g => g.targetDate && g.targetDate !== 'none' && g.targetDate >= today).sort((a, b) => a.targetDate!.localeCompare(b.targetDate!))[0];
-    return out(dated ? t(lang, `The next target date is ${dayWords(dated.targetDate!, today)}: ${line(dated)}.`, `De eerstvolgende streefdatum is ${dayWords(dated.targetDate!, today)}: ${line(dated)}.`) : t(lang, 'No active goal has a target date ahead.', 'Geen actief doel heeft een streefdatum in de toekomst.'), {...facts, goal: dated?.name ?? null, targetDate: dated?.targetDate ?? null}, [{id: 'goal-dates', fallback: 'goals-hud'}]);
+    return out(dated ? t(lang, `The next target date is ${dayWords(dated.targetDate!, today)}: ${line(dated)}.`, `De eerstvolgende streefdatum is ${nlDay(dated.targetDate!, today)}: ${line(dated)}.`) : t(lang, 'No active goal has a target date ahead.', 'Geen actief doel heeft een streefdatum in de toekomst.'), {...facts, goal: dated?.name ?? null, targetDate: dated?.targetDate ?? null}, [{id: 'goal-dates', fallback: 'goals-hud'}]);
   }
   return out(active.length ? t(lang, `${active.length} active ${active.length === 1 ? 'goal' : 'goals'}: ${listWords(active.slice(0, 6).map(line), 'en')}${active.length > 6 ? `, and ${active.length - 6} more` : ''}.`, `${active.length} ${active.length === 1 ? 'actief doel' : 'actieve doelen'}: ${listWords(active.slice(0, 6).map(line), 'nl')}${active.length > 6 ? ` en nog ${active.length - 6}` : ''}.`) : t(lang, 'No active goal right now.', 'Er is nu geen actief doel.'), facts, /\b(?:saved|saving|savings|save|gespaard|sparen|spaar\w*)\b/.test(q.read) ? [{id: 'savings-jars', fallback: 'goals-hud'}, ...widgets] : widgets);
 }
@@ -227,12 +238,12 @@ function goalEta(q: Query, env: ToolEnv, one: GoalRow, out: ReturnType<typeof an
   if (!r.ok) return null;
   const pace = (typeof r.data.paceForecast === 'object' && r.data.paceForecast ? r.data.paceForecast : {}) as Pace;
   const target = one.targetDate && one.targetDate !== 'none' ? one.targetDate : null, left = amountOf(one.remaining);
-  const tail = (target ? t(lang, ` Target date ${dayWords(target, today)}`, ` Streefdatum ${dayWords(target, today)}`) : t(lang, ' No target date is set', ' Er is geen streefdatum')) + (left ? t(lang, `; ${left} still to go.`, `; nog ${left} te gaan.`) : '.');
+  const tail = (target ? t(lang, ` Target date ${dayWords(target, today)}`, ` Streefdatum ${nlDay(target, today)}`) : t(lang, ' No target date is set', ' Er is geen streefdatum')) + (left ? t(lang, `; ${left} still to go.`, `; nog ${left} te gaan.`) : '.');
   const estimate = pace.state === 'estimate' && pace.date ? pace.date : null;
   const facts = {goal: one.name, pace: pace.state ?? 'none', estimate, estimateMonth: estimate ? estimate.slice(0, 7) : null, targetDate: target, remaining: one.remaining ?? null};
   const widgets: ExactWidget[] = [{id: 'goal-focus', ref: q.subject!.id, fallback: 'goal-gauge'}];
   if (one.status === 'completed' || pace.state === 'reached') return out(t(lang, `${one.name} is already reached: ${amountOf(one.now)} of ${amountOf(one.target)}.`, `${one.name} is al gehaald: ${amountOf(one.now)} van ${amountOf(one.target)}.`), facts, widgets);
-  if (estimate) return out(t(lang, `At your current pace, you reach ${one.name} about ${formatDate(estimate)} — an estimate from your pace so far, not a promise.`, `In je huidige tempo haal je ${one.name} rond ${formatDate(estimate)} — een schatting op basis van je tempo tot nu toe, geen belofte.`) + tail, facts, widgets);
+  if (estimate) return out(t(lang, `At your current pace, you reach ${one.name} about ${formatDate(estimate)} — an estimate from your pace so far, not a promise.`, `In je huidige tempo haal je ${one.name} rond ${nlDate(estimate, null)} — een schatting op basis van je tempo tot nu toe, geen belofte.`) + tail, facts, widgets);
   const why = one.type === 'Keep an average' ? t(lang, 'it keeps an average over its window, so no date follows from a pace', 'het houdt een gemiddelde vast over een periode, dus er volgt geen datum uit een tempo')
     : pace.state === 'not-enough' ? t(lang, `there is not enough recorded progress yet (a pace needs at least ${FORECAST.minPoints} recorded steps over ${FORECAST.minDays} days or more)`, `er is nog te weinig vastgelegde voortgang (een tempo vraagt minstens ${FORECAST.minPoints} vastgelegde stappen over ${FORECAST.minDays} dagen of meer)`)
       : pace.state === 'no-pace' ? t(lang, 'your recorded progress has not moved forward lately, so no date follows from it', 'je vastgelegde voortgang is de laatste tijd niet vooruitgegaan, dus er volgt geen datum uit')
@@ -253,7 +264,7 @@ function milestonesOf(q: Query, env: ToolEnv, active: readonly GoalRow[], one: G
   if (!r.ok) return null;
   const goals = ((r.data.goals as MilestoneGoal[] | undefined) ?? []).map(g => ({...g, goal: plain(g.goal)})), listed = new Set(goals.map(g => g.goal));
   const without = one ? [] : active.map(g => g.name).filter(name => !listed.has(name));
-  const next = (g: MilestoneGoal) => { const open = g.milestones.filter(m => m.state === 'open'), first = open[0]; return first ? t(lang, `; next: ${first.title}`, `; volgende: ${first.title}`) + (first.targetDate ? t(lang, ` (by ${dayWords(first.targetDate, env.habitDay)})`, ` (uiterlijk ${dayWords(first.targetDate, env.habitDay)})`) : '') + (open.length > 1 ? t(lang, ` (+${open.length - 1} more)`, ` (+${open.length - 1} meer)`) : '') : ''; };
+  const next = (g: MilestoneGoal) => { const open = g.milestones.filter(m => m.state === 'open'), first = open[0]; return first ? t(lang, `; next: ${first.title}`, `; volgende: ${first.title}`) + (first.targetDate ? t(lang, ` (by ${dayWords(first.targetDate, env.habitDay)})`, ` (uiterlijk ${nlDay(first.targetDate, env.habitDay)})`) : '') + (open.length > 1 ? t(lang, ` (+${open.length - 1} more)`, ` (+${open.length - 1} meer)`) : '') : ''; };
   const rest = without.length ? t(lang, `${goals.length ? 'Your other open goals have' : 'Your open goals have'} no milestones: `, `${goals.length ? 'Je andere open doelen hebben' : 'Je open doelen hebben'} geen mijlpalen: `) + without.slice(0, 8).join(', ') + (without.length > 8 ? t(lang, ` (+${without.length - 8} more)`, ` (+${without.length - 8} meer)`) : '') : null;
   const head = goals.length ? t(lang, 'Your milestones:', 'Je mijlpalen:') : one ? t(lang, 'This goal has no milestones yet.', 'Dit doel heeft nog geen mijlpalen.') : t(lang, 'No open goal has milestones yet.', 'Geen open doel heeft al mijlpalen.');
   const rows = goals.map(g => t(lang, `${g.goal}: ${g.done} of ${g.total} done`, `${g.goal}: ${g.done} van ${g.total} gedaan`) + next(g));
@@ -301,6 +312,6 @@ export function lifeAnswer(q: Query, env: ToolEnv): Exact | null {
     }
   }
   if (!parts.length) return out(t(lang, 'Nothing is recorded yet. Add a habit, a task or a goal and ask me again.', 'Er is nog niets vastgelegd. Voeg een gewoonte, taak of doel toe en vraag het me opnieuw.'), {empty: true}, [{id: 'glance'}]);
-  const head = p.days.length === 1 ? t(lang, `Your day so far (${dayWords(today, today)})`, `Je dag tot nu toe (${dayWords(today, today)})`) : t(lang, `Your records ${words}`, `Je gegevens ${words}`);
+  const head = p.days.length === 1 ? t(lang, `Your day so far (${dayWords(today, today)})`, `Je dag tot nu toe (${nlDay(today, today)})`) : t(lang, `Your records ${words}`, `Je gegevens ${words}`);
   return out(`${head}: ${parts.join('; ')}.`, {period: {token: p.token, from: p.from, to: p.to}, ...facts}, p.days.length === 1 ? [{id: 'day-scan', fallback: 'glance'}] : [{id: 'life-radar', period: p.token, fallback: 'glance'}, {id: 'habit-week'}]);
 }

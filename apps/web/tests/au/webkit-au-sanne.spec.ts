@@ -35,7 +35,13 @@ test('Sanne, day 1 on the phone: setup, the first five without a hidden page, a 
   await typeGoalName(page, 'Elke nacht 8 uur slapen');
   const hint = page.locator('.goal-kind-hint');
   await expect(hint).toHaveText(/Following a daily number like sleep, water or steps\?/);
-  await expect(hint.getByRole('link', {name: 'Keep an average instead →'})).toHaveAttribute('href', '/app/goals/average/new');
+  // (deliberate, FR-S-12, stricter): the link's address carries none of her words (an address reaches the server);
+  // the average form still opens with the name she typed.
+  const keep = hint.getByRole('link', {name: 'Keep an average instead →'});
+  await expect(keep).toHaveAttribute('href', '/app/goals/average/new');
+  await keep.click();
+  await page.waitForURL('**/app/goals/average/new');
+  await expect(page.locator('.average-goal-form').getByLabel('Name', {exact: true})).toHaveValue('Elke nacht 8 uur slapen');
 
   // F-MEAL: Health's "Log a meal" opens on words first, before "Add your first food".
   await openAt(page, at(DAY1, '08:30'), '/app/health');

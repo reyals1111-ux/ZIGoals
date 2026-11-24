@@ -26,6 +26,7 @@ import type {MoneyLog} from '../../money-log/schema';
 import type {Journal} from '../../journal/schema';
 import type {Energy} from '../../energy/schema';
 import type {HealthCoach} from '../../health-aa/coach-schema';
+import type {FoodPlus} from '../../food-plus/schema';
 import type {AkToolSources} from './ak-tools';
 import type {NovaToolSources} from './nova-tools';
 
@@ -63,6 +64,12 @@ export type ToolSources = {
   energy?: Energy | null;
   /** Session AJ (item 9): the weekly coach check-in's answers on this device (the Health gate), for coach_checkin. */
   coach?: HealthCoach | null;
+  /**
+   * Session AV lane 2 (food, LEDGER #106, #107): this device's food-plus record (the Health gate; null with Health closed),
+   * so the coach tool reads the person's check-in day, partly logged days and chosen pace as Health → Your coach does.
+   * Absent: the tool reads this device's record when it runs (lib/food-plus/checkin.ts foodPlusFor).
+   */
+  foodPlus?: FoodPlus | null;
   milestoneDates?: MilestoneDates | null;
   chess?: {settings: ChessSettings | null; cache: ChessCache} | null;
   linksCount?: number | null;
@@ -82,6 +89,8 @@ export type ToolSources = {
   ak?: AkToolSources | null;
   /** Owner follow-up 2 (N4): tasks, focus sessions, budgets and (only under NOVA's Notes scope) the notes, for nova-tools.ts. */
   nova?: NovaToolSources | null;
+  /** Session AV lane 2 (loose ends; review b1 #17): how many photos and voice notes the tasks carry on this device, read from the attachment store (IndexedDB) before the question (components/ai/use-ai-context.ts); null or absent: not read. */
+  taskAttachments?: {photos: number; voice: number; tasks: number} | null;
   /** Session AL Part 14 (Denver DV-027c): the Health goals on this device (Goals → Health goals); Health data, so only with the Health gate. */
   healthGoals?: readonly HealthGoal[] | null;
   /**
@@ -93,7 +102,8 @@ export type ToolSources = {
    * Session AT (L7 NB:N11): the game layer's switch and the Earn Academy's record on this device, so a level asked in a chat
    * is counted as Journey counts it (lib/ai/local-answers/exact/journey.ts; XP itself is never stored). Absent or null: unknown.
    */
-  game?: {enabled: boolean; earnAcademy: EarnAcademy | null} | null;
+  // Session AV lane 2 (LEDGER #48): `rebirthFrom`, the day the level started again at 1 (the game record's rebirth).
+  game?: {enabled: boolean; earnAcademy: EarnAcademy | null; rebirthFrom?: string | null; monthTheme?: boolean} | null;
 };
 export type ToolEnv = Omit<ToolSources, 'health' | 'fasting' | 'notes'> & {
   health: HealthData | null; fasting: Fasting | null; notes: readonly MemoryNote[] | null;
@@ -124,5 +134,5 @@ export function toolEnv(sources: ToolSources, gates: Gates, purpose: 'provider' 
   // Session AI: the daily energy is about how a person feels, so it follows the Health gate like the mood.
   // Owner follow-up 2 (G8): your numbers and the cycle log describe health too, so they are not even in the environment with the gate closed.
   const nova = !health && sources.nova ? {...sources.nova, healthNumbers: undefined, cycle: undefined} : sources.nova;
-  return {...sources, nova, healthGoals: health ? sources.healthGoals ?? null : null, health: health ? sources.health : null, fasting: health ? sources.fasting : null, energy: health ? sources.energy ?? null : null, coach: health ? sources.coach ?? null : null, notes, areas: {...areas, health}, handles, limits, purpose};
+  return {...sources, nova, healthGoals: health ? sources.healthGoals ?? null : null, health: health ? sources.health : null, fasting: health ? sources.fasting : null, energy: health ? sources.energy ?? null : null, coach: health ? sources.coach ?? null : null, foodPlus: health ? sources.foodPlus : null, notes, areas: {...areas, health}, handles, limits, purpose};
 }

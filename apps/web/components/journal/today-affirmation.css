@@ -1,0 +1,17 @@
+/* Session AV lane 2 (journal; LEDGER #176): the daily affirmation on Today's journal card. Theme tokens only, no motion. */
+.today-affirmation { margin: 8px 0 0; font-size: 15px; line-height: 1.5; overflow-wrap: anywhere; }
+.today-affirmation-label { margin-right: 4px; }
+.today-affirmation-text { font-style: italic; color: var(--text-strong, var(--text)); }
+.today-affirmation-next { min-height: 44px; display: inline-flex; align-items: center; }
+/* Session AV lane 2 (bodymind-r2; LEDGER #230): the small daily challenge beside it. */
+.today-challenge-actions { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; font-size: 15px; }
+.today-challenge-actions .fine { font-size: 14px; }
+/* Session AV lane 2 (r3-notes; LEDGER #277): a quote of the day from the Stoic writers, the writer named. */
+.today-quote { margin: 8px 0 0; font-size: 15px; line-height: 1.5; overflow-wrap: anywhere; }
+.today-quote-text { margin: 2px 0; padding-inline-start: 12px; border-inline-start: 3px solid color-mix(in srgb, var(--brand-violet, #826cff) 60%, transparent); }
+.today-quote-text p { margin: 0; font-style: italic; color: var(--text-strong, var(--text)); }
+.today-quote figcaption { font-size: 14px; }
+.today-quote-actions { display: flex; flex-wrap: wrap; gap: 0 16px; }
+.today-quote-actions .text-link { min-height: 44px; display: inline-flex; align-items: center; }
+/* Session AV lane 2 (r3-notes; LEDGER #279): a letter that opens today. */
+.today-letter { margin: 8px 0 0; font-size: 15px; line-height: 1.5; overflow-wrap: anywhere; }

@@ -145,3 +145,13 @@
 .agenda-day-title .agenda-load { margin-left: auto; }
 .agenda-hours-toggle { margin: 0; }
 .agenda-hours-toggle button { min-height: 44px; }
+/* Session AV lane 2 (minors, q1 #15): a task's deadline on its own day (deadlines-on-day.tsx), beside the countdowns. */
+.agenda-deadlines { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.agenda-deadline { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 10px; border-radius: 14px; border: 1px dashed var(--line, #ffffff1f); min-width: 0; }
+.agenda-deadline > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+.agenda-deadline .text-link { display: inline-flex; align-items: center; min-height: 44px; }
+.agenda-deadline small { font-size: 14px; color: var(--text-secondary, var(--muted)); }
+.agenda-deadline[data-passed] .agenda-deadline-mark { color: var(--warning, #e8a33d); }
+/* Session AV lane 2 (r5-notes; LEDGER #364): a note for an imported event. */
+.agenda-event-note { margin: 2px 0 0; font-size: 15px; overflow-wrap: anywhere; }
+.agenda-event-note .text-link { min-height: 44px; display: inline-flex; align-items: center; text-align: start; }

@@ -12,11 +12,12 @@ export const GRID_FIRST_HOUR = 6, GRID_LAST_HOUR = 23;
 export const hourOf = (clock: string) => Number(clock.slice(0, 2));
 export const hourClock = (hour: number) => `${String(hour).padStart(2, '0')}:00`;
 export const timedLoad = (day: Pick<DayWithExtras, 'items'>): number => day.items.filter(i => i.time !== null).length;
-export const movable = (item: DayItem): item is TaskAgendaItem => item.source === 'task' && item.state !== 'done';
+export const movable = (item: DayItem): item is TaskAgendaItem => item.source === 'task' && item.state === 'open'; // review B5L-3: a cancelled task ('skipped') does not move
 export type HourRow = {hour: number; clock: string; items: DayItem[]};
-export function hourRows(day: Pick<DayWithExtras, 'items'>): HourRow[] {
+/** Session AV lane 2 (r5-plan, review B5L-8): `also` — the clocks of rows drawn beside the items (time blocks, "Leave by"), so an early one gets its hour. */
+export function hourRows(day: Pick<DayWithExtras, 'items'>, also: readonly string[] = []): HourRow[] {
   const timed = day.items.filter(i => i.time !== null);
-  const first = Math.min(GRID_FIRST_HOUR, ...timed.map(i => hourOf(i.time!)));
+  const first = Math.min(GRID_FIRST_HOUR, ...timed.map(i => hourOf(i.time!)), ...also.map(hourOf));
   const rows: HourRow[] = [];
   for (let h = first; h <= GRID_LAST_HOUR; h++) rows.push({hour: h, clock: hourClock(h), items: timed.filter(i => hourOf(i.time!) === h)});
   return rows;

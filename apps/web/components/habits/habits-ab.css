@@ -101,3 +101,35 @@
 .habit-filter-bar .habit-sort { display: inline-flex; align-items: center; gap: 6px; margin-inline-start: auto; font-size: .875rem; }
 :root .habit-filter-bar .habit-sort select { min-height: 44px; min-width: 8rem; flex: none; } /* Session AH (QA2-07): a full tap target on phones too (it had shrunk to 28 px) */
 .habit-show-more { display: flex; justify-content: center; margin: 12px 0; }
+/* Session AV lane 2 (polish 2, P-27): Edit, ★ and ⋯ share the title's row (they had a row of their own above the eyebrow,
+   pushing the title about 50 px down). The eyebrow keeps the card's whole width above them (AF Gate C: "BUILD · WELLBEING"
+   on one line), and the schedule line keeps it under them. A card narrower than 280 px inside (a 320 px phone, large
+   text) keeps the buttons' own row, so a title never has less than about 120 px. */
+.habit-card { container: habit-card / inline-size; }
+@container habit-card (min-width: 280px) {
+  :root .habit-card-heading { row-gap: 0; }
+  :root .habit-card-heading > div:first-child > .eyebrow { grid-column: 1 / -1; grid-row: 1; }
+  :root .habit-card-heading > div:first-child > h2:not(.eyebrow) { grid-column: 1; grid-row: 2; align-self: center; }
+  :root .habit-card-heading > div:first-child > small:not(.eyebrow) { grid-column: 1 / -1; grid-row: 3; }
+  :root .habit-card-heading > :is(button, .star-toggle, .pin-to-today) { grid-row: 2; align-self: center; }
+  /* Session AV lane 2 (batch 4 unit check): a class the card sets with the focus badge, not :has() (lib/perf/has-invalidation). */
+  :root .habit-card-heading.habit-card-heading-focus > div:first-child > .habit-focus-badge:not(.eyebrow) { grid-column: 1 / -1; grid-row: 2; }
+  :root .habit-card-heading.habit-card-heading-focus > div:first-child > h2:not(.eyebrow),
+  :root .habit-card-heading.habit-card-heading-focus > :is(button, .star-toggle, .pin-to-today) { grid-row: 3; }
+  :root .habit-card-heading.habit-card-heading-focus > div:first-child > small:not(.eyebrow) { grid-row: 4; }
+}
+/* …and where cards stand side by side (above 1050 px), a section's cards fill its row: two cards share it, one card takes
+   it whole (it had left two of the three fixed columns empty). A lone card reads in two columns: its words on the left,
+   today's controls and the 28 days on the right; Details under both. The 28 days never grow past 440 px. */
+@media (min-width: 1051px) {
+  :root .habits-workspace .habit-grid { grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); }
+  :root .habits-workspace .habit-grid > .habit-card:only-child { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 440px); column-gap: 40px; align-content: start; }
+  .habits-workspace .habit-grid > .habit-card:only-child > * { grid-column: 1; }
+  .habits-workspace .habit-grid > .habit-card:only-child > .habit-card-heading { grid-column: 1 / -1; grid-row: 1; }
+  .habits-workspace .habit-grid > .habit-card:only-child > :is(.habit-completion, .habit-status) { grid-column: 2; grid-row: 2; margin-top: 0; }
+  .habits-workspace .habit-grid > .habit-card:only-child > .habit-checklist { grid-column: 2; grid-row: 3; }
+  .habits-workspace .habit-grid > .habit-card:only-child > .habit-two-day { grid-column: 2; grid-row: 4; }
+  .habits-workspace .habit-grid > .habit-card:only-child > .habit-cadence { grid-column: 2; grid-row: 5; }
+  .habits-workspace .habit-grid > .habit-card:only-child > .habit-more { grid-column: 1 / -1; grid-row: 12; }
+  .habits-workspace .habit-grid > .habit-card > .habit-cadence { width: 100%; max-width: 440px; }
+}

@@ -1,0 +1,149 @@
+import {accountsSchema, isDebtKind, MAX_SNAPSHOTS, type Account, type Accounts} from '../accounts/schema';
+import {bankAccountNames} from './reconcile';
+import type {MoneyEntry, MoneyLog} from './schema';
+
+/**
+ * Session AV lane 2, round 5 (money; Tiller's Data Cleanup, LEDGER #387): "Merge two accounts" — after a bank changed its
+ * name, or a file named an account differently, one account's history goes into another and nothing is lost:
+ * - the balances of the one merged go to the other on every day it has none (the other's own balance stays on a day both
+ *   have); a debt's payments go with them; the one merged is archived, its own history kept on it;
+ * - its note joins the other's, the other takes the earlier place in the person's order, and the later of the two "last
+ *   checked against the bank" days is kept (lib/money-log/reconcile.ts, round 4's #340);
+ * - the money-log entries of the bank-file account names chosen (by default the one merged's own name) take the other's
+ *   name, and exact doubles that this brings together — the same day, kind, amount, currency and bank reference — are
+ *   offered for removal.
+ * Undo (`undoMerge`) puts back exactly what the merge took or changed; anything changed since is kept. Accounts keep no
+ * spending figure, so nothing here counts spending. Pure.
+ */
+export type MergeChoice = {fromId: string; intoId: string; names: readonly string[]; asName: string; removeDoubles: ReadonlySet<string>};
+/**
+ * Review b5k #2: two copies of one bank move. `differs` names what differs beyond the matched day, kind, amount, currency
+ * and reference (category, subcategory, note, split parts, tags, marks, history); the copy kept is the one holding more of
+ * the person's own edits, and `edited` says the copy offered for removal holds edits of its own, so it is never ticked by
+ * default.
+ */
+export type Double = {keep: MoneyEntry; remove: MoneyEntry; differs: string[]; edited: boolean};
+type Tags = Readonly<Record<string, readonly string[]>>;
+const EDIT_FIELDS: readonly [keyof MoneyEntry, string][] = [['category', 'category'], ['sub', 'subcategory'], ['note', 'note'], ['parts', 'split parts'], ['share', 'your share'], ['paidWith', 'paid with'],
+  ['excluded', 'left out'], ['taxDeductible', 'tax mark'], ['spread', 'spread over months'], ['checked', 'checked against the bank'], ['group', 'group'], ['fine', '“that’s fine”'], ['history', 'changes']];
+const MARKS: readonly (keyof MoneyEntry)[] = ['sub', 'parts', 'share', 'paidWith', 'excluded', 'taxDeductible', 'spread', 'checked', 'group', 'fine'];
+/** How much of the person's own work a copy holds: its changes, its marks and its tags. */
+export const editWeight = (e: MoneyEntry, tags: Tags = {}) => (e.history?.length ?? 0) * 2 + MARKS.filter(k => e[k] !== undefined).length + (tags[e.id]?.length ? 1 : 0);
+export function doubleOf(into: MoneyEntry, from: MoneyEntry, tags: Tags = {}): Double {
+  const differs = EDIT_FIELDS.filter(([k]) => JSON.stringify(into[k] ?? null) !== JSON.stringify(from[k] ?? null)).map(([, w]) => w);
+  if (JSON.stringify(tags[into.id] ?? []) !== JSON.stringify(tags[from.id] ?? [])) differs.push('tags');
+  const keepFrom = editWeight(from, tags) > editWeight(into, tags), keep = keepFrom ? from : into, remove = keepFrom ? into : from;
+  return {keep, remove, differs, edited: editWeight(remove, tags) > 0 || differs.length > 0};
+}
+export type MergePlan = {from: Account; into: Account; balances: {moved: number; kept: number; capped: number}; payments: number; entries: MoneyEntry[]; doubles: Double[]; names: string[]; note: string | null};
+const fold = (s: string) => s.trim().toLowerCase();
+/** Why these two cannot be merged, in words, or null. */
+export function mergeProblem(accounts: Accounts, fromId: string, intoId: string): string | null {
+  const from = accounts.items.find(a => a.id === fromId), into = accounts.items.find(a => a.id === intoId);
+  if (!from || !into) return 'Choose the two accounts.';
+  if (from.id === into.id) return 'Choose two different accounts.';
+  if (from.archivedAt || into.archivedAt) return 'Bring the account back from Archived first.';
+  if (from.currency !== into.currency) return `${from.name} is in ${from.currency} and ${into.name} in ${into.currency}: only accounts in the same currency can be merged.`;
+  if (isDebtKind(from.kind) !== isDebtKind(into.kind)) return 'An account you own and a debt cannot be merged.';
+  return null;
+}
+/** The accounts another can be merged into: active, the same currency, both owned or both owed. */
+export const mergeTargets = (accounts: Accounts, fromId: string) => accounts.items.filter(a => a.id !== fromId && !mergeProblem(accounts, fromId, a.id));
+/** The bank-file account names in the log for that currency, and which match the account's own name. */
+export const bankNamesFor = (log: Pick<MoneyLog, 'entries'>, account: Account) => bankAccountNames(log.entries, account.currency).map(name => ({name, own: fold(name) === fold(account.name)}));
+/** The name merged entries take: a bank-file name of the other account when the log has one, else its name (≤ 40). */
+export const defaultAsName = (log: Pick<MoneyLog, 'entries'>, into: Account) => bankNamesFor(log, into).find(n => n.own)?.name ?? into.name.slice(0, 40);
+const sameMove = (a: MoneyEntry, b: MoneyEntry) => !!a.ref && a.ref === b.ref && a.date === b.date && a.kind === b.kind && a.amount === b.amount && a.currency === b.currency;
+export function planMerge(accounts: Accounts, log: MoneyLog, fromId: string, intoId: string, names: readonly string[], asName: string, tags: Tags = {}): MergePlan {
+  const problem = mergeProblem(accounts, fromId, intoId); if (problem) throw new Error(problem);
+  const from = accounts.items.find(a => a.id === fromId)!, into = accounts.items.find(a => a.id === intoId)!;
+  const days = new Set(into.snapshots.map(s => s.date)), kept = from.snapshots.filter(s => days.has(s.date)).length, moving = movingSnapshots(from, into).length;
+  const chosen = new Set(names.map(fold)), as = fold(asName);
+  const entries = log.entries.filter(e => e.currency === from.currency && e.account && chosen.has(fold(e.account)) && fold(e.account) !== as);
+  const already = log.entries.filter(e => e.currency === from.currency && e.account && fold(e.account) === as), doubles: Double[] = [];
+  const taken = new Set<string>();
+  for (const e of entries) { const twin = already.find(x => !taken.has(x.id) && sameMove(x, e)); if (twin) { taken.add(twin.id); doubles.push(doubleOf(twin, e, tags)); } }
+  const notes = log.accounts?.notes ?? {};
+  return {from, into, balances: {moved: moving, kept, capped: from.snapshots.length - kept - moving}, payments: isDebtKind(into.kind) ? from.payments.length : 0, entries, doubles, names: [...names], note: notes[from.id] ?? null};
+}
+/** The merged account's balances that go to the other: on days it has none, the newest first while there is room under the cap. */
+function movingSnapshots(from: Account, into: Account): Account['snapshots'] {
+  const days = new Set(into.snapshots.map(s => s.date)), room = Math.max(0, MAX_SNAPSHOTS - into.snapshots.length);
+  return from.snapshots.filter(s => !days.has(s.date)).sort((x, y) => y.date.localeCompare(x.date)).slice(0, room);
+}
+export type MergeAdded = {snapshots: string[]; payments: string[]};
+export type MergeAfter = {note: string | null; checked: string | null; order: string[] | null};
+export type MergeUndo = {fromBefore: Account; intoBefore: Account; at: string; added: MergeAdded; renamed: {id: string; account: string}[]; asName: string; removed: {entry: MoneyEntry; index: number}[];
+  notes: {from: string | null; into: string | null}; order: string[] | null; checked: {from: string | null; into: string | null}; after: MergeAfter};
+/** The accounts record after the merge — the other with the merged history, the one merged archived — and the ids it added. */
+export function mergeAccounts(accounts: Accounts, fromId: string, intoId: string, at: string): {accounts: Accounts; added: MergeAdded} {
+  const problem = mergeProblem(accounts, fromId, intoId); if (problem) throw new Error(problem);
+  const from = accounts.items.find(a => a.id === fromId)!, added: MergeAdded = {snapshots: [], payments: []};
+  const next = accountsSchema.parse({...accounts, items: accounts.items.map(a => {
+    if (a.id === intoId) {
+      const ids = new Set(a.snapshots.map(s => s.id)), payIds = new Set(a.payments.map(p => p.id));
+      // Review b5k #4: past the cap only the oldest of the merged account's balances stay behind (on the archived account,
+      // where they are kept); the other account's own balances are never dropped.
+      const moved = movingSnapshots(from, a).map(s => ids.has(s.id) ? {...s, id: crypto.randomUUID()} : s);
+      const snapshots = [...a.snapshots, ...moved].sort((x, y) => x.date.localeCompare(y.date));
+      const paid = isDebtKind(a.kind) ? from.payments.map(p => payIds.has(p.id) ? {...p, id: crypto.randomUUID()} : p) : [];
+      added.snapshots = moved.map(s => s.id); added.payments = paid.map(p => p.id);
+      return {...a, snapshots, payments: [...a.payments, ...paid].sort((x, y) => x.date.localeCompare(y.date)), updatedAt: at};
+    }
+    return a.id === fromId ? {...a, archivedAt: at, updatedAt: at} : a;
+  })});
+  return {accounts: next, added};
+}
+export const mergeAccountsRecord = (accounts: Accounts, fromId: string, intoId: string, at: string): Accounts => mergeAccounts(accounts, fromId, intoId, at).accounts;
+/** The money log after the merge, and what Undo needs. */
+export function mergeLog(log: MoneyLog, plan: MergePlan, asName: string, removeDoubles: ReadonlySet<string>, accountsOrder: readonly string[]): {log: MoneyLog; renamed: MergeUndo['renamed']; removed: MergeUndo['removed']; before: Pick<MergeUndo, 'notes' | 'order' | 'checked'>; after: MergeAfter} {
+  const name = asName.trim().slice(0, 40);
+  if (!name) throw new Error('Type the name their entries take.');
+  const move = new Set(plan.entries.map(e => e.id)), drop = new Set(plan.doubles.filter(d => removeDoubles.has(d.remove.id)).map(d => d.remove.id));
+  const renamed: MergeUndo['renamed'] = [], removed: MergeUndo['removed'] = [];
+  const entries: MoneyEntry[] = [];
+  log.entries.forEach((e, index) => {
+    if (drop.has(e.id)) { removed.push({entry: e, index}); return; }
+    if (move.has(e.id)) { renamed.push({id: e.id, account: e.account!}); entries.push({...e, account: name}); return; }
+    entries.push(e);
+  });
+  const {from, into} = plan, notes = {...log.accounts?.notes}, checked = {...log.accounts?.checked};
+  const before = {notes: {from: notes[from.id] ?? null, into: notes[into.id] ?? null}, order: log.accounts?.order ? [...log.accounts.order] : null, checked: {from: checked[from.id] ?? null, into: checked[into.id] ?? null}};
+  const joined = [before.notes.into, before.notes.from].filter(Boolean).join(' · ').slice(0, 300);
+  if (joined) notes[into.id] = joined;
+  const later = [before.checked.from, before.checked.into].filter((d): d is string => !!d).sort().at(-1);
+  if (later) checked[into.id] = later;
+  // The other takes the earlier of the two places in the person's order (the order as shown when none is kept).
+  const order = [...(log.accounts?.order?.length ? log.accounts.order : accountsOrder)];
+  const fi = order.indexOf(from.id), ii = order.indexOf(into.id);
+  if (fi >= 0 && (ii < 0 || fi < ii)) { if (ii >= 0) order.splice(ii, 1); order.splice(order.indexOf(from.id), 0, into.id); }
+  const kept = order.slice(0, 200), accounts = {...log.accounts, notes, ...(Object.keys(checked).length ? {checked} : {}), ...(kept.length ? {order: kept} : {})};
+  return {log: {...log, entries, accounts}, renamed, removed, before, after: {note: notes[into.id] ?? null, checked: checked[into.id] ?? null, order: kept.length ? kept : null}};
+}
+/**
+ * Review b5k #3: Undo reverses only the merge's own changes, by difference — the balances and payments it added leave the
+ * other account, the one merged is no longer archived, and each one's change time goes back only when nothing changed it
+ * since; a balance, a payment or a note added after the merge stays.
+ */
+export function undoMergeAccounts(accounts: Accounts, undo: Pick<MergeUndo, 'fromBefore' | 'intoBefore' | 'added' | 'at'>): Accounts {
+  const snaps = new Set(undo.added.snapshots), pays = new Set(undo.added.payments);
+  return accountsSchema.parse({...accounts, items: accounts.items.map(a => {
+    if (a.id === undo.intoBefore.id) return {...a, snapshots: a.snapshots.filter(x => !snaps.has(x.id)), payments: a.payments.filter(x => !pays.has(x.id)), ...(a.updatedAt === undo.at ? {updatedAt: undo.intoBefore.updatedAt} : {})};
+    if (a.id !== undo.fromBefore.id || a.archivedAt !== undo.at) return a;
+    const {archivedAt: _a, ...rest} = a; void _a;
+    return {...rest, ...(undo.fromBefore.archivedAt ? {archivedAt: undo.fromBefore.archivedAt} : {}), ...(a.updatedAt === undo.at ? {updatedAt: undo.fromBefore.updatedAt} : {})};
+  })});
+}
+/** Undo of the money-log part: names back on the entries still carrying the merged name, doubles back in place; the note, order and last check the merge set go back only when they are still as it left them. */
+export function undoMergeLog(log: MoneyLog, undo: MergeUndo): MoneyLog {
+  const back = new Map(undo.renamed.map(r => [r.id, r.account]));
+  const entries = log.entries.map(e => back.has(e.id) && e.account === undo.asName ? {...e, account: back.get(e.id)!} : e);
+  for (const r of [...undo.removed].sort((a, b) => a.index - b.index)) if (!entries.some(e => e.id === r.entry.id)) entries.splice(Math.min(r.index, entries.length), 0, r.entry);
+  const notes = {...log.accounts?.notes}, checked = {...log.accounts?.checked}, into = undo.intoBefore.id;
+  if ((notes[into] ?? null) === undo.after.note) { if (undo.notes.into) notes[into] = undo.notes.into; else delete notes[into]; }
+  if ((checked[into] ?? null) === undo.after.checked) { if (undo.checked.into) checked[into] = undo.checked.into; else delete checked[into]; }
+  const sameOrder = JSON.stringify(log.accounts?.order ?? null) === JSON.stringify(undo.after.order);
+  const {order: current, checked: _c, ...rest} = log.accounts ?? {}; void _c;
+  const order = sameOrder ? undo.order : current ?? null;
+  return {...log, entries, accounts: {...rest, notes, ...(Object.keys(checked).length ? {checked} : {}), ...(order ? {order} : {})}};
+}

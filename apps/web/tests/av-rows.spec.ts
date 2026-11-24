@@ -1,4 +1,5 @@
 import {expect, test, type Locator, type Page} from '@playwright/test';
+import {moreViews} from './fr-layout-helpers';
 import {at, DAY1, freshWeek, hydrated, openAt, setup, ZONE} from './au/au-helpers';
 import {axe, THEMES, applyTheme, offline, settle} from './p6-helpers';
 import {MONEY_LOG_KEY} from '../lib/money-log/schema';
@@ -66,11 +67,14 @@ test('M-12c, M-12a: Tasks lists P1 to P4, P3 included; the "Added" note stays cl
   await freshWeek(page, 'nebula', at(DAY1, '08:00'));
   await page.goto('/app/tasks'); await hydrated(page);
   const nav = page.getByRole('navigation', {name: 'Task views'});
+  // (fr-layout; deliberate) on a phone the view sits behind "More views" (FR-L-5): opened first, the same check after.
+  await moreViews(page);
   await expect(nav.getByRole('button', {name: /^P\d · /})).toHaveText([/^P1 · High/, /^P2 · Medium/, /^P3 · Normal/, /^P4 · Low/]);
   for (let i = 0; i < 6; i++) { await page.getByLabel('New task').first().fill(`Fictional errand ${i + 1}`); await page.getByLabel('New task').first().press('Enter'); }
   await expect(page.locator('.aa-toast').last()).toContainText('Added “Fictional errand 6”.');
   await clearOf(page, page.locator('li.task').filter({hasText: 'Fictional errand 6'}));
   // P3 is the default level: the view lists the plain errands.
+  await moreViews(page);
   await nav.getByRole('button', {name: /^P3 · Normal/}).click();
   await expect(page.locator('li.task').filter({hasText: 'Fictional errand 1'})).toBeVisible();
 });

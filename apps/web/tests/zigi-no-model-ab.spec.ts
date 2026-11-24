@@ -34,11 +34,14 @@ test('no AI: a Dutch question is introduced in Dutch with working examples; "cre
   // the meditation habit's own minutes this month (the person's own unit word). The introduction still greets a Dutch
   // question nothing on the device answers; the same whole sentence is demanded there, and its examples still work.
   const minutes = await ask(page, 'Hoeveel minuten heb ik deze maand gemediteerd?');
-  await expect(minutes).toContainText('Meditate: 175 minutes deze maand (Tue, Sep 1 t/m Sun, Sep 20), 9.72 minutes per dag op 18 dagen; doel gehaald op 17 van 18 dagen gelogd. Vandaag staat nog open.');
+  // Session AV lane 2 (Dutch dates, deliberate): the Dutch answer writes its span the Dutch way, "(di 1 sep t/m zo 20 sep)" (was "(Tue, Sep 1 t/m Sun, Sep 20)").
+  // Friend-readiness FR-TJ-4 (deliberate, as strict): a Dutch answer writes every figure the Dutch way, "9,72" (was "9.72").
+  await expect(minutes).toContainText('Meditate: 175 minutes deze maand (di 1 sep t/m zo 20 sep), 9,72 minutes per dag op 18 dagen; doel gehaald op 17 van 18 dagen gelogd. Vandaag staat nog open.');
   const dutch = await ask(page, 'Wat is de hoofdstad van Frankrijk?');
   // Session AK (ADR-036, deliberate; c8d0a44d, FIRST_RUN_REVIEW FR-2): "without any AI" contradicted NOVA's "Private
   // intelligence"; the Dutch introduction now says what answers until a brain is set up. The whole sentence, as before.
-  await expect(dutch).toContainText('Tot je me een brein geeft, beantwoord ik vragen uit je eigen gegevens op dit apparaat, voorlopig in het Engels. Tik op een voorbeeld:');
+  // Friend-readiness FR-S-5 (deliberate, as strict): the examples are Dutch questions answered in Dutch, so "voorlopig in het Engels" is gone.
+  await expect(dutch).toContainText('Tot je me een brein geeft, beantwoord ik vragen uit je eigen gegevens op dit apparaat. Tik op een voorbeeld:');
   await dutch.getByRole('button').filter({hasText: /\?$/}).first().click();
   await expect(panel(page).locator('.ai-turn-local').last()).not.toContainText('Tik op een voorbeeld');
   await expect(panel(page).locator('.ai-turn-local').last().locator('.ai-turn-label')).toHaveText('Answered on your device · no AI used');

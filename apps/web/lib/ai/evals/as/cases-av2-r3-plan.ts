@@ -1,0 +1,17 @@
+import type {Intent} from './cases';
+
+/**
+ * Session AV lane 2 (r3-plan, LEDGER #256–#263; Structured): the questions round 3's planning features raise, answered on
+ * the device by lib/ai/local-answers/av2-r3-plan.ts in English and Dutch. The lead adds them to the corpus (CORPUS,
+ * expected.json) once av2R3PlanAnswer is wired into engine.ts. `never`: what an answer to that question must not be.
+ */
+export const AV2_R3_PLAN: readonly Intent[] = [
+  {id: 'av2r3-plan-day-reminder', pillar: 'tasks', en: ['do I get a plan your day reminder', 'when does the plan your day notification come'], nl: ['wanneer krijg ik een herinnering om mijn dag te plannen', 'wanneer komt de melding plan your day'], never: ['"add-task"']},
+  {id: 'av2r3-task-symbols', pillar: 'tasks', en: ['which tasks have a symbol', 'what icons do my tasks have'], nl: ['welke taken hebben een symbool', 'welke iconen hebben mijn taken']},
+  {id: 'av2r3-timeline-tomorrow', pillar: 'agenda', en: ['what is on my timeline tomorrow', 'what is planned for tomorrow on my timeline'], nl: ['wat staat er morgen op mijn tijdlijn', 'wat is er gepland voor morgen op mijn tijdlijn']},
+  {id: 'av2r3-day-energy', pillar: 'tasks', en: ['how much energy does my day take', 'is there room for more energy in my tasks today'], nl: ['hoeveel energie kost mijn dag', 'hoeveel energie vragen mijn taken vandaag']},
+  {id: 'av2r3-focus-notes', pillar: 'focus', en: ['what did I note in my focus sessions', 'show my focus session notes'], nl: ['wat heb ik genoteerd in mijn focussessies', 'toon mijn notities van focussessies']},
+  {id: 'av2r3-copy-clear-day', pillar: 'tasks', en: ['how do I copy a day to another day', 'can I clear my whole day'], nl: ['hoe kopieer ik een dag naar een andere dag', 'hoe maak ik mijn dag leeg']},
+  {id: 'av2r3-cycle-day', pillar: 'health', en: ['what day of my cycle is it tomorrow', 'which cycle day is it today'], nl: ['welke dag van mijn cyclus is het morgen', 'welke cyclusdag is het vandaag'], never: ['phase', 'fase', 'advice']},
+  {id: 'av2r3-reading-font', pillar: 'nova', en: ['is there a dyslexia friendly font', 'how do I make the text easier to read'], nl: ['is er een lettertype voor dyslexie', 'hoe maak ik de tekst beter leesbaar']},
+];

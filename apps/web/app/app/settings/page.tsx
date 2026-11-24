@@ -17,7 +17,7 @@ import {StorageInternals} from "../../../components/settings/storage-internals";
 import {MotionPreference} from "../../../components/motion-preference";
 import {LazyThemeSwitch as ThemeSwitch} from "../../../components/shell/theme-switch-lazy";
 import {LazyCustomizeSettings} from "../../../components/settings/customize-settings-lazy";
-import {ShowcaseSlot} from "../../../components/settings/showcase-slot";
+import {ShowcaseDoor, ShowcaseSlot} from "../../../components/settings/showcase-slot";
 import { PrivateBackups } from "../../../components/private-backups";
 import { ExportEverything } from "../../../components/export-everything";
 import { EraseEverything } from "../../../components/settings/erase-everything";
@@ -51,14 +51,19 @@ import { LinksSettings } from "../../../components/links/links-settings";
 import { MusicSettings } from "../../../components/music/music-settings";
 import { PagesSettings } from "../../../components/settings/pages-settings";
 import { AfChecklistSection } from "../../../components/settings/af-checklist-section";
-import { AfEarnSection } from "../../../components/settings/af-earn-section";
-import { AfSigningSection } from "../../../components/settings/af-signing-section";
+// Session AV lane 2 (trim-settings; weights, never a raised budget): Earn's and signing's choices show only once the chain is
+// chosen, which the browser learns after the page has loaded (the server's page never has them), so they load as their own
+// chunk then, as the tracked wallets do. Their styles stay with the page, where they always were.
+import "../../../components/settings/af-signing-section.css";
 import { AfExtrasSection } from "../../../components/settings/af-extras-section";
 import { useChainChoice } from "../../../components/chain/use-chain-choice";
 import { SettingsFoldAll, SettingsFoldGroup, SettingsFolds } from "../../../components/settings/settings-fold";
+import { HideFiguresToggle } from "../../../components/hide-figures";
 import type { SettingsGroupId } from "../../../lib/settings-folds";
 // Session AL (BN-112): its own chunk, loaded only once the chain is chosen and the wallet group shows.
 const TrackedWallets = lazy(() => import("../../../components/staking/tracked-wallets"));
+const AfEarnSection = lazy(() => import("../../../components/settings/af-earn-section").then(m => ({default: m.AfEarnSection})));
+const AfSigningSection = lazy(() => import("../../../components/settings/af-signing-section").then(m => ({default: m.AfSigningSection})));
 /**
  * Session W Part 24: Settings in six labelled groups, Data & privacy first (backups stay on a phone's first screen, as
  * Session E chose). The chips and the phone's list jump to them; every section keeps its own id and content.
@@ -132,7 +137,7 @@ export default function Settings() {
             {/* Session AL (COPY_AUDIT P-DV-112, DV-261, deliberate): true even where sync exists (it is off until turned on). */}
             {chain ? "Goal plans stay on this device. Your wallet controls onchain funds." : "Your records live on this device unless you turn on sync."}
           </p>
-          <p><Link className="text-link" href="/app/help" onClick={markHelpFromSettings} style={{display: "inline-flex", alignItems: "center", minHeight: 44}}>Help &amp; feedback →</Link></p>
+          <p className="settings-head-links"><Link className="text-link" href="/app/help" onClick={markHelpFromSettings} style={{display: "inline-flex", alignItems: "center", minHeight: 44}}>Help &amp; feedback →</Link><ShowcaseDoor/></p>
         </div>
         <HeaderArtCorner><OrbitArt glyph={SettingsGlyph} spin={12}/></HeaderArtCorner>
       </div>
@@ -164,6 +169,8 @@ export default function Settings() {
           {/* Session AJ (A6): the last part, after Export everything: remove every ZIGoals record from this browser. */}
           <EraseEverything/>
         </section>
+        {/* Session AV lane 2 (LEDGER #69; QUALITY "Not fixed"): the hide switch offered in Settings too, the same device switch as Health's. */}
+        <section className="panel settings-hide-figures" aria-labelledby="settings-hide-figures-title"><h2 id="settings-hide-figures-title">Calories and weight on screen</h2><HideFiguresToggle/><p className="fine">ZIGi and NOVA leave these figures out of their answers too while they are hidden. Your records and exports keep them.</p></section>
         <div className="detail-grid">
           {/* Session AH Part 3 (DS6/A2, BUG-036, M-007): this older format holds local simulation Goal plans only; with
               none on this device it exported {"goals":{}}. It shows only when there is something in it; "Export
@@ -239,8 +246,8 @@ export default function Settings() {
         <PagesSettings/>
         <AfChecklistSection/>
         {/* Session AK X1 (RELEASE_REVIEW R4): Earn's, Staking's and Governance's own choices once the chain is chosen. */}
-        {chain && <AfEarnSection/>}
-        {chain && <AfSigningSection/>}
+        {chain && <LoadBoundary quiet><Suspense fallback={null}><AfEarnSection/></Suspense></LoadBoundary>}
+        {chain && <LoadBoundary quiet><Suspense fallback={null}><AfSigningSection/></Suspense></LoadBoundary>}
         <AfExtrasSection/>
         {/* Session AA-Cloud: a named place for Session AA-Local's game-layer switch (components/progress/slot.tsx). */}
         <Slot place="settings:your-app"/>

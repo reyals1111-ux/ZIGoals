@@ -1,6 +1,6 @@
 import {addLocalDays} from '../local-date';
 import {formatDate} from '../visual-format';
-import {CONFOUNDERS, OUTCOMES, daySample, gapOf, isScaleOutcome, outcomeText, type BaseOutcomeId, type CompareSources, type FactorKind, type FactorOption, type Lag, type OutcomeId} from '../compare/engine';
+import {CONFOUNDERS, OUTCOMES, daySample, gapOf, isScaleOutcome, isSymptomOutcome, outcomeLabel, outcomeText, type BaseOutcomeId, type CompareSources, type FactorKind, type FactorOption, type Lag, type OutcomeId} from '../compare/engine';
 import {CROSS_MIN_PER_SIDE, LABEL_WORDS, confidenceOf, type CrossLabel} from '../insights/cross-pillar';
 import {DEFAULT_LENGTH, EXPERIMENT_LENGTHS, MAX_EXPERIMENTS, experimentsSchema, type Experiment, type Experiments} from './store';
 
@@ -15,18 +15,23 @@ import {DEFAULT_LENGTH, EXPERIMENT_LENGTHS, MAX_EXPERIMENTS, experimentsSchema, 
  * The words say what happened together over these weeks, never why; a stretch of weeks can differ in other ways too.
  * 7-day runs are not offered: no 7-day run can reach Compare's 14 days a side. Nothing is stored here.
  */
-export const EXPERIMENT_FACTOR_KINDS: readonly FactorKind[] = ['habit', 'sleep-tag', 'journal-tag', 'workout', 'fasting'];
+// Session AV lane 2 (LEDGER #64, Bearable): a followed symptom or factor can be the change tried, and the outcome too.
+export const EXPERIMENT_FACTOR_KINDS: readonly FactorKind[] = ['habit', 'sleep-tag', 'journal-tag', 'workout', 'fasting', 'symptom'];
+/** Session AV lane 2 (LEDGER #64): an experiment follows at most eight outcomes (its first, and up to seven more). */
+export const MAX_OUTCOMES = 8;
 export {DEFAULT_LENGTH, EXPERIMENT_LENGTHS};
 const OUTCOME_WORDS: Readonly<Record<BaseOutcomeId, string>> = {mood: 'your mood averaged', energy: 'your energy averaged', sleep: 'you slept on average', habits: 'you completed of your scheduled habits', steps: 'you walked on average', feeling: 'a pleasant feeling word was picked on'};
 const say = (outcome: OutcomeId, v: number, src?: CompareSources) => {
   const t = outcomeText(outcome, v);
   // Session AK (BUILD list 2 #12): one of the person's own scales, by its name.
   if (isScaleOutcome(outcome)) { const id = outcome.slice(6), sc = src?.scales?.scales.find(s => s.id === id) ?? src?.scales?.retired?.find(s => s.id === id); return `your “${sc?.name ?? 'scale'}” rating averaged ${t}`; }
+  if (isSymptomOutcome(outcome)) { const it = src?.symptoms?.items.find(i => i.id === outcome.slice(8)); return `“${it?.name ?? 'the symptom'}” averaged ${t}`; }
   switch (outcome) {
     case 'habits': return `you completed ${t} of your scheduled habits`;
     case 'steps': return `you walked ${t} steps on average`;
     case 'feeling': return `a pleasant feeling word was picked on ${t} of days`;
-    default: return `${OUTCOME_WORDS[outcome]} ${t}`;
+    // Session AV lane 2 (food, LEDGER #92, #98): the diary's calories and protein, the weight and a symptom, by Compare's own label.
+    default: return outcome in OUTCOME_WORDS ? `${OUTCOME_WORDS[outcome as BaseOutcomeId]} ${t}` : `${outcomeLabel(outcome, src).replace(/ \(.*\)$/, '').toLowerCase()} averaged ${t}`;
   }
 };
 export const SPAN_NOTE = 'A few weeks can differ in other ways too, such as the season, the weather or a busy month.';
@@ -54,7 +59,7 @@ export type ExperimentResult = {
 const count = (n: number) => `${n} ${n === 1 ? 'day' : 'days'}`;
 export function experimentResult(src: CompareSources, x: Experiment, today: string): ExperimentResult {
   const dates = experimentDates(x, today), lag: Lag = x.lag ?? 'same';
-  const outcome = (OUTCOMES as readonly string[]).includes(x.outcome) || isScaleOutcome(x.outcome) ? x.outcome as OutcomeId : null;
+  const outcome = (OUTCOMES as readonly string[]).includes(x.outcome) || isScaleOutcome(x.outcome) || isSymptomOutcome(x.outcome) ? x.outcome as OutcomeId : null;
   const base = {experiment: x, dates, need: CROSS_MIN_PER_SIDE, withValue: null, withoutValue: null, label: null, ps: null, sentence: null};
   const sample = outcome ? daySample(src, x.factor, outcome, lag, today, dates.baselineStart, dates.end) : null;
   if (!outcome || !sample || !(EXPERIMENT_FACTOR_KINDS as readonly string[]).includes(sample.factor.kind))
@@ -73,7 +78,7 @@ export function experimentResult(src: CompareSources, x: Experiment, today: stri
   if (withV.length < CROSS_MIN_PER_SIDE || withoutV.length < CROSS_MIN_PER_SIDE)
     return {...out, state: 'pending', why: `${span} A result shows once each side has ${CROSS_MIN_PER_SIDE} days, as in Compare${dates.phase === 'finished' ? '; this one ended with fewer, so there is not enough to say' : ''}. ${caution}`};
   const mean = (v: readonly number[]) => v.reduce((a, b) => a + b, 0) / v.length;
-  const withValue = mean(withV), withoutValue = mean(withoutV), {label, ps} = confidenceOf(rows, gapOf(outcome), x.start);
+  const withValue = mean(withV), withoutValue = mean(withoutV), {label, ps} = confidenceOf(rows, gapOf(outcome, src), x.start);
   if (!label) return {...out, state: 'unclear', withValue, withoutValue, ps, why: `${span} The two sides are close, so this is not a finding. ${caution}`};
   const sentence = `On the days you tried it, ${say(outcome, withValue, src)}${lag === 'next' ? ' (measured the next day)' : ''}; on the days before, without it, ${outcomeText(outcome, withoutValue)}.`;
   return {...out, state: 'ready', withValue, withoutValue, label, ps, sentence, why: `${span} Label: ${LABEL_WORDS[label].label}. ${LABEL_WORDS[label].line} ${caution}`};
@@ -95,3 +100,23 @@ export function startExperiment(rec: Experiments, input: {id: string; title: str
 export const endExperiment = (rec: Experiments, id: string, today: string): Experiments => experimentsSchema.parse({...rec, items: rec.items.map(x => x.id === id && experimentDates(x, today).phase !== 'finished' ? {...x, endedAt: today < x.start ? x.start : today} : x)});
 export const removeExperiment = (rec: Experiments, id: string): Experiments => experimentsSchema.parse({...rec, items: rec.items.filter(x => x.id !== id)});
 export const noteExperiment = (rec: Experiments, id: string, note: string): Experiments => experimentsSchema.parse({...rec, items: rec.items.map(x => { if (x.id !== id) return x; const next = {...x}; if (note.trim()) next.note = note.trim().slice(0, 500); else delete next.note; return next; })});
+/**
+ * Session AV lane 2 (LEDGER #64, Bearable's experiments with several outcomes): every outcome the experiment follows —
+ * its first (`outcome`) and up to seven more (`more`, kept in the loose experiment record; TIER 3 stored format,
+ * additive: an older build reads the first and keeps the rest) — each worked out exactly as one experiment is.
+ */
+export const outcomesOf = (x: Pick<Experiment, 'outcome'> & {more?: unknown}): string[] => [...new Set([x.outcome, ...(Array.isArray(x.more) ? x.more.filter((o): o is string => typeof o === 'string' && o.length > 0 && o.length <= 40) : [])])].slice(0, MAX_OUTCOMES);
+export function experimentResults(src: CompareSources, x: Experiment, today: string): ExperimentResult[] {
+  return outcomesOf(x).map(outcome => experimentResult(src, {...x, outcome}, today));
+}
+/** The experiment with its extra outcomes set (the first stays its `outcome`); at most eight in all. */
+export function setMoreOutcomes(rec: Experiments, id: string, more: readonly string[]): Experiments {
+  return experimentsSchema.parse({...rec, items: rec.items.map(x => {
+    if (x.id !== id) return x;
+    const list = [...new Set(more.filter(o => o !== x.outcome))];
+    if (list.length > MAX_OUTCOMES - 1) throw new Error(`An experiment follows at most ${MAX_OUTCOMES} outcomes.`);
+    if (list.some(o => !((OUTCOMES as readonly string[]).includes(o) || isScaleOutcome(o) || isSymptomOutcome(o)))) throw new Error('Choose outcomes from the list.');
+    const {more: _drop, ...rest} = x as Experiment & {more?: unknown}; void _drop;
+    return list.length ? {...rest, more: list} : rest;
+  })});
+}

@@ -6,8 +6,26 @@ import {habitDay, habitRuleOn, habitStats, latestHabitRule, measurementUnit, sch
 import type {ToolEnv} from './env';
 import {capRows, num, ok, plural, provenance, refuse, text} from './format';
 import {eachDay, parseRange, type DayRange} from './range';
+import {addDays} from '../../zone-time';
 import {matchByName} from './subjects';
 import {NO_ARGS, type ToolDefinition, type ToolRefusal} from './types';
+import {healthSoFar} from '../../../components/habits/auto-value';
+import {appliedCheckIn} from '../../habit-health-links/store';
+import type {HabitHealthLinksV4} from '../../habit-health-links/schema';
+import {habitLinksIn} from '../../vault/sync-homes';
+import type {SoFar} from '../../habits-yesterday';
+
+/**
+ * Session AV lane 2 (fr-answers; FR-S-3): a habit linked to a Health measure ("Drink water" counted from the water
+ * journal) counts what Health holds so far, as its Habits card does (components/habits/auto-value.ts healthSoFar): 250 mL
+ * of 2 liters reads 0.25 of 2, never 0. Only while Health is shared with the answer (the environment holds it then).
+ */
+export function linkedSoFar(env: ToolEnv): SoFar | undefined {
+  const health = env.health;
+  if (!health) return undefined;
+  const links = habitLinksIn(health) as HabitHealthLinksV4;
+  return (habit, rule, day) => healthSoFar(habit, rule, day, appliedCheckIn(links, habit.id, day), links.links[habit.id], health);
+}
 
 /**
  * Habit tools (Session V Part 2): the person's own habit journal, read with the journal's day (`habitCalendarDay`) and
@@ -22,10 +40,20 @@ const HOUR_UNITS = new Set(['h', 'hr', 'hrs', 'hour', 'hours', 'uur', 'uren', 'h
 /** Session AI (ZI14): the first day of a streak counted in days, and what the streak counts. */
 /** NB-114: the logged amount in words when it is a part-minute or part-hour ("12 s", "1 h 15 min"); nothing otherwise. */
 export const loggedTextOf = (count: number, unit: string | null | undefined): {loggedText?: string} => { const t = durationCountText(count, unit); return t ? {loggedText: t} : {}; };
-function streakSince(current: number, unit: string, today: string): {since?: string; counts: string} {
+/**
+ * Session AV lane 2 (fr-answers; FR-MAX-5): the day the current day streak began. A streak counts completed scheduled
+ * days (a skipped or unscheduled day neither adds nor breaks, lib/habits.ts habitStats), and today still open does not
+ * break it, so the start is the day of the run's earliest check-in, counted back from the last completed day, never
+ * `current − 1` calendar days back from today (that said "since Fri 27" for Thu 26 and Fri 27 while today was open).
+ */
+function streakSince(habit: Habit, current: number, unit: string, today: string): {since?: string; counts: string} {
   if (current > 0 && /^days?$/.test(unit)) {
-    const d = new Date(`${today}T00:00:00Z`); d.setUTCDate(d.getUTCDate() - (current - 1));
-    return {since: d.toISOString().slice(0, 10), counts: 'scheduled days in a row up to today, across months (not only the range asked)'};
+    let found = 0, since: string | undefined;
+    for (let d = today, i = 0; i < 4000 && d >= habit.startDate; d = addDays(d, -1), i++) {
+      if (habitDay(habit, d, today).status !== 'complete') continue;
+      if (++found === current) { since = d; break; }
+    }
+    return {...(since ? {since} : {}), counts: 'scheduled days in a row up to today, across months (not only the range asked)'};
   }
   return {counts: `scheduled ${unit} in a row up to today`};
 }
@@ -132,7 +160,7 @@ export function computeHabitStats(env: ToolEnv, habit: Habit, handle: string, ra
     last: last ? {date: last.date, value: heldBack(env, last) ? null : last.count} : null,
     // Session AI (ZI14; Grok's M-044): the streak runs across months up to today, so it can be longer than the check-ins of
     // the range asked; its start date says so, and a model can no longer read the two as contradicting.
-    streak: {current: stats.currentStreak, best: stats.bestStreak, unit: stats.streakUnit, ...streakSince(stats.currentStreak, stats.streakUnit, env.habitDay)}, completionRate, heldBack: hidden.length, notes,
+    streak: {current: stats.currentStreak, best: stats.bestStreak, unit: stats.streakUnit, ...streakSince(habit, stats.currentStreak, stats.streakUnit, env.habitDay)}, completionRate, heldBack: hidden.length, notes,
   };
 }
 export const habitStatsTool: ToolDefinition<{habit: string; range?: string; metric?: (typeof METRICS)[number]}> = {
@@ -179,11 +207,15 @@ export const habitsDue: ToolDefinition<Record<string, never>> = {
   args: NO_ARGS,
   label: () => 'Habits open today',
   run(_args, env) {
+    const soFar = linkedSoFar(env);
     const rows = visibleHabits(env).flatMap(habit => {
       const day = habitDay(habit, env.habitDay, env.habitDay);
       if (day.status !== 'due' && day.status !== 'partial') return [];
       const rule = latestHabitRule(habit), entry = habit.entries.find(e => e.date === env.habitDay);
-      return [{handle: env.handles.add('habit', habit.id, habit.title), title: text(habit.title), status: day.status, logged: entry && heldBack(env, entry) ? 'from Health, not shared' : day.count, ...(entry && heldBack(env, entry) ? {} : loggedTextOf(day.count, measurementUnit(rule))), target: measurementUnit(rule) ? unitAmountText(rule.target, measurementUnit(rule)) : `${rule.target}`, timeOfDay: habit.timeOfDay}];
+      let health: number | null = null;
+      try { health = soFar ? soFar(habit, rule, env.habitDay) : null; } catch { health = null; }
+      const count = health !== null && health > day.count ? health : day.count, status = count > 0 && day.status === 'due' ? 'partial' : day.status;
+      return [{handle: env.handles.add('habit', habit.id, habit.title), title: text(habit.title), status, logged: entry && heldBack(env, entry) ? 'from Health, not shared' : count, ...(entry && heldBack(env, entry) ? {} : loggedTextOf(count, measurementUnit(rule))), target: measurementUnit(rule) ? unitAmountText(rule.target, measurementUnit(rule)) : `${rule.target}`, timeOfDay: habit.timeOfDay}];
     });
     return ok('habits_due', 'Habits open today', provenance(env, 'Habits journal', null, {from: env.habitDay, to: env.habitDay, label: 'today'}, env.habitZone), {open: rows, count: rows.length});
   },

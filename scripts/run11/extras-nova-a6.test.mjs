@@ -105,7 +105,9 @@ test('the frozen Worker is the one deployed with Alpha #54, byte for byte, and p
  for(const [path,hash]of Object.entries(receipt.files))expect(createHash('sha256').update(await readFile(new URL(path,FROZEN))).digest('hex'),path).toBe(hash);
  const deployed=await readFile(new URL('extras.mjs',FROZEN),'utf8'),current=await readFile(new URL('../../workers/private-sync/extras.mjs',import.meta.url),'utf8');
  expect(deployed).not.toMatch(/nova/i);expect(deployed).toContain("export const EXTRAS_SECTIONS_OPTIONAL = ['checklist'];");expect(deployed).toContain("withOptional = params.get('with')");
- expect(current).toContain("export const EXTRAS_SECTIONS_OPTIONAL = ['checklist', 'nova'];");
+ // Session AV lane 2 (rest, deliberate: this build's Worker now also takes the journal, money and workouts sections the app
+ // sends; the frozen deployed one is unchanged and still pinned above): the exact list, as strict as before.
+ expect(current).toContain("export const EXTRAS_SECTIONS_OPTIONAL = ['checklist', 'nova', 'journal', 'money', 'workouts'];");
 });
 
 test('A6: this app against the deployed Worker: the five sections sync between two devices exactly as with Session AK\'s app; NOVA stays on each device; no error, no refused request, nothing of NOVA at the service',async()=>{
