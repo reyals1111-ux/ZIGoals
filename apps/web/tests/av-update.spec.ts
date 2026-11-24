@@ -15,6 +15,17 @@ async function fresh(page: Page, path = '/app/health') {
   await page.locator('html[data-app-hydrated]').waitFor({state: 'attached'});
   // The parts the page loads right after its first paint are in before the "deploy" (a deploy meets a page that has settled).
   await page.waitForLoadState('networkidle');
+  // Session AV lane 2 (CI run 2026): settled includes the page's idle work (the update recovery loads then), and its files.
+  await page.evaluate(() => new Promise<void>(done => { const idle = (window as Window & {requestIdleCallback?: (cb: () => void, o?: {timeout: number}) => number}).requestIdleCallback; if (idle) idle(() => done(), {timeout: 10_000}); else setTimeout(done, 2_000); }));
+  await quiet(page);
+}
+/** No request of the page in flight for half a second. */
+async function quiet(page: Page) {
+  const open = new Set<unknown>(); let last = Date.now();
+  const start = (r: unknown) => { open.add(r); last = Date.now(); }, end = (r: unknown) => { open.delete(r); last = Date.now(); };
+  page.on('request', start); page.on('requestfinished', end); page.on('requestfailed', end);
+  try { await expect.poll(() => open.size === 0 && Date.now() - last >= 500, {timeout: 15_000, intervals: [100]}).toBe(true); }
+  finally { page.off('request', start); page.off('requestfinished', end); page.off('requestfailed', end); }
 }
 /** The app's own server now names another build on every page, as after a deploy. */
 async function serverServes(page: Page, build: string) {
