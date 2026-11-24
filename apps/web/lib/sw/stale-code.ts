@@ -45,9 +45,11 @@ export function watchStaleCode(win: Window): () => void {
   const failed = (event: ErrorEvent) => onStaleCode(event.error ?? event.message, win);
   win.addEventListener('unhandledrejection', rejected);
   win.addEventListener('error', failed);
-  // The recovery itself is fetched once the page is idle, so it is already here when a deploy removes its file.
+  // The recovery itself is fetched once the page is idle, so it is already here when a deploy removes its file. Session AV
+  // lane 2 (CI run 2026, av-update:38): on a busy page there was no idle moment and the 5 s cap came after a deploy 3 s in, so
+  // the recovery's own file was gone too and only the note showed; it now comes within 1.5 s at most.
   const warm = () => { void import('./update-recovery').catch(() => {}); };
   const idle = (win as Window & {requestIdleCallback?: (cb: () => void, o?: {timeout: number}) => number}).requestIdleCallback;
-  if (idle) idle.call(win, warm, {timeout: 5000}); else win.setTimeout(warm, 3000);
+  if (idle) idle.call(win, warm, {timeout: 1500}); else win.setTimeout(warm, 1500);
   return () => { edits(); win.removeEventListener('unhandledrejection', rejected); win.removeEventListener('error', failed); };
 }
