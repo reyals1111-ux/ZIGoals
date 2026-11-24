@@ -43,19 +43,30 @@ export const zigiEvents = {
  */
 export type ZigiSignal = {type: string; validated: boolean};
 type SignalListener = (signal: ZigiSignal) => void;
+// Session AV lane 2 (D-CI2025): the signals sent before the controller listens wait for the controller. A listener that only
+// watches (the game's celebration layer) neither takes them nor stops them waiting: on Today it listened first and took the
+// queued "panel opened" of a tap made before the alive chunk loaded, so ZIGi never greeted that first open.
 const signalListeners = new Set<SignalListener>(), earlySignals: ZigiSignal[] = [];
+let controllers = 0;
 export const zigiSignals = {
   /** A plain signal: what the chat or the app observed. A celebration asked this way is refused by the controller. */
   emit(type: string): void { zigiSignals.send({type, validated: false}); },
   /** A host-validated fact: the store confirmed the write, the engine counted the milestone. */
   emitValidated(type: string): void { zigiSignals.send({type, validated: true}); },
   send(signal: ZigiSignal): void {
-    if (!signalListeners.size) { if (earlySignals.length < 8) earlySignals.push(signal); return; }
+    if (!controllers && earlySignals.length < 8) earlySignals.push(signal);
     for (const listener of signalListeners) listener(signal);
   },
+  /** The controller's listener: it also receives the signals that waited for it. */
   on(listener: SignalListener): () => void {
-    signalListeners.add(listener);
+    signalListeners.add(listener); controllers++;
     for (const signal of earlySignals.splice(0)) listener(signal);
+    let off = false;
+    return () => { if (off) return; off = true; signalListeners.delete(listener); controllers--; };
+  },
+  /** A listener that only watches the signals from now on (the earlier ones keep waiting for the controller). */
+  watch(listener: SignalListener): () => void {
+    signalListeners.add(listener);
     return () => { signalListeners.delete(listener); };
   },
 };

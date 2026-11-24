@@ -48,7 +48,7 @@ export function CelebrationHost({game, fasting}: {game: GameState; fasting?: Par
   const storesRef = useRef(game.stores); storesRef.current = game.stores;
   useEffect(() => {
     if (!enabled || !seenReady) return;
-    return zigiSignals.on(signal => {
+    return zigiSignals.watch(signal => {
       if (!signal.validated || !GOAL_SIGNALS.has(signal.type)) return;
       // Session AL (P-NB-02): `achievement_unlocked` is also what a badge card, a first check-in and a mood check-in send;
       // it means "A goal finished" only when the records show a goal reached today. Goals sends `goal_finished` itself.
