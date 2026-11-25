@@ -1,0 +1,10 @@
+/* Session AW (X1, LEDGER #438, #439): remind again and own snooze choices. Existing colour variables only. */
+.task-remind-again { display: flex; flex-wrap: wrap; align-items: end; gap: 6px 12px; }
+.task-remind-again > small { flex: 1 1 100%; }
+.task-remind-again a, .aw-reminder-choices button { min-height: 44px; }
+.task-remind-again a { display: inline-flex; align-items: center; }
+.task-remind-again select, .aw-reminder-choices select, .aw-reminder-choices input { min-height: 44px; font-size: 16px; }
+.aw-snooze-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.aw-snooze-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; min-height: 44px; font-size: 15px; overflow-wrap: anywhere; }
+.aw-snooze-add { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 12px; margin-top: 8px; }
+.aw-snooze-add > p { flex: 1 1 100%; margin: 0; }
