@@ -159,7 +159,7 @@ function billsYear(a: Asked): LocalReply | null {
   const shut = closed(a.env, 'wealth'); if (shut) return shut;
   const record = a.env.ak?.bills, calls = [{tool: 'bills', args: {}, label: 'Bills'}], lang = a.lang;
   if (!record?.bills.length) return answer(NO_BILLS[lang === 'nl' ? 1 : 0], calls);
-  const year = list(yearlyEstimate(record).map(t => money(t.cents, t.currency)), lang), month = list(monthlyEstimate(record).map(t => money(t.cents, t.currency)), lang);
+  const year = list(yearlyEstimate(record, a.today).map(t => money(t.cents, t.currency)), lang), month = list(monthlyEstimate(record, a.today).map(t => money(t.cents, t.currency)), lang);
   return answer(say(lang, `Your bills come to about ${year} a year (an estimate from each bill’s own cadence: weekly ×52, monthly ×12, every 3 months ×4, yearly ×1; never converted); about ${month} in a typical month.`,
     `Je rekeningen komen op ongeveer ${year} per jaar (een schatting uit het ritme van elke rekening: wekelijks ×52, maandelijks ×12, elke 3 maanden ×4, jaarlijks ×1; nooit omgerekend); ongeveer ${month} in een gewone maand.`), calls);
 }

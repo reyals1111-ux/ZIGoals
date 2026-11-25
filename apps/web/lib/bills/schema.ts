@@ -15,6 +15,14 @@ export type BillCadence = (typeof BILL_CADENCES)[number];
 export const MAX_BILLS = 200, MAX_DISMISSED = 500;
 const id = z.string().regex(/^[A-Za-z0-9_-]{1,80}$/);
 const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+/** Session AW X7 (LEDGER #462): at most this many payments for a bill that ends after a number of them (50 years monthly). */
+export const MAX_END_PAYMENTS = 600;
+export const billEndsSchema = z.looseObject({
+  after: z.number().int().min(1).max(MAX_END_PAYMENTS).optional(),
+  from: day.optional(),
+  on: day.optional(),
+}).refine(e => (e.after !== undefined && e.from !== undefined && e.on === undefined) || (e.on !== undefined && e.after === undefined), 'A number of payments from a day, or a last day.');
+export type BillEnds = z.infer<typeof billEndsSchema>;
 export const billSchema = z.looseObject({
   id,
   title: z.string().trim().min(1).max(80),
@@ -33,6 +41,15 @@ export const billSchema = z.looseObject({
   cancelBy: day.optional(),
   /** Session AV lane 2 (money; Undebt.it's bill tracker), TIER 3 (stored format), additive and optional: the person's "paid automatically" mark. */
   autopay: z.literal(true).optional().catch(undefined),
+  /**
+   * Session AW, round 7 X7 (money; Cashew's "ends after", LEDGER #462), TIER 3 (stored format), additive and optional,
+   * dropped on read when this build cannot read it: when the bill ends — after `after` payments counted from the due date
+   * `from` (a phone contract of 24 months), or with the last payment on or before `on`. After its last payment the bill
+   * leaves Upcoming bills, the calendar, the month's bills and the reminders (lib/bills/ends.ts); it stays in the Bill
+   * tracker as ended, with its history. An older build ignores the field in the loose bill and keeps showing the bill,
+   * which is safe.
+   */
+  ends: billEndsSchema.optional().catch(undefined),
   createdAt: z.iso.datetime({offset: true}),
 });
 export const billsSchema = z.looseObject({

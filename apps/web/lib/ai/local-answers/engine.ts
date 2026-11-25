@@ -59,6 +59,7 @@ import {av2R5PlanAnswer} from './av2-r5-plan';
 import {av2R6BodyAnswer} from './av2-r6-body';
 import {awProgrammesAnswer} from './aw-programmes';
 import {av2R6MoneyAnswer} from './av2-r6-money';
+import {awX7MoneyAnswer} from './aw-x7-money';
 import {av2R6NotesAnswer} from './av2-r6-notes';
 import {awX3Answer} from './aw-x3';
 import {av2R6PlanAnswer} from './av2-r6-plan';
@@ -306,6 +307,8 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   // Session AW (X5, LEDGER #452, #454, #455; Paprika): use soon from the pantry, when a recipe was last made, next week's menu.
   if (!subject) { const own = awX5Answer(question, env, readAwX5Extra()); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, batch 2 (Money; Food, reading its device records; Body after AV's, as its builder asked).
+  // Session AW, round 7 X7 (money; Cashew, Money Manager): removed recently, a bill that ends, a card's next payment.
+  if (!subject) { const own = awX7MoneyAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   if (!subject) { const food = (() => { try { return typeof window === 'undefined' ? {} : readFoodSources(getAppStorage()); } catch { return {}; } })(); const own = av2R6MoneyAnswer(question, env) ?? av2R5MoneyAnswer(question, env) ?? av2R4MoneyAnswer(question, env) ?? av2R3MoneyAnswer(question, env) ?? av2MoneyR2Answer(question, env) ?? av2MoneyAnswer(question, env) ?? av2FoodAnswer(question, env, food); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2 (Journal and notes; task attachments, ZIGi's hello, chess): their own answers, before AV's.
   if (!subject) { const own = av2R4MindAnswer(question, env) ?? av2JournalAnswer(question, env) ?? av2RoadmapAnswer(question, env, {attachments: env.taskAttachments ?? null}); /* Session AV lane 2 (loose ends; review b1 #17): the tasks' photo and voice note counts */ if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }

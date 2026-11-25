@@ -3,6 +3,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import {guardLanguage} from '../../../lib/ai/safety-guard';
 import type {ToolEnv} from '../../../lib/ai/tools/env';
 import {dueOnOrAfter} from '../../../lib/bills/cadence';
+import {hasEnded} from '../../../lib/bills/ends';
 import {localDate} from '../../../lib/local-date';
 import {HANDOFF_WHAT, handoffTarget, type HandoffLang} from '../../../lib/nova/handoff/handoff';
 import {healthReadOver, heldOutsideText} from '../../../lib/nova/handoff/health';
@@ -34,7 +35,7 @@ export function handoffRecords(env: ToolEnv | null, today: string): HandoffConte
   try {
     // The same switches the `tasks` and `bills` lookups run under (lib/ai/tools/registry.ts `toolBlocked`).
     if (env.areas.today && (!env.todayTools || env.todayTools.has('tasks'))) for (const t of env.nova?.tasks?.tasks ?? []) if (t.due && !t.doneAt) tasks.push({title: t.title, date: t.due, ...(t.time ? {time: t.time} : {})});
-    if (env.areas.wealth) for (const b of env.ak?.bills?.bills ?? []) { try { bills.push({title: b.title, date: dueOnOrAfter(b.nextDue, b.cadence, today)}); } catch { /* a bill without a readable day is left out */ } }
+    if (env.areas.wealth) for (const b of env.ak?.bills?.bills ?? []) { try { if (hasEnded(b, today)) continue; /* Session AW X7 (#462) */ bills.push({title: b.title, date: dueOnOrAfter(b.nextDue, b.cadence, today)}); } catch { /* a bill without a readable day is left out */ } }
   } catch { /* what cannot be read is not offered */ }
   return {tasks: tasks.slice(0, 500), bills: bills.slice(0, 200)};
 }

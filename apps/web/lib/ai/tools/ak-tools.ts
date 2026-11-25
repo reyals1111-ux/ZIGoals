@@ -36,7 +36,9 @@ export type AkToolSources = {autoRules?: AutoRules | null; bills?: BillsRecord |
   /** Session AW (X1): the named timers record (lib/timers/store.ts). */
   timers?: unknown;
   /** Session AW (X5): the food-plus and grocery records. */
-  foodPlus?: unknown; grocery?: unknown} & F9ToolSources;
+  foodPlus?: unknown; grocery?: unknown;
+  /** Session AW X7 (LEDGER #461): Removed recently (Wealth; lib/money-log/removed.ts), for "what did I remove recently". */
+  moneyRemoved?: unknown} & F9ToolSources;
 const where = (env: ToolEnv, journal: string, subject: string | null = null) => provenance(env, journal, subject, null, null);
 
 export const autoRulesTool: ToolDefinition<Record<string, never>> = {
@@ -70,7 +72,7 @@ export const billsTool: ToolDefinition<{days?: number}> = {
     if (!record || !record.bills.length) return ok('bills', label, where(env, 'Bills'), {due: [], note: 'No bills or subscriptions are kept yet (Wealth → Upcoming bills).'});
     const due = billOccurrences(record, env.habitDay, args.days ?? 30).map(o => ({bill: text(o.title, 80), due: o.due, amount: `${fromCents(o.amountCents)} ${o.currency}`, every: o.cadence, ...(o.cancelNote ? {note: text(o.cancelNote, 160)} : {}), ...(o.cancelBy ? {actBy: o.cancelBy} : {})}));
     const capped = capRows(due, env, false);
-    return ok('bills', label, where(env, 'Bills'), {due: capped.rows, bills: record.bills.length, monthlyEstimate: monthlyEstimate(record).map(m => `${fromCents(m.cents)} ${m.currency}`),
+    return ok('bills', label, where(env, 'Bills'), {due: capped.rows, bills: record.bills.length, monthlyEstimate: monthlyEstimate(record, env.habitDay).map(m => `${fromCents(m.cents)} ${m.currency}`),
       rule: 'reminders only, per currency, never converted; the monthly figure is an estimate'}, capped.truncated);
   },
 };

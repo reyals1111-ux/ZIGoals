@@ -3,6 +3,7 @@ import {GROCERY_RECORD} from '../../grocery/schema';
 import {TIMERS} from '../../timers/store';
 import {BRING_UP} from '../../clinician-report/bring-up';
 import {ACTIVITY_EXTRAS} from '../../aw-kcal/activity-extras';
+import {MONEY_REMOVED} from '../../money-log/removed';
 import {CALORIE_WEEK} from '../../health-aa/calorie-week';
 import {PLANNED_WORKOUTS} from '../../workouts/planned';
 import {RACES} from '../../workouts/races';
@@ -64,5 +65,7 @@ export function readAkToolSources(storage: Read): AkToolSources {
     // Session AW (X1, #440): the named timers (aw-x1-due.ts), as this device keeps them.
     timers: one(TIMERS),
     // Session AW (X5): the kitchen's records for 'use soon', 'last made' and 'my menu' (aw-x5-paprika.ts; Health gate there).
-    foodPlus: one(FOOD_PLUS), grocery: one(GROCERY_RECORD)};
+    foodPlus: one(FOOD_PLUS), grocery: one(GROCERY_RECORD),
+    // Session AW X7 (LEDGER #461): Removed recently, read only by the Wealth answers (Wealth's gate in the answer).
+    moneyRemoved: one(MONEY_REMOVED)};
 }
