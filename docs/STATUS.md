@@ -1,3 +1,17 @@
+# Session AW — "FINISH LINE" (ADR-046) (2026-11-25, `feature/session-aw-finish-line`, Draft PR "Session AW — Finish line"; in progress, not merged, not deployed)
+
+**Base:** `main` `8fa8aa1d` (PR #109 merged). **Rules (owner):** the brief, the plan and the approval, verbatim in `docs/architecture/ADR-046-session-aw.md`. Resume: `docs/handoff/AW_RESUME.md`.
+
+## Part 0 — records (25 Nov)
+- **PR #109** merged into `main` as `8fa8aa1d` (parents `1c1b5953` and `534c75a8`). **PR #103** is closed.
+- **Alpha #59** = Manual Alpha deployment run 62 (24 Nov), source `8fa8aa1ddc4edd6243c87621b4775f7897410964`: version `3a68c327-91c0-490a-b909-c04912b3695e`, rollback `f2729d28-e9db-436f-a66a-67922cf5d924` (#58); **VERIFIED** after 3 reads, live prices **VERIFIED** (owner); market policy period ends 2026-11-30T16:00:00Z (the owner's separate task); build archive SHA-256 `29d0a5f2f2548b4a932419f29920413afa1d99a48ddfa5f45c23eb384cac1925`.
+- **Frozen readers** are #37–#59 from now on (`scripts/frozen-readers.mjs`: #59 = `8fa8aa1d`).
+
+| Alpha | Manual Alpha run | source | version | rollback to | verified |
+|---|---|---|---|---|---|
+| #59 | 62 (24 Nov) | `8fa8aa1d` | `3a68c327-91c0-490a-b909-c04912b3695e` | `f2729d28-e9db-436f-a66a-67922cf5d924` (#58) | yes, 3 reads; live prices yes |
+| #58 | 61 (22 Nov) | `1c1b5953` | `f2729d28-e9db-436f-a66a-67922cf5d924` | `e0bc17f3-27c0-4900-aa55-416f20ece6f6` (#57) | yes, 3 reads; live prices yes |
+
 # Session AV lane 2 (continued) — "ALPHA QUALITY", finished (ADR-045) (2026-11-22/23, `feature/session-av-2`, Draft [PR #109](https://github.com/reyals1111-ux/ZIGoals/pull/109) "Session AV (continued)"; complete, not merged, not deployed)
 
 **Base:** `main` `1c1b5953` ([PR #108](https://github.com/reyals1111-ux/ZIGoals/pull/108) merged; merged into this branch with a merge commit, `76217a38`). **Rules (owner):** follow-ups 4–8, verbatim in `docs/architecture/ADR-045-session-av.md`; the decisions and the lane 2 closing table are there too.
