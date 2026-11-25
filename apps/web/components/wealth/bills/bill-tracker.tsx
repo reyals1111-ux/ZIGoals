@@ -16,6 +16,10 @@ import {changeWithUndo} from '../../ui/remove-with-undo';
 import {moneyCents} from '../money-tools/format';
 // Session AV lane 2, round 5 (money; PocketSmith, LEDGER #386): a passed bill date paid early (in this chunk).
 import PaidEarly from './paid-early';
+// Session AW X7 (LEDGER #462): a bill that ends — set in Edit; an ended bill stays here, marked, with its history.
+import {choiceOf, endsOf, endsProblem, setEnds, type EndsChoice} from '../../../lib/bills/ends';
+import type {BillEnds} from '../../../lib/bills/schema';
+import {EndsFields, endsWords} from './bill-ends';
 import '../spending/money-r5.css';
 
 /**
@@ -56,18 +60,19 @@ export default function BillTracker({record, entries, today, onChange}: {record:
     <h4>Each bill</h4>
     <ul className="bill-tracker-bills">{record.bills.map(b => <BillItem key={b.id} bill={b} entries={entries} today={today} editing={editing === b.id} onEdit={() => setEditing(e => e === b.id ? null : b.id)}
       onAutopay={on => { try { onChange(r => setAutopay(r, b.id, on)); say(on ? `${b.title}: marked as paid automatically.` : `${b.title}: no longer marked as paid automatically.`); } catch { setProblem('Not saved on this device.'); } }}
-      onSave={edit => { try { onChange(r => editBill(r, b.id, edit)); setEditing(null); say(`${edit.title.trim()} saved.`); } catch (cause) { setProblem(cause instanceof Error ? cause.message : 'Not saved on this device.'); } }}/>)}</ul>
+      onSave={(edit, ends) => { try { onChange(r => setEnds(editBill(r, b.id, edit), b.id, ends)); setEditing(null); say(`${edit.title.trim()} saved.${ends ? ` ${endsWords({...b, nextDue: edit.nextDue, cadence: edit.cadence, ends}, today) ?? ''}` : ''}`.trim()); } catch (cause) { setProblem(cause instanceof Error ? cause.message : 'Not saved on this device.'); } }}/>)}</ul>
     <div className="money-actions"><button type="button" className="quiet" onClick={print}>Print the bill tracker</button></div>
     <p className="bills-status" role="status" aria-live="polite">{status}</p>
     {problem && <p role="alert">{problem}</p>}
   </section>;
 }
-function BillItem({bill, entries, today, editing, onEdit, onAutopay, onSave}: {bill: Bill; entries: readonly MoneyEntry[]; today: string; editing: boolean; onEdit: () => void; onAutopay: (on: boolean) => void; onSave: (edit: {title: string; amount: string; currency: string; cadence: BillCadence; nextDue: string}) => void}) {
+function BillItem({bill, entries, today, editing, onEdit, onAutopay, onSave}: {bill: Bill; entries: readonly MoneyEntry[]; today: string; editing: boolean; onEdit: () => void; onAutopay: (on: boolean) => void; onSave: (edit: {title: string; amount: string; currency: string; cadence: BillCadence; nextDue: string}, ends: BillEnds | undefined) => void}) {
+  const [ends, setEndsChoice] = useState<EndsChoice>(() => choiceOf(bill)), endsLine = endsWords(bill, today);
   const history = useMemo(() => billHistory(bill, entries, today), [bill, entries, today]), seen = history.filter(h => h.state === 'seen').length;
   const [title, setTitle] = useState(bill.title), [amount, setAmount] = useState(bill.amount), [cadence, setCadence] = useState<BillCadence>(bill.cadence), [nextDue, setNextDue] = useState(bill.nextDue), [problem, setProblem] = useState('');
-  const save = (e: FormEvent) => { e.preventDefault(); const a = readMoneyAmount(amount); if (!a) { setProblem('Enter the amount above zero, with at most two decimals.'); return; } setProblem(''); onSave({title, amount: a, currency: bill.currency, cadence, nextDue}); };
+  const save = (e: FormEvent) => { e.preventDefault(); const a = readMoneyAmount(amount); if (!a) { setProblem('Enter the amount above zero, with at most two decimals.'); return; } const endIssue = endsProblem(ends); if (endIssue) { setProblem(endIssue); return; } setProblem(''); onSave({title, amount: a, currency: bill.currency, cadence, nextDue}, endsOf(ends)); };
   return <li className="bill-tracker-bill">
-    <div className="bill-tracker-head"><strong>{bill.title}</strong><span className="fine"> · {CADENCE[bill.cadence].toLowerCase()} · {moneyCents(Math.round(Number(bill.amount) * 100), bill.currency)}{history.length ? ` · ${seen} of ${history.length} in your money log over 12 months` : ''}</span>
+    <div className="bill-tracker-head"><strong>{bill.title}</strong><span className="fine"> · {CADENCE[bill.cadence].toLowerCase()} · {moneyCents(Math.round(Number(bill.amount) * 100), bill.currency)}{history.length ? ` · ${seen} of ${history.length} in your money log over 12 months` : ''}</span>{endsLine && <span className="fine bills-ends-line">{endsLine}</span>}
       <label className="money-search-check"><input type="checkbox" checked={!!bill.autopay} onChange={e => onAutopay(e.target.checked)}/><span>Paid automatically</span></label>
       <button type="button" className="quiet" aria-expanded={editing} aria-label={`Edit ${bill.title}`} onClick={onEdit}>Edit</button></div>
     {history.length > 0 && <ol className="bill-tracker-history" aria-label={`${bill.title}: the last 12 months`}>{history.map(h => <li key={h.due} className={`is-${h.state}`}><span>{formatDate(h.due, {year: false})}</span> <span className="fine">{h.state === 'seen' ? 'paid' : 'not in your log'}</span></li>)}</ol>}
@@ -76,6 +81,7 @@ function BillItem({bill, entries, today, editing, onEdit, onAutopay, onSave}: {b
       <label className="field"><span>Amount ({bill.currency})</span><input inputMode="decimal" autoComplete="off" value={amount} onChange={e => setAmount(e.target.value)}/></label>
       <label className="field"><span>How often</span><select value={cadence} onChange={e => setCadence(e.target.value as BillCadence)}>{BILL_CADENCES.map(c => <option key={c} value={c}>{CADENCE[c]}</option>)}</select></label>
       <label className="field"><span>Next due</span><input type="date" value={nextDue} onChange={e => setNextDue(e.target.value)}/></label>
+      <EndsFields choice={ends} onChange={setEndsChoice} nextDue={nextDue}/>
       <button type="submit" className="secondary">Save bill</button>
       {problem && <p role="alert">{problem}</p>}
     </form>}
