@@ -63,12 +63,18 @@ export function viewTitle(view: TaskView, record: Tasks): string {
 }
 const same = (a: TaskView, b: TaskView) => viewKey(a) === viewKey(b);
 const MORE_ID = 'tasks-nav-more';
+/** Session AW (simplicity-b, Part 3): the views a phone shows above the list; every other view waits behind More views. */
+const FIRST_ROW: ReadonlySet<TaskView['kind']> = new Set(['inbox', 'today', 'upcoming', 'all', 'overdue']);
 // Session AT (ADR-043 D7): This evening's and Someday's counts come from their own chunk, after the page shows.
 const WhenCount = lazy(() => import('./tasks-when-count'));
 export function TasksNav({record, today, view, board, counts, projects, onGo, onAddProject, dropOn, onRemoveFilter, scope, toReview = 0}: {record: Tasks; today: string; view: TaskView; board: boolean; counts: {open: number; overdue: number; today: number}; projects: Project[];
   /** Session AV lane 2 (r6-plan, LEDGER #394, #395): the focus applied to a view's count; how many projects wait for their review. */ scope?: (v: TaskView) => Tasks; toReview?: number;
   onGo: (v: TaskView, board?: boolean) => void; onAddProject: (name: string, colour: TaskColour) => boolean; dropOn: (projectId: string | null) => {onDragOver: (e: DragEvent<HTMLElement>) => void; onDrop: (e: DragEvent<HTMLElement>) => void}; onRemoveFilter: (id: string) => void}) {
-  const [adding, setAdding] = useState(false), [name, setName] = useState(''), [colour, setColour] = useState<TaskColour>('blue'), [archived, setArchived] = useState(false), [more, setMore] = useState(false);
+  const [adding, setAdding] = useState(false), [name, setName] = useState(''), [colour, setColour] = useState<TaskColour>('blue'), [archived, setArchived] = useState(false), [more, setMore] = useState(() => !FIRST_ROW.has(view.kind));
+  // Session AW (simplicity-b): a view that lives behind More views (opened from the address, Search or Review) opens the
+  // fold, so its own chip shows as the current one; going back to Inbox or Today leaves the fold as the person set it.
+  const [shownKey, setShownKey] = useState(() => viewKey(view));
+  if (shownKey !== viewKey(view)) { setShownKey(viewKey(view)); if (!FIRST_ROW.has(view.kind)) setMore(true); }
   const count = (v: TaskView) => viewTasks(scope ? scope(v) : record, v, today).length;
   const item = (v: TaskView, label: string, n?: number | ReactNode, extra?: object, colourName?: string) => <li key={viewKey(v)}><button type="button" className="tasks-nav-item" aria-current={same(v, view) ? 'page' : undefined} data-colour={colourName} onClick={() => onGo(v, v.kind === 'project' && same(v, view) ? board : false)} {...(extra ?? {})}>
     <span dir="auto">{label}</span>{typeof n === 'number' ? n ? <small>{formatNumber(n)}</small> : null : n}</button></li>;
@@ -80,16 +86,21 @@ export function TasksNav({record, today, view, board, counts, projects, onGo, on
       {item({kind: 'upcoming'}, 'Upcoming', count({kind: 'upcoming'}))}
       {item({kind: 'all'}, 'All open', counts.open)}
       {counts.overdue > 0 && item({kind: 'overdue'}, 'Overdue', counts.overdue)}
-      {item({kind: 'evening'}, 'This evening', <Suspense fallback={null}><WhenCount kind="evening" record={record} today={today}/></Suspense>)}
-      {item({kind: 'someday'}, 'Someday', <Suspense fallback={null}><WhenCount kind="someday" record={record} today={today}/></Suspense>)}
-      {item({kind: 'matrix'}, 'Priority matrix')}
-      {item({kind: 'completed'}, 'Completed')}
       {/* Session AV lane 2 (fr-layout, FR-L-5, FR-MAX-2, FR-S-7, FR-TJ-8): on a phone the rows below fold behind this one
           chip, so "New task" is on the first screen (it began at y 966–1,296 under them). Computers and tablets keep every
           row open and never show the chip (tasks.css). The current view's name is in the list's heading either way. */}
       <li className="tasks-nav-more-item"><button type="button" className="tasks-nav-item tasks-nav-more-toggle" aria-expanded={more} aria-controls={MORE_ID} onClick={() => setMore(v => !v)}><span>{more ? 'Fewer views' : 'More views'}</span><small aria-hidden="true">{more ? '▴' : '▾'}</small></button></li>
     </ul>
     <div id={MORE_ID} className="tasks-nav-more" data-open={more ? 'true' : undefined}>
+    {/* Session AW (simplicity-b, Part 3): This evening, Someday, the Priority matrix and Completed are the first row behind
+        More views on a phone (their two chip rows had put "New task" under the tab bar in the Showcase, y 949). Wider
+        screens show them right after Overdue, as before. */}
+    <ul className="tasks-nav-later">
+      {item({kind: 'evening'}, 'This evening', <Suspense fallback={null}><WhenCount kind="evening" record={record} today={today}/></Suspense>)}
+      {item({kind: 'someday'}, 'Someday', <Suspense fallback={null}><WhenCount kind="someday" record={record} today={today}/></Suspense>)}
+      {item({kind: 'matrix'}, 'Priority matrix')}
+      {item({kind: 'completed'}, 'Completed')}
+    </ul>
     {/* Session AV lane 2 (tasks): planning and layouts (Sunsama, Todoist, TickTick, Notion), drawn by their own chunk. */}
     <h3>Plan and views</h3>
     <ul>{([['week', 'This week'], ['table', 'Table'], ['days', 'Calendar'], ['timeline', 'Timeline'], ['insights', 'Insights'], ['organise', 'Areas and templates']] as const).map(([kind, label]) => item({kind}, label))}

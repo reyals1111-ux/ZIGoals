@@ -25,6 +25,11 @@
 .agenda-day-title { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 17px; }
 .agenda-today { padding: 0 8px; border-radius: 999px; border: 1px solid currentColor; font-size: 14px; font-weight: 650; color: var(--brand-cyan, var(--cyan)); }
 .agenda-nothing { margin: 0; font-size: 15px; color: var(--text-secondary); }
+/* Session AW (simplicity-b, Part 3): an empty range is one line; the add field opens the panel. */
+.agenda-quiet { margin: 0; }
+.agenda-add { min-width: 0; display: grid; gap: 4px; }
+.agenda-add-day { margin: 0; }
+.agenda-panel > .agenda-add .tasks-add { margin-top: 0; }
 .agenda-items { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .agenda-item { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 10px; align-items: start; padding: 6px 10px; border-radius: 14px; border: 1px solid var(--line, #ffffff1f); box-shadow: inset 3px 0 0 var(--agenda-accent, var(--line)); }
 .agenda-item[data-pillar=habits] { --agenda-accent: var(--pillar-habits); }

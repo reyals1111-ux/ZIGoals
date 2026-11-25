@@ -18,6 +18,7 @@ import {useTaskList} from '../tasks/use-task-list';
 import {useGoalOptions} from '../tasks/use-goal-options';
 import {editTask} from '../../lib/tasks/engine';
 import {useAgenda} from './use-agenda';
+import {agendaAddDay, quietRangeWords} from '../../lib/agenda/first-screen';
 import {ChunkFailed, chunk} from '../use-chunk';
 import './agenda.css';
 import {useUndoShortcut} from '../tasks/use-undo-shortcut';
@@ -111,6 +112,13 @@ export function AgendaPage() {
   const total = days ? days.filter(d => view !== 'month' || (d.date >= range.first && d.date <= range.last)).reduce((n, d) => n + d.items.length, 0) : 0;
   const kinds = AGENDA_SOURCES.length + EXTRA_SOURCES.length, hiddenCount = hidden.length + hiddenExtra.length;
   const rowProps = {today, goals: goals.byKey, onTick: tickTask, onMove: moveTask};
+  // Session AW (simplicity-b, Part 3): every view adds a task, at the top of the panel: the chosen day (the day view's day,
+  // the week's or the month's chosen day) when it is today or later, else today when the range shows it. The week view had
+  // no add control, and the day view's stood under the day's items (2.62 screens down on a phone in the Showcase).
+  const addOn = agendaAddDay({at, today, from: range.from, to: range.to});
+  const focusAdd = () => document.querySelector<HTMLInputElement>('#agenda-add input')?.focus();
+  const nothingYet = known.size === 0 && knownExtra.size === 0;
+  const quietLine = quietRangeWords(view, !!addOn);
 
   return <div className="agenda-page" data-agenda={loaded ? 'ready' : 'loading'}>
     {AGENDA_VIEWS.map(v => <ActionIntent key={v} param="view" value={v} onAction={() => setChosen(v)} />)}
@@ -122,10 +130,8 @@ export function AgendaPage() {
     {parts.failed ? <LoadBoundary label="Your agenda"><ChunkFailed what="The agenda"/></LoadBoundary> : !loaded || !rows || !input || !days || !counts ? <ZgSkeleton label="Opening your agenda…" className="agenda-skeleton" block lines={3} /> : <>
       {showcase && <p className="agenda-showcase fine" role="note">Showcase · fictional. Items with no record of their own yet are marked Example.</p>}
       {unreadable.length > 0 && <p className="notice" role="status">Some records could not be read on this device ({unreadable.join(', ')}), so their items are left out rather than guessed.</p>}
-      {known.size === 0 && knownExtra.size === 0 && <EmptyState title="Your agenda fills itself" level={2} art="orbit" action={<p className="agenda-teach">{(['habit', 'meal', 'bill', 'review'] as const).map(s => <Link key={s} className="secondary" href={TEACH[s][1]}>{TEACH[s][0]}</Link>)}<Link className="secondary" href={EXTRA_TEACH.task[1]}>{EXTRA_TEACH.task[0]}</Link></p>}>
-        Add a habit or a task with a day, give a goal a contribution plan, add a bill, plan a meal or turn on the weekly review. Each one shows here on its days. You can also import a calendar file from your calendar app, and export your agenda to it.
-      </EmptyState>}
       <section className="panel agenda-panel" aria-labelledby="agenda-range">
+        {addOn && !list.tasks.unreadable && <div id="agenda-add" className="agenda-add"><p className="fine agenda-add-day">A task for {addOn === today ? 'today' : formatDate(addOn, {weekday: true, year: false})}</p><rows.TaskAddForm compact onAdd={list.add} goals={[]} today={today} fixedDue={addOn} label={`Add a task for ${formatDate(addOn, {weekday: true, year: false})}`} submit="Add task" /></div>}
         <div className="agenda-toolbar">
           <div className="agenda-views" role="group" aria-label="View">{AGENDA_VIEWS.map(v => <button key={v} type="button" className="secondary" aria-pressed={view === v} onClick={() => pickView(v)}>{VIEW_LABEL[v]}</button>)}</div>
           <div className="agenda-nav">
@@ -143,16 +149,19 @@ export function AgendaPage() {
           </fieldset>
         </details>
         {view === 'day' && <p className="agenda-hours-toggle"><button type="button" className="secondary" aria-pressed={hours} onPointerEnter={() => void import('./agenda-hour-grid').catch(() => undefined)} onClick={() => setHours(h => !h)}>By the hour</button></p>}
-        {view === 'day' && (hours ? <LoadBoundary label="The day by the hour"><Suspense fallback={<p className="fine">Opening the hours…</p>}><AgendaHourGrid day={days[0]!} today={today} onMove={moveTask} onTick={tickTask} /></Suspense></LoadBoundary> : <rows.DayList day={days[0]!} heading={false} {...rowProps} />)}
-        {view === 'day' && days[0]!.date >= today && !list.tasks.unreadable && <rows.TaskAddForm compact onAdd={list.add} goals={[]} today={today} fixedDue={days[0]!.date} label={`Add a task for ${formatDate(days[0]!.date, {weekday: true, year: false})}`} submit="Add task" />}
+        {view === 'day' && (hours ? <LoadBoundary label="The day by the hour"><Suspense fallback={<p className="fine">Opening the hours…</p>}><AgendaHourGrid day={days[0]!} today={today} onMove={moveTask} onTick={tickTask} /></Suspense></LoadBoundary> : <rows.QuietDays dates={[days[0]!.date]} total={hiddenCount ? -1 : total} line={quietLine}><rows.DayList day={days[0]!} heading={false} {...rowProps} /></rows.QuietDays>)}
         {view === 'day' && list.tasks.loaded && !list.tasks.unreadable && list.tasks.data.tasks.some(t => t.due === days[0]!.date) && <LoadBoundary quiet><Suspense fallback={null}><AgendaDayTools key={days[0]!.date} day={days[0]!.date} today={today} record={list.tasks.data} change={list.change} /></Suspense></LoadBoundary>}
-        {view === 'week' && <ol className="agenda-week">{days.map(d => <li key={d.date}><rows.DayList day={d} heading {...rowProps} /></li>)}</ol>}
+        {view === 'week' && <rows.QuietDays dates={days.map(d => d.date)} total={hiddenCount ? -1 : total} line={quietLine}><ol className="agenda-week">{days.map(d => <li key={d.date}><rows.DayList day={d} heading {...rowProps} /></li>)}</ol></rows.QuietDays>}
         {view === 'month' && <rows.MonthGrid days={days} first={range.first} last={range.last} selected={at} onSelect={setAnchor} {...rowProps} />}
         {view !== 'month' && <LoadBoundary quiet><Suspense fallback={null}><AgendaCycleDays from={range.from} to={range.to} today={today} /></Suspense></LoadBoundary>}
         {view !== 'month' && <LoadBoundary quiet><Suspense fallback={null}><AgendaNoteReminders from={range.from} to={range.to} today={today} /></Suspense></LoadBoundary>}
         <rows.TaskStatusLine status={list.status} error={list.error} onUndo={list.runUndo} />
         {note && <p className="fine" role="status">{note}</p>}
       </section>
+      {/* Session AW (simplicity-b): under the agenda (above it, it put the add field 1.13 screens down on a phone); its "Add a task" goes to the field above, not to Tasks. */}
+      {nothingYet && <EmptyState title="Your agenda fills itself" level={2} art="orbit" action={<p className="agenda-teach">{(['habit', 'meal', 'bill', 'review'] as const).map(s => <Link key={s} className="secondary" href={TEACH[s][1]}>{TEACH[s][0]}</Link>)}{addOn ? <button type="button" className="secondary" onClick={focusAdd}>{EXTRA_TEACH.task[0]}</button> : <Link className="secondary" href={EXTRA_TEACH.task[1]}>{EXTRA_TEACH.task[0]}</Link>}</p>}>
+        Add a habit or a task with a day, give a goal a contribution plan, add a bill, plan a meal or turn on the weekly review. Each one shows here on its days. You can also import a calendar file from your calendar app, and export your agenda to it.
+      </EmptyState>}
       <section className="panel agenda-export-panel" aria-labelledby="agenda-export-title">
         <h2 id="agenda-export-title">Export to a calendar</h2>
         <p>Make an .ics file on this device and open it with your calendar app. You choose what goes in it: titles and days only, unless you add the details.</p>

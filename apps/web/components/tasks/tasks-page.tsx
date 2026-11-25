@@ -471,6 +471,9 @@ export function TasksPage() {
           onAddProject={(name, colour) => list.quiet(r => addProject(r, {name, colour}), `Made the project “${name.trim()}”.`)} scope={v => viewFocus && FOCUS_KINDS.has(v.kind) ? focusedRecord(record, viewFocus) : record} toReview={toReview}
           dropOn={dropOnProject} onRemoveFilter={id => list.change(r => removeFilter(r, id), 'Removed the saved filter.')} />
         <section className="panel tasks-main" aria-labelledby="tasks-view-title">
+          {/* Session AW (simplicity-b, Part 3): "New task" opens the list, above its heading line, Select and Filter. Under
+              them it stood at y 949 on a phone in the Showcase, under the tab bar; the heading still names the list. */}
+          {view.kind !== 'completed' && view.kind !== 'filter' && !own && <SmartAdd record={record} today={today} onAdd={addFromLine} onAddMany={addManyFromLines} defaults={defaults} inputRef={addField} makeProject={makeProject} goals={goals.open} />}
           <header className="tasks-view-head">
             <h2 id="tasks-view-title">{title} <small>{view.kind === 'completed' || own ? '' : shown.length ? plural(shown.length, 'task') : 'none open'}{view.kind !== 'completed' && counts.overdue && view.kind !== 'overdue' ? ` · ${formatNumber(counts.overdue)} overdue in all` : ''}</small></h2>
             {/* Session AW (X2, LEDGER #436): today's tasks done and where the day is, inside this heading line (no card of its own) */}
@@ -488,7 +491,6 @@ export function TasksPage() {
           {(focusOn || (focusing && FOCUS_KINDS.has(view.kind))) && <LoadBoundary quiet><Suspense fallback={null}><FocusBar record={record} focus={viewFocus} choosing={focusing} onChoosing={setFocusing} /></Suspense></LoadBoundary>}
           {project && <LoadBoundary quiet><Suspense fallback={null}><ProjectStates list={list} project={project} /></Suspense></LoadBoundary>}
           {project && setupFor === project.id && <LoadBoundary label="Rules and fields"><Suspense fallback={<ZgSkeleton label="Opening…" block lines={2} />}><ProjectSetup list={list} record={record} project={project} /></Suspense></LoadBoundary>}
-          {view.kind !== 'completed' && view.kind !== 'filter' && !own && <SmartAdd record={record} today={today} onAdd={addFromLine} onAddMany={addManyFromLines} defaults={defaults} inputRef={addField} makeProject={makeProject} goals={goals.open} />}
           {selected.size > 0 && <LoadBoundary quiet><Suspense fallback={null}><BulkBar count={selected.size} projects={projects} onDone={() => finishSelected()} onLevel={l => setLevel(l)} onDue={d => setDue(d === 'today' ? today : d === 'tomorrow' ? addLocalDays(today, 1) : d)} today={today} labels={labelsOf(record, selected)} onLabel={labelSelected} onMove={p => moveSelected(p)} onRemove={() => removeSelected()} onClear={() => { setSelected(new Set()); setSelecting(false); }} onAll={() => setSelected(new Set(visibleIds))} total={visibleIds.length} /></Suspense></LoadBoundary>}
           {selectMode && !selected.size && <p className="fine tasks-select-hint" role="status">Tick the tasks to act on together; Escape ends selecting.</p>}
           <TaskStatusLine error={list.error} />

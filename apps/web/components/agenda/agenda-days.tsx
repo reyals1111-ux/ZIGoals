@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {Suspense, lazy, useEffect, useRef, useState, type DragEvent, type KeyboardEvent} from 'react';
+import {Suspense, lazy, useEffect, useRef, useState, type DragEvent, type KeyboardEvent, type ReactNode} from 'react';
 import {formatClock, formatDate, formatNumber, formatWeekday} from '../../lib/visual-format';
 import {shiftAnchor, type AgendaItem, type AgendaSource} from '../../lib/agenda/build';
 import {daySummary, foldAnytimeHabits} from '../../lib/agenda/group';
@@ -11,6 +11,11 @@ import {addLocalDays} from '../../lib/local-date';
 import {timedLoad} from '../../lib/agenda/hour-grid';
 import {CountdownsOnDay} from '../countdowns/countdowns-on-day';
 import {DeadlinesOnDay} from './deadlines-on-day';
+import {useDeviceRecord} from '../ai/use-device-record';
+import {COUNTDOWNS, countdownsOn} from '../../lib/countdowns/schema';
+import {COUNTDOWN_EXTRAS, nextYearly} from '../../lib/countdowns/extras';
+import {TASKS} from '../../lib/tasks/schema';
+import {deadlinesOn} from '../../lib/agenda/deadlines';
 import {LoadBoundary} from '../load-boundary';
 
 // Session AV lane 2 (r5-notes; LEDGER #364, Craft): a note for an imported event, in its own chunk.
@@ -99,6 +104,20 @@ function EventItemRow({item}: {item: Extract<DayItem, {source: 'event'}>}) {
       <LoadBoundary quiet><Suspense fallback={null}><EventNote itemId={item.id} title={item.title} day={item.date}/></Suspense></LoadBoundary>
     </div>
   </li>;
+}
+
+/**
+ * Session AW (simplicity-b, Part 3): days that hold nothing at all — no item, no countdown and no deadline (the two a day
+ * draws from its own records) — are one teaching line instead of a "Nothing planned." per day (seven at 1440 on an empty
+ * week). Any one of them brings the days back as they were.
+ */
+export function QuietDays({dates, total, line, children}: {dates: readonly string[]; /** The items shown; -1 while a kind is hidden by the filter (the days then stay, so nothing reads as "nothing planned"). */ total: number; line: ReactNode; children: ReactNode}) {
+  const countdowns = useDeviceRecord(COUNTDOWNS), extras = useDeviceRecord(COUNTDOWN_EXTRAS), tasks = useDeviceRecord(TASKS);
+  if (total !== 0) return <>{children}</>;
+  if (!countdowns.loaded || !extras.loaded || !tasks.loaded) return null;
+  const marked = (d: string) => (!countdowns.unreadable && (countdownsOn(countdowns.data, d).length > 0 || countdowns.data.items.some(c => extras.data.items[c.id]?.yearly && c.date < d && nextYearly(c.date, d) === d)))
+    || (!tasks.unreadable && deadlinesOn(tasks.data, d).length > 0);
+  return dates.some(marked) ? <>{children}</> : <p className="fine agenda-quiet">{line}</p>;
 }
 
 /** The month as a grid of day buttons (arrows move, Page Up/Down change month, Home/End the week's ends); the chosen day's items below. */
