@@ -493,7 +493,7 @@ self.addEventListener('notificationclick', event => {
         const snapshot = await kvGet('snapshot').catch(() => null), ids = new Set(action.items.map(i => i.kind + ':' + i.id));
         if (snapshot && Array.isArray(snapshot.items)) {
           const leaves = i => ids.has(i.kind + ':' + i.id) && (i.at <= now + 3_600_000 || i.kind === 'task');
-          const kept = snapshot.items.filter(i => !leaves(i)), gone = snapshot.items.filter(i => leaves(i) && i.at > now + 60000).map(i => Math.floor(i.at / 60000)).filter(m => !kept.some(i => Math.floor(i.at / 60000) === m));
+          const kept = snapshot.items.filter(i => !leaves(i)), gone = snapshot.items.filter(i => leaves(i) && i.kind === 'task' && i.at > now + 60000).map(i => Math.floor(i.at / 60000)).filter(m => !kept.some(i => Math.floor(i.at / 60000) === m));
           await kvPut('snapshot', {...snapshot, items: kept});
           await dropWakes([...new Set(gone)]).catch(() => {});
         }
