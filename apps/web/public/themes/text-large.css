@@ -99,7 +99,7 @@
 @media (max-width: 380px) { :where(:root[data-text=large]) input:not(#\-), :where(:root[data-text=large]) select:not(#\-), :where(:root[data-text=large]) textarea:not(#\-) { font-size: calc(16px * 1.125); } }
 @media (max-width: 900px) { :where(:root[data-text=large]) input:not(#\-), :where(:root[data-text=large]) select:not(#\-), :where(:root[data-text=large]) textarea:not(#\-) { font-size: calc(16px * 1.125); } }
 :where(:root[data-text=large]) body .app-content .fine:not(#\-), :where(:root[data-text=large]) body .goal-progress-caption span:not(#\-), :where(:root[data-text=large]) body .goal-progress-caption strong:not(#\-), :where(:root[data-text=large]) body .goal-card.unified-goal-card .card-footer small:not(#\-), :where(:root[data-text=large]) body .card-bottom small:not(#\-), :where(:root[data-text=large]) body .goal-management-module>summary small:not(#\-), :where(:root[data-text=large]) body .goal-detail-facts dt:not(#\-), :where(:root[data-text=large]) body .field:not(#\-), :where(:root[data-text=large]) body .field>span:not(#\-), :where(:root[data-text=large]) body .metadata:not(#\-), :where(:root[data-text=large]) body .help-text:not(#\-), :where(:root[data-text=large]) body .metric-note:not(#\-), :where(:root[data-text=large]) body .wallet-subtitle:not(#\-) { font-size: calc(var(--explanatory-size) * 1.125); }
-:where(:root[data-text=large]) .unavailable-pill:not(#\-) { font-size: calc(12px * 1.125); }
+:where(:root[data-text=large]) .unavailable-pill:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .hidden-page-chip > p:not(#\-) { font-size: calc(14px * 1.125); }
 /*  app/visual-theme.css  */
 :where(:root[data-text=large]) .network-banner:not(#\-) { font-size: calc(14px * 1.125); }
@@ -480,7 +480,7 @@
 /*  components/add-money/add-money.css  */
 :where(:root[data-text=large]) .add-money-step h2:not(#\-) { font-size: calc(1.15rem * 1.125); }
 :where(:root[data-text=large]) .add-money-n:not(#\-) { font-size: calc(15px * 1.125); }
-:where(:root[data-text=large]) .add-money-badge:not(#\-) { font-size: calc(12px * 1.125); }
+:where(:root[data-text=large]) .add-money-badge:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .add-money-warning:not(#\-) { font-size: calc(1rem * 1.125); }
 :where(:root[data-text=large]) .add-money-address code:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .add-money-guides h3:not(#\-) { font-size: calc(1rem * 1.125); }
@@ -642,9 +642,9 @@
 :where(:root[data-text=large]) .ai-history-filter select:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .ai-history-heading:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .ai-continue pre:not(#\-) { font-size: calc(14px * 1.125); }
-:where(:root[data-text=large]) .ai-chat-via .ai-chat-premium-badge:not(#\-) { font-size: calc(13px * 1.125); }
+:where(:root[data-text=large]) .ai-chat-via .ai-chat-premium-badge:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/ai/knock-offer.css  */
-:where(:root[data-text=large]) .ai-knock-offer-body .ai-knock-offer-label:not(#\-) { font-size: calc(12px * 1.125); }
+:where(:root[data-text=large]) .ai-knock-offer-body .ai-knock-offer-label:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/ai/panel-z.css  */
 :where(:root[data-text=large]) .ai-chat .ai-chat-via:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .ai-chat .ai-chat-premium:not(#\-) { font-size: calc(14px * 1.125); }
@@ -1255,7 +1255,7 @@
 /*  components/goals/what-if.css  */
 :where(:root[data-text=large]) .what-if-field > label:not(#\-), :where(:root[data-text=large]) .what-if-select:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .what-if-unit:not(#\-) { font-size: calc(13px * 1.125); }
-:where(:root[data-text=large]) .what-if-label:not(#\-) { font-size: calc(13px * 1.125); }
+:where(:root[data-text=large]) .what-if-label:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/governance/governance.css  */
 :root:where([data-text=large]) .governance-eligibility:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .governance-proposal-head h3:not(#\-) { font-size: calc(20px * 1.125); }
@@ -1278,7 +1278,7 @@
 /*  components/habits/auto-rules.css  */
 :where(:root[data-text=large]) .auto-rules-fine:not(#\-), :where(:root[data-text=large]) .auto-rules-empty:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .auto-rules-form label:not(#\-) { font-size: calc(14px * 1.125); }
-:where(:root[data-text=large]) .auto-rules-badge:not(#\-) { font-size: calc(13px * 1.125); }
+:where(:root[data-text=large]) .auto-rules-badge:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/habits/habit-longer-history.css  */
 :where(:root[data-text=large]) .habit-longer h4:not(#\-) { font-size: calc(1rem * 1.125); }
 :where(:root[data-text=large]) .habit-longer-y:not(#\-) { font-size: calc(14px * 1.125); }
@@ -1758,7 +1758,7 @@
 :where(:root[data-text=large]) .timer-preset-intervals > legend:not(#\-) { font-size: calc(1rem * 1.125); }
 :where(:root[data-text=large]) .timer-preset-interval > legend:not(#\-) { font-size: calc(.9375rem * 1.125); }
 /*  components/health/photo-compare.css  */
-:where(:root[data-text=large]) .photo-compare-tag:not(#\-) { font-size: calc(13px * 1.125); }
+:where(:root[data-text=large]) .photo-compare-tag:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .photo-compare figcaption:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/health/plus/evening-checkin.css  */
 :where(:root[data-text=large]) .checkin-logged:not(#\-) { font-size: calc(1rem * 1.125); }
@@ -1838,6 +1838,7 @@
 :where(:root[data-text=large]) .r6-picker-head:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .r6-bests:not(#\-) { font-size: calc(1rem * 1.125); }
 :where(:root[data-text=large]) .r6-defaults-form input:not(#\-) { font-size: calc(1rem * 1.125); }
+:where(:root[data-text=large]) .r6-portions-teach strong:not(#\-) { font-size: calc(1rem * 1.125); }
 /*  components/health/sleep/av2-bodymind-sleep.css  */
 :where(:root[data-text=large]) .sleep-need-head strong:not(#\-) { font-size: calc(24px * 1.125); }
 :where(:root[data-text=large]) .sleep-balance-naps small:not(#\-) { font-size: calc(14px * 1.125); }
@@ -1941,7 +1942,7 @@
 :where(:root[data-text=large]) .workouts-stats dd:not(#\-) { font-size: calc(1.3rem * 1.125); }
 :where(:root[data-text=large]) .workouts-import-item h3:not(#\-) { font-size: calc(1.1rem * 1.125); }
 :where(:root[data-text=large]) .workouts-import-problem:not(#\-) { font-size: calc(14px * 1.125); }
-:where(:root[data-text=large]) .workouts-superset-tag:not(#\-) { font-size: calc(13px * 1.125); }
+:where(:root[data-text=large]) .workouts-superset-tag:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .workouts-tool h4:not(#\-) { font-size: calc(1rem * 1.125); }
 :where(:root[data-text=large]) .workouts-import-lifts span:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .workouts-muscles h3:not(#\-) { font-size: calc(1.05rem * 1.125); }
@@ -3117,7 +3118,7 @@
 :where(:root[data-text=large]) .onboarding-game-preview h3:not(#\-) { font-size: calc(17px * 1.125); }
 :where(:root[data-text=large]) .onboarding-game-preview p:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .onboarding-game-level small:not(#\-) { font-size: calc(15px * 1.125); }
-:where(:root[data-text=large]) .onboarding-game-pill:not(#\-) { font-size: calc(13px * 1.125); }
+:where(:root[data-text=large]) .onboarding-game-pill:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .onboarding-quick > p:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .onboarding-quick .text-link:not(#\-) { font-size: calc(16px * 1.125); }
 /*  components/orbit-card/orbit-card.css  */
@@ -3903,16 +3904,16 @@
 /*  components/shell/shell-ab.css  */
 :where(:root[data-text=large]) .alpha-notice:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .alpha-notice p:is(.alpha-notice-essentials, .alpha-notice-sentence):not(#\-) { font-size: calc(14px * 1.125); }
-:where(:root[data-text=large]) .alpha-notice strong:not(#\-) { font-size: calc(13px * 1.125); }
+:where(:root[data-text=large]) .alpha-notice strong:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .alpha-notice-close:not(#\-) { font-size: calc(22px * 1.125); }
-:where(:root[data-text=large]) .showcase-chip-button:not(#\-) { font-size: calc(13px * 1.125); }
+:where(:root[data-text=large]) .showcase-chip-button:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .showcase-chip-panel:not(#\-) { font-size: calc(14px * 1.125); }
-:where(:root[data-text=large]) .showcase-chip-panel strong:not(#\-) { font-size: calc(13px * 1.125); }
+:where(:root[data-text=large]) .showcase-chip-panel strong:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .showcase-chip-actions button:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .status-row .status-wallet button:not(#\-) { font-size: calc(14px * 1.125); }
 @media (max-width: 767.98px) { :where(:root[data-text=large]) .alpha-notice p > .alpha-notice-short:not(#\-) { font-size: calc(13px * 1.125); } }
 @media (max-width: 767.98px) { :where(:root[data-text=large]) .alpha-notice strong:not(#\-) { font-size: calc(12px * 1.125); } }
-@media (max-width: 767.98px) { :where(:root[data-text=large]) .status-row .showcase-chip-button:not(#\-) { font-size: calc(12px * 1.125); } }
+@media (max-width: 767.98px) { :where(:root[data-text=large]) .status-row .showcase-chip-button:not(#\-) { font-size: calc(14px * 1.125); } }
 @media (max-width: 359.98px) { :where(:root[data-text=large]) .alpha-notice strong:not(#\-) { font-size: calc(12px * 1.125); } }
 /*  components/shell/sidebar-apps.css  */
 :where(:root[data-text=large]) .sidebar-apps-toggle:not(#\-) { font-size: calc(14px * 1.125); }
@@ -4456,7 +4457,7 @@
 /*  components/zigi/knock.css  */
 :where(:root[data-text=large]) .zigi-knock-copy h2:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .zigi-knock-copy p:not(#\-) { font-size: calc(14px * 1.125); }
-:where(:root[data-text=large]) .zigi-knock-copy .zigi-knock-label:not(#\-) { font-size: calc(12px * 1.125); }
+:where(:root[data-text=large]) .zigi-knock-copy .zigi-knock-label:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .zigi-knock-close:not(#\-) { font-size: calc(20px * 1.125); }
 :where(:root[data-text=large]) .zigi-knock-note:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/zigi/meet-zigi.css  */

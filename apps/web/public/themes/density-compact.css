@@ -3558,6 +3558,9 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .r6-picker-head:not(#\-) { margin-top: 8px; margin-bottom: 4px; }
 :where(:root[data-density=compact]) .r6-bests:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .r6-defaults-form:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .r6-portions.r6-portions-empty:not(#\-) { margin-top: 4px; margin-bottom: 12px; }
+:where(:root[data-density=compact]) .r6-portions-teach:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .r6-portions-status:empty:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/health/sleep/av2-bodymind-sleep.css  */
 :where(:root[data-density=compact]) .sleep-need:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 12px; padding-top: 12px; padding-bottom: 12px; }
 :where(:root[data-density=compact]) .sleep-need-head:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 2px; }
@@ -4064,6 +4067,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .journal-calendar-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .journal-calendar-grid th:not(#\-) { padding-top: 4px; padding-bottom: 4px; }
 :where(:root[data-density=compact]) .journal-calendar-grid td:not(#\-) { padding-top: 1px; padding-bottom: 1px; }
+@media (max-width: 389.98px) { :root:where([data-density=compact]) main .panel .journal-calendar-grid td:not(#\-) { padding-top: 0; padding-bottom: 0; } }
 :where(:root[data-density=compact]) .journal-books:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .journal-books-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 7.5px; }
 :where(:root[data-density=compact]) .journal-books-row:not(#\-) { row-gap: 3px; padding-bottom: 6px; }
