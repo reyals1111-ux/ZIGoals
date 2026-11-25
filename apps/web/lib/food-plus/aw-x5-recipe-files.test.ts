@@ -37,6 +37,18 @@ describe('#453 Paprika recipe files', () => {
     await expect(readRecipeFile('x.paprikarecipes', enc('not a zip'))).rejects.toBeInstanceOf(RecipeFileError);
     await expect(readRecipeFile('photo.jpg', enc(''))).rejects.toThrow('Choose a .paprikarecipes export');
   });
+  // Session AW (review b2 M1): one budget for the whole export, as the notes reader's (Z1B-5): every byte an entry
+  // inflates counts, also when it then fails, so many small bombs stop once the budget is spent; each entry tried
+  // counts toward the 200.
+  test('an export of many small gzip bombs stops once the one budget is spent, each left aside with its reason', async () => {
+    const bomb = new Uint8Array(gzipSync(Buffer.alloc(1024 * 1024, 32))); // 1 MB of spaces: not a recipe, ~1 kB packed
+    const zip = buildStoredZip(Array.from({length: 6}, (_, i) => ({name: `Bomb ${i}.paprikarecipe`, data: bomb, modified: AT})));
+    const read = await readRecipeFile('x.paprikarecipes', zip, 2.5 * 1024 * 1024);
+    expect(read.recipes).toEqual([]);
+    expect(read.skipped.slice(0, 2)).toEqual(['Bomb 0: not a recipe ZIGoals can read', 'Bomb 1: not a recipe ZIGoals can read']);
+    expect(read.skipped[2]).toBe('Bomb 2: larger than ZIGoals reads');
+    expect(read.skipped.slice(3)).toEqual(['Bomb 3', 'Bomb 4', 'Bomb 5'].map(b => `${b}: the export is larger than ZIGoals reads in one go`));
+  });
   test('gunzip stops past its cap (a bomb never fills memory)', async () => {
     const big = new Uint8Array(gzipSync(Buffer.alloc(200_000, 32)));
     await expect(gunzip(big, 1000)).rejects.toThrow('larger than ZIGoals reads');

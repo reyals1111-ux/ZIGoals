@@ -27,6 +27,7 @@ describe('the next payment', () => {
     e('2026-10-06', '300.00'), e('2026-10-20', '150.30'), e('2026-11-05', '10.00'),
     e('2026-10-21', '48.00', {kind: 'income', refund: true}), // a refund lowers it
     e('2026-10-22', '500.00', {kind: 'income', transfer: 'x'}), // a card payment from the bank (a transfer): left out
+    e('2026-10-23', '300.00', {kind: 'income'}), // Session AW (review b2 M2): the bank file's unpaired payment line: left out too
     e('2026-10-23', '70.00', {currency: 'USD'}), // another currency: left out
     e('2026-11-06', '40.00'), e('2026-11-20', '56.10'), // so far this statement
   ];

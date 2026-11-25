@@ -9,8 +9,8 @@ import type {Account, Accounts} from './schema';
  * next payment comes to, from the person's own entries — "Next payment on 25 Nov: €412.30 (statement of 5 Nov)" — and
  * "So far this statement: €96.10". A statement closes on the card's statement day (the wealth sheet's `cards`,
  * lib/wealth-sheet/cards.ts); its amount is what the money log puts on the card between the statement before and that
- * one (each purchase whole, as the card charges it, with refunds and other credits taken off; both sides of a transfer —
- * a card payment from another account — left out), less the payments the person recorded on the card since that
+ * one (each purchase whole, as the card charges it, with refunds taken off; other money in — a card payment, a transfer from
+ * another account or an unpaired payment line from the bank file — left out), less the payments the person recorded on the card since that
  * statement (the account's `payments`). An entry is on the card when its bank-file account name is the card's name, or,
  * with no account name, when it was "Paid with: credit card" and this is the person's only credit card in that currency.
  * Only entries in the card's currency count; never converted. With no statement day, or with no entry ever on the card,
@@ -62,7 +62,10 @@ export type CardStatement =
  */
 export function cardStatement(card: Account, entries: readonly MoneyEntry[], {statementDay, dueDay, onlyCard}: {statementDay: number | null; dueDay: number | null; onlyCard: boolean}, today: string): CardStatement {
   if (!statementDay) return {state: 'no-day'};
-  const mine = entries.filter(e => !e.transfer && onCard(e, card, onlyCard)), lastStatement = statementOnOrBefore(statementDay, today);
+  // Session AW (review b2 M2): what a statement holds is purchases and refunds; any other money in on the card — the
+  // payment line a card's bank file brings, unpaired as a transfer — is a payment, which `card.payments` already takes
+  // off, so it is never counted against the purchases (it understated the payment, or took one payment off twice).
+  const mine = entries.filter(e => !e.transfer && (e.kind === 'expense' || e.refund === true) && onCard(e, card, onlyCard)), lastStatement = statementOnOrBefore(statementDay, today);
   if (!mine.length) return {state: 'no-entries', statementDay, lastStatement};
   const between = (after: string, through: string) => mine.filter(e => e.date > after && e.date <= through);
   const since = between(lastStatement, today);
