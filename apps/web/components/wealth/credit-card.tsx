@@ -1,5 +1,5 @@
 'use client';
-import {useEffect, useRef, useState, type FormEvent} from 'react';
+import {Suspense, lazy, useEffect, useRef, useState, type FormEvent} from 'react';
 import {useDeviceRecord, type DeviceRecordState} from '../ai/use-device-record';
 import type {Account} from '../../lib/accounts/schema';
 import {BILLS} from '../../lib/bills/schema';
@@ -10,6 +10,8 @@ import {readMoneyAmount} from '../../lib/money-log/form';
 import {formatDate, formatPercent} from '../../lib/visual-format';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {moneyCents} from './money-tools/format';
+// Session AW X7 (money; Money Manager, LEDGER #464): the card's next payment and so far this statement (own chunk).
+const CardStatementLine = lazy(() => import('./card-statement'));
 
 /**
  * Session AV lane 2, round 3 (money; Simplifi's credit card dashboard, LEDGER #293): a credit card's limit and use. The
@@ -31,7 +33,8 @@ export default function CardLine({account, today}: {account: Account; today: str
   if (!sheet.loaded || sheet.unreadable) return null;
   const words = cardWords(cardState(account, sheet.data, today));
   // Review b3a #4: the owed amount, the limit and what is available blur with Hide amounts, as the row's balance does.
-  return words.length ? <small className="accounts-card-line" data-private-amount>{words.join(' · ')}</small> : <small className="accounts-card-line fine">Add its limit and days under Sheet to see how much of it is used.</small>;
+  return <>{words.length ? <small className="accounts-card-line" data-private-amount>{words.join(' · ')}</small> : <small className="accounts-card-line fine">Add its limit and days under Sheet to see how much of it is used.</small>}
+    {sheet.data.cards?.[account.id]?.statementDay ? <Suspense fallback={null}><CardStatementLine account={account} sheet={sheet.data} today={today}/></Suspense> : null}</>;
 }
 /**
  * In a credit card's Sheet: its limit, statement day and due day, and a payment reminder. Review b3a #3: the fields start
