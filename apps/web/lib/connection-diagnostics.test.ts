@@ -38,9 +38,12 @@ test("a previous account's pending diagnostics cannot update the new account pan
   document.body.append(container);
   root = createRoot(container);
   await act(async () => root!.render(createElement(VaultSyncProvider,null,createElement(Settings))));
-  const button = [...container.querySelectorAll("button")].find(
-    (b) => b.textContent === "Check connection",
-  )!;
+  // Session AW (Part 2 speed, deliberate): the diagnostics are in Settings' later chunk (components/settings/settings-later.tsx),
+  // so the test waits for the panel to arrive, then checks exactly what it checked before.
+  const find = () => [...container!.querySelectorAll("button")].find((b) => b.textContent === "Check connection");
+  for (let i = 0; i < 100 && !find(); i++) await act(async () => { await new Promise((r) => setTimeout(r, 20)); });
+  const button = find()!;
+  expect(button).toBeTruthy();
   await act(async () => button.click());
   api.state.owner = "zig1bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
   await act(async () => root!.render(createElement(VaultSyncProvider,null,createElement(Settings))));
