@@ -2,7 +2,7 @@ import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {describe, expect, test} from 'vitest';
 import {isUntrustedTool, replyUntrusted, UNTRUSTED_RESULT_TOOLS} from './untrusted';
-import {pickVoice, readAloudVoice, speechInputAllowed, STRICT_NO_LOCAL_SPEECH, STRICT_NO_LOCAL_VOICE, transcriptionRefusal} from './voice-privacy';
+import {NO_LOCAL_VOICE, pickVoice, readAloudVoice, speechInputAllowed, STRICT_NO_LOCAL_SPEECH, STRICT_NO_LOCAL_VOICE, transcriptionRefusal} from './voice-privacy';
 import {sendToNova, takeNovaHandoff} from '../nova/bridge';
 
 /**
@@ -69,10 +69,15 @@ describe('Z1A-3: reading aloud in Strict', () => {
     expect(readAloudVoice([], 'en-GB', true).refused).toBe(STRICT_NO_LOCAL_VOICE); // never the default voice, which may be online
     expect(readAloudVoice([voice('Thomas', 'fr-FR', true)], 'nl-NL', true).refused).toBe(STRICT_NO_LOCAL_VOICE);
   });
-  test('outside Strict the choice is as before (the first voice for the language, else the default)', () => {
-    expect(readAloudVoice([online, localUs], 'en-GB', false)).toEqual({voice: online, refused: null});
-    expect(readAloudVoice([], 'en-GB', false)).toEqual({voice: null, refused: null});
-    expect(pickVoice([online, localUs], 'en-GB', false)).toBe(online);
+  // Session AW (owner decision 1d, amendment 3; privacy audit; deliberate): outside Strict too, only a voice on this
+  // device reads, never the online exact match nor the default voice; with none it does not speak and says why. As
+  // strict as the Strict test above (the same cases), with its own wording.
+  test('outside Strict the same rule: only a voice on this device; with none it does not speak and says why', () => {
+    expect(readAloudVoice([online, localUs], 'en-GB', false)).toEqual({voice: localUs, refused: null});
+    expect(readAloudVoice([online, localUs, localGb], 'en-GB', false).voice).toBe(localGb);
+    expect(readAloudVoice([online], 'en-GB', false)).toEqual({voice: null, refused: NO_LOCAL_VOICE});
+    expect(readAloudVoice([], 'en-GB', false)).toEqual({voice: null, refused: NO_LOCAL_VOICE});
+    expect(pickVoice([online, localUs], 'en-GB', false)).toBe(online); // the picker itself is unchanged; readAloudVoice asks it for local voices only
   });
   test('every read-aloud (NOVA, ZIGi, the briefs) goes through the one hook, which reads the mode when it speaks', () => {
     const hook = read('components/ai/use-voice.ts');

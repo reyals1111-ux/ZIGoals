@@ -10,7 +10,7 @@ import {zigiSignals} from '../zigi/bus';
 // Security reviews Z1A-3 and Z1A-12: speech in and out under the privacy mode.
 import {readPrivacyMode} from '../../lib/nova/setup';
 import {getAppStorage} from '../../lib/showcase-storage';
-import {readAloudVoice, speechInputAllowed, transcriptionRefusal} from '../../lib/ai/voice-privacy';
+import {NO_LOCAL_VOICE, readAloudVoice, speechInputAllowed, transcriptionRefusal} from '../../lib/ai/voice-privacy';
 /** The privacy mode at the moment of use; a record that cannot be read counts as Strict (fail closed). */
 const modeNow = () => { try { return readPrivacyMode(getAppStorage()); } catch { return 'strict' as const; } };
 const strictNow = () => modeNow() === 'strict';
@@ -111,8 +111,9 @@ export function useVoice({settings, scope, onText}: {settings: AiSettings; scope
 }
 /**
  * Read-aloud through the browser's speech synthesis (off by default; the person chooses it per reply or in Settings).
- * Security review Z1A-3: in Strict privacy only a voice on this device reads (`localService`); with none for the language
- * nothing is spoken and `notice` says why (an online voice sends the text to the browser maker's speech service).
+ * Security review Z1A-3, and since Session AW in every privacy mode: only a voice on this device reads (`localService`);
+ * with none for the language nothing is spoken and `notice` says why (an online voice sends the text to the browser
+ * maker's speech service).
  */
 export function useReadAloud(language: string) {
   const [speaking, setSpeaking] = useState(false), [notice, setNotice] = useState<string | null>(null);
@@ -129,7 +130,7 @@ export function useReadAloud(language: string) {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text.slice(0, 5000));
     utterance.lang = language;
-    try { utterance.voice = choice.voice; } catch { /* the default voice (never in Strict: a voice was chosen) */ }
+    try { utterance.voice = choice.voice; } catch { window.speechSynthesis.cancel(); setSpeaking(false); setNotice(NO_LOCAL_VOICE); return false; } // never the default voice, which may be online
     utterance.onend = () => { setSpeaking(false); zigiSignals.emit('idle'); };
     utterance.onerror = () => { setSpeaking(false); zigiSignals.emit('idle'); };
     setSpeaking(true); zigiSignals.emit('assistant_speaking');
