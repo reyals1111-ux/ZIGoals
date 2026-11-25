@@ -320,7 +320,7 @@
 .day-pages-morning-title{margin:0 0 4px;font-weight:600}
 .day-pages-morning dl{margin:0;display:grid;gap:6px}
 .day-pages-morning dt{font-size:15px;font-weight:600}
-.day-pages-morning dd{margin:0;font-size:15px;overflow-wrap:anywhere;white-space:pre-wrap}
+.day-pages-morning dd{margin:0;font-size:15px;overflow-wrap:anywhere}
 .day-pages-settings form,.day-pages-reminder{display:grid;gap:8px;margin:8px 0}
 .day-pages-settings button{min-height:44px;justify-self:start}
 .day-pages-time{max-width:12rem}

@@ -7,6 +7,7 @@ import {tagTree} from '../../lib/notes/tags';
 import {MAX_SAVED_SEARCHES, NOTE_SEARCHES, fromSaved, keepSearch, newSearchId, putBackSearch, removeSearch, renameSearch, searchWords, searching, toSaved, type SearchState} from '../../lib/notes/saved-searches';
 import {showStatus, showUndo} from '../ui/undo-toast';
 import {Filters} from './notes-views';
+import {SecretGuard} from '../secret-guard/secret-guard';
 
 /**
  * Session AW (x3; LEDGER #441, Evernote's saved searches): inside the Notes search (its own chunk, loaded with the Notes
@@ -59,11 +60,13 @@ export default function SavedSearches({notes, state, opened, onOpen, onNarrow}: 
     {active ? <form className="note-keep-search" onSubmit={keep} aria-labelledby={`${id}-keep`}>
       <label className="field"><span id={`${id}-keep`}>Keep this search as</span><input value={name} maxLength={60} onChange={e => setName(e.target.value)} placeholder={opened ?? 'A name, for example Trip ideas'}/></label>
       <button type="submit" className="secondary" disabled={!(name || opened || '').trim()}>Keep this search</button>
+      <SecretGuard text={name} onRemove={() => setName('')}/>
       {problem && <p className="field-error" role="alert">{problem}</p>}
     </form> : list.length === 0 && <p className="fine">Type words or narrow the search, then &ldquo;Keep this search&rdquo; to open it again in one tap (up to {MAX_SAVED_SEARCHES}).</p>}
     {list.length > 0 && <details className="note-fold note-saved-manage" open={manageOpen || undefined} onToggle={e => setManageOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Rename or remove saved searches <span className="fine">· {list.length} of {MAX_SAVED_SEARCHES}</span></summary>
       {manageOpen && <ul className="note-saved-manage-list">{list.map(x => <li key={x.id}>
         <label className="field"><span>Name of “{x.name}”</span><input value={renaming[x.id] ?? x.name} maxLength={60} onChange={e => setRenaming(r => ({...r, [x.id]: e.target.value}))} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); rename(x.id, x.name); } }}/></label>
+        <SecretGuard text={renaming[x.id] ?? ''} onRemove={() => setRenaming(r => ({...r, [x.id]: ''}))}/>
         <p className="fine">{searchWords(x, FILTER_WORDS)}</p>
         <div className="note-actions"><button type="button" className="secondary" disabled={(renaming[x.id] ?? x.name).trim() === x.name} onClick={() => rename(x.id, x.name)}>Rename</button><button type="button" className="quiet" aria-label={`Remove the saved search “${x.name}”`} onClick={() => remove(x.id)}>Remove</button></div>
       </li>)}</ul>}

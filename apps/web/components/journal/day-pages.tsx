@@ -42,7 +42,7 @@ function PartForm({journal, part, onSaved}: {journal: JournalState; part: DayPar
   return <form className="day-pages-form" onSubmit={save} aria-label={PART_WORDS[part].en}>
     {part === 'evening' && <div className="day-pages-morning" role="group" aria-labelledby={`${id}-morning`}>
       <p id={`${id}-morning`} className="day-pages-morning-title">This morning you wrote</p>
-      {morning.length ? <dl>{morning.map(m => <div key={m.q}><dt lang={lang}>{m.q}</dt><dd>{m.a}</dd></div>)}</dl>
+      {morning.length ? <dl>{morning.map(m => <div key={m.q}><dt lang={lang}>{m.q}</dt><dd>{m.a.split('\n').map((line, i) => <span key={i}>{i ? <br/> : null}{line}</span>)}</dd></div>)}</dl>
         : <p className="fine">Nothing on this morning&rsquo;s page yet. You can still write the evening page; the morning page waits for tomorrow.</p>}
     </div>}
     {questions.map((q, i) => <label key={`${part}-${q}`} className="field"><span lang={lang}>{q}</span><textarea rows={2} maxLength={900} value={answers[i] ?? ''} onChange={e => setAnswers(list => questions.map((_, k) => k === i ? e.target.value : list[k] ?? ''))}/></label>)}
