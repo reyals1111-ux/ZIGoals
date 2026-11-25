@@ -7,19 +7,23 @@ import {GOAL_LIBRARY} from '../templates/goal-library';
 import {templateHref} from '../../components/goals/template-library';
 
 const memory = () => { const m = new Map<string, string>(); return {m, getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => { m.set(k, v); }}; };
-const sleep = programById('sleep-reset')!, money = programById('emergency-fund')!;
+const sleep = programById('sleep-reset')!, money = programById('emergency-fund')!, calm = programById('calm-mind')!;
 const started = (programId: string, startedOn: string, record: GuidedJourneys = emptyGuidedJourneys()) => startJourney(record, programId, startedOn);
 
 describe('Guided journeys: the programs (Session AJ, item 34, D13)', () => {
+  // Session AW (programmes, deliberate): the short journeys keep their bounds (6 to 8, 5 to 14 steps); the five written
+  // programmes (with days) are counted apart, 7 to 24 days each, below 50 (lib/guided/programmes.test.ts has the rest).
   it('offers 6 to 8 programs, each with 5 to 14 steps, unique ids and a pillar', () => {
-    expect(GUIDED_PROGRAMS.length).toBeGreaterThanOrEqual(6);
-    expect(GUIDED_PROGRAMS.length).toBeLessThanOrEqual(8);
+    const journeys = GUIDED_PROGRAMS.filter(p => !p.days), programmes = GUIDED_PROGRAMS.filter(p => p.days);
+    expect(journeys.length).toBeGreaterThanOrEqual(6);
+    expect(journeys.length).toBeLessThanOrEqual(8);
+    expect(programmes.map(p => p.id)).toEqual(['sleep-reset', 'strength-start', 'run-5k', 'habit-start', 'meditation-start']);
     expect(new Set(GUIDED_PROGRAMS.map(p => p.id)).size).toBe(GUIDED_PROGRAMS.length);
     for (const p of GUIDED_PROGRAMS) {
       expect(p.id).toMatch(/^[a-z0-9-]{1,60}$/);
       expect(['goals', 'habits', 'health', 'wealth']).toContain(p.pillar);
-      expect(p.steps.length, p.id).toBeGreaterThanOrEqual(5);
-      expect(p.steps.length, p.id).toBeLessThanOrEqual(14);
+      expect(p.steps.length, p.id).toBeGreaterThanOrEqual(p.days ? 7 : 5);
+      expect(p.steps.length, p.id).toBeLessThanOrEqual(p.days ? 24 : 14);
       expect(new Set(p.steps.map(s => s.id)).size, p.id).toBe(p.steps.length);
       expect(p.title.trim().length).toBeGreaterThan(3);
       expect(p.summary.trim().length).toBeGreaterThan(10);
@@ -41,7 +45,9 @@ describe('Guided journeys: the programs (Session AJ, item 34, D13)', () => {
   it('says plainly that health programs are not medical advice and money programs not financial advice', () => {
     for (const p of GUIDED_PROGRAMS) {
       if (p.pillar === 'wealth') expect(p.care, p.id).toBe('Not financial advice; ZIGoals never moves money. Every amount is yours to choose.');
-      if (p.pillar === 'health') expect(p.care, p.id).toBe('Not medical advice; if something hurts or sleep stays hard, talk to a doctor.');
+      // Session AW (programmes, deliberate): a health programme (with days) starts with owner decision 1d's line instead.
+      if (p.pillar === 'health' && !p.days) expect(p.care, p.id).toBe('Not medical advice; if something hurts or sleep stays hard, talk to a doctor.');
+      if (p.pillar === 'health' && p.days) expect(p.care?.startsWith('General guidance, not medical advice; stop if something hurts.'), p.id).toBe(true);
     }
     expect(programById('calm-mind')?.care).toMatch(/^Not medical advice; .*talk to a doctor\.$/);
     for (const id of ['emergency-fund', 'first-home', 'trip', 'sleep-reset', 'walking-start', 'calm-mind']) expect(programById(id), id).toBeDefined();
@@ -120,15 +126,21 @@ describe('Guided journeys: one step a day', () => {
     expect(journeyState(j, sleep, '2026-11-20').today).toBeNull();
     expect(journeyState(j, sleep, '2026-10-28').next).toEqual({number: 1, opensOn: '2026-10-29'});
   });
+  // Session AW (programmes, deliberate): the sleep reset is a programme now and counts days (its line is below); a seven-step
+  // journey, the calmer mind, keeps every one of these lines word for word.
   it('writes a plain progress line', () => {
-    let r = started('sleep-reset', '2026-10-29');
-    expect(progressLine(r.journeys[0]!, sleep, '2026-10-31')).toBe('Day 3 of 7 · 0 of 7 steps done');
-    expect(progressLine(r.journeys[0]!, sleep, '2026-10-28')).toBe('Step 1 has not opened yet · 0 of 7 steps done');
-    r = markDone(r, 'sleep-reset', sleep.steps[0]!.id, '2026-10-31');
-    expect(progressLine(r.journeys[0]!, sleep, '2026-12-01')).toBe('Every step is open · 1 of 7 steps done');
-    for (const s of sleep.steps) r = markDone(r, 'sleep-reset', s.id, '2026-12-01');
-    expect(progressLine(r.journeys[0]!, sleep, '2026-12-01')).toBe('All 7 steps done');
-    expect(journeyState(r.journeys[0]!, sleep, '2026-12-01').complete).toBe(true);
+    let r = started('calm-mind', '2026-10-29');
+    expect(progressLine(r.journeys[0]!, calm, '2026-10-31')).toBe('Day 3 of 7 · 0 of 7 steps done');
+    expect(progressLine(r.journeys[0]!, calm, '2026-10-28')).toBe('Step 1 has not opened yet · 0 of 7 steps done');
+    r = markDone(r, 'calm-mind', calm.steps[0]!.id, '2026-10-31');
+    expect(progressLine(r.journeys[0]!, calm, '2026-12-01')).toBe('Every step is open · 1 of 7 steps done');
+    for (const s of calm.steps) r = markDone(r, 'calm-mind', s.id, '2026-12-01');
+    expect(progressLine(r.journeys[0]!, calm, '2026-12-01')).toBe('All 7 steps done');
+    expect(journeyState(r.journeys[0]!, calm, '2026-12-01').complete).toBe(true);
+    let p = started('sleep-reset', '2026-10-29');
+    expect(progressLine(p.journeys[0]!, sleep, '2026-10-31')).toBe('Day 3 of 7 · 0 of 7 days done');
+    p = markDone(p, 'sleep-reset', sleep.steps[0]!.id, '2026-10-31');
+    expect(progressLine(p.journeys[0]!, sleep, '2026-12-01')).toBe('Every day is open · 1 of 7 days done');
   });
 });
 
