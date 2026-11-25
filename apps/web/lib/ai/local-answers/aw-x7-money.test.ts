@@ -18,7 +18,7 @@ import {billsSchema} from '../../bills/schema';
  * engine.ts before round 6's money answers): each in English and Dutch from the feature's own figures, refused while
  * Wealth is not shared, never claiming a question of the corpus, and not claimed by the answers that run before it.
  */
-const text = (r: LocalReply | null) => r && 'text' in r ? r.text.replace(/[  ]/g, ' ') : '';
+const text = (r: LocalReply | null) => r && 'text' in r ? r.text.replace(/[\u00a0\u202f]/g, ' ') : '';
 const shut = (env: ToolEnv): ToolEnv => ({...env, areas: {...env.areas, wealth: false}});
 const zigi = (q: string, s: ToolSources = showcaseAll()) => awX7MoneyAnswer(q, zigiEnv(s));
 const nova = (q: string, s: ToolSources = showcaseAll()) => awX7MoneyAnswer(q, novaEnv(s));

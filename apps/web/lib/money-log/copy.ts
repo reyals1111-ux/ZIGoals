@@ -43,6 +43,6 @@ export function copyEntry(log: MoneyLog, entryId: string, date: string, today: s
 }
 /** The tags record with each copy carrying its original's tags (unchanged when none had tags). */
 export function copyTags(tags: MoneyTags, pairs: readonly [from: string, to: string][]): MoneyTags {
-  const add = pairs.flatMap(([from, to]) => tags.tags[from] ? [[to, [...tags.tags[from]!]] as const] : []);
+  const add = pairs.flatMap(([from, to]) => tags.tags[from] ? [[to, [...tags.tags[from]!]] as [string, string[]]] : []);
   return add.length ? {...tags, tags: {...tags.tags, ...Object.fromEntries(add)}} : tags;
 }
