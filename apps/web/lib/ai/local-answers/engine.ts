@@ -43,6 +43,8 @@ import {frAnswer} from './fr-answers';
 import {watchedHoldings, watchedWords} from './fr-wallets';
 import {av2BodyAnswer} from './av2-body';
 import {av2RestAnswer} from './av2-rest';
+import {awX4Answer} from './aw-x4';
+import {GOAL_REPEAT} from '../../goals/repeat';
 import {av2MoneyR2Answer} from './av2-money-r2';
 import {av2R3MoneyAnswer} from './av2-r3-money';
 import {av2R4MoneyAnswer} from './av2-r4-money';
@@ -275,6 +277,9 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   // countdowns, bills a year, payday, budget targets, running bests, the sleep score, the journal's tags…), from each
   // feature's own pure function, before the exact layer reads their words as another part of life (av-answers.ts).
   // Session AV lane 2 (rest: repeating projects, task versions, calm sound, more nutrients, CSV re-import, mood words).
+  // Session AW (X4, Strides; LEDGER #446, #447): "how did my year go" and how often a goal that starts again was reached,
+  // from the year report and this device's repeat record (lib/ai/local-answers/aw-x4.ts).
+  if (!subject) { const repeat = (() => { try { return typeof window === 'undefined' ? null : readDeviceRecord(getAppStorage(), GOAL_REPEAT).data; } catch { return null; } })(); const own = awX4Answer(question, env, {repeat}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   if (!subject) { const own = av2RestAnswer(question, env, {templates: env.nova?.taskTemplates, plan: env.nova?.taskPlan, nutrientExtras: (env.ak as {nutrientExtras?: never} | null | undefined)?.nutrientExtras}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, batch 2 (sync choices, the look, the scheduled copy): read from this device where there is one.
   if (!subject) { const extra: Av2SyncExtra = (() => { try { if (typeof window === 'undefined') return {}; const storage = getAppStorage(); return {sections: readExtrasSectionsChoice(storage), extrasOn: readExtrasChoice(storage).enabled, look: {theme: readTheme(), darkStyle: readDarkStyle(), font: readLook().font}, backup: readDeviceRecord(storage, BACKUP_REMINDER).data}; } catch { return {}; } })(); const own = av2SyncAnswer(question, env, extra); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
