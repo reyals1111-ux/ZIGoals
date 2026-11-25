@@ -15,6 +15,8 @@ import type {TaskPatch} from './use-task-list';
 import {celebrateCompletion} from '../motion/completion';
 import {taskLook} from '../../lib/tasks/look';
 import {isCancelled} from '../../lib/tasks/finished';
+import {dreadSign} from '../../lib/tasks/dread';
+import {movedWords} from '../../lib/tasks/moved';
 import '../habits/habit-look.css';
 import './task-row-r3.css';
 
@@ -146,6 +148,9 @@ export function TaskRow({task, today, goal, onToggle, onRemove, onEdit, onFocus,
       <span className="task-due">{done ? `${task.state?.kind === 'cancelled' ? 'Cancelled' : 'Done'} ${formatDate(task.doneAt!, {year: false})}` : dueText(task, today, nowClock)}</span>
       {!done && task.minutes ? <span className="task-minutes">{minutesWords(task.minutes)}</span> : null}{/* Session AV (F-TASK-MINUTES) */}
       {!done && task.energy && task.energy !== 'neutral' ? <span className="task-energy">Energy · {task.energy[0]!.toUpperCase() + task.energy.slice(1)}</span> : null}{/* Session AV lane 2 (r3-plan, LEDGER #259) */}
+      {/* Session AW (X2, LEDGER #432, #433; Amazing Marvin): the person's own dread mark, and how often its day was put off, as plain words */}
+      {!done && dreadSign(task) ? <span className="task-dread">{dreadSign(task)}</span> : null}
+      {!done && movedWords(task.moved) ? <span className="task-moved">{movedWords(task.moved)}</span> : null}
       {!done && task.deadline && <span className={`task-deadline is-${deadlineState(task, today)}`}><span aria-hidden="true">⚑ </span>{deadlineText(task, today)}</span>}
       {/* Session AV lane 2 (r4-plan, LEDGER #304, #303, #301): waiting for other tasks, in pieces, after hours */}
       {!done && record && task.after?.length ? (w => w.length ? <span className="task-waiting">Waiting for {w.map(b => `“${b.title}”`).join(', ')}</span> : null)(waitingFor(record, task)) : null}

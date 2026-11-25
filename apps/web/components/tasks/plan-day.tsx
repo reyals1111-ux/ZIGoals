@@ -22,9 +22,10 @@ import './plan-day.css';
 const askedToPlan = () => { try { return new URLSearchParams(window.location.search).get('plan') === '1'; } catch { return false; } };
 const asideKey = (today: string) => `zigoals:plan-day:aside:${today}`;
 function readAside(today: string): string[] { try { const v = JSON.parse(sessionStorage.getItem(asideKey(today)) ?? '[]'); return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').slice(0, 200) : []; } catch { return []; } }
-export default function PlanDay({record, today, onPlan, clock, shown, change, doneDay, focus = null}: {record: Tasks; today: string; onPlan: (id: string) => void; /** Session AV lane 2 (r6-plan, LEDGER #394): suggestions only from the projects in focus. */ focus?: TaskFocus | null;
+export default function PlanDay({record, today, onPlan, clock, shown, change, doneDay, focus = null, onOpen, onFocus}: {record: Tasks; today: string; onPlan: (id: string) => void; /** Session AV lane 2 (r6-plan, LEDGER #394): suggestions only from the projects in focus. */ focus?: TaskFocus | null;
   /** Session AV lane 2 (tasks): what the day planner below the suggestions needs (today-planner.tsx). */
-  clock?: string; shown?: readonly Task[]; change?: (fn: (r: Tasks) => Tasks, text: string, undone?: string) => boolean; doneDay?: (iso: string) => string}) {
+  clock?: string; shown?: readonly Task[]; change?: (fn: (r: Tasks) => Tasks, text: string, undone?: string) => boolean; doneDay?: (iso: string) => string;
+  /** Session AW (X2, LEDGER #435): Pick one for me's "This one" and "Focus on it". */ onOpen?: (task: Task) => void; onFocus?: (task: Task) => void}) {
   const [aside, setAside] = useState<string[]>(() => readAside(today));
   const suggestions = useMemo(() => planSuggestions(focusedRecord(record, focus), today, new Set(aside)), [record, today, aside, focus]);
   // Session AV lane 2 (tasks-r2, LEDGER #223; Microsoft To Do's My Day): "Add to My Day" picks a task for today and leaves
@@ -41,7 +42,7 @@ export default function PlanDay({record, today, onPlan, clock, shown, change, do
     try { const url = new URL(window.location.href); url.searchParams.delete('plan'); window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash); } catch { /* the address stays */ }
   }, []);
   // Session AV lane 2 (LEDGER #21, #24–#27, #9): the day planner shows also when nothing is suggested.
-  const planner = clock && shown && change && doneDay ? <TodayPlanner record={record} today={today} clock={clock} shown={shown} change={change} doneDay={doneDay}/> : null;
+  const planner = clock && shown && change && doneDay ? <TodayPlanner record={record} today={today} clock={clock} shown={shown} change={change} doneDay={doneDay} onOpen={onOpen} onFocus={onFocus}/> : null;
   if (!suggestions.length && !carried?.tasks.length) return planner;
   const planned = plannedToday(record, today), picks = my.picked.size;
   const putAside = (id: string) => { const next = [...aside, id]; setAside(next); try { sessionStorage.setItem(asideKey(today), JSON.stringify(next)); } catch { /* kept for this view only */ } };

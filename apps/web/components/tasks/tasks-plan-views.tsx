@@ -32,6 +32,8 @@ const FloatingRepeats = lazy(() => import('./plan-week').then(m => ({default: m.
 const TaskHoursSettings = lazy(() => import('./task-hours-settings'));
 /** Session AV lane 2 (r5-plan, LEDGER #348; Akiflow's time slots): named time blocks (its own chunk). */
 const TimeBlocksSettings = lazy(() => import('./time-blocks-settings'));
+/** Session AW (X2, LEDGER #437; Amazing Marvin): time targets for a project, an area or a label (its own chunk). */
+const TimeTargets = lazy(() => import('./time-targets'));
 
 /**
  * Session AV lane 2 (tasks; Sunsama, Todoist, TickTick, Notion), one chunk loaded when one of these Tasks views opens:
@@ -110,6 +112,7 @@ function WeekView({list, goals, record, today}: {list: List; goals: Goals; recor
       {error && <p className="tasks-field-error" role="alert">{error}</p>}
     </form>
     {openObjectives > 0 && <p><button type="button" className="quiet" onClick={() => list.change(r => carryObjectives(r, week, () => `objective_${crypto.randomUUID()}`), `${n(openObjectives)} open ${openObjectives === 1 ? 'objective' : 'objectives'} carried to the next week.`, 'Taken back.')}>Carry {n(openObjectives)} open to next week</button></p>}
+    <Suspense fallback={null}><TimeTargets record={record} today={today} /></Suspense>
     {week <= weekStart(today) && <Suspense fallback={null}><PlanWeek record={record} today={today} clock={list.clock} change={list.change} /></Suspense>}
     <h4>Once this week, any day</h4>
     <Suspense fallback={null}><FloatingRepeats record={record} today={today} week={week} change={list.change} /></Suspense>
