@@ -1,8 +1,8 @@
 'use client';
 import Link from 'next/link';
 import {useId, useMemo, useState, type FormEvent} from 'react';
-import {useDeviceRecord} from '../ai/use-device-record';
-import {JOURNAL, removeJournalEntry} from '../../lib/journal/schema';
+import {useDeviceRecord, type DeviceRecordState} from '../ai/use-device-record';
+import {JOURNAL, removeJournalEntry, type Journal} from '../../lib/journal/schema';
 import {journalDay} from '../../lib/journal/journal-day';
 import {NOTIFY_PREFS, typeOn} from '../../lib/notify/prefs';
 import {reminderOf, withReminder} from '../../lib/journal/reminder';
@@ -21,8 +21,10 @@ import {useQuestionLang} from './question-lang';
  * reminder to write). Nothing is sent anywhere; the reminders come through this device's notifications.
  */
 const newId = () => (globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`);
-function PartForm({part, onSaved}: {part: DayPart; onSaved: (part: DayPart) => void}) {
-  const journal = useDeviceRecord(JOURNAL), lang = useQuestionLang(), today = journalDay(), id = useId();
+type JournalState = DeviceRecordState<Journal>;
+/** The journal is the page's own, already read (a fresh read here would start empty and fill the answers from nothing). */
+function PartForm({journal, part, onSaved}: {journal: JournalState; part: DayPart; onSaved: (part: DayPart) => void}) {
+  const lang = useQuestionLang(), today = journalDay(), id = useId();
   const page = dayPageOf(journal.data, today), questions = questionsFor(journal.data, part, lang), kept = partAnswers(page, part);
   const [answers, setAnswers] = useState<string[]>(() => questions.map(q => kept.find(k => k.q === q)?.a ?? ''));
   const [problem, setProblem] = useState('');
@@ -49,8 +51,8 @@ function PartForm({part, onSaved}: {part: DayPart; onSaved: (part: DayPart) => v
     <div className="journal-actions"><button type="submit" className="primary">{part === 'morning' ? 'Save the morning page' : 'Save the evening page'}</button></div>
   </form>;
 }
-function Reminder({which}: {which: DayPart}) {
-  const journal = useDeviceRecord(JOURNAL), prefs = useDeviceRecord(NOTIFY_PREFS);
+function Reminder({journal, which}: {journal: JournalState; which: DayPart}) {
+  const prefs = useDeviceRecord(NOTIFY_PREFS);
   const [said, setSaid] = useState(''), [problem, setProblem] = useState('');
   const r = which === 'morning' ? morningReminderOf(journal.data) : reminderOf(journal.data), word = which === 'morning' ? 'morning page' : 'evening page';
   const change = (patch: {on?: boolean; time?: string}, words: string) => {
@@ -93,15 +95,15 @@ export default function DayPages() {
       <div className="day-pages-parts" role="group" aria-label="Today’s page">
         {(['morning', 'evening'] as const).map(p => <button key={p} type="button" className="quiet" aria-pressed={shownPart === p} onClick={() => setPart(p)}>{PART_WORDS[p].en}{written(p) ? <span className="fine"> · written</span> : null}</button>)}
       </div>
-      <PartForm key={`${shownPart}-${stamp}-${lang}-${saved}`} part={shownPart} onSaved={p => { setSaved(n => n + 1); if (p === 'morning') setPart('morning'); }}/>
+      <PartForm journal={journal} key={`${shownPart}-${stamp}-${lang}-${saved}`} part={shownPart} onSaved={p => { setSaved(n => n + 1); if (p === 'morning') setPart('morning'); }}/>
       <details className="prompt-fold day-pages-settings"><summary>Questions and reminders <span className="fine">· {journal.data.dayPages?.questions?.length ? 'your own morning questions' : 'the usual questions'}</span></summary>
         <form onSubmit={saveQuestions} aria-labelledby={`${id}-q`}>
           <label className="field"><span id={`${id}-q`}>Your morning questions, one a line</span><textarea rows={3} maxLength={700} value={questionsText ?? ownText} onChange={e => setQuestionsText(e.target.value)} placeholder={DEFAULT_MORNING[lang].join('\n')} aria-describedby={`${id}-q-hint`}/><small id={`${id}-q-hint`} className="fine">Up to five. Left empty, the morning page asks: {DEFAULT_MORNING[lang].join(' and ')}</small></label>
           {problem && <p className="field-error" role="alert">{problem}</p>}
           <button type="submit" className="secondary">Keep the questions</button>
         </form>
-        <Reminder which="morning"/>
-        <Reminder which="evening"/>
+        <Reminder journal={journal} which="morning"/>
+        <Reminder journal={journal} which="evening"/>
         <p className="fine">The evening reminder is your &ldquo;Reminder to write&rdquo;; while this is on, only the evening page quiets it. Both stay on this device and never carry a word of your journal.</p>
       </details>
     </>}
