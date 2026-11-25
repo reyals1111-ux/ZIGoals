@@ -160,7 +160,8 @@ const tagsRecordOf = (env: ToolEnv): MoneyTags | null => (env as ToolEnv & {mone
 function savedSearches(a: Asked): LocalReply | null {
   const en = /\bsaved (?:money )?(?:searches|search|queries|query|questions)\b/.test(a.f);
   const nl = /\bopgeslagen (?:zoekopdrachten|zoekopdracht|zoekvragen|vragen)\b|\bbewaarde (?:zoekopdrachten|zoekvragen)\b/.test(a.f);
-  if (!(en || nl)) return null;
+  // Session AW (#441): saved searches of notes are the Notes answer's (aw-x3.ts), in either language.
+  if (!(en || nl) || /\b(?:notes?|notities?|aantekeningen)\b/.test(a.f)) return null;
   const shut = closed(a.env, 'wealth'); if (shut) return shut;
   const list = questionsOf(moreOf(a.env)), entries = entriesOf(a.env), tags = tagsRecordOf(a.env), calls = call('money_more', {questions: true}, 'Money · saved searches');
   if (!list.length) return answer(say(a.lang, `You have no saved searches yet. In ${PLACES.spending.en} → Search all your entries, set your filters and tap "Save this search"; ${PLACES.insights.en} → Saved searches then draws it as a chart, with its total and monthly average.`,

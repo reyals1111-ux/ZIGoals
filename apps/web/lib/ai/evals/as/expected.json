@@ -9080,5 +9080,125 @@
   "widgets": [],
   "fresh": "No exercise has defaults of its own. In Health → Workouts → \"Exercises and how-tos\", an exercise's \"Its own defaults\" keeps its sets, reps or time and rest, used when you add it with no earlier sets.",
   "freshNl": "Geen oefening heeft eigen standaardwaarden. In Health → Workouts → \"Exercises and how-tos\" bewaart \"Its own defaults\" de sets, herhalingen of tijd en rust van een oefening, gebruikt als je hem toevoegt zonder eerdere sets."
+ },
+ "awkcal-burned-today": {
+  "en": "Calories burned today (Tue, Nov 17), from your own records: 180 kcal you entered on 1 activity (“Showcase walk”). ZIGoals doesn’t work out calories burned: these are only figures you typed or imported.",
+  "nl": "Verbrande calorieën vandaag (di 17 nov), uit je eigen gegevens: 180 kcal door jou ingevuld bij 1 activiteit (“Showcase walk”). ZIGoals rekent geen verbrande calorieën uit: dit zijn alleen cijfers die je zelf invulde of importeerde.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No calories burned are recorded today (Tue, Nov 17). ZIGoals doesn’t work out calories burned from your movement. You can type them on an activity in Health → Activity (“Calories (you entered)”), or bring them in with a file from your watch or phone (Settings → Switch to ZIGoals).",
+  "freshNl": "Er zijn geen verbrande calorieën vastgelegd vandaag (di 17 nov). ZIGoals rekent geen verbrande calorieën uit je beweging uit. Je kunt ze bij een activiteit invullen in Health → Activity (“Calories (you entered)”), of ze meenemen met een bestand van je horloge of telefoon (Settings → Switch to ZIGoals)."
+ },
+ "awkcal-burned-week": {
+  "en": "Calories burned this week (Mon, Nov 16 to Tue, Nov 17), from your own records: 180 kcal you entered on 1 activity (“Showcase walk”). ZIGoals doesn’t work out calories burned: these are only figures you typed or imported.",
+  "nl": "Verbrande calorieën deze week (ma 16 nov tot di 17 nov), uit je eigen gegevens: 180 kcal door jou ingevuld bij 1 activiteit (“Showcase walk”). ZIGoals rekent geen verbrande calorieën uit: dit zijn alleen cijfers die je zelf invulde of importeerde.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No calories burned are recorded this week (Mon, Nov 16 to Tue, Nov 17). ZIGoals doesn’t work out calories burned from your movement. You can type them on an activity in Health → Activity (“Calories (you entered)”), or bring them in with a file from your watch or phone (Settings → Switch to ZIGoals).",
+  "freshNl": "Er zijn geen verbrande calorieën vastgelegd deze week (ma 16 nov tot di 17 nov). ZIGoals rekent geen verbrande calorieën uit je beweging uit. Je kunt ze bij een activiteit invullen in Health → Activity (“Calories (you entered)”), of ze meenemen met een bestand van je horloge of telefoon (Settings → Switch to ZIGoals)."
+ },
+ "aw-programme-which": {
+  "en": "You are on “0 to 5 km in 8 weeks” (Showcase) (week 2 of 8, 3 of 24 runs done). Today is run 4: Run 90 seconds, walk 2 minutes: 6 times. 1 of 4 steps ticked; next: Run 90 seconds, walk 2 minutes: 6 times. You tick each step yourself in Guided journeys.",
+  "nl": "Je volgt “0 to 5 km in 8 weeks” (Showcase) (week 2 van 8, 3 van 24 runs gedaan). Vandaag is run 4: Run 90 seconds, walk 2 minutes: 6 times. 1 van 4 stappen afgevinkt; hierna: Run 90 seconds, walk 2 minutes: 6 times. Je vinkt elke stap zelf af in Guided journeys.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You are not on a programme or a journey. Guided journeys has five written programmes, “A sleep reset”, “Beginner strength in 4 weeks”, “0 to 5 km in 8 weeks”, “A 14-day habit starter” and “A 10-day meditation starter”, and short journeys; you can start one there whenever you like, or none.",
+  "freshNl": "Je volgt geen programma of traject. Guided journeys heeft vijf geschreven programma’s, “A sleep reset”, “Beginner strength in 4 weeks”, “0 to 5 km in 8 weeks”, “A 14-day habit starter” en “A 10-day meditation starter”, en korte trajecten; je kunt er daar een starten wanneer je wilt, of geen."
+ },
+ "aw-programme-today": {
+  "en": "You are on “0 to 5 km in 8 weeks” (Showcase) (week 2 of 8, 3 of 24 runs done). Today is run 4: Run 90 seconds, walk 2 minutes: 6 times. 1 of 4 steps ticked; next: Run 90 seconds, walk 2 minutes: 6 times. You tick each step yourself in Guided journeys.",
+  "nl": "Je volgt “0 to 5 km in 8 weeks” (Showcase) (week 2 van 8, 3 van 24 runs gedaan). Vandaag is run 4: Run 90 seconds, walk 2 minutes: 6 times. 1 van 4 stappen afgevinkt; hierna: Run 90 seconds, walk 2 minutes: 6 times. Je vinkt elke stap zelf af in Guided journeys.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You are not on a programme or a journey, so there is no step for today. Guided journeys has five written programmes, “A sleep reset”, “Beginner strength in 4 weeks”, “0 to 5 km in 8 weeks”, “A 14-day habit starter” and “A 10-day meditation starter”, and short journeys; you can start one there whenever you like, or none.",
+  "freshNl": "Je volgt geen programma of traject, dus er is vandaag geen stap. Guided journeys heeft vijf geschreven programma’s, “A sleep reset”, “Beginner strength in 4 weeks”, “0 to 5 km in 8 weeks”, “A 14-day habit starter” en “A 10-day meditation starter”, en korte trajecten; je kunt er daar een starten wanneer je wilt, of geen."
+ },
+ "awx2-dread": {
+  "en": "You marked 1 task as dreaded, the most first:\n• “Example · Sketch the garden bed” (quite a bit, Mon, Nov 16)\nPlan my day’s “Hardest first” gives the top one the first free time; “Stuck? Help me start” in its editor has a way in.",
+  "nl": "Je hebt bij 1 taak aangegeven dat je ertegenop ziet, de zwaarste eerst:\n• “Example · Sketch the garden bed” (nogal, ma 16 nov)\n“Hardest first” in Plan my day geeft de bovenste de eerste vrije tijd; “Stuck? Help me start” in de editor helpt je op weg.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No task is marked as dreaded. In a task’s editor, “I’m dreading this” takes a little, quite a bit or a lot — only for you, never counted against you. Plan my day’s “Hardest first” can then give the most dreaded one the first free time, and “Stuck? Help me start” has a way in.",
+  "freshNl": "Geen taak is gemarkeerd als iets waar je tegenop ziet. In de editor van een taak kies je bij “I’m dreading this” een beetje, nogal of erg — alleen voor jou, het telt nooit tegen je. “Hardest first” in Plan my day geeft de zwaarste dan de eerste vrije tijd, en “Stuck? Help me start” helpt je op weg."
+ },
+ "awx2-moved": {
+  "en": "The tasks whose day you moved later most often:\n• “Example · Sketch the garden bed”: moved 3 times, now Mon, Nov 16\nTasks → Review offers each one a day that fits, no day for now, or remove. Moving a task is never counted against you.",
+  "nl": "De taken waarvan je de dag het vaakst later hebt gezet:\n• “Example · Sketch the garden bed”: 3 keer verschoven, nu ma 16 nov\nIn Tasks → Review kies je per taak een dag die past, voorlopig geen dag, of weghalen. Verschuiven telt nooit tegen je.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No open task has been put off more than once. Each time you move a task’s day later, its row counts it (“Moved 3 times”), as a fact, never a warning; Tasks → Review lists the ones moved most, with a day, no day or remove to choose from.",
+  "freshNl": "Geen open taak is vaker dan één keer uitgesteld. Elke keer dat je de dag van een taak later zet, telt de taak dat (“Moved 3 times”), als feit, nooit als waarschuwing; Tasks → Review toont de taken die het vaakst verschoven zijn, met een dag, geen dag of weghalen als keuze."
+ },
+ "awx2-long-open": {
+  "en": "1 open task has not changed for 60 days or more, oldest first:\n• “Example · Sort the photo folder”: unchanged for 75 days\nIn Tasks → Review you can keep each one (asked again in 60 days), give it a day, or remove it.",
+  "nl": "1 open taak is 60 dagen of langer niet veranderd, de oudste eerst:\n• “Example · Sort the photo folder”: 75 dagen onveranderd\nIn Tasks → Review kun je elke taak houden (over 60 dagen weer gevraagd), een dag geven of weghalen.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No open task has gone 60 days without a change. Tasks that do show in Tasks → Review under “Open a long time”, oldest first, with Keep, Give it a day and Remove.",
+  "freshNl": "Geen open taak is 60 dagen of langer onveranderd gebleven. Taken die dat wel zijn, staan in Tasks → Review onder “Open a long time”, de oudste eerst, met Keep, Give it a day en Remove."
+ },
+ "awx2-day": {
+  "en": "0 of 2 of today’s tasks are done, and your working hours (9:00 AM–6:00 PM) are over for today. Two facts side by side, nothing to keep up with.",
+  "nl": "0 van de 2 taken van vandaag zijn af, en je werkuren (09:00–18:00) zitten er voor vandaag op. Twee feiten naast elkaar, niets om bij te houden.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is planned for today yet, so there is no progress to tell. Give a task today’s day (or add one in Tasks → Today); Today’s heading line then shows how many are done next to how far your working hours have gone.",
+  "freshNl": "Er staat voor vandaag nog niets gepland, dus er is geen voortgang te melden. Geef een taak de dag van vandaag (of voeg er een toe in Tasks → Today); de kopregel van Today laat dan zien hoeveel er af zijn naast hoe ver je werkuren zijn."
+ },
+ "awx2-target": {
+  "en": "There is no time target for “writing”. Your time targets:\n• “@admin”: 1 h 40 of 3 h this week\nCounted from the focus blocks on their tasks; a target not met yet is simply how far it is.",
+  "nl": "Er is geen tijddoel voor “schrijven”. Je tijddoelen:\n• “@admin”: 1 h 40 van 3 h deze week\nGeteld uit de focusblokken op die taken; een doel dat nog niet gehaald is, is gewoon hoe ver het is.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no time targets yet. In Tasks → This week, under Time targets, choose a project, an area or a label and the hours a week or a month; the focus blocks started on its tasks count towards it.",
+  "freshNl": "Je hebt nog geen tijddoelen. In Tasks → This week, onder Time targets, kies je een project, een gebied of een label en het aantal uren per week of per maand; de focusblokken die je op die taken start tellen mee."
+ },
+ "awx2-stuck": {
+  "en": "Stuck on it? Most stuck tasks are stuck for one of four reasons. Pick the one that fits; each comes with one way to start.\n• Does it feel too big? A big task is hard to start because there is no clear first move. Write down three to five small steps, each one something you could do in one sitting. Then look only at the first one.\n• Is it unclear what to do? A vague task keeps getting put aside. Ask yourself: what is the very next thing I would actually do — open a file, look up a phone number, write one sentence? Write that down as the first step.\n• Are you dreading it? Dread is often bigger before you start than while you work. Agree with yourself to work on it for just a few minutes, and allow yourself to stop after that. Starting is the whole goal.\n• Is it not the right time? Some tasks need energy, a place or other people that you do not have right now. That is a real reason, not a failing. Give it a day that fits better, or let it wait without a day until one does.\nIn a task’s editor, “Stuck? Help me start” walks you through it and leads to splitting it into steps, a first step, a short focus block or a better day.\nThere is no right answer here, and any small start is a good start.",
+  "nl": "Kom je niet op gang? De meeste taken blijven om een van vier redenen liggen. Kies de reden die past; bij elke reden hoort een manier om te beginnen.\n• Voelt het te groot? Een grote taak is lastig om aan te beginnen, omdat er geen duidelijke eerste stap is. Schrijf drie tot vijf kleine stappen op, elk iets wat je in één keer kunt doen. Kijk daarna alleen naar de eerste.\n• Is het onduidelijk wat je moet doen? Een vage taak schuif je steeds weer op. Vraag jezelf: wat is het allereerste wat ik echt zou doen — een bestand openen, een telefoonnummer opzoeken, één zin schrijven? Schrijf dat op als eerste stap.\n• Zie je ertegenop? Tegenzin is vaak groter vóór je begint dan tijdens het werk. Spreek met jezelf af dat je er maar een paar minuten aan werkt, en dat je daarna mag stoppen. Beginnen is het hele doel.\n• Is het niet het juiste moment? Sommige taken vragen energie, een plek of andere mensen die je nu niet hebt. Dat is een echte reden, geen falen. Geef de taak een dag die beter past, of laat hem zonder dag wachten tot er een past.\nIn de editor van een taak loopt “Stuck? Help me start” dit met je door en leidt naar stappen, een eerste stap, een kort focusblok of een betere dag.\nEr is hier geen goed of fout antwoord, en elk klein begin is een goed begin.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Stuck on it? Most stuck tasks are stuck for one of four reasons. Pick the one that fits; each comes with one way to start.\n• Does it feel too big? A big task is hard to start because there is no clear first move. Write down three to five small steps, each one something you could do in one sitting. Then look only at the first one.\n• Is it unclear what to do? A vague task keeps getting put aside. Ask yourself: what is the very next thing I would actually do — open a file, look up a phone number, write one sentence? Write that down as the first step.\n• Are you dreading it? Dread is often bigger before you start than while you work. Agree with yourself to work on it for just a few minutes, and allow yourself to stop after that. Starting is the whole goal.\n• Is it not the right time? Some tasks need energy, a place or other people that you do not have right now. That is a real reason, not a failing. Give it a day that fits better, or let it wait without a day until one does.\nIn a task’s editor, “Stuck? Help me start” walks you through it and leads to splitting it into steps, a first step, a short focus block or a better day.\nThere is no right answer here, and any small start is a good start.",
+  "freshNl": "Kom je niet op gang? De meeste taken blijven om een van vier redenen liggen. Kies de reden die past; bij elke reden hoort een manier om te beginnen.\n• Voelt het te groot? Een grote taak is lastig om aan te beginnen, omdat er geen duidelijke eerste stap is. Schrijf drie tot vijf kleine stappen op, elk iets wat je in één keer kunt doen. Kijk daarna alleen naar de eerste.\n• Is het onduidelijk wat je moet doen? Een vage taak schuif je steeds weer op. Vraag jezelf: wat is het allereerste wat ik echt zou doen — een bestand openen, een telefoonnummer opzoeken, één zin schrijven? Schrijf dat op als eerste stap.\n• Zie je ertegenop? Tegenzin is vaak groter vóór je begint dan tijdens het werk. Spreek met jezelf af dat je er maar een paar minuten aan werkt, en dat je daarna mag stoppen. Beginnen is het hele doel.\n• Is het niet het juiste moment? Sommige taken vragen energie, een plek of andere mensen die je nu niet hebt. Dat is een echte reden, geen falen. Geef de taak een dag die beter past, of laat hem zonder dag wachten tot er een past.\nIn de editor van een taak loopt “Stuck? Help me start” dit met je door en leidt naar stappen, een eerste stap, een kort focusblok of een betere dag.\nEr is hier geen goed of fout antwoord, en elk klein begin is een goed begin."
+ },
+ "awx3-this-morning": {
+  "en": "This morning’s page is written: 2 answers, under “I am grateful for…” and “What would make today great?”. Its words stay on the Journal page: Journal → Write → Morning and evening shows them above the evening page.",
+  "nl": "De ochtendpagina van vandaag is geschreven: 2 antwoorden, onder “I am grateful for…” en “What would make today great?”. De woorden blijven op de Journal-pagina: Journal → Write → Morning and evening toont ze boven de avondpagina.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing written in your journal this morning. Journal → Write → Morning and evening can split each day into a morning page and an evening page, each with its own reminder.",
+  "freshNl": "Vanochtend is er niets in je dagboek geschreven. Journal → Write → Morning and evening kan elke dag splitsen in een ochtendpagina en een avondpagina, elk met een eigen herinnering."
+ },
+ "awx3-photo-a-day": {
+  "en": "No photo in your journal in November yet. Add one to an entry under Write; the day’s first photo stands for it, or press Photo of the day on the one you like best. Journal → Entries → Photos and voice notes → A photo a day shows the month as a strip.",
+  "nl": "Nog geen foto in je dagboek in november. Voeg er een toe aan een stuk onder Write; de eerste foto van de dag staat ervoor, of druk op Photo of the day bij de foto die je het mooist vindt. Journal → Entries → Photos and voice notes → A photo a day toont de maand als strook.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No photo in your journal in November yet. Add one to an entry under Write; the day’s first photo stands for it, or press Photo of the day on the one you like best. Journal → Entries → Photos and voice notes → A photo a day shows the month as a strip.",
+  "freshNl": "Nog geen foto in je dagboek in november. Voeg er een toe aan een stuk onder Write; de eerste foto van de dag staat ervoor, of druk op Photo of the day bij de foto die je het mooist vindt. Journal → Entries → Photos and voice notes → A photo a day toont de maand als strook."
+ },
+ "awx3-saved-searches": {
+  "en": "2 saved searches: “Example · Travel being planned” and “Example · Reading”. Notes → Notes lists them above the search; one tap opens each, and Rename or remove saved searches changes them.",
+  "nl": "2 bewaarde zoekopdrachten: “Example · Travel being planned” en “Example · Reading”. Notes → Notes toont ze boven de zoekbalk; één tik opent elk, en Rename or remove saved searches verandert ze.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No saved searches yet. In Notes → Notes, search with words or Narrow the search (a tag, a kind of note, a property), then press Keep this search and give it a name; up to 12, each opened again in one tap.",
+  "freshNl": "Nog geen bewaarde zoekopdrachten. Zoek in Notes → Notes met woorden of Narrow the search (een tag, een soort notitie, een eigenschap), druk dan op Keep this search en geef hem een naam; tot 12, elk weer te openen met één tik."
+ },
+ "awx3-voice-faster": {
+  "en": "Yes. A journal voice note plays in ZIGoals’ own player, on the entry and in Journal → Photos and voice notes: 1×, 1.25×, 1.5× or 2×, 15 seconds back or forward, and the time played of the whole. The speed you choose is remembered for every voice note. A written transcript is not made: it needs a model, and a voice note never leaves this device.",
+  "nl": "Ja. Een spraakmemo in je dagboek speelt in de eigen speler van ZIGoals, bij het stuk en in Journal → Photos and voice notes: 1×, 1,25×, 1,5× of 2×, 15 seconden terug of vooruit, en de gespeelde tijd van het geheel. De snelheid die je kiest geldt voor elke spraakmemo. Een uitgeschreven tekst wordt niet gemaakt: daar is een model voor nodig, en een spraakmemo verlaat dit apparaat nooit.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Yes. A journal voice note plays in ZIGoals’ own player, on the entry and in Journal → Photos and voice notes: 1×, 1.25×, 1.5× or 2×, 15 seconds back or forward, and the time played of the whole. The speed you choose is remembered for every voice note. A written transcript is not made: it needs a model, and a voice note never leaves this device.",
+  "freshNl": "Ja. Een spraakmemo in je dagboek speelt in de eigen speler van ZIGoals, bij het stuk en in Journal → Photos and voice notes: 1×, 1,25×, 1,5× of 2×, 15 seconden terug of vooruit, en de gespeelde tijd van het geheel. De snelheid die je kiest geldt voor elke spraakmemo. Een uitgeschreven tekst wordt niet gemaakt: daar is een model voor nodig, en een spraakmemo verlaat dit apparaat nooit."
+ },
+ "awx3-day-pages": {
+  "en": "Journal → Write → Morning and evening: switch on “Write each day as a morning page and an evening page”. The morning page asks “I am grateful for…” and “What would make today great?” (or your own questions); the evening page shows what you wrote that morning above its own two questions. The day stays one entry, and each page can have its own reminder (both off until you choose them). It is off now.",
+  "nl": "Journal → Write → Morning and evening: zet “Write each day as a morning page and an evening page” aan. De ochtendpagina vraagt “Ik ben dankbaar voor…” en “Wat zou vandaag mooi maken?” (of je eigen vragen); de avondpagina toont wat je die ochtend schreef boven haar eigen twee vragen. De dag blijft één stuk, en elke pagina kan een eigen herinnering krijgen (beide uit tot je ze kiest). Het staat nu uit.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Journal → Write → Morning and evening: switch on “Write each day as a morning page and an evening page”. The morning page asks “I am grateful for…” and “What would make today great?” (or your own questions); the evening page shows what you wrote that morning above its own two questions. The day stays one entry, and each page can have its own reminder (both off until you choose them). It is off now.",
+  "freshNl": "Journal → Write → Morning and evening: zet “Write each day as a morning page and an evening page” aan. De ochtendpagina vraagt “Ik ben dankbaar voor…” en “Wat zou vandaag mooi maken?” (of je eigen vragen); de avondpagina toont wat je die ochtend schreef boven haar eigen twee vragen. De dag blijft één stuk, en elke pagina kan een eigen herinnering krijgen (beide uit tot je ze kiest). Het staat nu uit."
  }
 }

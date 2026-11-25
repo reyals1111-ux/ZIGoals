@@ -34,6 +34,10 @@ import {AV2_R6_PLAN} from './cases-av2-r6-plan';
 import {AV2_R6_NOTES} from './cases-av2-r6-notes';
 import {AV2_R6_MONEY} from './cases-av2-r6-money';
 import {AV2_R6_BODY} from './cases-av2-r6-body';
+import {AW_KCAL} from './cases-aw-kcal';
+import {AW_PROGRAMMES} from './cases-aw-programmes';
+import {AW_X2} from './cases-aw-x2';
+import {AW_X3} from './cases-aw-x3';
 
 /**
  * Session AS (ADR-042 Part 1): the corpus — what people ask every day, in the ways they ask it (English and Dutch, typos
@@ -42,5 +46,5 @@ import {AV2_R6_BODY} from './cases-av2-r6-body';
  * `never`: what the answer must not contain (the wrong answer the question used to get).
  */
 export type Intent = {id: string; pillar: Pillar; en: readonly string[]; nl: readonly string[]; never?: readonly string[]};
-export const CORPUS: readonly Intent[] = [...HABITS, ...HEALTH, ...MONEY, ...DAYS, ...AV, /* Session AV lane 2 */ ...AV2_TASKS, ...AV2_HABITS, ...AV2_JOURNAL, ...AV2_ROADMAP, ...AV2_MONEY, ...AV2_FOOD, ...AV2_BODY, ...AV2_SYNC, ...AV2_REST, ...AV2_MONEY_R2, ...AV2_TASKS_R2, ...AV2_BODYMIND_R2, ...AV2_R3_PLAN, ...AV2_R3_MONEY, ...AV2_R3_NOTES, ...AV2_R3_HEALTH, ...AV2_R4_PLAN, ...AV2_R4_MIND, ...AV2_R4_HEALTH, ...AV2_R4_MONEY, ...AV2_R4_NOTES, ...AV2_R5_BODY, ...AV2_R5_NOTES, ...AV2_R5_PLAN, ...AV2_R5_MONEY, ...AV2_R5_GYM, ...AV2_R6_PLAN, ...AV2_R6_NOTES, ...AV2_R6_MONEY, ...AV2_R6_BODY];
+export const CORPUS: readonly Intent[] = [...HABITS, ...HEALTH, ...MONEY, ...DAYS, ...AV, /* Session AV lane 2 */ ...AV2_TASKS, ...AV2_HABITS, ...AV2_JOURNAL, ...AV2_ROADMAP, ...AV2_MONEY, ...AV2_FOOD, ...AV2_BODY, ...AV2_SYNC, ...AV2_REST, ...AV2_MONEY_R2, ...AV2_TASKS_R2, ...AV2_BODYMIND_R2, ...AV2_R3_PLAN, ...AV2_R3_MONEY, ...AV2_R3_NOTES, ...AV2_R3_HEALTH, ...AV2_R4_PLAN, ...AV2_R4_MIND, ...AV2_R4_HEALTH, ...AV2_R4_MONEY, ...AV2_R4_NOTES, ...AV2_R5_BODY, ...AV2_R5_NOTES, ...AV2_R5_PLAN, ...AV2_R5_MONEY, ...AV2_R5_GYM, ...AV2_R6_PLAN, ...AV2_R6_NOTES, ...AV2_R6_MONEY, ...AV2_R6_BODY, /* Session AW */ ...AW_KCAL, ...AW_PROGRAMMES, ...AW_X2, ...AW_X3];
 export const questionCount = (): number => CORPUS.reduce((n, c) => n + c.en.length + c.nl.length, 0);

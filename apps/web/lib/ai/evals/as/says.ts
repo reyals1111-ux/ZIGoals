@@ -65,6 +65,13 @@ export const SAYS: Readonly<Record<string, readonly string[]>> = {
   'av-bench-best': ['Bench press', '62.5 kg × 8'], 'av-supplements': ['Vitamin D', 'Magnesium', 'Eye drops'], 'av-symptoms': ['Symptoms and factors'],
   'av-good-things': ['3'], 'av-journal-tag': ['“work”'], 'av-journal-count': ['1'], 'av-journal-templates': ['8', 'Run diary'], 'av-journal-question': ['Journal → Another question'],
   'av-yesterday-open': [], 'av-focus-habit': ['Make it today’s focus'] /* the Showcase sets no focus (D-028) */,
+  // Session AW (batch 1; cases-aw-*.ts): calories burned only as entered, the written programmes, round 7 X2 and X3.
+  'awkcal-burned-today': ['180 kcal', 'Showcase walk'], 'awkcal-burned-week': ['180 kcal', 'Showcase walk'],
+  'aw-programme-which': ['0 to 5 km in 8 weeks', 'run 4'], 'aw-programme-today': ['0 to 5 km in 8 weeks', 'run 4'],
+  'awx2-dread': ['Example · Sketch the garden bed'], 'awx2-moved': ['Example · Sketch the garden bed', '3'], 'awx2-long-open': ['Example · Sort the photo folder', '75'],
+  'awx2-day': ['0', '2'], 'awx2-target': ['@admin', '3 h'], 'awx2-stuck': ['•'],
+  'awx3-this-morning': ['What would make today great?'], 'awx3-photo-a-day': ['A photo a day'], 'awx3-saved-searches': ['Example · Travel being planned', 'Example · Reading'],
+  'awx3-voice-faster': ['2×', '15'], 'awx3-day-pages': ['Morning and evening'],
 };
 
 // Session AV lane 2 (Dutch dates, deliberate): a Dutch answer now writes its dates the Dutch way (exact/period.ts nlDay,
