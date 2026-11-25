@@ -11959,6 +11959,17 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .x6-list li:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff1a)
+    }
+    .x6-low:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff1a)
+    }
+    .x6-filter button[aria-pressed="true"]:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f680)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .help-shot img:not(#\-):not(#\-) {
         border-color: #a0beff
     }

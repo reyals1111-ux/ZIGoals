@@ -40,7 +40,9 @@ describe('Session AV lane 2 device keys', () => {
       expect(DEVICE_RECORD_KEYS).toContain(key); expect(NON_PERSONAL_KEYS).not.toContain(key);
     }
     for (const r of RECORDS) { const {storage} = memory(); storage.setItem(r.key, JSON.stringify(r.sample)); expect(noExistingData(storage)).toBe(false); }
-    expect(AV2_DISPLAY_KEYS).toEqual([TASK_AREA_KEY_LITERAL, ZIGI_HELLO_DAY_KEY]);
+    // Session AW (#460, deliberate): the sleep goal's look-back joins them, a display key too (lib/aw-x6-keys.ts).
+    expect(AV2_DISPLAY_KEYS).toEqual([TASK_AREA_KEY_LITERAL, ZIGI_HELLO_DAY_KEY, 'zigoals:sleep-goal-period:v1']);
+    expect(NON_PERSONAL_KEYS).toContain('zigoals:sleep-goal-period:v1'); expect(DEVICE_RECORD_KEYS).not.toContain('zigoals:sleep-goal-period:v1');
     expect(NON_PERSONAL_KEYS).toContain(TASK_AREA_KEY_LITERAL); expect(DEVICE_RECORD_KEYS).not.toContain(TASK_AREA_KEY_LITERAL);
   });
   test('in Export everything under its own name, never a synced module key', () => {

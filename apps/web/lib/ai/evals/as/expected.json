@@ -9272,5 +9272,29 @@
   "widgets": [],
   "fresh": "Nothing is planned for next week yet (Mon, Nov 23 – Sun, Nov 29). No menu is kept yet: plan a week you like, then keep it by name in Health → Planner → Menus.",
   "freshNl": "Er is nog niets gepland voor volgende week (ma 23 nov – zo 29 nov). Er is nog geen menu bewaard: plan een week die je bevalt en bewaar die met een naam in Health → Planner → Menus."
+ },
+ "awx6-weigh-on": {
+  "en": "If the last 4 weeks’ pace continued, your trend would be about 71.8 kg on Fri, Jan 1, 2027: 73.6 kg now, −0.3 kg a week, 6.4 weeks. An estimate, not medical advice, and not a promise.",
+  "nl": "Als het tempo van de afgelopen 4 weken zo doorging, zou je trend op vr 1 jan 2027 ongeveer 71,8 kg zijn: nu 73,6 kg, −0,3 kg per week, 6,4 weken. Een schatting, geen medisch advies en geen belofte.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "There is no 4-week pace yet to estimate Fri, Jan 1, 2027 from: it needs weigh-ins at least seven days apart in the last 4 weeks.",
+  "freshNl": "Er is nog geen tempo over 4 weken om vr 1 jan 2027 uit te schatten: daarvoor zijn wegingen nodig die minstens zeven dagen uit elkaar liggen, in de afgelopen 4 weken."
+ },
+ "awx6-weight-week": {
+  "en": "Not enough weigh-ins yet to compare this week with the week before: it needs 3 or more in each 7 days (this week 2, the week before 2).",
+  "nl": "Nog niet genoeg wegingen om deze week met de week ervoor te vergelijken: daarvoor zijn er 3 of meer per 7 dagen nodig (deze week 2, de week ervoor 2).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Not enough weigh-ins yet to compare this week with the week before: it needs 3 or more in each 7 days (this week 0, the week before 0).",
+  "freshNl": "Nog niet genoeg wegingen om deze week met de week ervoor te vergelijken: daarvoor zijn er 3 of meer per 7 dagen nodig (deze week 0, de week ervoor 0)."
+ },
+ "awx6-sleep-goal-period": {
+  "en": "Your sleep goal over the last 14 days: 6 h 56 min asleep on average, against your goal of 8 h 00 min; 1 of 12 logged nights at or above it. Bedtime on average 11:27 PM, 0 h 03 min before the end of your window (11:30 PM); 7 of 12 nights inside 10:30 PM–11:30 PM. From your own logged nights; Health → Sleep → Your sleep goal shows it. Your goal under Goals, “Sleep 8 hours a night”, is on Goals.",
+  "nl": "Je slaapdoel over de afgelopen 14 dagen: gemiddeld 6 h 56 min geslapen, tegen je doel van 8 h 00 min; 1 van 12 gelogde nachten haalden het of meer. Bedtijd gemiddeld 23:27, 0 h 03 min vóór het einde van je venster (23:30); 7 van 12 nachten binnen 22:30–23:30. Uit je eigen gelogde nachten; Health → Sleep → Your sleep goal toont het. Je doel onder Goals, “Sleep 8 hours a night”, staat bij Goals.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no sleep goal yet: set one in Health → Sleep → Your sleep goal, and I answer from it and your logged nights over the last 14 days.",
+  "freshNl": "Je hebt nog geen slaapdoel: stel er een in bij Health → Sleep → Your sleep goal, dan antwoord ik uit dat doel en je gelogde nachten van de afgelopen 14 dagen."
  }
 }

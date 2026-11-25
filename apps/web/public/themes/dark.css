@@ -12508,6 +12508,18 @@
         color: var(--text-secondary, var(--muted))
     }
 }
+/*  components/health/x6/body-x6.css  */
+@scope (:root[data-theme=dark]) {
+    .x6-list li:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .x6-low:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .x6-filter button[aria-pressed="true"]:not(#\-) {
+        box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f6)
+    }
+}
 /*  components/help/help-screenshots.css  */
 @scope (:root[data-theme=dark]) {
     .help-shot img:not(#\-) {

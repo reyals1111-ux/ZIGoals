@@ -1955,6 +1955,17 @@
 :where(:root[data-text=large]) .av2-pinned:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .av2-folder:not(#\-) { font-size: calc(1rem * 1.125); }
 :where(:root[data-text=large]) .av2-routine-note:not(#\-) { font-size: calc(14px * 1.125); }
+/*  components/health/x6/body-x6.css  */
+:where(:root[data-text=large]) .x6-title:not(#\-) { font-size: calc(1.05rem * 1.125); }
+:where(:root[data-text=large]) .x6-line:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .x6-item:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .x6-sum:not(#\-), :where(:root[data-text=large]) .x6-day:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .x6-low:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .x6-note:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .x6-form input:not(#\-) { font-size: calc(1rem * 1.125); }
+:where(:root[data-text=large]) .x6-week:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .x6-goal-facts dt:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .x6-goal-facts dd:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/help/help-screenshots.css  */
 :where(:root[data-text=large]) .help-shot figcaption:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .help-shot-tag:not(#\-) { font-size: calc(14px * 1.125); }

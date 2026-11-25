@@ -3806,6 +3806,20 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .workout-calendar-mode:not(#\-) { margin-bottom: 4px; }
 :where(:root[data-density=compact]) .workout-streak:not(#\-) { margin-top: 0; margin-bottom: 6px; }
 :where(:root[data-density=compact]) .workouts-run-shoe:not(#\-) { margin-top: 6px; margin-bottom: 6px; }
+/*  components/health/x6/body-x6.css  */
+:where(:root[data-density=compact]) .x6-tool:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .x6-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .x6-line:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .x6-list:not(#\-) { row-gap: 4.5px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .x6-list li:not(#\-) { row-gap: 4.5px; padding-top: 6px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .x6-item:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .x6-low:not(#\-) { padding-top: 2px; padding-bottom: 2px; }
+:where(:root[data-density=compact]) .x6-form:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .x6-filter:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .x6-week:not(#\-) { margin-top: 8px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .x6-goal-facts:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .x6-goal-facts div:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .x6-goal-facts dd:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/help/help-screenshots.css  */
 :where(:root[data-density=compact]) .help-shots-list:not(#\-) { margin-top: 9px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 15px; }
 :where(:root[data-density=compact]) .help-shot:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 8px; }

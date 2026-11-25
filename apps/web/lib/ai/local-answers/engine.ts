@@ -63,6 +63,7 @@ import {av2R6NotesAnswer} from './av2-r6-notes';
 import {awX3Answer} from './aw-x3';
 import {av2R6PlanAnswer} from './av2-r6-plan';
 import {awX2TasksAnswer} from './aw-x2-tasks';
+import {awX6Answer} from './aw-x6';
 import {awX1Answer, readAwX1Extra} from './aw-x1-due';
 import {av2R4HealthAnswer} from './av2-r4-health';
 import {av2R4PlanAnswer} from './av2-r4-plan';
@@ -334,6 +335,8 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   // Session AV lane 2, round 6 (Body: calm, meditation days, sleep tonight, bests, a visit's list): after round 5's.
   if (!subject) { const own = av2R6BodyAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2 (fr-answers; FR-S-5, FR-MAX-4, FR-MAX-12): the sleep goal, on time to bed, when a task is, what was finished.
+  // Session AW (X6; #456, #458, #460): a weight on a named day, this week against the last, the sleep goal over 14 or 30 days.
+  if (!subject) { const own = awX6Answer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   if (!subject) { const own = frAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   const strict = exactLocal(question, env, subject, strictClaim);
   if (strict) return strict;

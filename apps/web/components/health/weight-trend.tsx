@@ -4,7 +4,9 @@ import {NebulaFlow} from '../nebula-flow';
 import {useChartWidth} from '../charts/use-chart-width';
 import {ChartGrid, ChartLegend, ChartTip, ChartXAxis} from '../charts/chart-kit';
 import {ChartLookDefs, useChartLook} from '../charts/chart-defs';
-import {weightTrend} from '../../lib/health-aa/trend';
+import {weekCompare, weightTrend} from '../../lib/health-aa/trend';
+// Session AW (X6; Happy Scale, LEDGER #458): this week's weigh-ins against the week before's.
+import {weekCompareText} from '../../lib/health-aa/week-compare';
 import type {HealthData} from '../../lib/health';
 import {weightChangeText, weightReadingText, weightReadingsText, weightText, type WeightUnit} from '../../lib/health-units';
 import {formatDate} from '../../lib/visual-format';
@@ -47,6 +49,7 @@ export function WeightTrendCard({data, today, unit}: {data: HealthData; today: s
       <p className="health-big" data-body-figure="">{shown(t.latestTrend)}<small>trend today{rate ? ` · ${rate}/week` : ''}</small></p>
       {/* Session AH (TR10): the latest reading beside the smoothed trend, so the two numbers are never mistaken for each other. */}
       {t.latestReading && <p className="fine health-trend-latest" data-body-figure="">Latest reading {weightReadingText(t.latestReading.grams, unit) /* fifth pass (N-MO-14): as entered */} · {formatDate(t.latestReading.date, {year: false})}. The trend smooths day-to-day swings.</p>}
+      {(() => { const c = weekCompare(data.weights, today); return <p className="fine health-trend-week" data-body-figure={c.ready ? '' : undefined}>{weekCompareText(c, unit)}</p>; })()}
       <div className="health-trend-chart" ref={plot} data-body-figure="">
         <svg className="zg-chart" data-pillar="health" viewBox={`0 0 ${width} ${H}`} width={width} height={H} role="img" aria-label={summary} onMouseLeave={() => setTip(null)}>
           {/* Session AK (G3): the one chart look — the trend line in its gradient with one soft glow (none by day). */}
