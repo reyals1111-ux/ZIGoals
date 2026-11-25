@@ -1,6 +1,7 @@
 import {addLocalDays, localDate} from '../local-date';
 import {nextOccurrence, olderDay, windowEnd} from './recurrence';
 import {isCancelled, isFinished} from './finished';
+import {countMove} from './moved';
 import {
   DEFAULT_LEVEL, LABEL_PATTERN, MAX_AFTER, MAX_COMPLETIONS, MAX_SUBTASK_DEPTH, MAX_TASK_MINUTES, TASK_LABELS_MAX, MAX_PROJECTS, MAX_SECTIONS, MAX_TASKS, DONE_KEEP_DAYS, TASK_CLOCK, TASK_TITLE_MAX,
   levelFields, taskLevel, taskSchema, tasksSchema, type HealthLink, type LabelGroup, type Project, type Recur, type SavedFilter, type Section,
@@ -287,7 +288,9 @@ export type TaskPatch = {title?: string; priority?: TaskPriority; due?: string |
   /** Session AV lane 2 (r5-plan, LEDGER #349, #348, #353, #354): a week or a month without a day, the time block, travel minutes, a place. */
   plan?: NonNullable<Task['plan']> | null; block?: string | null; travel?: number | null; place?: string | null;
   /** Session AV lane 2 (r6-plan, LEDGER #393): its subtasks one at a time, in order (null ends it). */
-  inOrder?: true | null};
+  inOrder?: true | null;
+  /** Session AW (X2, LEDGER #432): how much the person is dreading it, 1–3 (null clears). `moved` is never patched: the day change counts it. */
+  dread?: 1 | 2 | 3 | null};
 /**
  * Changes a task's title, priority, day, time or goal. `null` clears an optional field; a field left out is kept. A day
  * may be moved earlier than today only when it already was (an overdue task keeps its day until the person moves it),
@@ -300,7 +303,7 @@ export function editTask(record: Tasks, id: string, patch: TaskPatch, today: str
   if (patch.title !== undefined) { const title = patch.title.trim(); if (!title) throw new Error('Give the task a few words.'); if (title.length > TASK_TITLE_MAX) throw new Error(`A task title can be at most ${TASK_TITLE_MAX} characters (this one has ${title.length}).`); next.title = title; }
   if (patch.priority !== undefined) { next.priority = patch.priority; delete next.level; }
   if (patch.level !== undefined) Object.assign(next, levelFields(patch.level));
-  for (const key of ['due', 'time', 'goal', 'projectId', 'sectionId', 'parentId', 'recur', 'notes', 'habit', 'health', 'deadline', 'minutes', 'early', 'parallel', 'spent', 'objective', 'look', 'energy', 'chunk', 'afterHours', 'plan', 'block', 'travel', 'place', 'inOrder'] as const) { const value = patch[key]; if (value === null || value === '') delete next[key]; else if (value !== undefined) next[key] = value; }
+  for (const key of ['due', 'time', 'goal', 'projectId', 'sectionId', 'parentId', 'recur', 'notes', 'habit', 'health', 'deadline', 'minutes', 'early', 'parallel', 'spent', 'objective', 'look', 'energy', 'chunk', 'afterHours', 'plan', 'block', 'travel', 'place', 'inOrder', 'dread'] as const) { const value = patch[key]; if (value === null || value === '') delete next[key]; else if (value !== undefined) next[key] = value; }
   if (patch.projectId !== undefined && patch.sectionId === undefined && next.sectionId) {
     const section = record.sections?.find(s => s.id === next.sectionId);
     if (!section || section.projectId !== next.projectId) delete next.sectionId;
@@ -326,6 +329,9 @@ export function editTask(record: Tasks, id: string, patch: TaskPatch, today: str
   // Session AV (F-DEADLINES): checked when the deadline or the repeat changes; an old passed deadline left alone is kept.
   if (typeof next.deadline === 'string' && (next.deadline !== task.deadline || (next.recur && !task.recur))) checkDeadline(next.deadline, !!next.recur, next.deadline === task.deadline ? '0000-01-01' : today, allowPast);
   if (typeof next.parentId === 'string' && (next.parentId === id || descendants(record, id).some(t => t.id === next.parentId))) throw new Error('A task cannot sit under itself or one of its own subtasks.');
+  // Session AW (X2, LEDGER #433): a one-off task's day put off past today counts as a move (lib/tasks/moved.ts).
+  const moves = patch.due !== undefined ? countMove(task, next.due, today) : null;
+  if (moves) next.moved = moves;
   next.updatedAt = (at ?? new Date()).toISOString();
   const parsed = taskSchema.parse(next);
   return tasksSchema.parse({...record, tasks: record.tasks.map(t => t.id === id ? parsed : t)});
