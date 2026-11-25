@@ -133,6 +133,14 @@
 .journal-calendar-day{border:1px solid color-mix(in srgb,var(--brand-violet) 60%,transparent);background:color-mix(in srgb,var(--brand-violet) 22%,transparent);color:inherit;cursor:pointer;font-weight:650}
 .journal-calendar-empty{color:var(--text-secondary,var(--muted))}
 .journal-calendar-empty[data-today]{outline:1px dashed currentColor;outline-offset:-4px}
+/* Session AW (p5-fixes; QUALITY b1 #9): below 390 px a seven-day row inside a phone card left 34 px per day (320) or 40
+   (360). The month's table takes the card's padding and most of the page gutter instead (4 px from each screen edge stays
+   free), with no cell padding, so every day button is 44 × 44. Above 390 px nothing changes. */
+@media (max-width: 389.98px){
+  :root main .panel .journal-calendar-grid{--journal-bleed:calc(16px + 1px + var(--phone-gutter,16px) - 4px);width:calc(100% + 2 * var(--journal-bleed));max-width:none;margin-inline:calc(-1 * var(--journal-bleed))}
+  :root main .panel .journal-calendar-grid td{padding:0}
+  :root main .panel .journal-calendar-day,:root main .panel .journal-calendar-empty{width:44px;min-width:44px}
+}
 .journal-books{display:grid;gap:12px}
 .journal-books-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 .journal-books-row{display:grid;gap:4px;border-bottom:1px solid var(--line);padding-bottom:8px}
