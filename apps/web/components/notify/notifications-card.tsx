@@ -53,14 +53,21 @@ export function NotificationsCard() {
     observer.observe(node);
     return () => observer.disconnect();
   }, []);
+  // Session AW (Part 2; bn-114 under load): what this device can know without a request (the Showcase, an iPhone tab that
+  // must be on the Home Screen first, a browser without web push) is said as soon as the card mounts, not when it comes
+  // near the screen: Settings' lower groups now hydrate from their own chunk, and "Checking…" never stands for a fact the
+  // page already has. Only the build's status (/api/push-device) still waits for the card to come near.
+  const local = useRef(false);
   useEffect(() => {
-    if (!near) return;
+    if (isShowcase()) { local.current = true; setPhase({kind: 'unavailable', text: 'Not available in the Showcase: its example data never reaches a notification.'}); return; }
+    const support = pushSupport();
+    if (support === 'needs-install') { local.current = true; setPhase({kind: 'unavailable', text: 'On iPhone and iPad, notifications work in ZIGoals saved to your Home Screen (iOS 16.4 or later).', install: true}); return; }
+    if (support === 'unsupported') { local.current = true; setPhase({kind: 'unavailable', text: 'This browser does not support notifications from web apps.'}); }
+  }, []);
+  useEffect(() => {
+    if (!near || local.current) return;
     let active = true;
     void (async () => {
-      if (isShowcase()) { if (active) setPhase({kind: 'unavailable', text: 'Not available in the Showcase: its example data never reaches a notification.'}); return; }
-      const support = pushSupport();
-      if (support === 'needs-install') { if (active) setPhase({kind: 'unavailable', text: 'On iPhone and iPad, notifications work in ZIGoals saved to your Home Screen (iOS 16.4 or later).', install: true}); return; }
-      if (support === 'unsupported') { if (active) setPhase({kind: 'unavailable', text: 'This browser does not support notifications from web apps.'}); return; }
       const device = await import('../../lib/notify/device');
       if (await device.notifyOn()) { if (active) setPhase({kind: 'on'}); return; }
       const status = await device.notifyStatus();

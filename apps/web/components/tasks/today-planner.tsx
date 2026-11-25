@@ -17,6 +17,7 @@ import {minutesWords} from '../../lib/tasks/minutes';
 import type {Task, Tasks} from '../../lib/tasks/schema';
 import {formatClock, formatNumber} from '../../lib/visual-format';
 import {isFinished} from '../../lib/tasks/finished';
+import {hardestFirst} from '../../lib/tasks/dread';
 
 /**
  * Session AV lane 2 (tasks; Sunsama's daily planning, timeboxing, timers and workload; Todoist's daily goal), part of the
@@ -35,11 +36,16 @@ const TaskEnergyLine = lazy(() => import('./task-energy-line'));
 const PlanWeek = lazy(() => import('./plan-week'));
 /** Session AV lane 2 (r5-plan, LEDGER #348; Akiflow's time slots): today's time blocks, "2 of 4 done", Move what is left (its own chunk). */
 const TodayBlocks = lazy(() => import('./time-blocks'));
+/** Session AW (X2, LEDGER #435; Amazing Marvin): "Pick one for me", a fold of its own chunk. */
+const PickOne = lazy(() => import('./pick-one'));
 const clockNow = () => Date.now();
-export default function TodayPlanner({record, today, clock, shown, change, doneDay}: {record: Tasks; today: string; clock: string; shown: readonly Task[]; change: Change; doneDay: (iso: string) => string}) {
+export default function TodayPlanner({record, today, clock, shown, change, doneDay, onOpen, onFocus}: {record: Tasks; today: string; clock: string; shown: readonly Task[]; change: Change; doneDay: (iso: string) => string;
+  /** Session AW (X2, LEDGER #435): "This one" opens the picked task in the list; "Focus on it" starts its focus block. */ onOpen?: (task: Task) => void; onFocus?: (task: Task) => void}) {
   const plan = useDeviceRecord(TASK_PLAN), calendars = useDeviceRecord(CALENDAR_IMPORT), id = useId();
   // Session AV lane 2 (r4-plan, LEDGER #301): the day's working hours; "My day ends at" changes this visit only.
   const [now, setNow] = useState(() => Date.now()), [untilTyped, setUntil] = useState<string | null>(null);
+  // Session AW (X2, LEDGER #432; Amazing Marvin's "eat the frog"): Hardest first gives the most dreaded task the first free time (this visit).
+  const [hardest, setHardest] = useState(false);
   const hours = hoursOn(plan.data, today), evening = afterHours(plan.data), until = untilTyped ?? hours.at(-1)?.to ?? '18:00';
   useEffect(() => { const t = window.setInterval(() => setNow(Date.now()), 30_000); return () => window.clearInterval(t); }, []);
   // The finishes per day are counted into the log once a day (so a year of them outlives the 30 days a task is kept), and
@@ -63,11 +69,11 @@ export default function TodayPlanner({record, today, clock, shown, change, doneD
   const open = shown.filter(t => !t.doneAt && !t.parentId);
   // Session AV lane 2 (r4-plan, LEDGER #301, #304): inside the working hours ("after hours" tasks in the evening); a waiting task is not placed.
   const fit = useMemo(() => {
-    const first = hours[0]?.from ?? '09:00', ready = open.filter(t => !waitingFor(record, t).length).map(t => planAgain(t, today, clock) ? {...t, time: undefined} : t);
+    const first = hours[0]?.from ?? '09:00', waitingNot = open.filter(t => !waitingFor(record, t).length), ready = (hardest ? hardestFirst(waitingNot) : waitingNot).map(t => planAgain(t, today, clock) ? {...t, time: undefined} : t);
     // Session AV lane 2 (r5-plan, LEDGER #348): a block's tasks go inside the block, every other task outside the blocks.
     const blocks = blocksOn(plan.data, today), opts = {from: clock < first ? first : clock, until, windows: untilTyped ? hoursUntil(hours, until) : hours, after: [evening]};
     return blocks.length ? fitWithBlocks(ready, busy, opts, blocks) : {...fitDay(ready, busy, opts), inBlock: new Map<string, string>()};
-  }, [open, busy, clock, until, untilTyped, hours, evening, record, today, plan.data]);
+  }, [open, busy, clock, until, untilTyped, hours, evening, record, today, plan.data, hardest]);
   const waiting = record.tasks.filter(t => !t.doneAt && !t.parentId && t.due && t.due <= today).map(t => ({t, on: waitingFor(record, t)})).filter(w => w.on.length);
   const pva = plannedVsActual(open.concat(record.tasks.filter(t => isFinished(t) /* review B5L-3 */ && doneDay(t.doneAt!) === today && !t.parentId)));
   const load = open.filter(t => !t.parallel).reduce((n, t) => n + (t.minutes ?? 0), 0), limit = plan.data.dayLimit, over = overLimit(load, limit);
@@ -106,6 +112,7 @@ export default function TodayPlanner({record, today, clock, shown, change, doneD
       <p className="fine">Tasks without a time go into the free time inside your working hours ({hours.length ? hours.map(b => `${formatClock(b.from)}–${formatClock(b.to)}`).join(' and ') : 'today is a day off'}; set them in Tasks → This week), between your timed tasks and calendar events, each for its minutes (30 when it has none). An “after hours” task goes in the evening; a long task with pieces goes piece by piece. Background tasks take no slot. A task dropped into a time block goes inside it; the others stay outside your blocks; travel minutes before a time count as taken.</p>
       <label className="field"><span>My day ends at</span><input type="time" value={until} aria-describedby={`${id}-until`} onChange={e => setUntil(e.target.value || null)} />
         <small id={`${id}-until`} className="tasks-field-note">{hours.length ? 'Moves the end of today’s last hours, later or earlier, for this visit only.' : 'Today is a day off in your working hours, so nothing is placed.'}</small></label>
+      {open.some(t => t.dread && !t.time) && <label className="task-editor-check"><input type="checkbox" checked={hardest} onChange={e => setHardest(e.target.checked)} /> <span>Hardest first: the task you dread most gets the first free time{(t => t ? ` (“${t.title}”)` : '')(hardestFirst(open.filter(x => x.dread && !x.time))[0])}</span></label>}
       {busy.length > 0 && <p className="fine">Fixed today: {[...busy].sort((a, b) => a.start - b.start).map(b => `${formatClock(toClock(b.start))} ${b.title}`).join(' · ')}</p>}
       {fit.placed.length ? <><ol className="tasks-fit-list" aria-label="A plan for today">{fit.placed.map(p => <li key={`${p.task.id}:${p.part ?? 1}`}>
         <span><strong>{formatClock(p.start)}–{formatClock(p.end)}</strong> <span dir="auto">{p.task.title}</span>{p.part ? <small> · part {formatNumber(p.part)} of {formatNumber(p.of!)}</small> : null}{fit.inBlock.get(`${p.task.id}:${p.part ?? 1}`) ? <small> · in “{fit.inBlock.get(`${p.task.id}:${p.part ?? 1}`)}”</small> : null}{p.task.minutes ? '' : <small> · 30 min, it has no length</small>}</span>
@@ -118,6 +125,7 @@ export default function TodayPlanner({record, today, clock, shown, change, doneD
       {fit.rest.length > 0 && <p className="fine">Pieces for another day: {fit.rest.map(r => `“${r.task.title}” (${formatNumber(r.pieces)} more)`).join(', ')}. Plan my week finds them a day.</p>}
       {open.filter(t => t.time && !runningTimer(plan.data, t.id)).length > 0 && <p className="tasks-fit-timers">{open.filter(t => t.time && !runningTimer(plan.data, t.id)).slice(0, 8).map(t => <button key={t.id} type="button" className="quiet" aria-label={`Start a timer for “${t.title}”`} onClick={() => timer(t)}>⏱ {t.title}</button>)}</p>}
     </details>
+    <Suspense fallback={null}><PickOne record={record} today={today} onOpen={onOpen} onFocus={onFocus} /></Suspense>
     <Suspense fallback={null}><PlanWeek record={record} today={today} clock={clock} change={change} /></Suspense>
   </section>;
 }

@@ -8,6 +8,7 @@ import {speedLabel, voiceSpeedOf, type VoiceSpeed} from '../../journal/voice-spe
 import {JOURNAL_DISPLAY} from '../../on-this-day/store';
 import {readDeviceRecord} from '../../device-record';
 import {getAppStorage} from '../../showcase-storage';
+import {formatNumber} from '../../visual-format'; // Session AW: speeds in the display locale's own figures (fr-answers)
 import {novaAreaClosed, novaEnvInfo} from './nova-env';
 import {answer, asked, closed, count, isQuestion, journalClosed, list, MIXED, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
@@ -104,7 +105,7 @@ function voiceFaster(a: Asked, extra: AwX3Extra): LocalReply | null {
   if (!en && !nl) return null;
   const speed = 'voiceSpeed' in extra ? extra.voiceSpeed ?? null : savedSpeed(), lang = a.lang;
   const now = speed ? say(lang, ` Your speed now: ${speedLabel(speed)}, kept on this device.`, ` Je snelheid nu: ${speedLabel(speed)}, bewaard op dit apparaat.`) : '';
-  return answer(say(lang, `Yes. A journal voice note plays in ZIGoals’ own player, on the entry and in Journal → Photos and voice notes: 1×, 1.25×, 1.5× or 2×, 15 seconds back or forward, and the time played of the whole. The speed you choose is remembered for every voice note.${now} A written transcript is not made: it needs a model, and a voice note never leaves this device.`,
+  return answer(say(lang, `Yes. A journal voice note plays in ZIGoals’ own player, on the entry and in Journal → Photos and voice notes: 1×, ${formatNumber(1.25)}×, ${formatNumber(1.5)}× or 2×, 15 seconds back or forward, and the time played of the whole. The speed you choose is remembered for every voice note.${now} A written transcript is not made: it needs a model, and a voice note never leaves this device.`,
     `Ja. Een spraakmemo in je dagboek speelt in de eigen speler van ZIGoals, bij het stuk en in Journal → Photos and voice notes: 1×, 1,25×, 1,5× of 2×, 15 seconden terug of vooruit, en de gespeelde tijd van het geheel. De snelheid die je kiest geldt voor elke spraakmemo.${now} Een uitgeschreven tekst wordt niet gemaakt: daar is een model voor nodig, en een spraakmemo verlaat dit apparaat nooit.`), JOURNAL_CALL);
 }
 

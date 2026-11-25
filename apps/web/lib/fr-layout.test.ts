@@ -70,7 +70,13 @@ describe('Habits (FR-TJ-7) and NOVA\'s Permissions (FR-TJ-1)', () => {
     const sections = read('components', 'habits', 'habit-sections.tsx');
     expect(sections).toMatch(/const anyHabit = sections\.some\(section => section\.habits\.length > 0\);/);
     expect(sections).toMatch(/if \(empty && anyHabit\) return null;/);
-    expect(read('components', 'habits', 'habits-workspace.tsx')).toMatch(/store\.data\.habits\.some\(h => h\.entries\.length > 0\) && \{id: "habits:consistency"/);
+    // Session AW (FR-TJ-7, deliberate): the owner's decision 1e moves the wait into each card. The block comes with the first
+    // habit, and each card in it waits for its own data (a teaching line stands in for it); before a check-in no card shows.
+    // As strict: the gate, and every card's own gate on a check-in (lib/aw-habits-tj7.test.ts renders it).
+    expect(read('components', 'habits', 'habits-workspace.tsx')).toMatch(/store\.data\.habits\.length > 0 && \{id: "habits:consistency"/);
+    const cards = read('components', 'habits', 'habit-consistency.tsx');
+    expect(cards).toMatch(/const monthShown = result\.days\.some\(day => day\.checkins > 0\), weekShown = result\.week\.some\(day => day\.checkins > 0\);/);
+    expect(cards).toMatch(/\{\(monthShown \|\| weekShown \|\| trendShown\) && <section /);
   });
   it('Allow Health comes before the scope switches', () => {
     const panel = read('components', 'nova', 'panels', 'permissions-panel.tsx');

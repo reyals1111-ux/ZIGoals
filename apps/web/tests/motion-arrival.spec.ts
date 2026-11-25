@@ -45,13 +45,19 @@ test('a newly selected page arrives once: nav pop and light sweep, title sweep, 
  // On a phone (Session E) Wealth sits in the More sheet: its arrival is the More tab's (a button), and it is checked there.
  const phone=await isPhone(page),navMark=(m:string)=>m==='A:'||(phone&&m==='BUTTON:');
  for(const name of ['Health','Wealth']){await (await navLink(page,name)).click();await page.waitForURL(`**/app/${name.toLowerCase()}`);await expect(await navLink(page,name)).toHaveAttribute('aria-current','page');await closeMore(page);await expect.poll(()=>page.locator('[data-arrive]').count(),{timeout:4000}).toBe(0);}
- expect((await seen(page)).arrive.filter(m=>m.endsWith('+metric')).length).toBeGreaterThanOrEqual(1);
  // Returning to an item plays its arrival again, once.
  expect((await seen(page)).arrive.filter(navMark).length).toBe(3);
  await nav.getByRole('link',{name:'Today',exact:true}).click();await page.waitForURL(/\/app$/);
  await expect.poll(()=>page.locator('[data-arrive]').count(),{timeout:4000}).toBe(0);
  expect((await seen(page)).arrive.filter(navMark).length).toBe(4);
  await page.screenshot({path:info.outputPath('today-arrived.png')});
+ // Session AW (FR-TJ-7, deliberate; the same assertion, read after one more arrival): the figure that shone on these visits
+ // was Habits' "4 / 7" (Health's calories sit below the fold, Wealth's total has its ticker entrance), and the owner's
+ // decision 1e moved it below today's habits. Markets' figure is in view on a phone and a computer, so one more arrival
+ // there gives the key figure its one shine, as before.
+ await (await navLink(page,'Markets')).click();await page.waitForURL('**/app/markets');await closeMore(page);
+ await expect.poll(()=>page.locator('[data-arrive]').count(),{timeout:4000}).toBe(0);
+ expect((await seen(page)).arrive.filter(m=>m.endsWith('+metric')).length).toBeGreaterThanOrEqual(1);
 });
 
 for(const setting of ['reduced motion','Motion Off'] as const)

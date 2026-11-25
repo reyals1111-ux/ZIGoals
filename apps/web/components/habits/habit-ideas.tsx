@@ -1,5 +1,6 @@
 'use client';
 import {GuidedJourneysLink} from '../guided/guided-link';
+import {ProgrammeLinks} from '../guided/programme-links';
 import {useEffect, useRef, useState} from 'react';
 import {scheduleLabel, type HabitData, type HabitInput} from '../../lib/habits';
 import {addLocalDays} from '../../lib/local-date';
@@ -29,6 +30,8 @@ export function HabitIdeas({data, today, onAdd, onClose}: {data: HabitData; toda
     <p className="fine">Small, common starting points. Add one, then change anything about it. Nothing here compares you with anyone.</p>
     {/* Session AJ (item 34, A7): Guided journeys are reached from Habits, Goals, My Universe and search (no sidebar entry). */}
     <GuidedJourneysLink />
+    {/* Session AW (programmes; owner decision 1d): the 14-day habit starter, beside the journeys. */}
+    <ProgrammeLinks ids={['habit-start']}/>
     <label className="library-search-field habit-ideas-search"><span>Search habit ideas</span>
       <input type="search" value={query} autoComplete="off" placeholder="Water, stretch, sketch, budget…" onChange={e => setQuery(e.target.value)} onKeyDown={e => { if (e.key === 'Escape' && query) { e.preventDefault(); e.stopPropagation(); setQuery(''); } }} />
     </label>

@@ -15,6 +15,7 @@ import {TASKS, TASK_TITLE_MAX} from '../../lib/tasks/schema';
 import {addTask} from '../../lib/tasks/engine';
 import {tasksReview, type TasksReview} from '../../lib/tasks/review';
 import {projectsToReview} from '../../lib/tasks/project-states';
+import {longOpen} from '../../lib/tasks/long-open';
 import Link from 'next/link';
 import {JOURNAL} from '../../lib/journal/schema';
 import {wordCount} from '../../lib/journal/stats';
@@ -27,7 +28,8 @@ const IntentionGoal = lazy(() => import('./review-task-choices').then(m => ({def
 /** Session AV (follow-up 1, F-REVIEW-TASKS): a step with no `field` is read only (Tasks, Journal): nothing new is stored. */
 type Step = {field?: ReviewNoteField; title: string; lines: ReactNode[]; fine?: string; placeholder?: string; /** Session AV (1c): the Tasks step's own choices. */ kind?: 'tasks'};
 /** Session AV (F-REVIEW-TASKS): what the week shows from Tasks and the Journal, read in the dialog itself. */
-export type WeekExtras = {tasks?: TasksReview | null; journal?: {entries: number; words: number} | null; /** Session AV lane 2 (r6-plan, LEDGER #395): projects whose review has come round. */ projectsToReview?: number};
+export type WeekExtras = {tasks?: TasksReview | null; journal?: {entries: number; words: number} | null; /** Session AV lane 2 (r6-plan, LEDGER #395): projects whose review has come round. */ projectsToReview?: number;
+  /** Session AW (X2, LEDGER #434): open tasks unchanged for 60 days or more (Tasks → Review). */ longOpen?: number};
 const count = (n: number, one: string, many: string) => n === 0 ? `no ${many}` : `${formatNumber(n)} ${n === 1 ? one : many}`;
 /** The six steps (five without the financial domain), each a read-only summary from the records and one optional textarea. */
 export function reviewSteps(summary: WeekSummary, financial: boolean, formatWealth: (subtotal: {currency: string; value: bigint}) => string, extras: WeekExtras = {}): Step[] {
@@ -40,7 +42,7 @@ export function reviewSteps(summary: WeekSummary, financial: boolean, formatWeal
   ];
   // Session AV (follow-up 1, F-REVIEW-TASKS; Sunsama's weekly review): Tasks and the Journal, read only.
   const t = extras.tasks;
-  if (t && (t.finished || t.open || t.added)) steps.push({kind: 'tasks', title: 'Tasks', lines: [`${count(t.finished, 'task finished', 'tasks finished')} this week (${formatNumber(t.before)} the week before) · ${count(t.added, 'added', 'added')}`, `${count(t.open, 'task open', 'tasks open')} now${t.overdue ? `, ${formatNumber(t.overdue)} past ${t.overdue === 1 ? 'its' : 'their'} day` : ''}.`, ...(t.titles.length ? [`Finished: ${t.titles.join(' · ')}`] : []), ...(extras.projectsToReview ? [<Link key='review' className='text-link' href='/app/tasks?view=review'>{extras.projectsToReview === 1 ? '1 project to review' : `${formatNumber(extras.projectsToReview)} projects to review`} →</Link>] : [])]});
+  if (t && (t.finished || t.open || t.added)) steps.push({kind: 'tasks', title: 'Tasks', lines: [`${count(t.finished, 'task finished', 'tasks finished')} this week (${formatNumber(t.before)} the week before) · ${count(t.added, 'added', 'added')}`, `${count(t.open, 'task open', 'tasks open')} now${t.overdue ? `, ${formatNumber(t.overdue)} past ${t.overdue === 1 ? 'its' : 'their'} day` : ''}.`, ...(t.titles.length ? [`Finished: ${t.titles.join(' · ')}`] : []), ...(extras.projectsToReview ? [<Link key='review' className='text-link' href='/app/tasks?view=review'>{extras.projectsToReview === 1 ? '1 project to review' : `${formatNumber(extras.projectsToReview)} projects to review`} →</Link>] : []), ...(extras.longOpen ? [<Link key='long' className='text-link' href='/app/tasks?view=review'>{extras.longOpen === 1 ? '1 task open for 60 days or more' : `${formatNumber(extras.longOpen)} tasks open for 60 days or more`} →</Link>] : [])]});
   const j = extras.journal;
   if (j && j.entries) steps.push({title: 'Journal', lines: [`${count(j.entries, 'journal entry', 'journal entries')} this week · ${formatNumber(j.words)} ${j.words === 1 ? 'word' : 'words'}.`], fine: 'Only counts are shown here; your entries stay in the Journal.'});
   if (financial && summary.wealth) steps.push({field: 'wealth', title: 'Wealth', lines: [`Known tracked wealth: ${summary.wealth.subtotals.length ? summary.wealth.subtotals.map(formatWealth).join(' · ') : 'nothing tracked yet'}`, `${count(summary.wealth.attention, 'asset needs', 'assets need')} attention`, `${count(summary.wealth.contributions, 'contribution', 'contributions')} this week`]});
@@ -61,7 +63,7 @@ export function WeeklyReviewDialog({weekStart, weekEnd, summary, review, financi
     const prevStart = addLocalDays(weekStart, -7), prevEnd = addLocalDays(weekStart, -1), today = localDate();
     const tasks = tasksRecord.loaded && !tasksRecord.unreadable ? tasksReview(tasksRecord.data, {start: weekStart, end: weekEnd, prevStart, prevEnd}, today, iso => localDate(new Date(iso))) : null;
     const week = journalRecord.loaded && !journalRecord.unreadable ? journalRecord.data.entries.filter(e => e.date >= weekStart && e.date <= weekEnd) : [];
-    return {tasks, journal: {entries: week.length, words: week.reduce((n, e) => n + wordCount(e.text), 0)}, projectsToReview: tasksRecord.loaded && !tasksRecord.unreadable ? projectsToReview(tasksRecord.data, localDate()).length : 0};
+    return {tasks, journal: {entries: week.length, words: week.reduce((n, e) => n + wordCount(e.text), 0)}, projectsToReview: tasksRecord.loaded && !tasksRecord.unreadable ? projectsToReview(tasksRecord.data, localDate()).length : 0, longOpen: tasksRecord.loaded && !tasksRecord.unreadable ? longOpen(tasksRecord.data, localDate(), 60, iso => localDate(new Date(iso))).all : 0};
   }, [tasksRecord.loaded, tasksRecord.unreadable, tasksRecord.data, journalRecord.loaded, journalRecord.unreadable, journalRecord.data, weekStart, weekEnd]);
   const [asTask, setAsTask] = useState(false), [goal, setGoal] = useState('');
   // The Monday after the week reviewed, or the next one when the review is done later than that (never a past day).

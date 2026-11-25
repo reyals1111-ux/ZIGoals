@@ -27,6 +27,7 @@ import {unitFor} from '../../plural';
 import {displayLocale, withNumberLocale} from '../../visual-format';
 import {fold} from './exact/text';
 import {languageOf} from './av-words';
+import {awKcalAnswer} from './aw-kcal';
 import {averageKey} from '../../average-goals/store';
 import {joinReplies, messageLines, onePhrase, pastPeriodAsk} from './al-fifth';
 import {healthGoalAsk} from './al-final';
@@ -43,6 +44,8 @@ import {frAnswer} from './fr-answers';
 import {watchedHoldings, watchedWords} from './fr-wallets';
 import {av2BodyAnswer} from './av2-body';
 import {av2RestAnswer} from './av2-rest';
+import {awX4Answer} from './aw-x4';
+import {GOAL_REPEAT} from '../../goals/repeat';
 import {av2MoneyR2Answer} from './av2-money-r2';
 import {av2R3MoneyAnswer} from './av2-r3-money';
 import {av2R4MoneyAnswer} from './av2-r4-money';
@@ -54,10 +57,13 @@ import {av2R5GymAnswer} from './av2-r5-gym';
 import {av2R5NotesAnswer} from './av2-r5-notes';
 import {av2R5PlanAnswer} from './av2-r5-plan';
 import {av2R6BodyAnswer} from './av2-r6-body';
+import {awProgrammesAnswer} from './aw-programmes';
 import {av2R6MoneyAnswer} from './av2-r6-money';
 import {av2R6NotesAnswer} from './av2-r6-notes';
 import {awX3Answer} from './aw-x3';
 import {av2R6PlanAnswer} from './av2-r6-plan';
+import {awX2TasksAnswer} from './aw-x2-tasks';
+import {awX1Answer, readAwX1Extra} from './aw-x1-due';
 import {av2R4HealthAnswer} from './av2-r4-health';
 import {av2R4PlanAnswer} from './av2-r4-plan';
 import {av2R3NotesAnswer} from './av2-r3-notes';
@@ -272,10 +278,20 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   // Session AU (dress rehearsal R-4, R-7, R-8, R-10): today's date by the person's day end, a coin's price (not the holdings),
   // what staking would earn and whether it is safe (au-answers.ts): before the exact layer reads them as a records lookup.
   if (!subject) { const found = rehearsalAnswer(normalizeSpoken(question), env), own = found && 'text' in found ? {...found, text: groupUnits(found.text)} : found; if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
+  // Session AW (kcal; owner decision 1a and amendment 4): "how many calories did I burn" is answered from what the person
+  // typed on an activity or a file brought in, with its source, or honestly says ZIGoals does not work it out — before the
+  // food answers, which read it as the calories eaten (aw-kcal.ts).
+  if (!subject) { const own = awKcalAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
+  // Session AW (programmes): which programme or journey is going, and today's day and step (aw-programmes.ts), before
+  // the AV answers, so "today's run" on a programme is its programme day, not a planned workout or the step count.
+  if (!subject) { const own = awProgrammesAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV (owner follow-up 2, item 1c; the fresh reviewers' check 5): the AV features' own questions (task reminders,
   // countdowns, bills a year, payday, budget targets, running bests, the sleep score, the journal's tags…), from each
   // feature's own pure function, before the exact layer reads their words as another part of life (av-answers.ts).
   // Session AV lane 2 (rest: repeating projects, task versions, calm sound, more nutrients, CSV re-import, mood words).
+  // Session AW (X4, Strides; LEDGER #446, #447): "how did my year go" and how often a goal that starts again was reached,
+  // from the year report and this device's repeat record (lib/ai/local-answers/aw-x4.ts).
+  if (!subject) { const repeat = (() => { try { return typeof window === 'undefined' ? null : readDeviceRecord(getAppStorage(), GOAL_REPEAT).data; } catch { return null; } })(); const own = awX4Answer(question, env, {repeat}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   if (!subject) { const own = av2RestAnswer(question, env, {templates: env.nova?.taskTemplates, plan: env.nova?.taskPlan, nutrientExtras: (env.ak as {nutrientExtras?: never} | null | undefined)?.nutrientExtras}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, batch 2 (sync choices, the look, the scheduled copy): read from this device where there is one.
   if (!subject) { const extra: Av2SyncExtra = (() => { try { if (typeof window === 'undefined') return {}; const storage = getAppStorage(); return {sections: readExtrasSectionsChoice(storage), extrasOn: readExtrasChoice(storage).enabled, look: {theme: readTheme(), darkStyle: readDarkStyle(), font: readLook().font}, backup: readDeviceRecord(storage, BACKUP_REMINDER).data}; } catch { return {}; } })(); const own = av2SyncAnswer(question, env, extra); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
@@ -292,7 +308,12 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   // Session AV lane 2 (Habits and mind): its own answers, before AV's (lib/ai/local-answers/av2-habits.ts).
   if (!subject) { const own = av2HabitsAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, round 2 (Tasks: My Day, rules, fields, imports, print): before Tasks' first answers.
+  // Session AW (X2, LEDGER #432–#437, #448; Amazing Marvin): dreaded tasks, the ones put off most or open a long time, today's
+  // progress, time targets and the stuck-task guide (aw-x2-tasks.ts), before round 6's planning answers.
+  if (!subject) { const own = awX2TasksAnswer(question, env, {plan: env.nova?.taskPlan}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, round 6 (Tasks: projects on hold, in order, focus, label groups): before round 5's.
+  // Session AW (X1, LEDGER #438–#440; Due): named timers, remind again and own snooze choices, read from this device.
+  if (!subject) { const own = awX1Answer(question, env, readAwX1Extra()); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   if (!subject) { const own = av2R6PlanAnswer(question, env, {plan: env.nova?.taskPlan}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   if (!subject) { const own = av2R5PlanAnswer(question, env, {plan: env.nova?.taskPlan}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   if (!subject) { const own = av2R4PlanAnswer(question, env, {plan: env.nova?.taskPlan}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
@@ -1060,7 +1081,7 @@ function vitalsAnswer(env: ToolEnv, found: DayRange[]): LocalReply {
   const days = dataOf(r.result).days as {date: string; source: string; restingHeartRateBpm?: number; activeKcal?: number}[], when = span(range, env.healthDay);
   if (!days.length) return {kind: 'answer', text: `No vitals are recorded ${when}; they arrive with an import or a linked device.`, calls: [r.record]};
   const resting = days.filter(x => x.restingHeartRateBpm !== undefined).at(-1), active = days.filter(x => x.activeKcal !== undefined).at(-1);
-  return {kind: 'answer', text: lines(`${capital(plural(days.length, 'day'))} of vitals ${when}.`, [resting && `Resting heart rate on ${dayText(resting.date, env.healthDay.slice(0, 4))}: ${resting.restingHeartRateBpm} bpm (${resting.source})`, active && `Active energy on ${dayText(active.date, env.healthDay.slice(0, 4))}: ${active.activeKcal} kcal (${active.source})`]), calls: [r.record]};
+  return {kind: 'answer', text: lines(`${capital(plural(days.length, 'day'))} of vitals ${when}.`, [resting && `Resting heart rate on ${dayText(resting.date, env.healthDay.slice(0, 4))}: ${resting.restingHeartRateBpm} bpm (${resting.source})`, active && `Active energy on ${dayText(active.date, env.healthDay.slice(0, 4))}: ${active.activeKcal} kcal (${active.source}${/ export$/.test(active.source) ? ', from your file' : ''})` /* Session AW (kcal; owner decision 1a): imported, and said so */]), calls: [r.record]};
 }
 function devicesAnswer(env: ToolEnv): LocalReply {
   const r = call(env, 'devices', {}), refused = refusalOf([r]); if (refused) return refused;

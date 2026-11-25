@@ -1,65 +1,90 @@
 "use client";
 import { DataHome } from "../../../components/bottom-data-home";
 import {WhatsThis} from "../../../components/earn/whats-this";
-import {DeviceLockSettings} from "../../../components/device-lock";
-import {PlanSettingsRow} from "../../../components/plans/plan-settings-row";
-import { SendFeedback } from "../../../components/help/send-feedback";
 import { markHelpFromSettings } from "../../../components/help/help-back";
-import { AboutThisAlpha } from "../../../components/alpha/about-this-alpha";
-import { PointTellSetting } from "../../../components/point-tell/point-tell-setting";
 import { exportFileName } from "../../../lib/showcase-detect";
 import "../../../components/life-pages.css";
+// Session AW Part 2: the styles of the parts in settings-later.tsx, with the page as before (no unstyled paint).
+import "../../../components/account-sync-offer/sync-offer.css";
+import "../../../components/ai/ai-switch.css";
+import "../../../components/alpha/about-this-alpha.css";
+import "../../../components/checklist/checklist-setting.css";
+import "../../../components/coach/guide.css";
+import "../../../components/export-everything.css";
+import "../../../components/help/send-feedback.css";
+import "../../../components/import/import.css";
+import "../../../components/links/links.css";
+import "../../../components/notify/notifications.css";
+import "../../../components/plans/premium-badge.css";
+import "../../../components/push/push.css";
+import "../../../components/settings/af-extras-confirm.css";
+import "../../../components/settings/pages-settings.css";
+import "../../../components/settings/settings-forms.css";
+import "../../../components/sync/section-status.css";
+import "../../../components/universe/extras-setting.css";
+import "../../../components/weekly-review/weekly-review.css";
 import {getAppStorage,isShowcase} from "../../../lib/showcase-storage";
 import Link from "next/link";
-import {VaultSyncControls} from "../../../components/vault-sync-panel";
-import {PrivateVaultTools} from "../../../components/private-vault-tools";
-import {StorageInternals} from "../../../components/settings/storage-internals";
 import {MotionPreference} from "../../../components/motion-preference";
 import {LazyThemeSwitch as ThemeSwitch} from "../../../components/shell/theme-switch-lazy";
 import {LazyCustomizeSettings} from "../../../components/settings/customize-settings-lazy";
 import {ShowcaseDoor, ShowcaseSlot} from "../../../components/settings/showcase-slot";
-import { PrivateBackups } from "../../../components/private-backups";
-import { ExportEverything } from "../../../components/export-everything";
-import { EraseEverything } from "../../../components/settings/erase-everything";
-import { SwitchImport } from "../../../components/import/switch-import";
-import { WeeklyReviewDay } from "../../../components/weekly-review/weekly-review-day";
-import { PushRemindersPanel } from "../../../components/push/push-reminders-panel";
-import {NotificationsCard} from "../../../components/notify/notifications-card";
-import {InstallCard} from "../../../components/install/install-card";
 import { Slot } from "../../../components/progress/slot";
-import { GuideSettings } from "../../../components/coach/guide-settings";
 import { AiSettingsSection } from "../../../components/ai/ai-settings-section";
 import { NovaSettingsLinks } from "../../../components/settings/nova-settings-links";
+import {VaultSyncControls} from "../../../components/vault-sync-panel";
+import {DeviceLockSettings} from "../../../components/device-lock";
 import {LoadBoundary} from '../../../components/load-boundary';
 import { deployment } from "../../../lib/deployment-config";
-import { Suspense, lazy, useEffect, useState, type ReactNode } from "react";
+import { Suspense, lazy, useEffect, useState, type ComponentType, type ReactNode } from "react";
 import { useGoals } from "../../../components/goal-provider";
-import { ConnectionDiagnostics } from "../../../components/connection-diagnostics";
 import { shortAccount } from "../../../lib/diagnostics";
 import { loadMetadata } from "../../../lib/storage";
 import { NebulaFlow } from "../../../components/nebula-flow";
 import { HeaderArtCorner, OrbitArt } from "../../../components/header-art/orbit-art";
 import { SettingsGlyph } from "../../../components/header-art/glyphs/settings";
 import { PhoneSettingsList } from "../../../components/phone/phone-settings";
-import { TimeZoneSettings } from "../../../components/settings/time-zone-settings";
-import { DayEndsSetting } from "../../../components/settings/day-ends-setting";
 import { KeepSettingsJump } from "../../../components/settings/keep-jump";
 import { SettingsRenderAll } from "../../../components/settings/settings-render-all";
-import { WrapUpSettings } from "../../../components/settings/wrap-up-settings";
-import { ChessSettings } from "../../../components/settings/chess-settings";
-import { LinksSettings } from "../../../components/links/links-settings";
-import { MusicSettings } from "../../../components/music/music-settings";
-import { PagesSettings } from "../../../components/settings/pages-settings";
-import { AfChecklistSection } from "../../../components/settings/af-checklist-section";
 // Session AV lane 2 (trim-settings; weights, never a raised budget): Earn's and signing's choices show only once the chain is
 // chosen, which the browser learns after the page has loaded (the server's page never has them), so they load as their own
 // chunk then, as the tracked wallets do. Their styles stay with the page, where they always were.
 import "../../../components/settings/af-signing-section.css";
-import { AfExtrasSection } from "../../../components/settings/af-extras-section";
 import { useChainChoice } from "../../../components/chain/use-chain-choice";
 import { SettingsFoldAll, SettingsFoldGroup, SettingsFolds } from "../../../components/settings/settings-fold";
 import { HideFiguresToggle } from "../../../components/hide-figures";
 import type { SettingsGroupId } from "../../../lib/settings-folds";
+// Session AW Part 2 (speed; weights, never a raised budget): the parts of the lower groups load as their own chunk, still
+// rendered by the server (the first paint is unchanged), so a phone runs about half of Settings' scripts less before the
+// page answers. The account sign-in and the device lock stay with the page (auth and sync keep their timing: run 2032's
+// sign-in-codes-browser:40 waited for the account check behind the chunk). Their styles stay with the page (imported below), so no part ever paints unstyled while its chunk arrives.
+const later = <K extends keyof typeof import("../../../components/settings/settings-later")>(name: K) => lazy(() => import("../../../components/settings/settings-later").then(m => ({default: m[name] as unknown as ComponentType<Record<string, unknown>>})));
+const WeeklyReviewDay = later("WeeklyReviewDay");
+const PlanSettingsRow = later("PlanSettingsRow");
+const PagesSettings = later("PagesSettings");
+const AfChecklistSection = later("AfChecklistSection");
+const AfExtrasSection = later("AfExtrasSection");
+const TimeZoneSettings = later("TimeZoneSettings");
+const DayEndsSetting = later("DayEndsSetting");
+const WrapUpSettings = later("WrapUpSettings");
+const MusicSettings = later("MusicSettings");
+const LinksSettings = later("LinksSettings");
+const ChessSettings = later("ChessSettings");
+const GuideSettings = later("GuideSettings");
+const InstallCard = later("InstallCard");
+const NotificationsCard = later("NotificationsCard");
+const PushRemindersPanel = later("PushRemindersPanel");
+const StorageInternals = later("StorageInternals");
+const ConnectionDiagnostics = later("ConnectionDiagnostics");
+const SendFeedback = later("SendFeedback");
+const PointTellSetting = later("PointTellSetting");
+const AboutThisAlpha = later("AboutThisAlpha");
+const PrivateVaultTools = later("PrivateVaultTools");
+const PrivateBackups = later("PrivateBackups");
+const ExportEverything = later("ExportEverything");
+const SwitchImport = later("SwitchImport");
+const EraseEverything = later("EraseEverything");
+function Later({children}: {children: ReactNode}) { return <Suspense fallback={null}>{children}</Suspense>; }
 // Session AL (BN-112): its own chunk, loaded only once the chain is chosen and the wallet group shows.
 const TrackedWallets = lazy(() => import("../../../components/staking/tracked-wallets"));
 const AfEarnSection = lazy(() => import("../../../components/settings/af-earn-section").then(m => ({default: m.AfEarnSection})));
@@ -162,12 +187,12 @@ export default function Settings() {
         <section className="panel backup-restore" id="backup-restore" aria-labelledby="backup-restore-title">
           {/* Session AL (DV-267, deliberate): no eyebrow repeating the heading; one plain sentence. */}<h2 id="backup-restore-title">Backup &amp; restore</h2>
           {/* Session AK P2 (RELEASE_REVIEW_2 R2-16): one recommended path leads; the other ways follow it, named once. */}<p className="fine"><strong>Recommended:</strong> an encrypted backup (the first card), locked with a recovery secret only you keep. Other options below: a backup of each area, one readable file of everything, and importing from another app.</p>
-          <PrivateVaultTools/>
-          <PrivateBackups/>
-          <ExportEverything/>
-          <SwitchImport/>
+          <Later><PrivateVaultTools/></Later>
+          <Later><PrivateBackups/></Later>
+          <Later><ExportEverything/></Later>
+          <Later><SwitchImport/></Later>
           {/* Session AJ (A6): the last part, after Export everything: remove every ZIGoals record from this browser. */}
-          <EraseEverything/>
+          <Later><EraseEverything/></Later>
         </section>
         {/* Session AV lane 2 (LEDGER #69; QUALITY "Not fixed"): the hide switch offered in Settings too, the same device switch as Health's. */}
         <section className="panel settings-hide-figures" aria-labelledby="settings-hide-figures-title"><h2 id="settings-hide-figures-title">Calories and weight on screen</h2><HideFiguresToggle/><p className="fine">ZIGi and NOVA leave these figures out of their answers too while they are hidden. Your records and exports keep them.</p></section>
@@ -242,30 +267,30 @@ export default function Settings() {
       <SettingsGroup id="settings-app" title="Your app">
         <ShowcaseSlot at="top"/>
         {/* Session AL (O2, shell lane request): the Plan row beside Your pages & buttons; nothing is bought here. */}
-        <PlanSettingsRow/>
-        <PagesSettings/>
-        <AfChecklistSection/>
+        <Later><PlanSettingsRow/></Later>
+        <Later><PagesSettings/></Later>
+        <Later><AfChecklistSection/></Later>
         {/* Session AK X1 (RELEASE_REVIEW R4): Earn's, Staking's and Governance's own choices once the chain is chosen. */}
         {chain && <LoadBoundary quiet><Suspense fallback={null}><AfEarnSection/></Suspense></LoadBoundary>}
         {chain && <LoadBoundary quiet><Suspense fallback={null}><AfSigningSection/></Suspense></LoadBoundary>}
-        <AfExtrasSection/>
+        <Later><AfExtrasSection/></Later>
         {/* Session AA-Cloud: a named place for Session AA-Local's game-layer switch (components/progress/slot.tsx). */}
         <Slot place="settings:your-app"/>
-        <TimeZoneSettings/>
+        <Later><TimeZoneSettings/></Later>
         {/* Session AO (C-DVG-22): "My day ends at", beside the time zone. */}
-        <DayEndsSetting/>
-        <WrapUpSettings/>
-        <MusicSettings/>
-        <LinksSettings/>
+        <Later><DayEndsSetting/></Later>
+        <Later><WrapUpSettings/></Later>
+        <Later><MusicSettings/></Later>
+        <Later><LinksSettings/></Later>
         <ShowcaseSlot at="bottom"/>
       </SettingsGroup>
       <SettingsGroup id="settings-areas" title="Your areas">
-        <div className="settings-module-links"><section id="habits-settings"><p className="eyebrow">HABITS</p><h2>Your rhythm.</h2><p>Schedules and targets are chosen per Habit. A reminder time is optional and kept on this device only: after it, Today shows a reminder card in the app. Review streaks and your saved check-in history.</p><Link href="/app/habits" className="text-link">Manage habits →</Link><WeeklyReviewDay /></section><section id="health-settings"><p className="eyebrow">HEALTH</p><h2>Your own targets.</h2><p>Optional nutrition, weight and step targets. You choose every value.</p><Link href="/app/health" className="text-link">Open Health →</Link></section></div>
-        <ChessSettings/>
-        <GuideSettings/>
-        <InstallCard/>
-        <NotificationsCard/>
-        <PushRemindersPanel/>
+        <div className="settings-module-links"><section id="habits-settings"><p className="eyebrow">HABITS</p><h2>Your rhythm.</h2><p>Schedules and targets are chosen per Habit. A reminder time is optional and kept on this device only: after it, Today shows a reminder card in the app. Review streaks and your saved check-in history.</p><Link href="/app/habits" className="text-link">Manage habits →</Link><Later><WeeklyReviewDay /></Later></section><section id="health-settings"><p className="eyebrow">HEALTH</p><h2>Your own targets.</h2><p>Optional nutrition, weight and step targets. You choose every value.</p><Link href="/app/health" className="text-link">Open Health →</Link></section></div>
+        <Later><ChessSettings/></Later>
+        <Later><GuideSettings/></Later>
+        <Later><InstallCard/></Later>
+        <Later><NotificationsCard/></Later>
+        <Later><PushRemindersPanel/></Later>
         {/* Session AA-Cloud: a named place for Session AA-Local's reminders plan link. */}
         <Slot place="settings:reminders"/>
         <section className="panel settings-market-data" id="market-data"><p className="eyebrow">MARKET DATA</p><h2>Know where each value comes from.</h2><p>Supported automatic market prices come from CoinGecko. Public asset identifiers and your quote currency are used to request market data; private holdings, quantities, Goals and Health records are not sent.</p><div className="settings-data-types"><div><strong>Automatic references</strong><p>Supported assets show price source and freshness. Missing or stale quotes remain labelled.</p></div><div><strong>Your manual values</strong><p>Cash, property, custom assets and unsupported markets use values you enter. Manual values are never presented as live quotes.</p></div></div>{chain && <Link className="text-link" href="/app/markets">Explore market references →</Link>}</section>
@@ -293,23 +318,23 @@ export default function Settings() {
       <SettingsGroup id="settings-help" title="Help & diagnostics">
         {/* Session AK G2 (RELEASE_REVIEW_2 R2-16): how this browser keeps the records (storage health and the per-module
             storage upgrade) is a diagnostic, so it lives here, out of Backup & restore. */}
-        <StorageInternals/>
+        <Later><StorageInternals/></Later>
         <details className="advanced-diagnostics" id="diagnostics"><summary>Advanced Diagnostics</summary>
-        <ConnectionDiagnostics
+        <Later><ConnectionDiagnostics
           key={`${s.chain}:${s.owner}`}
           chain={s.chain}
           owner={s.owner}
           balance={s.balance}
-        />
+        /></Later>
         </details>
         {/* Session X Part 11: the same feedback email as Help, where diagnostics live. */}
         <section className="panel" id="send-feedback" aria-labelledby="send-feedback-title">
           <p className="eyebrow">SEND FEEDBACK</p>
           <h2 id="send-feedback-title">Tell us what you think</h2>
-          <SendFeedback />
+          <Later><SendFeedback /></Later>
         </section>
         {/* Session AB-Cloud Part 6 (ADR-023 C23): the Point & tell switch. */}
-        <section className="panel" id="point-tell" aria-labelledby="point-tell-title"><p className="eyebrow">POINT &amp; TELL</p><h2 id="point-tell-title">Point at it, say what you think</h2><PointTellSetting /></section>
+        <section className="panel" id="point-tell" aria-labelledby="point-tell-title"><p className="eyebrow">POINT &amp; TELL</p><h2 id="point-tell-title">Point at it, say what you think</h2><Later><PointTellSetting /></Later></section>
         <section className="panel" id="about-this-alpha" aria-labelledby="about-this-alpha-title">
           <h2 id="about-this-alpha-title">About this alpha</h2>
           <dl className="metrics">
@@ -341,7 +366,7 @@ export default function Settings() {
             projections are illustrative. This alpha is unaudited.
           </p>}
           {/* Session AC (owner finding 3): the facts the footer used to carry, live, with the build environment. */}
-          <AboutThisAlpha />
+          <Later><AboutThisAlpha /></Later>
         </section>
       </SettingsGroup>
       </SettingsFolds>

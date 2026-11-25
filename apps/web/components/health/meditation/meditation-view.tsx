@@ -1,4 +1,5 @@
 'use client';
+import {ProgrammeLinks} from '../../guided/programme-links';
 import {removeWithUndo} from '../../ui/remove-with-undo';
 import Link from 'next/link';
 import {Suspense, lazy, useEffect, useState} from 'react';
@@ -86,6 +87,8 @@ export default function MeditationView() {
     <details className="panel meditation-today-fold r6-grounding-fold" onToggle={e => { if ((e.currentTarget as HTMLDetailsElement).open) setGroundOpened(true); }}><summary>Five, four, three, two, one: a grounding exercise</summary>{groundOpened && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><CalmR6 part="grounding" today={today}/></Suspense></LoadBoundary>}</details>
     <details id="low-day" className="panel meditation-today-fold r6-low-day-fold" open={lowOpen} onToggle={e => setLowOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>On a low day: your own page</summary>{lowOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><CalmR6 part="low-day" today={today}/></Suspense></LoadBoundary>}</details>
     <details className="panel meditation-today-fold" onToggle={e => { if ((e.currentTarget as HTMLDetailsElement).open) setMoveOpened(true); }}><summary>Move gently: a short guided stretch</summary>{moveOpened && <Suspense fallback={<p className="fine">Opening…</p>}><DailyMove store={store} today={today}/></Suspense>}</details>
+    {/* Session AW (programmes; owner decision 1d): the 10-day starter built from these written guides, a quiet line. */}
+    <ProgrammeLinks ids={['meditation-start']}/>
     <section className="panel" aria-labelledby="meditation-week-title">
       <h2 id="meditation-week-title">Your practice</h2>
       <dl className="sleep-stats">

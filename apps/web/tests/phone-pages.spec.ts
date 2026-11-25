@@ -37,7 +37,7 @@ test('phone default orders: Health title, date, counters; Habits check-ins befor
  await expect(page.getByLabel('Journal date')).toHaveCount(1);
  await open(page,'/app/habits');
  const items=(r:string)=>page.evaluate(r=>[...document.querySelectorAll<HTMLElement>(`[data-layout-region="${r}"]`)].map(e=>e.dataset.layoutItem),r);
- expect(await items('habits:body')).toEqual(['habits:overview','habits:list','habits:routines','habits:consistency','habits:rhythm']); // Session AE Part 4 (deliberate, S4): Routines is its own block after your habits
+ expect(await items('habits:body')).toEqual(['habits:list','habits:routines','habits:overview','habits:consistency','habits:rhythm']); // Session AE Part 4 (deliberate, S4): Routines is its own block after your habits. Session AW (FR-TJ-7, deliberate): your habits first, Today's rhythm after Routines
  await open(page,'/app/wealth');
  // Session Z-Cloud Part 4.5 (deliberate): "What you have" follows the holdings on a phone (wealth-view.tsx PHONE_ORDER); it is a
  // layout card since Gate B (15c36a5), so it is counted here. As strict: the first six, in order.

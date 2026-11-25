@@ -57,7 +57,8 @@ export type ExtrasSectionName = 'goals' | 'life' | 'habits' | 'health' | 'checkl
 export type ExtrasRecord = {spec: DeviceRecordSpec<unknown>; deviceFields?: readonly string[]; syncFields?: readonly string[]; verbatim?: true; fit?: (merged: Record<string, unknown>, local: Record<string, unknown> | undefined, remote: Record<string, unknown> | undefined) => Record<string, unknown>};
 export type ExtrasSection = {name: ExtrasSectionName; consent: 'account' | 'health'; records: readonly ExtrasRecord[]};
 /** Session AV lane 2 (sync): the journal's fields that stay on each device (see EXTRAS_CHOICE_SECTION_LIST). */
-export const JOURNAL_DEVICE_FIELDS = ['shareWithAi', 'versions', 'reminder', 'todayLines', 'affirmations'] as const;
+// Session AW (#444, TIER 3 sync): the morning reminder rings where it was set, as `reminder` does.
+export const JOURNAL_DEVICE_FIELDS = ['shareWithAi', 'versions', 'reminder', 'todayLines', 'affirmations', 'morningReminder'] as const;
 const record = <T,>(spec: DeviceRecordSpec<T>, deviceFields?: readonly string[], more?: Pick<ExtrasRecord, 'syncFields' | 'fit' | 'verbatim'>): ExtrasRecord => ({spec: spec as DeviceRecordSpec<unknown>, ...(deviceFields ? {deviceFields} : {}), ...more});
 export const EXTRAS_SECTIONS: readonly ExtrasSection[] = [
   {name: 'goals', consent: 'account', records: [record(GOAL_EXTRAS, ['dormant']), record(AVERAGE_GOALS)]},

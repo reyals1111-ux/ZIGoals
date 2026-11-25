@@ -11,19 +11,22 @@ import {deviceDay} from '../../lib/tasks/device';
 
 /** Session AV lane 2 (r5-plan, LEDGER #351; Tiimo's timers on the steps of a task): its own chunk, opened on the tap. */
 const PlaySteps = lazy(() => import('./play-steps'));
+/** Session AW (X2, LEDGER #448; Amazing Marvin): "Stuck? Help me start", the written guide, its own chunk opened on the tap. */
+const StuckGuide = lazy(() => import('./stuck-guide'));
 
 /**
  * Session AV lane 2 (r5-plan), at the top of the task editor, its own chunk. Each acts at once (not with Save), with Undo:
  * - "Doing now" / "Not doing it now" (LEDGER #350, Logseq's DOING): first in Tasks → Today, its start day kept;
  * - "Won’t do this task" (was "Cancel the task", fix2011; LEDGER #350, Logseq's CANCELED): closed without counting as done (Completed lists it as cancelled);
  * - "Copy link" (LEDGER #356, Akiflow's task links): the app's own `?task=` link, to paste into a note or the journal;
- * - "Play the steps" (LEDGER #351) for a task with subtasks.
+ * - "Play the steps" (LEDGER #351) for a task with subtasks;
+ * - Session AW (X2, LEDGER #448): "Stuck? Help me start", the written guide that leads to the steps, a focus block or a better day.
  * `onWrote` gives the editor the task's new change time, so it does not read its own write as another tab's.
  */
 export const taskLink = (id: string, origin: string) => `${origin}/app/tasks?task=${encodeURIComponent(id)}`;
 export default function TaskR5Actions({task, onWrote, onClosed}: {task: Task; onWrote: (updatedAt: string | undefined) => void; onClosed: () => void}) {
   const tasks = useDeviceRecord(TASKS), id = useId(), linkRef = useRef<HTMLInputElement>(null);
-  const [link, setLink] = useState(''), [playing, setPlaying] = useState(false);
+  const [link, setLink] = useState(''), [playing, setPlaying] = useState(false), [stuck, setStuck] = useState(false);
   if (!tasks.loaded) return null;
   const steps = childrenOf(tasks.data, task.id);
   const write = (fn: (r: Tasks) => Tasks, message: string, undone: string): Tasks | null => {
@@ -54,9 +57,11 @@ export default function TaskR5Actions({task, onWrote, onClosed}: {task: Task; on
     {doing && task.state && <p><span className="task-doing">Doing</span> since {formatDate(deviceDay(task.state.at) /* review B5L-10: the device's own day */, {weekday: true, year: false})}.</p>}
     {!task.doneAt && <button type="button" className="secondary" onClick={toggleDoing}>{/* review B5L-12: the words say the state; no aria-pressed as well */}{doing ? 'Not doing it now' : 'Doing now'}</button>}
     {steps.length > 0 && !task.doneAt && <button type="button" className="secondary" aria-expanded={playing} onClick={() => setPlaying(p => !p)}>{playing ? 'Close the steps' : `Play the steps (${steps.length})`}</button>}
+    {!task.doneAt && <button type="button" className="quiet" aria-expanded={stuck} onPointerEnter={() => void import('./stuck-guide').catch(() => undefined)} onClick={() => setStuck(v => !v)}>{stuck ? 'Close the guide' : 'Stuck? Help me start'}</button>}
     <button type="button" className="quiet" onClick={() => void copy()}>Copy link</button>
     {/* fix2011: "Won’t do", so the editor's one Cancel is closing it without saving (the row then says Cancelled) */}{!task.doneAt && !task.recur && <button type="button" className="quiet" onClick={cancel}>Won’t do this task</button>}
     {link && <label className="field task-link-copy"><span>The task’s link (select it and copy)</span><input ref={linkRef} id={`${id}-link`} readOnly value={link} onFocus={e => e.currentTarget.select()} /></label>}
     {playing && <Suspense fallback={<p className="fine" role="status">Opening the steps…</p>}><PlaySteps parent={task} onClose={() => setPlaying(false)} /></Suspense>}
+    {stuck && !task.doneAt && <Suspense fallback={<p className="fine" role="status">Opening the guide…</p>}><StuckGuide task={task} onWrote={onWrote} onClosed={onClosed} /></Suspense>}
   </div>;
 }
