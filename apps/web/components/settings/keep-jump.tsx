@@ -38,8 +38,8 @@ export function holdInView(target: HTMLElement, ms = 2000, most = 10_000, still:
  * Session AW (Part 2; CI run 2034, j06): Settings' lower groups now come from their own chunk, so a jump to one of their
  * anchors (#notifications) can run before its target exists, and the browser lands nowhere near it. Until the target
  * appears (ten seconds at most, and never once the person scrolls by wheel, touch or keys, or another jump follows) this
- * waits for it, lands on it once, instantly, and then holds it there as any jump. A click (opening a group) keeps the
- * wait: it does not move the page.
+ * waits for it and lands on it once, instantly (no hold: the late part may scroll to its own anchor). A click (opening
+ * a group) keeps the wait: it does not move the page.
  */
 const SCROLLS = ['wheel', 'touchstart', 'keydown'] as const;
 export function whenOnPage(id: string, found: (target: HTMLElement) => void, most = 10_000, still: () => boolean = () => true): () => void {
@@ -69,8 +69,10 @@ export function KeepSettingsJump() {
       const same = () => hashId(window.location.hash) === id;
       let hold = () => {}, late = false;
       const wait = whenOnPage(id, target => {
-        // Landed late (its chunk arrived after the jump): put it where the jump would have, then hold it.
-        if (late) target.scrollIntoView({block: 'start', behavior: 'instant'});
+        // Landed late (its chunk arrived after the jump): put it where the jump would have, once. No hold then: a part
+        // that draws itself late may scroll to its own anchor (ZIGi's section does), and a hold would pull the page back
+        // from it (aw-simplicity-c, the local re-run). A target already there is held as before.
+        if (late) { target.scrollIntoView({block: 'start', behavior: 'instant'}); return; }
         hold = holdInView(target, undefined, undefined, same);
       }, undefined, same);
       late = true;
