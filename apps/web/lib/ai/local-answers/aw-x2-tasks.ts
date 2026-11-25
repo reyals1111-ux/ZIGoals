@@ -60,7 +60,7 @@ function dreadAnswer(a: Ask): LocalReply | null {
   const list = dreadedTasks(got.record);
   if (!list.length) return answer(say(a.lang, 'No task is marked as dreaded. In a task’s editor, “I’m dreading this” takes a little, quite a bit or a lot — only for you, never counted against you. Plan my day’s “Hardest first” can then give the most dreaded one the first free time, and “Stuck? Help me start” has a way in.',
     'Geen taak is gemarkeerd als iets waar je tegenop ziet. In de editor van een taak kies je bij “I’m dreading this” een beetje, nogal of erg — alleen voor jou, het telt nooit tegen je. “Hardest first” in Plan my day geeft de zwaarste dan de eerste vrije tijd, en “Stuck? Help me start” helpt je op weg.'), TASK_CALLS);
-  const lines = list.slice(0, 6).map(t => `• ${clean(t.title, 60)} (${a.lang === 'nl' ? DREAD_WORDS_NL[t.dread as 1 | 2 | 3] : DREAD_WORDS[t.dread as 1 | 2 | 3].toLowerCase()}${t.due ? say(a.lang, `, ${dayIn('en', t.due, a.today)}`, `, ${dayIn('nl', t.due, a.today)}`) : ''})`);
+  const lines = list.slice(0, 6).map(t => `• “${clean(t.title, 60)}” (${a.lang === 'nl' ? DREAD_WORDS_NL[t.dread as 1 | 2 | 3] : DREAD_WORDS[t.dread as 1 | 2 | 3].toLowerCase()}${t.due ? say(a.lang, `, ${dayIn('en', t.due, a.today)}`, `, ${dayIn('nl', t.due, a.today)}`) : ''})`);
   return answer([say(a.lang, `You marked ${count(list.length, 'en', ['task', 'tasks'], ['', ''])} as dreaded, the most first:`, `Je hebt bij ${count(list.length, 'nl', ['', ''], ['taak', 'taken'])} aangegeven dat je ertegenop ziet, de zwaarste eerst:`), ...lines,
     say(a.lang, 'Plan my day’s “Hardest first” gives the top one the first free time; “Stuck? Help me start” in its editor has a way in.', '“Hardest first” in Plan my day geeft de bovenste de eerste vrije tijd; “Stuck? Help me start” in de editor helpt je op weg.')].join('\n'), TASK_CALLS);
 }
@@ -74,7 +74,7 @@ function movedAnswer(a: Ask): LocalReply | null {
   const {items, more} = movedMost(got.record);
   if (!items.length) return answer(say(a.lang, 'No open task has been put off more than once. Each time you move a task’s day later, its row counts it (“Moved 3 times”), as a fact, never a warning; Tasks → Review lists the ones moved most, with a day, no day or remove to choose from.',
     'Geen open taak is vaker dan één keer uitgesteld. Elke keer dat je de dag van een taak later zet, telt de taak dat (“Moved 3 times”), als feit, nooit als waarschuwing; Tasks → Review toont de taken die het vaakst verschoven zijn, met een dag, geen dag of weghalen als keuze.'), TASK_CALLS);
-  const lines = items.slice(0, 6).map(t => `• ${clean(t.title, 60)}: ${say(a.lang, `moved ${t.moved} times`, `${t.moved} keer verschoven`)}${t.due ? say(a.lang, `, now ${dayIn('en', t.due, a.today)}`, `, nu ${dayIn('nl', t.due, a.today)}`) : ''}`);
+  const lines = items.slice(0, 6).map(t => `• “${clean(t.title, 60)}”: ${say(a.lang, `moved ${t.moved} times`, `${t.moved} keer verschoven`)}${t.due ? say(a.lang, `, now ${dayIn('en', t.due, a.today)}`, `, nu ${dayIn('nl', t.due, a.today)}`) : ''}`);
   return answer([say(a.lang, 'The tasks whose day you moved later most often:', 'De taken waarvan je de dag het vaakst later hebt gezet:'), ...lines, ...(more ? [say(a.lang, `…and ${more} more.`, `…en nog ${more}.`)] : []),
     say(a.lang, 'Tasks → Review offers each one a day that fits, no day for now, or remove. Moving a task is never counted against you.', 'In Tasks → Review kies je per taak een dag die past, voorlopig geen dag, of weghalen. Verschuiven telt nooit tegen je.')].join('\n'), TASK_CALLS);
 }
@@ -88,7 +88,7 @@ function longOpenAnswer(a: Ask): LocalReply | null {
   const {items, all} = longOpen(got.record, a.today, 60, a.dayOf);
   if (!items.length) return answer(say(a.lang, 'No open task has gone 60 days without a change. Tasks that do show in Tasks → Review under “Open a long time”, oldest first, with Keep, Give it a day and Remove.',
     'Geen open taak is 60 dagen of langer onveranderd gebleven. Taken die dat wel zijn, staan in Tasks → Review onder “Open a long time”, de oudste eerst, met Keep, Give it a day en Remove.'), TASK_CALLS);
-  const lines = items.slice(0, 6).map(t => `• ${clean(t.title, 60)}: ${say(a.lang, `unchanged for ${daysUnchanged(t, a.today, a.dayOf)} days`, `${daysUnchanged(t, a.today, a.dayOf)} dagen onveranderd`)}`);
+  const lines = items.slice(0, 6).map(t => `• “${clean(t.title, 60)}”: ${say(a.lang, `unchanged for ${daysUnchanged(t, a.today, a.dayOf)} days`, `${daysUnchanged(t, a.today, a.dayOf)} dagen onveranderd`)}`);
   return answer([say(a.lang, `${count(all, 'en', ['open task has', 'open tasks have'], ['', ''])} not changed for 60 days or more, oldest first:`, `${count(all, 'nl', ['', ''], ['open taak is', 'open taken zijn'])} 60 dagen of langer niet veranderd, de oudste eerst:`), ...lines,
     say(a.lang, 'In Tasks → Review you can keep each one (asked again in 60 days), give it a day, or remove it.', 'In Tasks → Review kun je elke taak houden (over 60 dagen weer gevraagd), een dag geven of weghalen.')].join('\n'), TASK_CALLS);
 }
@@ -113,13 +113,13 @@ function dayAnswer(a: Ask): LocalReply | null {
 
 /** "am I on target for writing this week", "ben ik op koers voor schrijven deze week" (LEDGER #437). */
 function targetAnswer(a: Ask): LocalReply | null {
-  const en = /\bam i on target (?:for|with) (.+?) this (?:week|month)$|\bhow are my time targets\b|\bwhat are my time targets\b|\bam i on (?:target|track) (?:for|with) my time targets?\b|\bhow much time (?:have i|did i) (?:spent|spend|put) on (.+?) this (?:week|month)\b/.exec(a.f);
-  const nl = /\bben ik op koers (?:voor|met) (.+?) deze (?:week|maand)$|\bhoe staan mijn tijddoelen(?: ervoor)?\b|\bwat zijn mijn tijddoelen\b|\bhoeveel tijd heb ik (?:deze (?:week|maand) )?(?:aan|in) (.+?) (?:gestoken|besteed)\b/.exec(a.f);
+  const en = /\bam i on target (?:for|with) (.+?) this (?:week|month)$|\bhow are my time targets\b|\bwhat are my time targets\b|\bam i on (?:target|track) (?:for|with) my time targets?\b/.exec(a.f);
+  const nl = /\bben ik op koers (?:voor|met) (.+?) deze (?:week|maand)$|\bhoe staan mijn tijddoelen(?: ervoor)?\b|\bwat zijn mijn tijddoelen\b/.exec(a.f);
   const m = en ?? nl;
   // Money has its own targets and plans (budgets, savings, a debt plan): those questions are left to their answers.
   if (!m || MONEY.test(a.f)) return null;
   const got = tasksOf(a); if (!got) return null; if ('reply' in got) return got.reply;
-  const named = (m[1] ?? m[2] ?? '').replace(/^(?:my|mijn|the|het|de|@)\s*/, '').trim();
+  const named = (m[1] ?? '').replace(/^(?:my|mijn|the|het|de|@)\s*/, '').trim();
   const targets = a.plan?.timeTargets ?? [];
   const howTo = say(a.lang, 'In Tasks → This week, under Time targets, choose a project, an area or a label and the hours a week or a month; the focus blocks started on its tasks count towards it.',
     'In Tasks → This week, onder Time targets, kies je een project, een gebied of een label en het aantal uren per week of per maand; de focusblokken die je op die taken start tellen mee.');
@@ -127,7 +127,7 @@ function targetAnswer(a: Ask): LocalReply | null {
   const progress = targets.map(t => targetProgress(t, got.record, a.focus, a.today));
   const line = (p: (typeof progress)[number]) => {
     const name = p.name ?? say(a.lang, 'a project no longer here', 'een project dat er niet meer is'), per = p.target.per === 'week' ? say(a.lang, 'this week', 'deze week') : say(a.lang, 'this month', 'deze maand');
-    return `• ${clean(name, 60)}: ${hoursWords(p.spent)} ${say(a.lang, 'of', 'van')} ${hoursWords(p.target.minutes)} ${per}${p.spent >= p.target.minutes ? say(a.lang, ' (reached)', ' (gehaald)') : ''}`;
+    return `• “${clean(name, 60)}”: ${hoursWords(p.spent)} ${say(a.lang, 'of', 'van')} ${hoursWords(p.target.minutes)} ${per}${p.spent >= p.target.minutes ? say(a.lang, ' (reached)', ' (gehaald)') : ''}`;
   };
   const want = named && !/^(?:target|targets|track|koers|tijddoel(?:en)?)$/.test(named) ? fold(named) : '';
   const match = want ? progress.filter(p => { const n = fold((p.name ?? '').replace(/^@/, '')); return n === want || n.includes(want) || (want.length >= 4 && want.includes(n) && n.length >= 3); }) : [];

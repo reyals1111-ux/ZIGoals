@@ -61,7 +61,7 @@ describe('what the answers say', () => {
     const s = withTasks(r => add(r, 't', {title: 'Fictional shed', due: DAY}));
     for (const d of [1, 2, 3]) s.nova!.tasks = editTask(s.nova!.tasks!, 't', {due: addLocalDays(DAY, d)}, DAY);
     const t = text(awX2TasksAnswer('what have I put off most', novaEnv(s)));
-    expect(t).toContain('Fictional shed: moved 3 times');
+    expect(t).toContain('“Fictional shed”: moved 3 times');
     expect(t).toMatch(/never counted against you/);
     expect(text(awX2TasksAnswer('wat heb ik het vaakst uitgesteld', novaEnv(s)))).toContain('3 keer verschoven');
   });
@@ -74,8 +74,8 @@ describe('what the answers say', () => {
   });
   test('a time target by its name, or all of them; the Showcase’s @admin from its focus blocks', () => {
     const show = text(awX2TasksAnswer('how are my time targets', novaEnv(showcaseAll())));
-    expect(show).toMatch(/@admin: .+ of 3 h this week/);
-    expect(text(awX2TasksAnswer('am I on target for admin this week', novaEnv(showcaseAll())))).toMatch(/^• @admin/);
+    expect(show).toMatch(/“@admin”: .+ of 3 h this week/);
+    expect(text(awX2TasksAnswer('am I on target for admin this week', novaEnv(showcaseAll())))).toMatch(/^• “@admin”/);
     expect(text(awX2TasksAnswer('am I on target for writing this week', novaEnv(showcaseAll())))).toMatch(/There is no time target for “writing”/);
     expect(text(awX2TasksAnswer('am I on target for writing this week', novaEnv(freshAll())))).toMatch(/You have no time targets yet/);
   });
