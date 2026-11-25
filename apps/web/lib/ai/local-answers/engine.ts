@@ -76,6 +76,7 @@ import {bodyFiguresHidden, withHiddenFigures} from './av2-hide-figures';
 import {neverTwice} from '../../habit-two-day';
 import {answerQuery, exactQuery, fixedWords, exactTopic, queryArgs, queryLabel, showOf, strictClaim} from './exact';
 import type {Query} from './exact';
+import {awX5Answer, readAwX5Extra} from './aw-x5-paprika';
 
 /**
  * Local answers (Session V Part 3, ADR-014): pure lookups answered on this device from ZIGi's own tools, with no AI and
@@ -281,6 +282,8 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   // Session AV lane 2 (fr-answers; FR-S-2, FR-TJ-3): a meal logged in words is never answered as "nothing logged"
   // (fr-meal-words.ts reads this device's `zigoals:meal-words:v1` under Health's gate; without one, the diary's answers stand).
   if (!subject) { const own = mealWordsAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
+  // Session AW (X5, LEDGER #452, #454, #455; Paprika): use soon from the pantry, when a recipe was last made, next week's menu.
+  if (!subject) { const own = awX5Answer(question, env, readAwX5Extra()); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, batch 2 (Money; Food, reading its device records; Body after AV's, as its builder asked).
   if (!subject) { const food = (() => { try { return typeof window === 'undefined' ? {} : readFoodSources(getAppStorage()); } catch { return {}; } })(); const own = av2R6MoneyAnswer(question, env) ?? av2R5MoneyAnswer(question, env) ?? av2R4MoneyAnswer(question, env) ?? av2R3MoneyAnswer(question, env) ?? av2MoneyR2Answer(question, env) ?? av2MoneyAnswer(question, env) ?? av2FoodAnswer(question, env, food); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2 (Journal and notes; task attachments, ZIGi's hello, chess): their own answers, before AV's.
