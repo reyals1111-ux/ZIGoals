@@ -40,6 +40,7 @@ import {COUNTDOWNS} from '../countdowns/schema';
 import {COUNTDOWN_EXTRAS, countdownWakes} from '../countdowns/extras';
 import {JOURNAL} from '../journal/schema';
 import {reminderPlanInput} from '../journal/reminder';
+import {morningPlanInput} from '../journal/day-pages';
 import {letterWakes} from '../journal/letters';
 import {memoryWakes} from '../on-this-day/throwback';
 import {JOURNAL_DISPLAY} from '../on-this-day/store';
@@ -157,6 +158,8 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
   try { const wakes = countdownWakes(readDeviceRecord(storage, COUNTDOWNS).data, readDeviceRecord(storage, COUNTDOWN_EXTRAS).data, today); if (wakes.length) input.countdowns = wakes.map(w => ({id: w.id, title: w.title, date: w.date, days: w.days})); } catch { /* unreadable: no countdown wakes */ }
   // Session AV lane 2 (journal; LEDGER #40): the reminder to write — its time, weekdays, the days already written, the streak.
   try { const j = reminderPlanInput(readDeviceRecord(storage, JOURNAL).data, today); if (j) input.journal = j; } catch { /* unreadable: no journal wake */ }
+  // Session AW (x3; LEDGER #444): the morning page's own reminder, while "Morning and evening" and that reminder are on.
+  try { const m = morningPlanInput(readDeviceRecord(storage, JOURNAL).data, today); if (m) input.journalMorning = m; } catch { /* unreadable: no morning wake */ }
   // Session AV lane 2 (r3-notes; LEDGER #279): the days letters to open later open (an id and a day; never their words).
   try { const letters = letterWakes(readDeviceRecord(storage, JOURNAL).data, today); if (letters.length) input.letters = letters; } catch { /* unreadable: no letter wakes */ }
   // Session AV lane 2 (r4-mind; LEDGER #309): the mornings with a memory, when the person asked (how long ago only; never its words).
