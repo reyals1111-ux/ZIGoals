@@ -14,6 +14,7 @@ import type {LocalReply, ToolCallRecord} from './engine';
 import {f9LocalAnswer} from './f9';
 import {novaLocalAnswer} from './nova';
 import {novaAreaClosed, novaHealthClosed, type NovaEnvInfo} from './nova-env';
+import {averageFiguresNl, averageGoalOf, nlCountUnit} from './aw-p5-goal-line';
 import {dayText, goalMoney, localQty, nlDayText, nlUnits, plural} from './words';
 
 /**
@@ -88,8 +89,11 @@ function goalsAnswer(env: ToolEnv, lang: Lang): LocalReply {
   // DV-078: up to twelve in the answer; any more are named as a count with where to see them all (a chat cannot unfold).
   const shown = active.slice(0, 12), year = env.habitDay.slice(0, 4);
   const line = (g: Data) => {
-    const figures = g.now && g.target && g.now !== 'unknown' && g.target !== 'unknown' ? say(lang, ` — ${money(g.now)} of ${money(g.target)}`, ` — ${money(g.now)} van ${money(g.target)}`) : '';
-    const left = g.remaining && !/^0(?:\.0+)? /.test(String(g.remaining)) && g.remaining !== 'unknown' ? say(lang, `, ${money(g.remaining)} to go`, `, nog ${money(g.remaining)} te gaan`) : '';
+    // Session AW (p5-answers, FR-S-13): a Dutch answer says a goal's figures in Dutch ("gemiddeld 6 h 56 min per nacht van
+    // minstens 8 uur per nacht", "2 van 4 mijlpalen"), never the tool's English words inside a Dutch sentence.
+    const average = lang === 'nl' ? averageGoalOf(env, g) : null;
+    const figures = average ? ` — ${averageFiguresNl(average, env)}` : g.now && g.target && g.now !== 'unknown' && g.target !== 'unknown' ? say(lang, ` — ${money(g.now)} of ${money(g.target)}`, ` — ${nlCountUnit(money(g.now))} van ${nlCountUnit(money(g.target))}`) : '';
+    const left = g.remaining && !/^0(?:\.0+)? /.test(String(g.remaining)) && g.remaining !== 'unknown' ? say(lang, `, ${money(g.remaining)} to go`, `, nog ${nlCountUnit(money(g.remaining))} te gaan`) : '';
     const next = /^\d{4}-\d{2}-\d{2}$/.test(String(g.nextPlannedDate ?? '')) ? say(lang, `; next planned ${dayText(g.nextPlannedDate, year)}`, `; volgende geplande stap ${nlDayText(g.nextPlannedDate, year)}`) : '';
     return `• ${clean(String(g.name), 60)}: ${g.progress && g.progress !== 'unknown' ? g.progress : say(lang, 'progress unknown', 'voortgang onbekend')}${figures}${left}${next}`;
   };
