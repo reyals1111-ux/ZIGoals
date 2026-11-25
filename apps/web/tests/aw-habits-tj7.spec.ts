@@ -121,14 +121,22 @@ for (const theme of THEMES) {
     await noZeroCards(page);
   });
 
-  test(`${theme}: the Showcase — the first Complete on the first screen, the cards first, no zero-state card`, async ({page, isMobile}) => {
-    const {width} = size(isMobile);
-    await start(page, {theme, width});
+  // Session AW (FR-TJ-7, deliberate): the Showcase check was one test (load, order, axe, a 320 px pass, back to 1440) and
+  // ran past the 45 s budget at 1440 on a loaded machine. Split three ways, each with the same setup; every assertion kept.
+  const showcaseHabits = async (page: Page, isMobile: boolean) => {
+    await start(page, {theme, width: size(isMobile).width});
     await go(page, '/app/habits');
     await expect(page.locator('.habits-workspace .habit-grid > .habit-card').first()).toBeVisible({timeout: 15_000});
+  };
+  test(`${theme}: the Showcase — the first Complete on the first screen, the cards first, no zero-state card`, async ({page, isMobile}) => {
+    await showcaseHabits(page, isMobile);
     await onFirstScreen(page, firstComplete(page));
     await habitsFirst(page, isMobile);
     await noZeroCards(page);
+  });
+
+  test(`${theme}: the Showcase — the history with data shows its cards, not their lines; axe-clean`, async ({page, isMobile}) => {
+    await showcaseHabits(page, isMobile);
     // The history has data in the Showcase: the 30 days and the week show, their lines do not.
     const consistency = page.locator('[data-layout-item="habits:consistency"]');
     await consistency.scrollIntoViewIfNeeded();
@@ -138,6 +146,10 @@ for (const theme of THEMES) {
     // The trend: its card with a word in it, or its one line, never both.
     expect(await consistency.locator('.habit-trend-list').count() + await consistency.locator('[data-teach="trend"]').count()).toBe(1);
     await axeClean(page);
+  });
+
+  test(`${theme}: the Showcase — no sideways scroll at 320 px`, async ({page, isMobile}) => {
+    await showcaseHabits(page, isMobile);
     await noSideways(page);
   });
 }
