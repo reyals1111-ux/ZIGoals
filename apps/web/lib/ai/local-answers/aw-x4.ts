@@ -28,9 +28,10 @@ const goalsShut = (a: Asked): LocalReply | null => a.env.areas.goals === false ?
 
 /** "how did my year go", "how was my year so far", "hoe ging mijn jaar", "hoe was mijn jaar tot nu toe" (LEDGER #446). */
 function yearAnswer(a: Asked): LocalReply | null {
-  const en = /\bhow (?:did|was|has|is) my (?:whole )?year\b|\bhow did (?:this|the) year go\b|\bmy year (?:so far|in review|in numbers)\b|\bhow (?:has|was) (?:this|the) year been\b/.test(a.f);
-  const nl = /\bhoe (?:ging|was|is|verliep) mijn (?:hele )?jaar\b|\bhoe (?:ging|was|verliep) (?:dit|het) jaar\b|\bmijn jaar (?:tot nu toe|in cijfers)\b|\bjaaroverzicht\b/.test(a.f);
-  if (!en && !nl) return null;
+  const en = /\bhow (?:did|was|has|is) my (?:whole )?year\b|\bhow did (?:this|the) year go\b|\bmy year so far\b|\bhow (?:has|was) (?:this|the) year been\b/.test(a.f);
+  const nl = /\bhoe (?:ging|was|is|verliep) mijn (?:hele )?jaar\b|\bhoe (?:ging|was|verliep) (?:dit|het) jaar\b|\bmijn jaar tot nu toe\b|\bjaaroverzicht\b/.test(a.f);
+  // "How was my year for money" is the money year's question (av2-money-year), never this one.
+  if ((!en && !nl) || /\b(?:money|spend\w*|spent|budget|income|wealth|geld|uitgaven|uitgegeven|budget|inkomen|vermogen)\b/.test(a.f)) return null;
   const lang = a.lang, habitsOff = closed(a.env, 'habits'), goalsOff = goalsShut(a);
   if (habitsOff && goalsOff) return habitsOff;
   const habits = habitsOff ? [] : a.env.habits.habits, goals = goalsOff ? [] : a.env.platform.goals;
