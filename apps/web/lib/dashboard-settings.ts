@@ -198,7 +198,10 @@ export function defaultTwins(s:DashboardSettings,financial:boolean):DashboardBui
  return [...(shown.some(w=>twinOf(w)==='habits')?['habits' as const]:[]),...(financial?['next-action' as const]:[])];
 }
 function defaultPlacement(s:DashboardSettings):DashboardPlacement{
- const financial=visibleDomains(s).some(d=>d==='goals'||d==='wealth'),builtin=(b:{id:DashboardBuiltinId})=>({kind:'builtin' as const,id:b.id}),main=DASHBOARD_BUILTINS.filter(b=>b.region==='main');
+ // Session AW (simplicity-a; owner brief Part 3): the day's habits (Daily Habits, or the habits widget standing in for it)
+ // lead the default order, ahead of the whole-life overview, so their Complete buttons follow the Checklist on Today's first
+ // screen. Only the default changes: a saved placement keeps its own order, and the ids and the stored shape are as before.
+ const financial=visibleDomains(s).some(d=>d==='goals'||d==='wealth'),builtin=(b:{id:DashboardBuiltinId})=>({kind:'builtin' as const,id:b.id}),inMain=DASHBOARD_BUILTINS.filter(b=>b.region==='main'),main=[...inMain.filter(b=>b.id==='habits'),...inMain.filter(b=>b.id!=='habits')];
  // Session AC: a built-in that stands down for its widget twin keeps its place in the list (hidden, ready for "Show card"),
  // and the twin widget takes the place right after it, so the day's habits and calories stay in "Your day".
  const twins=defaultTwins(s,financial),moved=new Map<DashboardBuiltinId,string>();

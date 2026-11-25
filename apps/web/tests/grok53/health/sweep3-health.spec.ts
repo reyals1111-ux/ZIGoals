@@ -1,4 +1,5 @@
 import {expect, test} from '@playwright/test';
+import {showQuickCounters} from '../../aw-simplicity-helpers';
 import {emptyDevice, open} from '../l3-helpers';
 import {loadShowcase} from '../../ah-helpers';
 
@@ -12,6 +13,8 @@ test.beforeEach(async ({page}) => { await page.clock.install({time: new Date('20
 test('DV-047c: "Increase Push-ups" writes an Activity row under Health, and the Health chip counts it', async ({page}) => {
   await emptyDevice(page, {theme: 'nebula'});
   await open(page, '/app/health');
+  // Session AW (simplicity-a, deliberate): on a journal that never used them, Quick counters wait behind Health's teaching line; they are opened first (showQuickCounters proves they show), then every step and assertion is as before.
+  await showQuickCounters(page);
   await page.getByRole('button', {name: 'Increase Push-ups', exact: true}).click();
   await page.getByRole('button', {name: 'Increase Push-ups', exact: true}).click();
   await expect(page.locator('.exercise-count-live').first()).toContainText('Push-ups today: 2');

@@ -176,3 +176,6 @@
 @media (min-width:901px){.today-skips{left:calc(var(--sidebar-width,216px) + 16px)}}
 .today-skips ul{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
 .today-skips .today-skip{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;background:var(--text-strong);color:var(--bg);font-size:16px;border-radius:8px}
+/* Session AW (simplicity-a; owner brief Part 3): the day's habits card shown after the Checklist (outside the widget grid)
+   keeps the main column's own gap, as it has in the grid (phone-today.css); no extra panel margin below it. */
+.personalized-today .today-primary>.placed-module>*{margin-bottom:0}

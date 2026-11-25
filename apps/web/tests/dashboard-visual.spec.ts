@@ -21,7 +21,16 @@ test("dashboard destinations, safety and layout work at desktop and 320px", asyn
     await expect(page.getByRole("heading", { name: "Today's Goals, Habits & Health = Tomorrow's Wealth" })).toBeVisible();
     // On a phone the destination invitation folds to a row (Session I, Part 9); open it first.
     await openFold(page, "Plan a new destination");
-    await expect(page.getByRole("heading", { name: "A destination for your next chapter." })).toBeVisible();
+    // Session AW (simplicity-a, deliberate; owner brief Part 3): on an empty device at computer width the setup entry is
+    // the one setup prompt; the destination invitation waits for a first record and one teaching line, with the same
+    // "Plan my first goal" link (clicked below), stands in for it. A phone keeps its folded row and the card, as before.
+    if (viewport.width >= 768) {
+      await expect(page.locator(".onboarding-entry")).toBeVisible();
+      await expect(page.locator(".destination-panel")).toHaveCount(0);
+      const teach = page.locator('.today-rail [data-teach="destination"]');
+      await expect(teach).toBeVisible();
+      await expect(teach.getByRole("link", { name: "Plan my first goal →", exact: true })).toHaveAttribute("href", "/app/goals/new");
+    } else await expect(page.getByRole("heading", { name: "A destination for your next chapter." })).toBeVisible();
     // Session AB-Design (ADR-024 D7; re-pointed, as strict): the compact notice carries the label; the wallet buttons
     // are in the status row (a phone: the Status & wallet sheet behind More); the footer line carries the sentence.
     const wallet = await walletArea(page);
