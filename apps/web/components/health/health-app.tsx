@@ -308,6 +308,11 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
   // I1: meals from a nutrition CSV (phone: a sheet; desktop: inside the Diary details), with this device's undo ledger.
   const [importingCsv, setImportingCsv] = useState(false), [importFold, setImportFold] = useState(false), imports = useImportUndo();
   // Session AK: a barcode kept while offline (or from ZIGi's scan card) arrives as ?barcode=…; the scanner opens with it.
+  // Session AW (simplicity-a; owner brief Part 3): until a counter is used (or set up) Quick counters showed three example
+  // counters at 0, and until a first weigh-in the highlight tiles read "No trend yet" and "0 of 10 weigh-ins": both stay
+  // hidden until they have something to show, and one teaching line stands in for them. "Show quick counters" brings the
+  // counters back in place at once (the first tap or a new counter keeps them, as Health then holds them).
+  const [countersAsked, setCountersAsked] = useState(false);
   const [barcodeOpen, setBarcodeOpen] = useState(() => typeof window !== 'undefined' && /^\d{8,14}$/.test(new URLSearchParams(window.location.search).get('barcode') ?? ''));
   const undoRecord = async (record: ImportRecord) => { const {undoNutritionImport} = await import("../../lib/import/nutrition"); await update(d => undoNutritionImport(d, record).data); imports.forget(record.id); };
   // On a phone, Log a meal is a bottom sheet (Session I, Part 9); a Quick Add for a meal opens it.
@@ -408,6 +413,8 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
   const summary = dailyHealthSummary(data, date);
   // Session AL fourth pass (MO-028): the hero's one primary button is the log still missing for the day (food first, then
   // water, then a weight); the order of the three stays the same (MO-084).
+  // Session AW (simplicity-a): counters once used or set up (Health then holds them) or asked for; highlight tiles from the first weigh-in on or before this day.
+  const countersShown = !!data.exercise || countersAsked, highlightsShown = data.weights.some(w => w.date <= date);
   const heroNext: "food" | "water" | "weight" = !summary.entries ? "food" : !waterOn(data, date).entries ? "water" : !data.weights.some(w => w.date === date) ? "weight" : "food";
   // Session AH Part 17 (owner addition): the date bar; on a past day every card logs to that day, the future cannot be chosen.
   const dateControl = <div className="health-date-block"><HealthDateBar date={date} today={today} onChoose={next => chooseDate(journalDay(next, today))}/><LoggingFor date={date} today={today}/><DayLogged date={date} today={today}/></div>;
@@ -422,13 +429,18 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     <a className="skip" href="#health-views">Skip to Health views</a>
     {/* Session AB-Design (owner request 21): the shared header pattern — eyebrow, title, slogan, then the page's actions in the same style as Goals, Habits and Wealth; the old care card is this header. */}
     <PillarHero pillar="health" className="health-heading" titleId="health-title" art={<OrbitArt glyph={HealthGlyph} tone="health" spin={14}/>} eyebrow="Your everyday wellbeing" title="A little care, every day." lede={<>{/* Session AV lane 2 (fr-layout, FR-TJ-10; CI, pillar-phone-length): Workouts' own page from the first screen, in the lede's line so a phone's buttons stay as they were */}Your food, water, movement and progress. Your private journal. <Link className="text-link health-hero-workouts" href="/app/health?view=workouts">Workouts →</Link></>} about="health" buttons={<>{/* Session AK RB (RELEASE_REVIEW_2 R2-19): "Log weight" takes the settings link's place among the logging buttons; privacy and backups stay in the text row beside Ask ZIGi ("Back up private data ↗"). */}<button type="button" className={heroNext === "weight" ? "primary" : "secondary"} onClick={() => { setView("Weight"); revealWhenShown("health-weight-entry", true); }}>Log weight</button><button type="button" className={heroNext === "water" ? "primary" : "secondary"} onClick={() => { setView("Diary"); revealWhenShown("water", ["#health-water-amount", "input, select"]); }}>Log water</button><button type="button" className={heroNext === "food" ? "primary" : "secondary"} onClick={() => { setView("Diary"); revealWhenShown("health-entry-action", ['form[aria-label="Log a meal"] select', "select, input, button"]); }}>Log food</button></>}/><LayoutLockButton/>
-    {!phone && <ExerciseCounters data={data} update={update} date={date} />}
+    {!phone && countersShown && <ExerciseCounters data={data} update={update} date={date} />}
     {/* On a phone the title comes first, then the journal date it drives, then the quick counters (desktop keeps
         the counters at the top, Part 18.6, and the date beside the views). */}
     {phone && <div className="health-date-strip">{dateControl}</div>}
-    {phone && <ExerciseCounters data={data} update={update} date={date} />}
+    {phone && countersShown && <ExerciseCounters data={data} update={update} date={date} />}
+    {/* Session AW (simplicity-a): the one teaching line for the cards that have nothing to show yet. */}
+    {(!countersShown || !highlightsShown) && <p className="fine health-teach-line" data-teach="health-start">
+      {!highlightsShown && <><strong>Weight trend</strong> · Your trend and maintenance estimate start with a first weigh-in (Log weight). </>}
+      {!countersShown && <><strong>Quick counters</strong> · Count push-ups, squats or anything else in one tap. <button type="button" className="text-link" onClick={() => setCountersAsked(true)}>Show quick counters</button></>}
+    </p>}
     {/* Phase 2, Part 5 (owner request 33): the highlight tiles — the figures of the trend, energy and coach cards below. */}
-    <LoadBoundary quiet><Suspense fallback={null}><HealthHighlights data={data} today={date} unit={dailyData(data).preferences.weightUnit} /></Suspense></LoadBoundary>
+    {highlightsShown && <LoadBoundary quiet><Suspense fallback={null}><HealthHighlights data={data} today={date} unit={dailyData(data).preferences.weightUnit} /></Suspense></LoadBoundary>}
     <LayoutRegion region="body" items={[
     {id: "health:summary", label: "Today’s nourishment", node: <HealthSummary data={data} date={date} today={today} compact={view !== "Diary"} onDiary={() => setView("Diary")} onTargets={() => setView("Targets")} />},
     // Session AK RB (R2-8): "Nutrition patterns" moved into the Insights view ("Your day, meal by meal" repeated the Diary's meals).

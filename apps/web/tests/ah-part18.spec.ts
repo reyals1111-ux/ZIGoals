@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {showQuickCounters} from './aw-simplicity-helpers';
 import {freshDevice, hydrated, loadShowcase, offlineApi} from './ah-helpers';
 import {afterGoto} from './settings-open';
 
@@ -72,6 +73,8 @@ for (const width of [360, 390]) for (const theme of ['nebula', 'light', 'dark'])
   await freshDevice(page);
   await setTheme(page, theme);
   await page.goto('/app/health'); await hydrated(page);
+  // Session AW (simplicity-a, deliberate): on a journal that never used them, Quick counters wait behind Health's teaching line; they are opened first (showQuickCounters proves they show), then every step and assertion is as before.
+  await showQuickCounters(page);
   const row = page.getByRole('article', {name: 'Push-ups', exact: true}), count = row.getByRole('button', {name: 'Push-ups count, edit'});
   await expect(count).toBeVisible();
   const plus = row.getByRole('button', {name: 'Increase Push-ups'}), before = (await plus.boundingBox())!;
@@ -108,6 +111,8 @@ test('a typed count goes to the chosen Health day', async ({page}) => {
   await freshDevice(page);
   await page.goto('/app/health'); await hydrated(page);
   await page.getByRole('button', {name: 'Previous day', exact: true}).click();
+  // Session AW (simplicity-a, deliberate): on a journal that never used them, Quick counters wait behind Health's teaching line; they are opened first (showQuickCounters proves they show), then every step and assertion is as before.
+  await showQuickCounters(page);
   const row = page.getByRole('article', {name: 'Push-ups', exact: true});
   await row.getByRole('button', {name: 'Push-ups count, edit'}).click();
   const field = row.getByRole('textbox', {name: /^Push-ups count on /});

@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {showQuickCounters} from './aw-simplicity-helpers';
 import {openPhoneRow} from './phone-length-folds';
 
 // Session M, Part A1 (QA2-02): Health and the reminders say a storage refusal the same coded way as Habits, Staking
@@ -22,6 +23,8 @@ const refuse = (page: Page, key: string, name: 'QuotaExceededError' | 'SecurityE
 test('QA2-02: a quick counter tap refused by a full storage gives the coded reason, not a generic line', async ({page}) => {
   await start(page);
   await page.goto('/app/health');
+  // Session AW (simplicity-a, deliberate): on a journal that never used them, Quick counters wait behind Health's teaching line; they are opened first (showQuickCounters proves they show), then every step and assertion is as before.
+  await showQuickCounters(page);
   const counters = page.getByRole('region', {name: 'Every repetition counts.'});
   await expect(counters.getByRole('article', {name: 'Push-ups', exact: true})).toBeVisible();
   await refuse(page, HEALTH, 'QuotaExceededError');
@@ -35,6 +38,8 @@ test('QA2-02: a quick counter tap refused by a full storage gives the coded reas
 test('QA2-02: a quick counter tap refused because site data is blocked says so, with its code', async ({page}) => {
   await start(page);
   await page.goto('/app/health');
+  // Session AW (simplicity-a, deliberate): on a journal that never used them, Quick counters wait behind Health's teaching line; they are opened first (showQuickCounters proves they show), then every step and assertion is as before.
+  await showQuickCounters(page);
   const counters = page.getByRole('region', {name: 'Every repetition counts.'});
   await expect(counters.getByRole('article', {name: 'Squats', exact: true})).toBeVisible();
   await refuse(page, HEALTH, 'SecurityError');
