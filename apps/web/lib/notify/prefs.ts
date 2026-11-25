@@ -59,6 +59,20 @@ export const notifyPrefsSchema = z.looseObject({
    * untouched and simply shows no such line.
    */
   moneyMorning: z.looseObject({onToday: z.literal(true).optional().catch(undefined)}).optional().catch(undefined),
+  /**
+   * Session AW (X1, LEDGER #438; Due's "remind again until done"; TIER 3 (stored format)): the default repeat for every
+   * task reminder of this device ({every, times}: every 5, 10, 15 or 30 minutes, 2 to 10 times), in the app and on the
+   * notifications; a reminder's own `again` wins. Optional and loose; a value this build cannot read is dropped on read; an
+   * older build keeps it untouched and reminds once, as before.
+   */
+  taskAgain: z.looseObject({every: z.union([z.literal(5), z.literal(10), z.literal(15), z.literal(30)]), times: z.number().int().min(2).max(10)}).optional().catch(undefined),
+  /**
+   * Session AW (X1, LEDGER #439; Due's own snooze times; TIER 3 (stored format)): up to six snooze choices of the person's
+   * own (lib/tasks/snooze-choices.ts: `{for}` minutes, or `{at, day}` a time "next", "tomorrow" or on a weekday 0–6), in
+   * a reminder's snooze row; the first is the notification's snooze button. Entries this build cannot read are skipped
+   * where read (lib/tasks/snooze-choices.ts ownSnoozes); an older build keeps the list untouched and offers its usual three.
+   */
+  snoozes: z.array(z.unknown()).max(12).optional().catch(undefined),
   /** Set while notifications are on on this device: a cheap hint so most pages never load the notification code. */
   here: z.boolean().optional(),
 });
@@ -114,4 +128,19 @@ export const energyReminders = (p: NotifyPrefs): EnergyReminders => ({focus: p.e
 export function setEnergyReminder(p: NotifyPrefs, which: keyof EnergyReminders, on: boolean): NotifyPrefs {
   const energy = {...(p.energy ?? {}), [which]: on};
   return notifyPrefsSchema.parse({...p, energy, ...(on ? {types: {...p.types, energy: true}} : {})});
+}
+/** Session AW (X1, LEDGER #438): the device's default repeat for task reminders, or null (each reminder rings once). */
+export const taskAgainOf = (p: NotifyPrefs): {every: 5 | 10 | 15 | 30; times: number} | null => p.taskAgain ? {every: p.taskAgain.every, times: p.taskAgain.times} : null;
+export function setTaskAgain(p: NotifyPrefs, again: {every: number; times: number} | null): NotifyPrefs {
+  const next: Record<string, unknown> = {...p};
+  if (again) next.taskAgain = {every: again.every, times: again.times}; else delete next.taskAgain;
+  const parsed = notifyPrefsSchema.parse(next);
+  if (again && !parsed.taskAgain) throw new Error('Choose every 5, 10, 15 or 30 minutes, 2 to 10 times.');
+  return parsed;
+}
+/** Session AW (X1, LEDGER #439): the person's own snooze choices (null: back to the usual three). */
+export function setSnoozes(p: NotifyPrefs, list: readonly unknown[] | null): NotifyPrefs {
+  const next: Record<string, unknown> = {...p};
+  if (list && list.length) next.snoozes = [...list].slice(0, 6); else delete next.snoozes;
+  return notifyPrefsSchema.parse(next);
 }
