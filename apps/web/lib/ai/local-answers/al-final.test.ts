@@ -106,10 +106,12 @@ describe('5. real places for settings (DV:N-007, DV:N-064, N-LA-08)', () => {
     const nl = typed('Wat zie je van mijn gegevens?', zigiEnv(denver())).text;
     expect(nl).toContain('Settings → ZIGi · your companion → Auto-accept; die groep verschijnt zodra daar een AI aan staat');
   });
-  test('ZIGi\'s Health line names the same two switches NOVA → Permissions shows', () => {
+  // Session AW (p5-answers, FR-S-16, deliberate): ZIGi names the one action NOVA names, Allow Health in NOVA → Permissions
+  // (it turns on both switches at once); as strictly: the same place, said by both.
+  test('ZIGi\'s Health line names the same one action NOVA → Permissions shows', () => {
     // Session AU (D-ALLOW-HEALTH, deliberate): ZIGi's Health-closed reply is the same sentence plus its one button (the open-page card to Settings → ZIGi), still matched whole.
     expect(typed('how much water did i drink today', zigiEnv(lisbon('L1'))).text).toBe(HEALTH_CLOSED + ALLOW_HEALTH_CARD);
-    expect(HEALTH_CLOSED).toContain('They are the same two switches NOVA → Permissions shows.');
+    expect(HEALTH_CLOSED).toContain('Tap Allow Health in NOVA → Permissions');
     const nova = typed('how much water did i drink today', novaEnv(lisbon('L1'))).text;
     // Session AV lane 2 (fr-answers; deliberate, FR-TJ-1): NOVA names the one button that opens all three, Allow Health, as strictly.
     expect(nova).toContain('NOVA → Permissions'); expect(nova).toContain('Tap Allow Health in NOVA → Permissions');

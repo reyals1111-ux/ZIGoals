@@ -860,6 +860,10 @@ export function planAction(action: Action, env: Env): PlanResult {
       // Session AK P4 (FR-2): NOVA's guide, "Build NOVA's brain", from NOVA's "What can you do?".
       if (action.page === 'nova' && action.view === 'setup' && !action.habit && !action.goal && !action.asset) return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: 'Open Build NOVA\'s brain', lines: ['Opens /app/nova/setup', 'Nothing is written'], where: 'Navigation', day: null, estimate: false}, write: () => ({}), undo: null, navigate: {href: '/app/nova/setup', label: 'Build NOVA\'s brain'}}};
       if (action.view === 'setup') return refuse('The brain guide is on NOVA.');
+      // Session AW (p5-answers, FR-S-16; TIER 3, AI tools): NOVA → Permissions, the one place Allow Health opens Health to ZIGi
+      // and NOVA (the Health-closed reply's button). It only opens the panel; the person taps Allow Health there.
+      if (action.page === 'nova' && action.view === 'permissions' && !action.habit && !action.goal && !action.asset) return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: 'Open NOVA → Permissions', lines: ['Opens /app/nova#nova-permissions, where Allow Health is', 'Nothing is written'], where: 'Navigation', day: null, estimate: false}, write: () => ({}), undo: null, navigate: {href: '/app/nova#nova-permissions', label: 'NOVA → Permissions'}}};
+      if (action.view === 'permissions') return refuse('Permissions are on NOVA.');
       if (action.page === 'journal' || action.page === 'agenda' || action.page === 'nova' || action.page === 'notes' || action.page === 'focus' || action.page === 'workouts') {
         const route = NOVA_PAGE_ROUTES[action.page];
         if (action.view || action.habit || action.goal || action.asset) return refuse(`${route.label} opens as it is; ask for that page alone.`);
