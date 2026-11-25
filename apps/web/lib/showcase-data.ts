@@ -111,6 +111,9 @@ import {HEALTH_NUMBERS_KEY} from './health-numbers/store';
 import {showcaseHealthNumbers} from './health-numbers/showcase';
 import {withR3HealthShowcase} from './r3-health-showcase';
 import {withR4HealthShowcase} from './r4-health-showcase';
+import {withAwX5Showcase} from './food-plus/aw-x5-showcase';
+import {withX6BodyShowcase} from './body-extras/showcase';
+import {withX7Showcase} from './money-log/aw-x7-showcase';
 import {SCALES_KEY} from './scales/store';
 import {showcaseScales} from './scales/showcase';
 import {CYCLE_KEY} from './cycle/store';
@@ -290,6 +293,8 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  withAwKcalShowcase(records); // Session AW (kcal): today's Showcase walk with its distance, an easy effort and 180 kcal you entered.
  // Session AW (programmes): one written programme in progress, labelled "(Showcase)" on Guided journeys (lib/guided/showcase.ts).
  records[SHOWCASE_GUIDED_KEY]=JSON.stringify(showcaseGuidedJourneys(day));
+ if(options.aa!==false)withAwX5Showcase(records,day); // Session AW (X5, Paprika): the pea soup's method, made twice with stars, a kept menu, three things at home with use-by days, labelled.
+ withX6BodyShowcase(records,day); // Session AW (X6; #456, #457): two named days ahead and two notes on the Showcase's weigh-ins, labelled.
  records[MUSCLE_RECOVERY_KEY]=JSON.stringify(showcaseMuscleRecovery());
  // Session AJ (item 15, D9): a waiting price alert and one that fired and was seen (lib/price-alerts/showcase.ts).
  records[PRICE_ALERTS_KEY]=JSON.stringify(showcasePriceAlerts(day));
@@ -299,6 +304,7 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  records[ENERGY_KEY]=JSON.stringify(showcaseEnergy(day));
  // Session W Part 12: fictional accounts and debts on this tab's Showcase device (lib/accounts/showcase.ts).
  records[ACCOUNTS_KEY]=JSON.stringify(showcaseAccounts(day));
+ withX7Showcase(records,day); // Session AW X7 (money): two entries in Removed recently, the Music bill ending (3 of 24 left), the credit card's statement days, labelled.
  // Session W Part 14: fictional chess (usernames never sent; the Showcase asks no site) in settings v3 and its device cache.
  {const chess=showcaseChess(day);records[DASHBOARD_SETTINGS_KEY]=JSON.stringify(dashboardSettingsSchema.parse(withSettingsGroup(dashboardSettingsSchema.parse(JSON.parse(records[DASHBOARD_SETTINGS_KEY]??JSON.stringify(emptyDashboardSettings()))),'chess',chess.settings,false)));records[CHESS_CACHE_KEY]=JSON.stringify(chess.cache);}
  // Session W Part 19: four fictional links to reserved example addresses in settings v3 `links`.

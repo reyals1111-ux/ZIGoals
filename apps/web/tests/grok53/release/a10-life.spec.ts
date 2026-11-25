@@ -27,6 +27,16 @@ test('A10-1: Log water and Log food move keyboard focus to the card they scroll 
       // The next Tab goes on from that card, not back to the hero's buttons at the top of the page.
       await page.keyboard.press('Tab');
       expect(await page.evaluate(() => !!document.activeElement?.closest('.health-heading')), `${size.width}: ${name} then Tab`).toBe(false);
+      // Session AW (p5-fixes, FR-S-15; deliberate, as strict): on a phone Log food opens the Log a meal sheet itself, inside
+      // that card (the focus checks above hold in it); Escape closes it and gives the focus back to Log food.
+      if (name === 'Log food' && size === phone) {
+        const sheet = page.getByRole('dialog', {name: 'Log a meal'});
+        await expect(sheet).toBeVisible();
+        await page.keyboard.press('Escape');
+        await expect(sheet).toHaveCount(0);
+        await expect(heroButton(page, 'Log food')).toBeFocused();
+      }
+      if (name === 'Log food' && size === desktop) await expect(page.getByRole('dialog', {name: 'Log a meal'})).toHaveCount(0);
       await page.evaluate(() => scrollTo(0, 0));
     }
   }

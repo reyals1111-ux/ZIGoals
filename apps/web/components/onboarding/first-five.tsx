@@ -8,6 +8,8 @@ import {MONEY_LOG} from '../../lib/money-log/schema';
 import {MEAL_WORDS} from '../../lib/meal-words/schema';
 import {isShown, PAGE_LABEL, withChoice} from '../../lib/pages/visibility';
 import type {PageId} from '../../lib/pages/schema';
+import {ONBOARDING_SETUP} from '../../lib/onboarding-setup';
+import {firstFiveOrder, type FirstFiveStep} from './first-five-order';
 import './first-five.css';
 
 /**
@@ -21,14 +23,20 @@ const closed = () => { try { return window.localStorage.getItem(FIRST_FIVE_KEY) 
 
 export default function FirstFive({goals, habits, meals}: {goals: number; habits: number; meals: number}) {
   // Session AU (ADR-044 F-MEAL): a meal logged in words alone ticks "Log a meal" too (its own device record).
-  const id = useId(), money = useDeviceRecord(MONEY_LOG), mealWords = useDeviceRecord(MEAL_WORDS), [hidden, setHidden] = useState(true), view = usePagesView(), router = useRouter();
+  const id = useId(), money = useDeviceRecord(MONEY_LOG), mealWords = useDeviceRecord(MEAL_WORDS), setup = useDeviceRecord(ONBOARDING_SETUP), [hidden, setHidden] = useState(true), view = usePagesView(), router = useRouter();
   useEffect(() => { setHidden(closed()); }, []);
+  const pool: Record<FirstFiveStep, {done: boolean; label: string; detail: string; href: string; page: PageId}> = {
+    goal: {done: goals > 0, label: 'Set a goal', detail: 'A destination: savings, a skill, a habit streak.', href: '/app/goals/new', page: 'goals'},
+    habit: {done: habits > 0, label: 'Add a habit', detail: 'One small step you repeat.', href: '/app/habits?add=habit', page: 'habits'},
+    meal: {done: meals > 0 || (mealWords.loaded && mealWords.data.entries.length > 0), label: 'Log a meal', detail: 'What you ate, in your own words or by barcode.', href: '/app/health?add=entry', page: 'health'} /* Session AV lane 2 (fr-layout, FR-TJ-6): Quick add's own address, which opens the meal form (#health-entry-action left Health at its top) */,
+    money: {done: money.loaded && money.data.entries.length > 0, label: 'Log an expense or income', detail: 'One amount in or out, kept on this device.' /* Session AV (D20-6): the step's words say what ticks it, a money-log entry */, href: '/app/wealth#log-spending' /* fr-layout, FR-TJ-6: lands on Spending once drawn and opens its form */, page: 'wealth'},
+  };
+  // Session AW Part 3 (simplicity c): the step for what the person came for comes first (Tom's money, Lina's meal, Sanne's
+  // habit), from the focuses the setup recorded; with none, the order is as it was. The same five steps, ticked as before.
+  const focuses = setup.loaded && !setup.unreadable ? setup.data.focuses : [];
   const steps: {done: boolean; label: string; detail: string; href: string | null; page?: PageId}[] = [
     {done: true, label: 'Open Today', detail: 'You are here: your day at a glance.', href: null},
-    {done: goals > 0, label: 'Set a goal', detail: 'A destination: savings, a skill, a habit streak.', href: '/app/goals/new', page: 'goals'},
-    {done: habits > 0, label: 'Add a habit', detail: 'One small step you repeat.', href: '/app/habits?add=habit', page: 'habits'},
-    {done: meals > 0 || (mealWords.loaded && mealWords.data.entries.length > 0), label: 'Log a meal', detail: 'What you ate, in your own words or by barcode.', href: '/app/health?add=entry', page: 'health'} /* Session AV lane 2 (fr-layout, FR-TJ-6): Quick add's own address, which opens the meal form (#health-entry-action left Health at its top) */,
-    {done: money.loaded && money.data.entries.length > 0, label: 'Log an expense or income', detail: 'One amount in or out, kept on this device.' /* Session AV (D20-6): the step's words say what ticks it, a money-log entry */, href: '/app/wealth#log-spending' /* fr-layout, FR-TJ-6: lands on Spending once drawn and opens its form */, page: 'wealth'},
+    ...firstFiveOrder(focuses).map(key => pool[key]),
   ];
   // Session AU (ADR-044 F-1, the rehearsal's Sanne and Max): the setup leaves out of the menu the pages of areas not
   // picked, so a step could open a page that greets the person with "This page is hidden". A step whose page is not in
@@ -41,7 +49,7 @@ export default function FirstFive({goals, habits, meals}: {goals: number; habits
       .catch(() => undefined).finally(() => router.push(href));
   };
   const left = steps.filter(s => !s.done).length;
-  if (hidden || !money.loaded || !mealWords.loaded || left === 0) return null;
+  if (hidden || !money.loaded || !mealWords.loaded || !setup.loaded || left === 0) return null;
   const close = () => { try { window.localStorage.setItem(FIRST_FIVE_KEY, JSON.stringify({version: 1, closed: true})); } catch { /* storage refused: hidden until reload */ } setHidden(true); };
   return <section className="panel first-five" aria-labelledby={`${id}-title`}>
     <p className="eyebrow">YOUR FIRST FIVE</p>

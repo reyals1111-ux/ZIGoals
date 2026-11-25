@@ -59,3 +59,36 @@
 .food-plus-extra-meals .fine, .food-plus-extra-meals .notice { font-size: 14px; margin: 0; overflow-wrap: anywhere; }
 .food-plus-extra-row .actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .food-plus-extra-row .actions button { min-height: 44px; }
+/* Session AW (X5, Paprika; LEDGER #449–#451, #453–#455): the cooking view's amounts, ticks, method beside the step and its
+   timers; the recipe row's stars and last made; the menus and the recipe file. Theme variables only (no new colour);
+   copy 14 px and up, inputs 16 px, targets 44 px; nothing moves. */
+.food-plus-cook-layout { display: grid; gap: 16px; min-width: 0; }
+@media (min-width: 900px) { .food-plus-cook-layout[data-steps] { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; } }
+.food-plus-cook-main, .food-plus-cook-side { display: grid; gap: 12px; min-width: 0; align-content: start; }
+.food-plus-cook-side h4 { margin: 0; font-size: 16px; }
+.food-plus-cook-ingredients, .food-plus-cook-method { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.food-plus-cook-ingredients li { font-size: 15px; overflow-wrap: anywhere; }
+.food-plus-cook-ingredients [data-ticked] { text-decoration: line-through; }
+.food-plus-cook-method button { display: block; width: 100%; min-height: 44px; text-align: left; font-size: 15px; line-height: 1.4; white-space: normal; overflow-wrap: anywhere; padding: 8px 10px; border-radius: 10px; }
+.food-plus-cook-method button[aria-current="step"] { outline: 2px solid var(--pillar-health, #ff74be); outline-offset: -2px; font-weight: 600; }
+.food-plus-cook-gather summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 15px; }
+.food-plus-cook-timers li { font-size: 15px; }
+.food-plus-cook-timers button, .food-plus-step-timer { min-height: 44px; }
+.food-plus-recipe-tools { align-items: center; margin: 4px 0; }
+.food-plus-stars { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; }
+.food-plus-stars select { min-height: 44px; font-size: 16px; }
+.food-plus-stars-shown { font-size: 16px; letter-spacing: 1px; }
+.food-plus-made-line { display: block; font-size: 14px; margin: 2px 0 4px; }
+.food-plus-recipe-sort { margin: 0 0 8px; max-width: 260px; }
+.food-plus-recipe-sort select { min-height: 44px; font-size: 16px; }
+.food-plus-menus, .food-plus-pantry { display: grid; gap: 10px; min-width: 0; }
+.food-plus-menus .fine, .food-plus-pantry .fine { font-size: 14px; margin: 0; overflow-wrap: anywhere; }
+.food-plus-menus button, .food-plus-pantry button { min-height: 44px; }
+.food-plus-pantry input[type="date"], .food-plus-menus input[type="text"], .food-plus-pantry input[type="text"] { min-height: 44px; font-size: 16px; }
+.food-plus-use-soon { display: grid; gap: 4px; margin: 0 0 12px; padding: 10px 12px; border: 1px solid var(--line, #6a9cc342); border-radius: 14px; min-width: 0; }
+.food-plus-use-soon h3 { margin: 0; font-size: 16px; }
+.food-plus-use-soon ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.food-plus-use-soon li { font-size: 15px; overflow-wrap: anywhere; }
+.food-plus-file-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.food-plus-file-list li { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line, #6a9cc342); font-size: 15px; }
+.food-plus-file-list button { min-height: 44px; }

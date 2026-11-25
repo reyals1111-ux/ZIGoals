@@ -73,6 +73,10 @@ export const SAYS: Readonly<Record<string, readonly string[]>> = {
   'awx3-this-morning': ['What would make today great?'], 'awx3-photo-a-day': ['A photo a day'], 'awx3-saved-searches': ['Example · Travel being planned', 'Example · Reading'],
   'awx3-voice-faster': ['2×', '15'], 'awx3-day-pages': ['Morning and evening'],
   'awx1-timers': ['Tasks → More views → Timers'], 'awx1-timer-end': ['Tasks → More views → Timers'], 'awx1-again': ['Remind again', '30'], 'awx1-snooze': ['15 min', 'Tomorrow (09:00)'],
+  'awx4-year': ['2026', '202', '217', 'Walk'], 'awx4-repeat-reached': ['Starts again'],
+  'awx5-use-soon': ['Showcase yoghurt', 'Showcase spinach'], 'awx5-last-made': ['Showcase pea soup', '2', '4'], 'awx5-menu-next-week': ['Soup week (Showcase)', '5'],
+  'awx6-weigh-on': ['71.8 kg', '73.6 kg'], 'awx6-weight-week': ['3', '2'], 'awx6-sleep-goal-period': ['8 h 00 min'], // its two phrasings read 14 and 30 days
+  'awx7-money-removed': ['Phone case', '19'], 'awx7-money-bill-ends': ['Music', '3', '24'], 'awx7-money-card-payment': ['Credit card'],
 };
 
 // Session AV lane 2 (Dutch dates, deliberate): a Dutch answer now writes its dates the Dutch way (exact/period.ts nlDay,

@@ -44,6 +44,8 @@ import {frAnswer} from './fr-answers';
 import {watchedHoldings, watchedWords} from './fr-wallets';
 import {av2BodyAnswer} from './av2-body';
 import {av2RestAnswer} from './av2-rest';
+import {awX4Answer} from './aw-x4';
+import {GOAL_REPEAT} from '../../goals/repeat';
 import {av2MoneyR2Answer} from './av2-money-r2';
 import {av2R3MoneyAnswer} from './av2-r3-money';
 import {av2R4MoneyAnswer} from './av2-r4-money';
@@ -57,10 +59,12 @@ import {av2R5PlanAnswer} from './av2-r5-plan';
 import {av2R6BodyAnswer} from './av2-r6-body';
 import {awProgrammesAnswer} from './aw-programmes';
 import {av2R6MoneyAnswer} from './av2-r6-money';
+import {awX7MoneyAnswer} from './aw-x7-money';
 import {av2R6NotesAnswer} from './av2-r6-notes';
 import {awX3Answer} from './aw-x3';
 import {av2R6PlanAnswer} from './av2-r6-plan';
 import {awX2TasksAnswer} from './aw-x2-tasks';
+import {awX6Answer} from './aw-x6';
 import {awX1Answer, readAwX1Extra} from './aw-x1-due';
 import {av2R4HealthAnswer} from './av2-r4-health';
 import {av2R4PlanAnswer} from './av2-r4-plan';
@@ -81,6 +85,7 @@ import {bodyFiguresHidden, withHiddenFigures} from './av2-hide-figures';
 import {neverTwice} from '../../habit-two-day';
 import {answerQuery, exactQuery, fixedWords, exactTopic, queryArgs, queryLabel, showOf, strictClaim} from './exact';
 import type {Query} from './exact';
+import {awX5Answer, readAwX5Extra} from './aw-x5-paprika';
 
 /**
  * Local answers (Session V Part 3, ADR-014): pure lookups answered on this device from ZIGi's own tools, with no AI and
@@ -287,6 +292,9 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   // countdowns, bills a year, payday, budget targets, running bests, the sleep score, the journal's tags…), from each
   // feature's own pure function, before the exact layer reads their words as another part of life (av-answers.ts).
   // Session AV lane 2 (rest: repeating projects, task versions, calm sound, more nutrients, CSV re-import, mood words).
+  // Session AW (X4, Strides; LEDGER #446, #447): "how did my year go" and how often a goal that starts again was reached,
+  // from the year report and this device's repeat record (lib/ai/local-answers/aw-x4.ts).
+  if (!subject) { const repeat = (() => { try { return typeof window === 'undefined' ? null : readDeviceRecord(getAppStorage(), GOAL_REPEAT).data; } catch { return null; } })(); const own = awX4Answer(question, env, {repeat}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   if (!subject) { const own = av2RestAnswer(question, env, {templates: env.nova?.taskTemplates, plan: env.nova?.taskPlan, nutrientExtras: (env.ak as {nutrientExtras?: never} | null | undefined)?.nutrientExtras}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, batch 2 (sync choices, the look, the scheduled copy): read from this device where there is one.
   if (!subject) { const extra: Av2SyncExtra = (() => { try { if (typeof window === 'undefined') return {}; const storage = getAppStorage(); return {sections: readExtrasSectionsChoice(storage), extrasOn: readExtrasChoice(storage).enabled, look: {theme: readTheme(), darkStyle: readDarkStyle(), font: readLook().font}, backup: readDeviceRecord(storage, BACKUP_REMINDER).data}; } catch { return {}; } })(); const own = av2SyncAnswer(question, env, extra); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
@@ -296,7 +304,11 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   // Session AW (x3; LEDGER #441, #442, #444, #445): this morning's page, a photo a day, saved searches, faster voice notes —
   // before Money's, so a search saved in Notes is never read as a money search (Money keeps "my saved searches").
   if (!subject) { const own = awX3Answer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
+  // Session AW (X5, LEDGER #452, #454, #455; Paprika): use soon from the pantry, when a recipe was last made, next week's menu.
+  if (!subject) { const own = awX5Answer(question, env, readAwX5Extra()); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, batch 2 (Money; Food, reading its device records; Body after AV's, as its builder asked).
+  // Session AW, round 7 X7 (money; Cashew, Money Manager): removed recently, a bill that ends, a card's next payment.
+  if (!subject) { const own = awX7MoneyAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   if (!subject) { const food = (() => { try { return typeof window === 'undefined' ? {} : readFoodSources(getAppStorage()); } catch { return {}; } })(); const own = av2R6MoneyAnswer(question, env) ?? av2R5MoneyAnswer(question, env) ?? av2R4MoneyAnswer(question, env) ?? av2R3MoneyAnswer(question, env) ?? av2MoneyR2Answer(question, env) ?? av2MoneyAnswer(question, env) ?? av2FoodAnswer(question, env, food); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2 (Journal and notes; task attachments, ZIGi's hello, chess): their own answers, before AV's.
   if (!subject) { const own = av2R4MindAnswer(question, env) ?? av2JournalAnswer(question, env) ?? av2RoadmapAnswer(question, env, {attachments: env.taskAttachments ?? null}); /* Session AV lane 2 (loose ends; review b1 #17): the tasks' photo and voice note counts */ if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
@@ -326,6 +338,8 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   // Session AV lane 2, round 6 (Body: calm, meditation days, sleep tonight, bests, a visit's list): after round 5's.
   if (!subject) { const own = av2R6BodyAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2 (fr-answers; FR-S-5, FR-MAX-4, FR-MAX-12): the sleep goal, on time to bed, when a task is, what was finished.
+  // Session AW (X6; #456, #458, #460): a weight on a named day, this week against the last, the sleep goal over 14 or 30 days.
+  if (!subject) { const own = awX6Answer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   if (!subject) { const own = frAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   const strict = exactLocal(question, env, subject, strictClaim);
   if (strict) return strict;

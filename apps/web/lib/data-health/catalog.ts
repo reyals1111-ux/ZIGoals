@@ -1,6 +1,7 @@
 import {DEVICE_KEYS, MODULE_KEYS} from '../export/everything';
 import {PORTFOLIO_KEY} from '../portfolio/schema';
 import {EARN_CATALOG_LABELS} from '../af-earn-keys';
+import {AW_X7_CATALOG_LABELS, MONEY_REMOVED_KEY_LITERAL} from '../aw-x7-money-keys';
 import {AF_CHECKLIST_CATALOG_LABELS} from '../af-checklist-keys';
 import {WALLET_CATALOG_LABELS} from '../af-wallet-keys';
 import {AF_ZIGI_CATALOG_LABELS} from '../af-zigi-keys';
@@ -147,6 +148,7 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   activityExtras: [AV2_CATALOG_LABELS.activityExtras[0], AV2_CATALOG_LABELS.activityExtras[1]],
   noteSearches: [AV2_CATALOG_LABELS.noteSearches[0], AV2_CATALOG_LABELS.noteSearches[1]],
   timers: [AV2_CATALOG_LABELS.timers[0], AV2_CATALOG_LABELS.timers[1]],
+  goalRepeat: [AV2_CATALOG_LABELS.goalRepeat[0], AV2_CATALOG_LABELS.goalRepeat[1]],
 };
 /** Session AM (ADR-038 D18): the one record of which only a part travels, in the words the Data health page shows. */
 export const NOVA_PARTLY_SYNCED_LABEL = 'NOVA: layout and pinned widgets (quick access, persona, names, instructions and side bars stay on this device)';
@@ -158,7 +160,7 @@ export const NOVA_PARTLY_SYNCED_LABEL = 'NOVA: layout and pinned widgets (quick 
 export const DEVICE_SYNCED: Partial<Record<keyof typeof DEVICE_KEYS, {home: Home; area: string; label?: string}>> = {
   accounts: {home: 'sync', area: 'Goals & Wealth'}, milestoneDates: {home: 'sync', area: 'Goals & Wealth'},
   // Part 2 (C1, C4): the encrypted extras sections, on unless turned off in Settings → Sync; Health's only with its consent.
-  goalExtras: {home: 'sync', area: 'Goals'}, averageGoals: {home: 'sync', area: 'Goals'},
+  goalExtras: {home: 'sync', area: 'Goals'}, averageGoals: {home: 'sync', area: 'Goals'}, /* Session AW */ goalRepeat: {home: 'sync', area: 'Goals'}, activityExtras: {home: 'sync-consent', area: 'Health'},
   calculator: {home: 'sync', area: 'Wealth'}, lifeReview: {home: 'sync', area: 'Life review'}, todayCards: {home: 'sync', area: 'Today'}, remindersPlan: {home: 'sync', area: 'Today'},
   habitExtras: {home: 'sync', area: 'Habits'}, routineRun: {home: 'sync', area: 'Habits'}, game: {home: 'sync', area: 'Journey'},
   healthCoach: {home: 'sync-consent', area: 'Health'}, microTargets: {home: 'sync-consent', area: 'Health'}, macroMode: {home: 'sync-consent', area: 'Health'}, aisles: {home: 'sync-consent', area: 'Health'}, measurementsCustom: {home: 'sync-consent', area: 'Health'}, healthVitamins: {home: 'sync-consent', area: 'Health'},
@@ -178,9 +180,14 @@ export const SYNCED: readonly CatalogEntry[] = [
   {key: MODULE_KEYS.health, label: 'Health journal (food, water, activity, sleep, weight)', home: 'sync-consent', area: 'Health'},
   ...DEVICE_NAMES.filter(name => DEVICE_SYNCED[name]).map((name): CatalogEntry => ({key: DEVICE_KEYS[name], label: DEVICE_SYNCED[name]!.label ?? DEVICE_LABELS[name][0], home: DEVICE_SYNCED[name]!.home, area: DEVICE_SYNCED[name]!.area})),
 ];
+/** Session AW (X7, #461): the records the catalogue names that Export everything leaves out on purpose. */
+export const KEPT_NOT_EXPORTED: readonly string[] = [MONEY_REMOVED_KEY_LITERAL];
 export const DEVICE_ONLY: readonly CatalogEntry[] = [
   ...DEVICE_NAMES.filter(name => !DEVICE_SYNCED[name]).map((name): CatalogEntry => ({key: DEVICE_KEYS[name], label: DEVICE_LABELS[name][0], home: 'device', area: DEVICE_LABELS[name][1]})),
   {key: PORTFOLIO_KEY, label: 'Portfolio records', home: 'device', area: 'Portfolio'},
+  // Session AW (X7, #461): Removed recently is kept on this device and named here, but never in Export everything (the
+  // person removed these entries): the one entry of KEPT_NOT_EXPORTED.
+  {key: MONEY_REMOVED_KEY_LITERAL, label: AW_X7_CATALOG_LABELS.moneyRemoved[0], home: 'device', area: AW_X7_CATALOG_LABELS.moneyRemoved[1]},
 ];
 /** Kept on the device outside the key list: vision photos (IndexedDB) and ZIGi's conversations. */
 export const DEVICE_STORES = ['The folder chosen for a scheduled copy (IndexedDB, a handle only, this device)', 'Net-worth sheet documents (IndexedDB, this device only)', 'Food package photos (IndexedDB, this device only)', 'Workout photos (IndexedDB, this device only)', 'Journal photos and audio notes (IndexedDB, this device only)', 'Tasks: photos and voice notes on your tasks (IndexedDB, this device only)', 'Vision photos (IndexedDB, compressed on this device)', 'Progress photos (IndexedDB, compressed on this device)', 'ZIGi\'s conversations (IndexedDB)', 'Notification snapshot, push identity and taps waiting to apply (IndexedDB, this device only)', 'Offline food library (public data, IndexedDB)', 'Your own Spotify client id (IndexedDB, this device only)', 'Barcode lookups and exchange refreshes asked for while offline (IndexedDB, this device only)', 'Meal photos you chose to keep (IndexedDB, this device only)', 'Your Lichess connection (IndexedDB, this device only, never exported)', 'Photos in notes (IndexedDB, this device only)', 'Receipt photos on money entries (IndexedDB, this device only)'] as const;

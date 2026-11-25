@@ -1,7 +1,7 @@
 import {instantAt, wallClock} from '../zone-time';
 import type {Task, TaskReminder, Tasks} from './schema';
 import {heldProject} from './engine';
-import {againAt, againFor, type Again} from './remind-again';
+import {againAt, againFor, repeatInstants, type Again} from './remind-again';
 
 /**
  * Session AL (Part 8, P-LS-68, C-LS-09): task reminders. A reminder is an offset before the task's due time (a task with a
@@ -75,6 +75,19 @@ export function dueReminders(record: Tasks, nowMs: number, zone: string, {window
     if (!ring || ring.at <= nowMs - windowMs) return [];
     return [{task: r.task, at: ring.at, key: `${r.task.id}@${ring.at}`, of: r.of, before: r.before, ...(ring.times ? {round: ring.round, times: ring.times, next: ring.next} : {})}];
   }).filter(r => !dismissed.has(r.key));
+}
+/**
+ * Session AW (X1, LEDGER #438): the next moment a reminder rings — a first ring or a repeat — still ahead, so the rows can
+ * wake exactly then (not at their next half-minute look). Dismissed rings do not matter: the next repeat comes anyway.
+ */
+export function nextRing(record: Tasks, nowMs: number, zone: string, again: {fallback: Again | null; quiet: {from: string; to: string} | null}): number | null {
+  let soonest: number | null = null;
+  for (const r of reminderInstants(record, zone)) {
+    const a = againFor(r.reminder, again.fallback), rings = a ? [r.at, ...repeatInstants(r.at, a, again.quiet, zone)] : [r.at];
+    const ahead = rings.find(t => t > nowMs);
+    if (ahead !== undefined && (soonest === null || ahead < soonest)) soonest = ahead;
+  }
+  return soonest;
 }
 /** The next reminder still ahead (for a "next reminder at …" line and a single timer). */
 export function nextReminder(record: Tasks, nowMs: number, zone: string): number | null {

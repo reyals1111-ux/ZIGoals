@@ -1,4 +1,5 @@
 import {expect,test,type Page} from '@playwright/test';
+import {showQuickCounters} from './aw-simplicity-helpers';
 import {alphaNotice} from './ab-shell';
 import {openFold} from './phone-nav';
 import {DASHBOARD_SETTINGS_KEY,presetSettings} from '../lib/dashboard-settings';
@@ -417,6 +418,8 @@ test.describe('Part 4: Health',()=>{
  const count=(page:Page,name:string)=>page.getByRole('article',{name,exact:true}).locator('.exercise-count');
  test('quick counters: +/− on today, never below zero, and they survive a reload',async({page})=>{
   await page.goto('/app/health');
+  // Session AW (simplicity-a, deliberate): on a journal that never used them, Quick counters wait behind Health's teaching line; they are opened first (showQuickCounters proves they show), then every step and assertion is as before.
+  await showQuickCounters(page);
   const counters=page.getByRole('region',{name:'Every repetition counts.'});await expect(counters).toBeVisible();
   // Above the "A little care, every day." header; on a phone (Session E) the title comes first, then the journal date and the counters.
   const c=(await counters.boundingBox())!,h=(await page.getByRole('heading',{level:1,name:'A little care, every day.'}).boundingBox())!;
@@ -441,6 +444,8 @@ test.describe('Part 4: Health',()=>{
  });
  test('a custom counter can be added, renamed and deleted after confirmation',async({page})=>{
   await page.goto('/app/health');
+  // Session AW (simplicity-a, deliberate): on a journal that never used them, Quick counters wait behind Health's teaching line; they are opened first (showQuickCounters proves they show), then every step and assertion is as before.
+  await showQuickCounters(page);
   await page.getByRole('button',{name:'+ Add counter'}).click();
   const dialog=page.getByRole('dialog',{name:'Add a counter'});await dialog.getByLabel('Counter name').fill('Planks');await dialog.getByRole('radio',{name:'Core'}).check();
   await dialog.getByRole('button',{name:'Add counter'}).click();await expect(dialog).toHaveCount(0);

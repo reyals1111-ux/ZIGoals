@@ -32,6 +32,11 @@ const countTones = (page: Page) => page.addInitScript(() => {
   const make = proto.createOscillator;
   proto.createOscillator = function (this: unknown) { w.__tones++; return make.call(this); };
 });
+/**
+ * Moves the page's clock on to `iso`, firing each timer that falls due once (`fastForward`): hours of the app's
+ * half-minute looks and animation frames one by one would outlast the test, and a toast's own 8 s would pass inside them.
+ */
+const jumpTo = async (page: Page, iso: string) => page.clock.fastForward(Date.parse(iso) - await page.evaluate(() => Date.now()));
 const tones = (page: Page) => page.evaluate(() => (window as unknown as {__tones: number}).__tones);
 
 for (const theme of THEMES) test(`${theme}: a reminder reminds again until Done; own snooze choices`, async ({page, isMobile}) => {
@@ -46,7 +51,7 @@ for (const theme of THEMES) test(`${theme}: a reminder reminds again until Done;
   // Dismissed, it comes back at the next repeat (10 minutes on), with its round and a polite word.
   await rows.getByRole('button', {name: 'Dismiss'}).click();
   await expect(rows).toHaveCount(0);
-  await page.clock.runFor(10 * 60_000);
+  await jumpTo(page, '2026-11-25T08:41:01+01:00');
   await expect(rows.getByRole('listitem')).toHaveCount(1);
   await expect(rows).toContainText('again, 1 of 3');
   await expect(page.getByText('Reminder again (1 of 3): “Call the fictional bank”. Done or Snooze stops it.')).toBeVisible();
@@ -54,15 +59,19 @@ for (const theme of THEMES) test(`${theme}: a reminder reminds again until Done;
   const group = rows.getByRole('group', {name: 'Snooze “Call the fictional bank”'});
   await expect(group.getByRole('button')).toHaveText(['2 h', 'This evening 7:00 PM']);
   await clean(page);
+  // Two hours from the tap (the page's clock runs on between the reads, so the tap lies between them).
+  const before = await page.evaluate(() => Date.now());
   await group.getByRole('button', {name: 'Snooze “Call the fictional bank” for 2 hours'}).click();
-  await expect.poll(async () => (await tasksOf(page))[0]!.snooze?.until).toBe(Date.parse('2026-11-25T10:41:00+01:00'));
+  const after = await page.evaluate(() => Date.now());
+  await expect.poll(async () => (await tasksOf(page))[0]!.snooze?.until ?? 0).toBeGreaterThanOrEqual(before + 7_200_000);
+  expect((await tasksOf(page))[0]!.snooze!.until).toBeLessThanOrEqual(after + 7_200_000);
   await expect(rows).toHaveCount(0);
   // After the snooze it reminds again from there; Done stops it for good.
-  await page.clock.runFor(2 * 3_600_000 + 60_000);
+  await jumpTo(page, '2026-11-25T10:43:00+01:00');
   await expect(rows.getByRole('listitem')).toHaveCount(1);
   await rows.getByRole('button', {name: 'Done'}).click();
   await expect.poll(async () => !!(await tasksOf(page))[0]!.doneAt).toBe(true);
-  await page.clock.runFor(30 * 60_000);
+  await jumpTo(page, '2026-11-25T11:20:00+01:00');
   await expect(rows).toHaveCount(0);
   await page.setViewportSize({width: 320, height: 800});
   expect(await noSideways(page)).toBe(true);
@@ -78,9 +87,9 @@ test('quiet hours hold the repeats; the editor and This week set them; own snooz
   const rows = page.getByRole('list', {name: 'Reminders that have gone off'});
   await rows.getByRole('button', {name: 'Dismiss'}).click();
   // 22:05 falls inside the quiet hours (22:00–08:00): it waits until 08:00.
-  await page.clock.runFor(20 * 60_000);
+  await jumpTo(page, '2026-11-25T22:11:00+01:00');
   await expect(rows).toHaveCount(0);
-  await page.clock.runFor(10 * 3_600_000);
+  await jumpTo(page, '2026-11-26T08:01:00+01:00');
   await expect(rows).toContainText('again, 1 of 2');
   // The task's own repeat in its editor.
   await page.goto('/app/tasks?task=task_fictional-shed'); await settle(page);
@@ -97,11 +106,14 @@ test('quiet hours hold the repeats; the editor and This week set them; own snooz
   await choices.getByLabel('Remind again').selectOption('5');
   await expect.poll(async () => (await prefsOf(page)).taskAgain).toEqual({every: 5, times: 6});
   await expect(choices.getByRole('list', {name: 'The usual snooze choices'})).toContainText('15 min');
-  await choices.getByLabel('Minutes').fill('90');
+  await choices.getByLabel('Minutes', {exact: true}).fill('90');
   await choices.getByRole('button', {name: 'Add the choice'}).click();
-  await choices.getByLabel('Snooze', {exact: true}).selectOption('weekday');
-  await choices.getByLabel('Weekday').selectOption('1');
-  await choices.getByLabel('Time').fill('09:00');
+  // Session AW (integration): a label that wraps a select is named with its options too ("SnoozeFor a length…"), so the
+  // snooze form's selects are found in its own order (the kind, then the weekday) and the time by its exact label.
+  const snoozeForm = choices.getByRole('form', {name: 'Add a snooze choice'});
+  await snoozeForm.getByRole('combobox').first().selectOption('weekday');
+  await snoozeForm.getByRole('combobox').nth(1).selectOption('1');
+  await snoozeForm.getByLabel('Time', {exact: true}).fill('09:00');
   await choices.getByRole('button', {name: 'Add the choice'}).click();
   await expect.poll(async () => (await prefsOf(page)).snoozes).toEqual([{for: 90}, {at: '09:00', day: 1}]);
   await expect(choices.getByRole('list', {name: 'Your snooze choices'})).toContainText('1 h 30 min · on the notification');
@@ -148,7 +160,7 @@ for (const theme of THEMES) test(`${theme}: named timers, several at once; Pause
   await expect(pasta).toHaveText(/^9:[0-5]\d$/);
   await clean(page, strip);
   // Its end: said once, the bell rung (made on the device).
-  await page.clock.runFor(10 * 60_000);
+  await page.clock.fastForward(10 * 60_000);
   await expect(strip).toContainText('Done');
   await expect(page.getByText('Timer done: “Fictional pasta”.')).toBeVisible();
   await expect.poll(() => tones(page)).toBeGreaterThan(0);
@@ -182,7 +194,7 @@ test('a muted bell stays silent; the command menu opens Timers; Motion Off keeps
   const strip = page.getByRole('group', {name: 'Timers running'});
   await expect(strip.locator('.aw-timer-digits')).toHaveText(/^(?:4:00|3:[0-5]\d)$/);
   expect(await strip.evaluate(el => el.getAnimations({subtree: true}).length)).toBe(0);
-  await page.clock.runFor(4 * 60_000 + 2000);
+  await page.clock.fastForward(4 * 60_000 + 2000);
   await expect(strip).toContainText('Done');
   await expect(page.getByText('Timer done: “Fictional tea”.')).toBeVisible();
   expect(await tones(page)).toBe(0);

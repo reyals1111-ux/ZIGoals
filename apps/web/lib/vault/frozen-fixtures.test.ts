@@ -100,6 +100,8 @@ const FROZEN_READERS: Record<string, {module: string; spec: string}> = {
   'zigoals:macro-mode:v1': {module: './health-aa/macro-mode', spec: 'MACRO_MODE'}, 'zigoals:aisles:v1': {module: './health-aa/aisles', spec: 'AISLES_RECORD'},
   'zigoals:measurements-custom:v1': {module: './health-aa/measurements-custom', spec: 'MEASUREMENTS_CUSTOM'},
   'zigoals:health-vitamins:v1': {module: './health-vitamins/schema', spec: 'HEALTH_VITAMINS'},
+  // Session AW: two section records a build before AW does not know (its reader says ABSENT; the section carries them unread).
+  'zigoals:activity-extras:v1': {module: './aw-kcal/activity-extras', spec: 'ACTIVITY_EXTRAS'}, 'zigoals:goal-repeat:v1': {module: './goals/repeat', spec: 'GOAL_REPEAT'},
   // Session AM (ADR-038 D18; TIER 3 (sync)): the NOVA section's two records (#52 and later read NOVA's own record; the
   // stage record is this session's, absent before it).
   [NOVA_KEY]: {module: './nova/store', spec: 'NOVA_STORE'}, [NOVA_STAGE_KEY]: {module: './nova/stage/record', spec: 'NOVA_STAGE'},
@@ -124,6 +126,8 @@ export function frozenFixture() {
     'zigoals:routine-run:v1': {version: 1, run: {version: 1, headId: 'showcase-morning', day: '2026-10-13', step: 1, startedAt: '2026-10-13T07:00:00.000Z', stepStartedAt: '2026-10-13T07:05:00.000Z', done: ['stretch'], skipped: []}},
     'zigoals:aisles:v1': {version: 1, overrides: {'oat milk': 'Dairy & eggs'}},
     'zigoals:health-vitamins:v1': {version: 1, foods: {'health_fixture-oats': {cMg: 0, dUg: 2500, b12Ug: 400}}, entries: {'health_fixture-entry-1': {dUg: 2500}}, targets: {dUg: 15000}},
+    'zigoals:activity-extras:v1': {version: 1, items: {'health_activity-fixture-01': {distanceKm: 4.2, effort: 'easy', kcal: 180}}},
+    'zigoals:goal-repeat:v1': {version: 1, goals: {'9205': {every: 'month', since: '2026-11-01', period: 'month:2026-11', setAt: '2026-11-01T10:00:00.000Z'}}},
   };
   for (const [key, value] of Object.entries(SEEDS)) if (!a.has(key)) a.set(key, JSON.stringify(value));
   // Session AJ (item 35; TIER 3 (stored format) + TIER 3 (auth/sync)): a habit's everyday clock time in the synced habit
@@ -275,7 +279,7 @@ export function frozenFixture() {
   records[MUSIC_MIX_KEY] = JSON.stringify({version: 1, mix: {v: 1, active: true, layers: [{sound: 'rain', level: 0.6}, {sound: 'pad', level: 0.3}]}, master: 40, timerMin: 30, preset: 'wind-down', playOnSilent: false});
   checks.push({key: MUSIC_MIX_KEY, module: './music/mix-store', spec: 'MUSIC_MIX', expect: {timerMin: 30}});
   // Session AK Parts 5 and 7 (TIER 3 (stored format)): five new device-only keys (fictional values).
-  records[BILLS_KEY] = JSON.stringify({version: 1, bills: [{id: 'b1', title: 'Fictional rent', amount: '900.00', currency: 'EUR', cadence: 'monthly', nextDue: '2026-11-01', origin: 'manual', createdAt: '2026-10-27T12:00:00.000Z'}], dismissed: []});
+  records[BILLS_KEY] = JSON.stringify({version: 1, bills: [{id: 'b1', title: 'Fictional rent', amount: '900.00', currency: 'EUR', cadence: 'monthly', nextDue: '2026-11-01', origin: 'manual', createdAt: '2026-10-27T12:00:00.000Z', /* Session AW (#462): a bill that ends */ ends: {after: 24, from: '2025-03-05'}}], dismissed: []});
   checks.push({key: BILLS_KEY, module: './bills/schema', spec: 'BILLS', expect: {'bills.0.amount': '900.00'}});
   records[BUDGETS_KEY] = JSON.stringify({version: 1, budgets: [{id: 'g1', category: 'Food', currency: 'EUR', monthly: '400.00', rollover: true, since: '2026-10', /* Session AV (F-BUDGET-TARGETS): the optional target, read by older builds as an unknown field */ target: {amount: '900.00', by: '2027-03'}, /* Session AV (F-FRESH-MONTH): the optional fresh start, likewise */ freshFrom: '2026-11'}], /* Session AV (F-WATCH): the optional watch list, unknown to older builds */ watch: [{category: 'Dining', currency: 'EUR'}]});
   checks.push({key: BUDGETS_KEY, module: './budgets/schema', spec: 'BUDGETS', expect: {'budgets.0.category': 'Food'}});
@@ -293,7 +297,7 @@ export function frozenFixture() {
   checks.push({key: FOOD_SCANS_KEY, module: './food-scans/schema', spec: 'FOOD_SCANS', expect: {'scans.0.count': 2}});
   records[NUTRIENT_EXTRAS_KEY] = JSON.stringify({version: 1, foods: {'health_fixture-muesli': {magnesiumMg: 90000, zincMg: 2500}}});
   checks.push({key: NUTRIENT_EXTRAS_KEY, module: './health-vitamins/extras', spec: 'NUTRIENT_EXTRAS_RECORD', expect: {'foods.health_fixture-muesli.zincMg': 2500}});
-  records[GROCERY_KEY] = JSON.stringify({version: 1, ticks: {'2026-10-26|oats|g': {on: true, at: '2026-10-27T10:00:00.000Z'}}, pantry: {Salt: '2026-10-27T10:00:00.000Z'}, showFrequent: true});
+  records[GROCERY_KEY] = JSON.stringify({version: 1, ticks: {'2026-10-26|oats|g': {on: true, at: '2026-10-27T10:00:00.000Z'}}, pantry: {Salt: '2026-10-27T10:00:00.000Z'}, showFrequent: true, /* Session AW (#452): a use-by day, an unknown field to older builds */ useBy: {Salt: '2027-10-27'}});
   checks.push({key: GROCERY_KEY, module: './grocery/schema', spec: 'GROCERY_RECORD', expect: {showFrequent: true}});
   records[CALORIE_WEEK_KEY] = JSON.stringify({version: 1, shifts: [-100, -100, -100, -100, 0, 200, 200], rollover: {on: true, maxKcal: 300}});
   checks.push({key: CALORIE_WEEK_KEY, module: './health-aa/calorie-week', spec: 'CALORIE_WEEK', expect: {'rollover.maxKcal': 300}});

@@ -54,6 +54,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'landing-v5-layout.spec.ts', 'motion-arrival.spec.ts', 'nova-stage-am2.spec.ts', 'owner-polish.spec.ts',
     'path-engine.spec.ts', 'phone-folds.spec.ts', 'run11-food-unknown.spec.ts', 'today-v2.spec.ts',
     'trader-tools-aj.spec.ts', 'universe-guided-aj.spec.ts', 'zigi-question-context.spec.ts',
+    'aw-x4-strides.spec.ts', // Session AW: new spec, counted 1 worker-min until measured
   ],
   // Shard 2, 62.0 worker-min.
   [
@@ -70,6 +71,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'journeys/j12-nova.spec.ts', 'landing-v5-equation.spec.ts', 'pillar-phone-length.spec.ts', 'rail-lane-af.spec.ts',
     'safe-screenshot.spec.ts', 'spending-ai.spec.ts', 'theme-parity-af.spec.ts', 'today-earn-card-af.spec.ts',
     'unkept-chat-ak.spec.ts', 'zigi-mini-window.spec.ts', 'zigi-safety.spec.ts',
+    'webkit-aw-flows.spec.ts', // Session AW: new spec, counted 1 worker-min until measured
   ],
   // Shard 3, 62.0 worker-min.
   [
@@ -87,6 +89,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'run10-widget-overview.spec.ts', 'run11-route-mobile-acceptance.spec.ts', 'timeline-everyday-aj.spec.ts',
     'wealth.spec.ts', 'webkit-add-money.spec.ts', 'zigi-chat-backdrop.spec.ts', 'zigi-earn-coach-af.spec.ts',
     'zigi-real-model.spec.ts', 'zigi-send-focus.spec.ts',
+    'aw-simplicity-c.spec.ts', // Session AW: new spec, counted 1 worker-min until measured
   ],
   // Shard 4, 61.9 worker-min.
   [
@@ -128,6 +131,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'run10-motion.spec.ts', 'run11-goal-draft.spec.ts', 'slogan-gap-af.spec.ts', 'stories-af.spec.ts',
     'unified-goals.spec.ts', 'wealth-v2.spec.ts', 'zigi-history-undo.spec.ts', 'zigi-local-answers.spec.ts',
     'zigi-proactive.spec.ts',
+    'aw-x5-paprika.spec.ts', // Session AW: new spec, counted 1 worker-min until measured
   ],
   // Shard 6, 62.0 worker-min.
   [
@@ -146,6 +150,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'reminders.spec.ts', 'revb1-task-timer.spec.ts', 'rewards-sweep.spec.ts', 'run10-barcode.spec.ts', 'run9.spec.ts',
     'sign-out-others.spec.ts', 'today-phone-folds.spec.ts', 'wealth-chips-af.spec.ts', 'zigi-part-boundary.spec.ts',
     'zigi-photo.spec.ts', 'zigi-states.spec.ts',
+    'aw-x6-body-sleep.spec.ts', // Session AW: new spec, counted 1 worker-min until measured
   ],
   // Shard 7, 62.0 worker-min.
   [
@@ -165,6 +170,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'persona-z.spec.ts', 'phone-form-sheets.spec.ts', 'private-read-delay.spec.ts', 'revb1-delete-versions.spec.ts',
     'revb1-note-reminders.spec.ts', 'run11-goal-history.spec.ts', 'run11-large-goal-collection.spec.ts',
     'run9-1.spec.ts', 'wiring-habits.spec.ts', 'zigi-checklist-af.spec.ts', 'zigi-day-in-the-life.spec.ts',
+    'aw-x7-money.spec.ts', // Session AW: new spec, counted 1 worker-min until measured
   ],
   // Shard 8, 61.9 worker-min.
   [
@@ -205,6 +211,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'run11-goal-options-pointer.spec.ts', 'settings-groups.spec.ts', 'small-features-y.spec.ts',
     'today-empty-copy.spec.ts', 'ui-evidence.spec.ts', 'wiring-2-r2.spec.ts', 'workouts-import-aj.spec.ts',
     'zigi-face-z.spec.ts', 'zigi-page-awareness-af.spec.ts',
+    'aw-simplicity-a.spec.ts', // Session AW: new spec, counted 1 worker-min until measured
   ],
   // Shard 10, 62.0 worker-min.
   [
@@ -223,6 +230,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'restore-backup.spec.ts', 'run10-widgets-status.spec.ts', 'run11-nutrients.spec.ts', 'staking-errors.spec.ts',
     'staking-tabs.spec.ts', 'switch-import.spec.ts', 'switch-more-ak.spec.ts', 'touch-targets.spec.ts',
     'wiring-2-nova-cards.spec.ts', 'wiring-2-photo-send.spec.ts',
+    'aw-simplicity-b.spec.ts', // Session AW: new spec, counted 1 worker-min until measured
   ],
   // Shard 11, 62.0 worker-min.
   [
@@ -241,6 +249,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'sidebar-sky-af.spec.ts', 'storage-health-wording.spec.ts', 'validator-health.spec.ts', 'wallet-menu.spec.ts',
     'whats-new.spec.ts', 'xpub-watch-aj.spec.ts', 'zigi-aa.spec.ts', 'zigi-auto-accept.spec.ts',
     'zigi-composer-switch.spec.ts', 'zigi-knock.spec.ts',
+    'aw-p5-fixes.spec.ts', // Session AW: new spec, counted 1 worker-min until measured
   ],
   // Shard 12, 62.0 worker-min.
   [
@@ -260,6 +269,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'run11-recovery-failures.spec.ts', 'showcase-export-guard.spec.ts', 'staking-page.spec.ts',
     'today-folds-memory.spec.ts', 'today-roles-af.spec.ts', 'wiring-health.spec.ts', 'wiring-review.spec.ts',
     'zigi-alive.spec.ts',
+    'aw-offline.spec.ts', // Session AW: new spec, counted 1 worker-min until measured
   ],
   // Shard 13, 62.0 worker-min.
   [
@@ -427,7 +437,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
 ];
 
 /** Measured worker-minutes per list (the comments above); a new spec goes to the smallest. */
-export const MAIN_SHARD_MINUTES: readonly number[] = [62.0, 62.0, 62.0, 62.9, 62.0, 62.0, 62.0, 62.9, 62.0, 62.0, 62.0, 62.0, 62.0, 62.9, 62.9, 62.9, 62.9, 62.0, 62.0, 62.0];
+export const MAIN_SHARD_MINUTES: readonly number[] = [63.0, 63.0, 63.0, 62.9, 63.0, 63.0, 63.0, 62.9, 63.0, 63.0, 63.0, 63.0, 62.0, 62.9, 62.9, 62.9, 62.9, 62.0, 62.0, 62.0];
 
 /** Every spec under `testsDir` that the main suite selects (all but the accessibility sweep), relative, sorted. */
 export function mainSpecFiles(testsDir: string): string[] {

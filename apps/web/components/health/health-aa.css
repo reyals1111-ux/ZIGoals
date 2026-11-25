@@ -378,3 +378,7 @@ details[open] > summary.health-fold-button { margin-bottom: 10px; }
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
   :root .health-content > details.panel:not([open]) { padding-block: 0; margin-bottom: 8px; }
 }
+/* Session AW (simplicity-a; owner brief Part 3): the one teaching line that stands in for Quick counters and the highlight
+   tiles while they have nothing to show; its button is a full 44 px target. No new colours. */
+.health-page > .health-teach-line { margin: 14px 0 4px; max-width: 72ch; }
+.health-teach-line button.text-link { min-height: 44px; font-size: inherit; }

@@ -7842,8 +7842,8 @@
   "freshNl": "De prognose heeft een betaal- of spaarrekening met saldo nodig (What you have → Accounts). Dan rekent Vermogen → Uitgaven → Money tools → de kasprognose 60 dagen, 6 of 12 maanden vooruit."
  },
  "av2r3-money-credit-card": {
-  "en": "Credit card: no limit kept yet (its Sheet keeps one). From the numbers you typed.",
-  "nl": "Credit card: nog geen limiet bewaard (het Sheet bewaart er een). Uit de getallen die je invulde.",
+  "en": "Credit card: no limit kept yet (its Sheet keeps one); statement Sat, Dec 5; due Wed, Nov 25. From the numbers you typed.",
+  "nl": "Credit card: nog geen limiet bewaard (het Sheet bewaart er een); afschrift za 5 dec; te betalen wo 25 nov. Uit de getallen die je invulde.",
   "facts": null,
   "widgets": [],
   "fresh": "You have no credit card in What you owe. Add one as a credit card account, then its Sheet keeps its limit, statement day and due day.",
@@ -9232,5 +9232,93 @@
   "widgets": [],
   "fresh": "A reminder offers the usual three: 15 min, 1 h and Tomorrow (09:00); a notification says “Snooze 1 h”. Add up to six of your own — a length, this evening at a time, tomorrow at a time, or a weekday — in Tasks → This week → Reminders; the first one goes on the notification.",
   "freshNl": "Een herinnering biedt de gewone drie: 15 min, 1 uur en Tomorrow (09:00); een melding zegt “Snooze 1 h”. Voeg er tot zes van jezelf toe — een duur, vanavond om een tijd, morgen om een tijd, of een weekdag — in Tasks → This week → Reminders; de eerste staat op de melding."
+ },
+ "awx4-year": {
+  "en": "Your 2026 so far (1 January to today), from your own records:\n• Habits: 202 of 217 check-ins done.\n• Longest runs: “Walk” 27 days, “Contribute” 27 days and “Read” 26 days.\n• Goals, start → now of their target: “Emergency fund” new this year → 45%, “First home deposit” new this year → 65%, “Japan adventure” new this year → 41% and “My first 0.1 BTC” new this year → 100%, and 2 more.\nCounts only, never a grade. Life review → This year shows it by life area.",
+  "nl": "Je 2026 tot nu toe (1 januari tot vandaag), uit je eigen gegevens:\n• Gewoontes: 202 van 217 check-ins gedaan.\n• Langste reeksen: “Walk” 27 dagen, “Contribute” 27 dagen en “Read” 26 dagen.\n• Doelen, begin → nu van hun doel: “Emergency fund” nieuw dit jaar → 45%, “First home deposit” nieuw dit jaar → 65%, “Japan adventure” nieuw dit jaar → 41% en “My first 0.1 BTC” nieuw dit jaar → 100%, en nog 2.\nAlleen tellingen, nooit een cijfer. Life review → This year toont het per levensgebied.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing to count for 2026 yet. Check in a habit or follow a goal; Life review → This year then counts each one by life area.",
+  "freshNl": "Nog niets te tellen voor 2026. Vink een gewoonte af of volg een doel; Life review → This year telt dan elk ervan per levensgebied."
+ },
+ "awx4-repeat-reached": {
+  "en": "None of your goals starts again each week yet, so there are no periods to count. On a count goal of your own unit (books, pages) or a project, its page → Starts again chooses each week, month or year; each period’s result is then kept as a row.",
+  "nl": "Nog geen van je doelen begint opnieuw elke week, dus er zijn geen periodes om te tellen. Op een telling in je eigen eenheid (boeken, pagina’s) of een project kies je op de pagina van het doel → Starts again: elke week, maand of jaar; het resultaat van elke periode blijft dan als rij bewaard.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "None of your goals starts again each week yet, so there are no periods to count. On a count goal of your own unit (books, pages) or a project, its page → Starts again chooses each week, month or year; each period’s result is then kept as a row.",
+  "freshNl": "Nog geen van je doelen begint opnieuw elke week, dus er zijn geen periodes om te tellen. Op een telling in je eigen eenheid (boeken, pagina’s) of een project kies je op de pagina van het doel → Starts again: elke week, maand of jaar; het resultaat van elke periode blijft dan als rij bewaard."
+ },
+ "awx5-use-soon": {
+  "en": "From what is at home, use these first (within three days, then past their day):\n• Showcase yoghurt: use by tomorrow\n• Showcase spinach: past its use-by day, yesterday\nFrom the use-by days you set in Health → Planner → Grocery list; the food itself is yours to check too.",
+  "nl": "Van wat je in huis hebt, maak deze eerst op (binnen drie dagen, dan over de datum):\n• Showcase yoghurt: uiterlijk morgen\n• Showcase spinach: over de datum, sinds gisteren\nUit de uiterste datums die je zette in Health → Planner → Grocery list; kijk zelf ook naar het eten.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is marked as at home yet (“I have this” on the grocery list). Set a use-by day in Health → Planner → Grocery list → Already at home.",
+  "freshNl": "Er staat nog niets als “in huis” (“I have this” op de boodschappenlijst). Zet een uiterste datum in Health → Planner → Grocery list → Already at home."
+ },
+ "awx5-last-made": {
+  "en": "You last made Showcase pea soup on Thu, Nov 12: 2 times in all, from your food diary and “Made it” in the cooking view. Your stars: 4 of 5.",
+  "nl": "Je maakte Showcase pea soup voor het laatst op do 12 nov: 2 keer in totaal, uit je eetdagboek en “Made it” in de kookweergave. Jouw sterren: 4 van de 5.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No recipe called “pea soup” is in your recipes, so I can’t say when you made it. Save it in Health → Foods & recipes; then the days you log it or tap “Made it” while cooking are counted.",
+  "freshNl": "Er staat geen recept “voor het laatst pea soup” in je recepten, dus ik weet niet wanneer je het maakte. Bewaar het in Health → Foods & recipes; dan tellen de dagen dat je het logt of tijdens het koken op “Made it” tikt."
+ },
+ "awx5-menu-next-week": {
+  "en": "Nothing is planned for next week yet (Mon, Nov 23 – Sun, Nov 29). Menus you kept: Soup week (Showcase) (5 meals on 5 days). Place one on a week in Health → Planner → Menus.",
+  "nl": "Er is nog niets gepland voor volgende week (ma 23 nov – zo 29 nov). Menu’s die je bewaarde: Soup week (Showcase) (5 maaltijden op 5 dagen). Zet er een op een week in Health → Planner → Menus.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is planned for next week yet (Mon, Nov 23 – Sun, Nov 29). No menu is kept yet: plan a week you like, then keep it by name in Health → Planner → Menus.",
+  "freshNl": "Er is nog niets gepland voor volgende week (ma 23 nov – zo 29 nov). Er is nog geen menu bewaard: plan een week die je bevalt en bewaar die met een naam in Health → Planner → Menus."
+ },
+ "awx6-weigh-on": {
+  "en": "If the last 4 weeks’ pace continued, your trend would be about 71.8 kg on Fri, Jan 1, 2027: 73.6 kg now, −0.3 kg a week, 6.4 weeks. An estimate, not medical advice, and not a promise.",
+  "nl": "Als het tempo van de afgelopen 4 weken zo doorging, zou je trend op vr 1 jan 2027 ongeveer 71,8 kg zijn: nu 73,6 kg, −0,3 kg per week, 6,4 weken. Een schatting, geen medisch advies en geen belofte.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "There is no 4-week pace yet to estimate Fri, Jan 1, 2027 from: it needs weigh-ins at least seven days apart in the last 4 weeks.",
+  "freshNl": "Er is nog geen tempo over 4 weken om vr 1 jan 2027 uit te schatten: daarvoor zijn wegingen nodig die minstens zeven dagen uit elkaar liggen, in de afgelopen 4 weken."
+ },
+ "awx6-weight-week": {
+  "en": "Not enough weigh-ins yet to compare this week with the week before: it needs 3 or more in each 7 days (this week 2, the week before 2).",
+  "nl": "Nog niet genoeg wegingen om deze week met de week ervoor te vergelijken: daarvoor zijn er 3 of meer per 7 dagen nodig (deze week 2, de week ervoor 2).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Not enough weigh-ins yet to compare this week with the week before: it needs 3 or more in each 7 days (this week 0, the week before 0).",
+  "freshNl": "Nog niet genoeg wegingen om deze week met de week ervoor te vergelijken: daarvoor zijn er 3 of meer per 7 dagen nodig (deze week 0, de week ervoor 0)."
+ },
+ "awx6-sleep-goal-period": {
+  "en": "Your sleep goal over the last 14 days: 6 h 56 min asleep on average, against your goal of 8 h 00 min; 1 of 12 logged nights at or above it. Bedtime on average 11:27 PM, 0 h 03 min before the end of your window (11:30 PM); 7 of 12 nights inside 10:30 PM–11:30 PM. From your own logged nights; Health → Sleep → Your sleep goal shows it. Your goal under Goals, “Sleep 8 hours a night”, is on Goals.",
+  "nl": "Je slaapdoel over de afgelopen 14 dagen: gemiddeld 6 h 56 min geslapen, tegen je doel van 8 h 00 min; 1 van 12 gelogde nachten haalden het of meer. Bedtijd gemiddeld 23:27, 0 h 03 min vóór het einde van je venster (23:30); 7 van 12 nachten binnen 22:30–23:30. Uit je eigen gelogde nachten; Health → Sleep → Your sleep goal toont het. Je doel onder Goals, “Sleep 8 hours a night”, staat bij Goals.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no sleep goal yet: set one in Health → Sleep → Your sleep goal, and I answer from it and your logged nights over the last 14 days.",
+  "freshNl": "Je hebt nog geen slaapdoel: stel er een in bij Health → Sleep → Your sleep goal, dan antwoord ik uit dat doel en je gelogde nachten van de afgelopen 14 dagen."
+ },
+ "awx7-money-removed": {
+  "en": "2 entries removed in the last 30 days: Phone case €19.90 (Sat, Nov 14) and Bakery (logged twice) €6.40 (Sat, Nov 7). Put any of them back in Wealth → Spending → Removed recently; each is kept 30 days and counts in no figure meanwhile.",
+  "nl": "2 boekingen verwijderd in de laatste 30 dagen: Phone case € 19,90 (za 14 nov) en Bakery (logged twice) € 6,40 (za 7 nov). Zet ze terug via Vermogen → Uitgaven → Removed recently; elke boeking blijft 30 dagen en telt intussen nergens mee.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing removed in the last 30 days. An entry you remove in Wealth → Spending stays in Wealth → Spending → Removed recently for 30 days, so you can put it back.",
+  "freshNl": "Niets verwijderd in de laatste 30 dagen. Een boeking die je verwijdert in Vermogen → Uitgaven blijft 30 dagen in Vermogen → Uitgaven → Removed recently, zodat je hem kunt terugzetten."
+ },
+ "awx7-money-bill-ends": {
+  "en": "Bills with an end: Music: 3 of 24 payments left, the last on Sun, Feb 14, 2027 (€9.99 each).",
+  "nl": "Rekeningen met een einde: Music: nog 3 van 24 betalingen, de laatste op zo 14 feb 2027 (€ 9,99 per keer).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No bills are kept yet. Set when a bill ends in Wealth → Upcoming bills → Bill tracker → Edit: after a number of payments or on a date; after its last payment it leaves Upcoming, the calendar and the reminders.",
+  "freshNl": "Er zijn nog geen rekeningen. Stel in wanneer een rekening stopt via Vermogen → Komende rekeningen → Bill tracker → Edit: na een aantal betalingen of op een datum; na de laatste betaling verdwijnt hij uit Upcoming, de kalender en de herinneringen."
+ },
+ "awx7-money-card-payment": {
+  "en": "Credit card: not known yet — no entry in your money log is on this card (entries from its bank file, or marked “Paid with: credit card” while it is your only card in USD, count). Worked out from your own entries on the card, less the payments you recorded; a fact, not advice.",
+  "nl": "Credit card: nog niet bekend — geen boeking in je geldlog staat op deze kaart (boekingen uit het bankbestand, of met “Paid with: credit card” zolang het je enige kaart in USD is, tellen mee). Berekend uit je eigen boekingen op de kaart, min de betalingen die je noteerde; een feit, geen advies.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No credit card is kept in Wealth → Accounts yet. Add one with its statement and due days to see its next payment worked out from your own entries.",
+  "freshNl": "Er staat nog geen creditcard in Vermogen → Rekeningen. Voeg er een toe met de afschrift- en betaaldag om de volgende betaling te zien, berekend uit je eigen boekingen."
  }
 }

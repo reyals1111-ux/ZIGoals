@@ -1,3 +1,5 @@
+import {join} from 'node:path';
+import {readFileSync} from 'node:fs';
 import {expect, test, type Page} from '@playwright/test';
 import {axe, THEMES, applyTheme, type Theme} from './p6-helpers';
 import {freshDevice, hydrated, offlineApi} from './ah-helpers';
@@ -35,26 +37,27 @@ async function start(page: Page, theme: Theme | null, isMobile: boolean) {
   await offlineApi(page);
   await freshDevice(page);
 }
-/** The journal's media store with photos and one voice note: a generated 40-second WAV (8 kHz, a quiet tone). */
+/**
+ * The journal's media store with photos and one voice note. Session AW (x3, deliberate; CI run 2033): the voice note is a
+ * real 40-second WebM/Opus recording of a test tone (tests/fixtures/media/voice-tone-40s.webm, made once with Chromium's
+ * MediaRecorder, as the app records), in place of a generated WAV stored as audio/webm, which Chrome would not load.
+ */
 async function seedMedia(page: Page, photos: string[], audio: string | null) {
-  await page.evaluate(async ([png, photoIds, audioId, at]) => {
+  const voiceB64 = audio ? readFileSync(join(__dirname, 'fixtures', 'media', 'voice-tone-40s.webm')).toString('base64') : '';
+  await page.evaluate(async ([png, photoIds, audioId, at, voice64]) => {
     const bytes = Uint8Array.from(atob(png as string), c => c.charCodeAt(0));
-    const wav = (() => {
-      const rate = 8000, seconds = 40, n = rate * seconds, buf = new ArrayBuffer(44 + n), v = new DataView(buf), w = (o: number, s: string) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
-      w(0, 'RIFF'); v.setUint32(4, 36 + n, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, rate, true); v.setUint32(28, rate, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true); w(36, 'data'); v.setUint32(40, n, true);
-      for (let i = 0; i < n; i++) v.setUint8(44 + i, 128 + Math.round(8 * Math.sin(i / 10)));
-      return new Uint8Array(buf);
-    })();
+    const voice = audioId ? new Blob([Uint8Array.from(atob(voice64 as string), c => c.charCodeAt(0))], {type: 'audio/webm'}) : null;
     const db = await new Promise<IDBDatabase>((resolve, reject) => { const r = indexedDB.open('zigoals-journal-media-v1', 1); r.onupgradeneeded = () => r.result.createObjectStore('media'); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); });
     await new Promise<void>((resolve, reject) => {
       const t = db.transaction('media', 'readwrite'), s = t.objectStore('media');
       for (const id of photoIds as string[]) s.put({kind: 'photo', blob: new Blob([bytes], {type: 'image/webp'}), type: 'image/webp', bytes: bytes.length, at}, `local:${id}`);
-      // The store keeps the recorder's containers; the browser plays the WAV inside by what it holds.
-      if (audioId) s.put({kind: 'audio', blob: new Blob([wav], {type: 'audio/webm'}), type: 'audio/webm', bytes: wav.length, seconds: 40, at}, `local:${audioId}`);
+      if (audioId && voice) s.put({kind: 'audio', blob: voice, type: 'audio/webm', bytes: voice.size, seconds: 40, at}, `local:${audioId}`);
       t.oncomplete = () => { db.close(); resolve(); }; t.onerror = () => reject(t.error);
     });
-  }, [PNG, photos, audio, AT] as const);
+  }, [PNG, photos, audio, AT, voiceB64] as const);
 }
+/** A length on the player's clock (whole seconds, rounded down), as lib/journal/voice-speed.ts `clock` writes it. */
+const clockOf = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds) % 60).padStart(2, '0')}`;
 
 test('Morning and evening: the morning page, then the evening page with this morning’s answers, as one entry', async ({page, isMobile}) => {
   await start(page, 'nebula', isMobile);
@@ -99,7 +102,7 @@ test('Morning and evening: the morning page, then the evening page with this mor
 });
 
 test('a voice note faster, 15 seconds either way, and the photo of the day in its month', async ({page, isMobile}) => {
-  test.skip(page.context().browser()?.browserType().name() !== 'chromium', 'the generated WAV is played by Chromium');
+  test.skip(page.context().browser()?.browserType().name() !== 'chromium', 'the WebM/Opus recording is played by Chromium');
   await start(page, 'light', isMobile);
   await page.evaluate(k => localStorage.setItem(k, JSON.stringify({version: 1, shareWithAi: false, followUps: false, entries: [
     {id: 'e1', date: '2026-11-03', text: 'A fictional walk by the sea.', createdAt: '2026-11-03T18:00:00.000Z', photos: ['m-photo0001']},
@@ -108,13 +111,18 @@ test('a voice note faster, 15 seconds either way, and the photo of the day in it
   await page.goto('/app/journal'); await hydrated(page);
   const row = page.locator('ol.journal-entries > li').filter({hasText: 'market morning'});
   const player = row.getByRole('group', {name: /^Voice note of .*, 0:40$/});
-  await expect(player.locator('.voice-player-time')).toHaveText('0:00 of 0:40');
+  const audioEl = player.locator('audio');
   await expect(player.getByRole('button', {name: '1×', exact: true})).toHaveAttribute('aria-pressed', 'true');
   // 1.5×, kept on this device for every voice note.
   await player.getByRole('button', {name: '1.5×'}).click();
   await expect.poll(async () => (await read<{voiceSpeed?: number}>(page, JOURNAL_DISPLAY_KEY))?.voiceSpeed).toBe(1.5);
-  await expect.poll(() => player.locator('audio').evaluate(a => (a as HTMLAudioElement).playbackRate)).toBe(1.5);
-  await expect.poll(() => player.locator('audio').evaluate(a => (a as HTMLAudioElement).readyState)).toBeGreaterThanOrEqual(1);
+  await expect.poll(() => audioEl.evaluate(a => (a as HTMLAudioElement).playbackRate)).toBe(1.5);
+  await expect.poll(() => audioEl.evaluate(a => (a as HTMLAudioElement).readyState)).toBeGreaterThanOrEqual(1);
+  // The browser's "Infinity" of a recording is measured once, so the whole is the recording's real length.
+  await expect.poll(() => audioEl.evaluate(a => Number.isFinite((a as HTMLAudioElement).duration) && (a as HTMLAudioElement).duration > 0)).toBe(true);
+  const whole = clockOf(await audioEl.evaluate(a => (a as HTMLAudioElement).duration));
+  await expect(player.locator('.voice-player-time')).toHaveText(`0:00 of ${whole}`);
+  expect(whole).toBe('0:40');
   await player.getByRole('button', {name: 'Forward 15 seconds'}).click();
   await expect(player.locator('.voice-player-time')).toHaveText('0:15 of 0:40');
   await player.getByRole('button', {name: 'Forward 15 seconds'}).click();
@@ -167,11 +175,14 @@ test('a Notes search narrowed by a tag, kept by name, opened in one tap, renamed
   await search.getByLabel('Search', {exact: true}).fill('trip');
   await expect(search.locator('.note-results > li')).toHaveCount(2); // never the locked note's words
   await search.locator('details.note-narrow-fold > summary').click();
-  await search.getByLabel('Tag', {exact: true}).selectOption('travel');
+  await expect(search.locator('details.note-narrow-fold')).toHaveAttribute('open', '');
+  // Session AW (x3, deliberate; CI run 2033): a label around a select holds its options' words too ("TagAny tag#travel"),
+  // so the Tag field is found by the start of its label, not by the exact word.
+  await search.getByLabel(/^Tag/).selectOption('travel');
   await expect(search.locator('.note-results > li')).toHaveCount(1);
   await expect(search.locator('.note-results')).toContainText('Fictional trip ideas');
   await serious(page, search);
-  await search.getByLabel('Keep this search as').fill('Trip ideas');
+  await search.getByRole('textbox', {name: 'Keep this search as'}).fill('Trip ideas');
   await search.getByRole('button', {name: 'Keep this search', exact: true}).click();
   await expect.poll(async () => (await read<{searches: {name: string; words?: string; tag?: string}[]}>(page, NOTE_SEARCHES_KEY))?.searches).toEqual([expect.objectContaining({name: 'Trip ideas', words: 'trip', tag: 'travel'})]);
   // Cleared, then opened again in one tap.

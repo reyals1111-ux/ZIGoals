@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {showQuickCounters} from '../../aw-simplicity-helpers';
 import {createHabit, emptyDevice, open, toast} from '../l3-helpers';
 import {loadShowcase} from '../../ah-helpers';
 import {healthView} from '../health/al-health-helpers';
@@ -76,6 +77,8 @@ test('Health (D-222, D-076): "+" keeps its fill on hover, an empty counter says 
   await page.setViewportSize(desktop);
   await emptyDevice(page, {theme: 'nebula'});
   await open(page, '/app/health');
+  // Session AW (simplicity-a, deliberate): on a journal that never used them, Quick counters wait behind Health's teaching line; they are opened first (showQuickCounters proves they show), then every step and assertion is as before.
+  await showQuickCounters(page);
   const pullUps = page.getByRole('article', {name: 'Pull-ups', exact: true});
   await expect(pullUps.locator('.exercise-count')).toContainText('none yet');
   await expect(pullUps.locator('.exercise-count')).not.toContainText('—');

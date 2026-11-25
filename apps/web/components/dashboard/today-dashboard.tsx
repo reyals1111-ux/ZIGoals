@@ -282,8 +282,8 @@ export function TodayDashboard(){
   if(!anchor)return;
   await change(s=>moveDashboardItem(s,ref,{region,anchor,position:after?'before':'after'},placement.revision),`${refLabel(ref)} moved. Layout saved on this device.`);
  }
- const regionItems=(region:DashboardRegion):LayoutEntry[]=>{
-  const entries=placement[region].flatMap((ref,index):(LayoutEntry&{group:TodayGroup})[]=>{const node=renderPlaced(ref,region,index);return node?[{id:layoutId(ref),label:refLabel(ref),node,group:todayGroup(ref,view.widgets)}]:[];});
+ const regionItems=(region:DashboardRegion,skip?:DashboardItemRef):LayoutEntry[]=>{
+  const entries=placement[region].flatMap((ref,index):(LayoutEntry&{group:TodayGroup})[]=>{if(skip&&layoutId(skip)===layoutId(ref))return [];const node=renderPlaced(ref,region,index);return node?[{id:layoutId(ref),label:refLabel(ref),node,group:todayGroup(ref,view.widgets)}]:[];});
   // Session AA-Cloud Part 1: small group headings while Today keeps its default order and is not being arranged; a
   // person's own arrangement is shown exactly as saved, without headings.
   // The heading opens its group's first card (it is never a movable item of its own).
@@ -327,7 +327,12 @@ export function TodayDashboard(){
    // Session AE (Part 6, ADR-027): the same card, with the wallet chooser and the display currency (components/wallet/wallet-card.tsx).
    case 'wallet':return financial&&chainChosen?<WalletCard plainWords={plainWords}/>:null;
    case 'staking':return financial&&chainChosen?<StakingCard/>:null;
-   case 'destination':return financial?<section className="destination-panel" aria-labelledby="destination-title"><div><p className="eyebrow">{activeCount?'Your destinations':'Start with what matters'}</p><h2 id="destination-title"><NebulaFlow identity="today-destination-title">{activeCount?`${activeCount} ${activeCount===1?'goal':'goals'} in motion. Room for another.`:'A destination for your next chapter.'}</NebulaFlow></h2><p>A home. A safety net. A trip you’ve been waiting for. {plainWords?'Give your savings a purpose.':'Give your ZIG a purpose.'}</p><Link href="/app/goals/new" className={emptyDevice?'secondary':'primary'}>{goals.length?'Plan my next goal →':'Plan my first goal →'}</Link><div className="destination-steps"><div><AppIcon name="settings" luminous/><strong>Set a goal</strong><small>Define your future</small></div><div><AppIcon name="goals" luminous/><strong>Stay consistent</strong><small>Track your progress</small></div><div><AppIcon name="today" luminous/><strong>Reach farther</strong><small>A brighter tomorrow</small></div></div></div></section>:null;
+   // Session AW (simplicity-a; owner brief Part 3): on an empty device at computer width the setup entry ("Your first minute")
+   // and this invitation stood side by side, two setup prompts with nothing recorded. The setup entry stays Today's one first
+   // action (NB-033); this card waits for a first record and one teaching line, with its link, stands in for it. A phone
+   // keeps its folded row ("Plan a new destination"), which takes no room on the first screen.
+   case 'destination':if(financial&&emptyDevice&&!phone)return <p className="fine today-teach-line" data-teach="destination"><strong>Your first goal</strong> · Setup can add one for you, or plan your own: a home, a safety net, a trip. <Link href="/app/goals/new" className="text-link">Plan my first goal →</Link></p>;
+    return financial?<section className="destination-panel" aria-labelledby="destination-title"><div><p className="eyebrow">{activeCount?'Your destinations':'Start with what matters'}</p><h2 id="destination-title"><NebulaFlow identity="today-destination-title">{activeCount?`${activeCount} ${activeCount===1?'goal':'goals'} in motion. Room for another.`:'A destination for your next chapter.'}</NebulaFlow></h2><p>A home. A safety net. A trip you’ve been waiting for. {plainWords?'Give your savings a purpose.':'Give your ZIG a purpose.'}</p><Link href="/app/goals/new" className={emptyDevice?'secondary':'primary'}>{goals.length?'Plan my next goal →':'Plan my first goal →'}</Link><div className="destination-steps"><div><AppIcon name="settings" luminous/><strong>Set a goal</strong><small>Define your future</small></div><div><AppIcon name="goals" luminous/><strong>Stay consistent</strong><small>Track your progress</small></div><div><AppIcon name="today" luminous/><strong>Reach farther</strong><small>A brighter tomorrow</small></div></div></div></section>:null;
    case 'activity':return financial?<section className="recent-panel"><div className="section-heading"><h2>Recent activity</h2><Link href="/app/activity" className="text-link">View all →</Link></div><ActivityFeed limit={phone?2:4}/></section>:null;
   }
  }
@@ -372,6 +377,17 @@ export function TodayDashboard(){
  // Session Z-Cloud Part 4.1 (persona item 1): with nothing in the rail (Habits + Health, Habits only) Today is one centred
  // column at a reading width; while arranging, the rail stays as a place to move modules to.
  const railItems=regionItems('rail'),single=!railItems.length&&!customize;
+ // Session AW (simplicity-a; owner brief Part 3): the day's habits and their Complete buttons come right after the Checklist,
+ // before "What is due now", so both are within one phone screen of scrolling. The habits card stays the same placed module
+ // (its ⋯, its widget options): when the first card Today shows is the day's habits (the default order puts them first; a
+ // person's own order is followed as saved) it stands above "What is due now" instead of at the top of the widget grid.
+ // While arranging, and with no habit yet (its empty card teaches in the grid), it stays in the grid.
+ const habitsItem=(ref:DashboardItemRef)=>ref.kind==='builtin'?ref.id==='habits':view.widgets.find(w=>w.id===ref.id)?.kind==='habits';
+ const lifted=(()=>{
+  if(customize||brandNew||!habits.loaded||!!habits.error||!habits.data.habits.length)return null;
+  for(let index=0;index<placement.main.length;index++){const ref=placement.main[index]!,node=renderPlaced(ref,'main',index);if(node)return habitsItem(ref)?{ref,node}:null;}
+  return null;
+ })();
  let presetPreview:DashboardSettings|null=null,presetError='';
  if(preset)try{presetPreview=applyDashboardPreset(settings.data,preset);}catch(e){presetError=plainErrorMessage(e, 'This layout cannot be applied without removing a saved widget.');}
  // Session AA-Cloud Part 1 (docs/product/PAGE_ORDER_AA.md): the hero, then Today's focus, the grouped widgets, For you,
@@ -409,16 +425,18 @@ export function TodayDashboard(){
    {/* Session AP (friends Alpha): after setup, the first five steps (its own chunk; nothing stored but its "hide"). */}{!showcase&&!brandNew&&storesReady&&settings.loaded&&(setupMade||settings.data.onboarded)&&<Suspense fallback={null}><FirstFive goals={platform.data.goals.length+legacy.goals.length+(averageGoals.loaded&&!averageGoals.unreadable?averageGoals.data.goals.length:0)/* FR-S-12: a goal kept as an average counts too */} habits={habits.data.habits.length} meals={health.data.diary.length}/></Suspense>}
 
    {!brandNew&&storesReady&&<TodayLine habits={habits.data} health={health.data} platform={platform.data} quotes={market.quotes} now={now} today={today} healthDate={sources.healthDate} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} financial={financial}/>}
-   {!brandNew&&<TodayFocus habitsWidget={habitsWidgetShown} reminders={<>{habits.loaded&&health.loaded&&<ReminderCards habits={habits.error?undefined:habits.data} health={health.error?undefined:health.data}/>}{/* Session AL fourth pass (PR-103, C-LS-09): tasks due today and task reminders */}{habits.loaded&&!habits.error&&domains.includes('habits')&&<LoadBoundary quiet><Suspense fallback={null}><TodayHabitFocus data={habits.data} today={habits.today}/></Suspense></LoadBoundary>}<LoadBoundary quiet><Suspense fallback={null}><TodayTasksDue/></Suspense></LoadBoundary>{domains.includes('wealth')&&isShown(pagesView,'wealth')&&<LoadBoundary quiet><Suspense fallback={null}><TodayMoneyAttention/></Suspense></LoadBoundary>}<LoadBoundary quiet><Suspense fallback={null}><TodayJournalLine glance/></Suspense></LoadBoundary>{parts.focus}<div className="for-you-place" ref={setFocusPlace}/></>} nextGoal={nextGoal} goalsReady={legacy.loaded&&platform.loaded} step={roles.focus?.step} financial={financial} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} healthDate={sources.healthDate}/>}
-   {/* Session AF (L3, P7.21): the Checklist's progress card after Today's focus — a fixed card (Today's main order lives in the strict synced dashboard placement, ADR-028 H95); hidden when the Checklist is off on this device. */}
+   {/* Session AF (L3, P7.21): the Checklist's progress card — a fixed card (Today's main order lives in the strict synced dashboard placement, ADR-028 H95); hidden when the Checklist is off on this device.
+       Session AW (simplicity-a; owner brief Part 3): before "What is due now" (it was after it), then the day's habits, so the Checklist and the first Complete come within one phone screen of scrolling. */}
    {!brandNew&&<TodayChecklistCard/>}
+   {lifted?.node}
+   {!brandNew&&<TodayFocus habitsWidget={habitsWidgetShown} reminders={<>{habits.loaded&&health.loaded&&<ReminderCards habits={habits.error?undefined:habits.data} health={health.error?undefined:health.data}/>}{/* Session AL fourth pass (PR-103, C-LS-09): tasks due today and task reminders */}{habits.loaded&&!habits.error&&domains.includes('habits')&&<LoadBoundary quiet><Suspense fallback={null}><TodayHabitFocus data={habits.data} today={habits.today}/></Suspense></LoadBoundary>}<LoadBoundary quiet><Suspense fallback={null}><TodayTasksDue/></Suspense></LoadBoundary>{domains.includes('wealth')&&isShown(pagesView,'wealth')&&<LoadBoundary quiet><Suspense fallback={null}><TodayMoneyAttention/></Suspense></LoadBoundary>}<LoadBoundary quiet><Suspense fallback={null}><TodayJournalLine glance/></Suspense></LoadBoundary>{parts.focus}<div className="for-you-place" ref={setFocusPlace}/></>} nextGoal={nextGoal} goalsReady={legacy.loaded&&platform.loaded} step={roles.focus?.step} financial={financial} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} healthDate={sources.healthDate}/>}
    {/* Session AK G2 (RELEASE_REVIEW R11, SESSION_AK_F8 proposal 2): on a phone the widget area (most of Today's elements)
        mounts when it comes within 600 px of the screen, on an address into it, on focus or when the browser is first idle;
        its place is kept meanwhile. The hero, slogan and first cards above render as before (components/use-mount-on-view.ts). */}
    <section aria-label="Your Today widgets" id="today-widgets" tabIndex={-1} className="dashboard-widget-area" ref={widgetArea.ref}>
     {customize&&<div className="section-heading dashboard-layout-heading"><h2>Arrange your daily space</h2><div className="dashboard-actions"><button className="primary" disabled={busy||settings.data.widgets.length>=24} onClick={()=>{setInsertAt(null);setEditor('new');}}>Add widget</button><button className="secondary" onClick={()=>setPreset(settings.data.preset)}>Choose preset</button></div></div>}
     <p role="status" className="dashboard-save-status">{status}</p>{error&&<p role="alert">{error}</p>}
-    {widgetArea.mounted?<div className="dashboard-layout-grid"><LayoutRegion region="main" items={regionItems('main')} onMove={(id,to,order)=>placeAt('main',id,to,order)}/></div>:<div className="dashboard-widget-reserve" aria-hidden="true"/>}
+    {widgetArea.mounted?<div className="dashboard-layout-grid"><LayoutRegion region="main" items={regionItems('main',lifted?.ref)} onMove={(id,to,order)=>placeAt('main',id,to,order)}/></div>:<div className="dashboard-widget-reserve" aria-hidden="true"/>}
    </section>
    {platform.loaded&&habits.loaded&&health.loaded&&(deviceCards.length>0||orbitsOn||customize&&todayCards.loaded&&!todayCards.unreadable)&&<LoadBoundary quiet><Suspense fallback={null}><TodayDeviceCards shown={deviceCards} customize={customize} onToggle={id=>{try{todayCards.update(c=>toggleCard(c,id));}catch{setError('This device refused to save that card choice.');}}} orbits={todayOrbits.loaded&&!todayOrbits.unreadable?{shown:orbitsOn,onToggle:()=>{try{todayOrbits.update(r=>setOrbitsShown(r,!orbitsOn));}catch{setError('This device refused to save that card choice.');}}}:null} platform={platform.data} quotes={market.quotes} now={now} today={today} habits={habits.data} health={health.data} goals={goals}/></Suspense></LoadBoundary>}
    {gameOn&&uiPrefs.loaded&&!uiPrefs.unreadable&&!!uiPrefs.data.today?.gameWidgets?.length&&<LoadBoundary quiet><Suspense fallback={null}><TodayGameCards/></Suspense></LoadBoundary>}

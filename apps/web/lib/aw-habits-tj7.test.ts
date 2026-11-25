@@ -122,11 +122,14 @@ describe('FR-TJ-7: the Habits page puts today\'s habits first (source order)', (
     // The consistency block comes with the first habit; each card inside waits for its own data.
     expect(src).toMatch(/store\.data\.habits\.length > 0 && \{id: "habits:consistency"/);
   });
-  it('inside your habits: the filters, then the cards; yesterday\'s list, Habit ideas and Reorder / Cards / Compact after them', () => {
+  // Session AW (FR-TJ-7, integration, deliberate; CI 2032): the filters and area chips follow today's cards too, so the
+  // first Complete is on the first screen at 1440 in the Showcase; the same order checks, the filters now among those after.
+  it('inside your habits: the cards first; the filters, yesterday\'s list, Habit ideas and Reorder / Cards / Compact after them', () => {
     const list = src.slice(src.indexOf('{id: "habits:list"'), src.indexOf('{id: "habits:routines"'));
     const cards = list.indexOf('<HabitSections'), filters = list.indexOf('className="habit-filter-bar"');
-    expect(filters).toBeGreaterThan(0);
-    expect(cards).toBeGreaterThan(filters);
+    expect(cards).toBeGreaterThan(0);
+    expect(filters).toBeGreaterThan(cards);
+    expect(list.split('className="habit-filter-bar"').length - 1).toBe(1);
     for (const after of ['<YesterdayOpen', 'className="habit-phone-ideas"', 'className="habit-list-tools"', '<HabitReorderList']) {
       expect(list.indexOf(after), after).toBeGreaterThan(cards);
       expect(list.split(after).length - 1, after).toBe(1);
