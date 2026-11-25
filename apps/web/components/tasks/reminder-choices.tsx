@@ -7,10 +7,12 @@ import {NOTIFY_PREFS, setSnoozes, setTaskAgain, taskAgainOf} from '../../lib/not
 import {AGAIN_EVERY, AGAIN_SUGGESTED, AGAIN_TIMES_MAX, AGAIN_TIMES_MIN, againWords} from '../../lib/tasks/remind-again';
 import {MAX_SNOOZES, SNOOZE_MAX_MINUTES, SNOOZE_MIN_MINUTES, USUAL_SNOOZES, ownSnoozes, snoozeKey, snoozeLabel, type OwnSnooze} from '../../lib/tasks/snooze-choices';
 import {SNOOZE_CHOICES} from '../../lib/tasks/reminders';
+import {formatWeekdayLong} from '../../lib/visual-format';
 
 /** The notification plan rewrites its snapshot when these change (components/notify/notify-sync.tsx NOTIFY_CHANGE). */
 const NOTIFY_CHANGE = 'zigoals:notify-change';
-const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const;
+/** Sunday to Saturday in the app's words (22 Nov 2026 was a Sunday). */
+const weekdays = () => Array.from({length: 7}, (_, i) => formatWeekdayLong(`2026-11-${22 + i}`));
 type Kind = 'for' | 'next' | 'tomorrow' | 'weekday';
 
 /**
@@ -76,7 +78,7 @@ export default function ReminderChoices() {
       <label className="field"><span>Snooze</span><select value={kind} onChange={e => { setKind(e.target.value as Kind); setError(''); }}>
         <option value="for">For a length</option><option value="next">Until a time later (today or tonight)</option><option value="tomorrow">Until tomorrow at</option><option value="weekday">Until a weekday at</option></select></label>
       {kind === 'for' ? <label className="field"><span>Minutes</span><input inputMode="numeric" autoComplete="off" value={minutes} aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-err` : undefined} onChange={e => { setMinutes(e.target.value); setError(''); }} /></label>
-        : <>{kind === 'weekday' && <label className="field"><span>Weekday</span><select value={weekday} onChange={e => setWeekday(e.target.value)}>{WEEKDAYS.map((w, i) => <option key={w} value={i}>{w}</option>)}</select></label>}
+        : <>{kind === 'weekday' && <label className="field"><span>Weekday</span><select value={weekday} onChange={e => setWeekday(e.target.value)}>{weekdays().map((w, i) => <option key={w} value={i}>{w}</option>)}</select></label>}
           <label className="field"><span>Time</span><input type="time" value={clock} aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-err` : undefined} onChange={e => { setClock(e.target.value); setError(''); }} /></label></>}
       <button type="submit" className="secondary" disabled={(own?.length ?? 0) >= MAX_SNOOZES}>Add the choice</button>
       {own && <button type="button" className="quiet" onClick={() => write(p => setSnoozes(p, null), 'The usual three snooze choices are back.')}>Back to the usual three</button>}

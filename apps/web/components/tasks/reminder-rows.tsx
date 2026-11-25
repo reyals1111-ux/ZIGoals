@@ -7,7 +7,7 @@ import {SNOOZE_CHOICES, snoozeReminder, snoozeUntil, type SnoozeChoice} from '..
 import {ownSnoozeUntil, ownSnoozes, snoozeKey, snoozeLabel, snoozeWords, type OwnSnooze} from '../../lib/tasks/snooze-choices';
 import {NOTIFY_PREFS} from '../../lib/notify/prefs';
 import {checklistZone} from '../../lib/checklist/zone';
-import {formatClock} from '../../lib/visual-format';
+import {formatClock, formatWeekdayLong} from '../../lib/visual-format';
 import {wallClock} from '../../lib/zone-time';
 import type {Task, Tasks} from '../../lib/tasks/schema';
 
@@ -30,7 +30,7 @@ const toldAgain = new Set<string>();
 function ownSnoozeNow(choice: OwnSnooze): {until: number; when: string} {
   const zone = checklistZone(), now = Date.now(), until = ownSnoozeUntil(choice, now, zone), then = wallClock(until, zone), day = wallClock(now, zone).date;
   const tomorrow = wallClock(now + 86_400_000, zone).date, clock = formatClock(then.clock);
-  return {until, when: then.date === day ? `at ${clock}` : then.date === tomorrow ? `tomorrow at ${clock}` : `on ${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][then.weekday]} at ${clock}`};
+  return {until, when: then.date === day ? `at ${clock}` : then.date === tomorrow ? `tomorrow at ${clock}` : `on ${formatWeekdayLong(until, {timeZone: zone})} at ${clock}`};
 }
 export function ReminderRows({reminders, className, label, line, onDone, onDismiss, change, fallback, onFocus}: {
   reminders: readonly DueTaskReminder[]; className: string; label: string;
