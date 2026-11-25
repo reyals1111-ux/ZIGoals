@@ -16,7 +16,12 @@ export default function VoicePlayer({src, seconds, label}: {src: string; /** The
   const [playing, setPlaying] = useState(false), [current, setCurrent] = useState(0), [duration, setDuration] = useState(Number.NaN), [said, setSaid] = useState('');
   const total = totalOf(duration, seconds);
   useEffect(() => { const a = audio.current; if (a) { a.defaultPlaybackRate = speed; a.playbackRate = speed; } }, [speed, src]);
-  const read = () => { const a = audio.current; if (!a) return; setCurrent(a.currentTime); setDuration(a.duration); };
+  // A recording made in Chrome (MediaRecorder WebM) says its length is "Infinity" and cannot be sought until the browser
+  // has read it to its end: a seek far past the end makes it read the whole file once, then the player goes back to 0:00.
+  const measuring = useRef(false);
+  const read = () => { const a = audio.current; if (!a || measuring.current) return; setCurrent(a.currentTime); setDuration(a.duration); };
+  const loaded = () => { const a = audio.current; if (a && a.duration === Number.POSITIVE_INFINITY) { measuring.current = true; a.currentTime = 1e101; } read(); };
+  const lengthKnown = () => { const a = audio.current; if (a && measuring.current && Number.isFinite(a.duration)) { measuring.current = false; a.currentTime = 0; } read(); };
   const toggle = () => {
     const a = audio.current; if (!a) return;
     if (a.paused) { a.playbackRate = speed; void a.play().catch(() => setSaid('This voice note could not play in this browser.')); } else a.pause();
@@ -27,7 +32,7 @@ export default function VoicePlayer({src, seconds, label}: {src: string; /** The
     const a = audio.current; if (a) a.playbackRate = s;
   };
   return <div className="voice-player" role="group" aria-label={label}>
-    <audio ref={audio} src={src} preload="metadata" onLoadedMetadata={read} onDurationChange={read} onTimeUpdate={read} onSeeked={read} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => { setPlaying(false); read(); }}/>
+    <audio ref={audio} src={src} preload="metadata" onLoadedMetadata={loaded} onDurationChange={lengthKnown} onTimeUpdate={read} onSeeked={read} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => { setPlaying(false); read(); }}/>
     <div className="voice-player-row">
       <button type="button" className="secondary voice-player-play" onClick={toggle}>{playing ? 'Pause' : 'Play'}</button>
       <button type="button" className="quiet" aria-label={`Back ${SKIP_SECONDS} seconds`} onClick={() => skip(-SKIP_SECONDS)}><span aria-hidden="true">−{SKIP_SECONDS} s</span></button>
