@@ -35,7 +35,14 @@ export function awX1Answer(question: string, env: ToolEnv, extra: AwX1Extra = {}
   if (!a || !isQuestion(a)) return null;
   // The timers come from this device (the engine reads them) or, where a caller carries them, NOVA's sources.
   const fromNova = (env.nova as {timers?: Timers | null} | null | undefined)?.timers;
-  const ask: Ask = {...a, ...extra, timers: extra.timers !== undefined ? extra.timers : fromNova, now: env.now.getTime(), zone: env.habitZone || 'UTC'};
+  // Session AW (integration): the assistant's own sources carry the timers and the notification choices, as every other
+  // answer reads its records (env.ak); this device's storage is read only where a caller has no sources.
+  const ak = env.ak as {timers?: unknown; notifyPrefs?: unknown} | null | undefined;
+  const akTimers = ak && 'timers' in ak ? (ak.timers == null ? null : TIMERS.schema.safeParse(ak.timers).data ?? null) : undefined;
+  const akPrefs = ak && ak.notifyPrefs != null ? NOTIFY_PREFS.schema.safeParse(ak.notifyPrefs).data : undefined;
+  // What a caller hands over (this device's storage in the browser, a test's fixture) comes first.
+  const own = Object.keys(extra).length ? extra : akTimers !== undefined || akPrefs ? {timers: akTimers, ...(akPrefs ? {taskAgain: taskAgainOf(akPrefs), snoozes: akPrefs.snoozes} : {})} : extra;
+  const ask: Ask = {...a, ...own, timers: own.timers !== undefined ? own.timers : fromNova, now: env.now.getTime(), zone: env.habitZone || 'UTC'};
   for (const one of [timerEndAnswer, timersAnswer, againAnswer, snoozeAnswer]) { const r = one(ask); if (r) return r; }
   return null;
 }
@@ -59,7 +66,7 @@ function timersOf(a: Ask): {timers: Timers} | {reply: LocalReply} | null {
 /** "what timers are running", "how long is left on my timers", "welke timers lopen er" (LEDGER #440). */
 function timersAnswer(a: Ask): LocalReply | null {
   const en = /\b(?:what|which|any) timers?\b.*\b(?:running|on|going|set)\b|\bhow (?:long|much time) (?:is )?left on (?:my |the )?timers?\b|\bmy timers\b|\btimers? (?:are |is )?running\b/.test(a.f);
-  const nl = /\bwelke timers?\b|\btimers? (?:lopen|loopt|staan|staat) (?:er )?(?:nu )?(?:aan)?\b|\bhoeveel tijd (?:heeft|hebben) (?:mijn |de )?timers?\b|\bmijn timers\b|\blopen er timers\b|\bloopt er (?:een )?timer\b/.test(a.f);
+  const nl = /\bwelke timers?\b|\btimers? (?:lopen|loopt|staan|staat) (?:er )?(?:nu )?(?:aan)?\b|\bhoeveel tijd (?:heeft|hebben) (?:mijn |de )?timers?\b|\bmijn timers\b|\blopen er (?:nu )?timers\b|\bloopt er (?:een )?timer\b/.test(a.f);
   if (!(en || nl)) return null;
   const got = timersOf(a); if (!got) return null; if ('reply' in got) return got.reply;
   const live = activeTimers(got.timers, a.now), timed = taskTimers(a);

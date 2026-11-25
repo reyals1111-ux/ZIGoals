@@ -1,3 +1,4 @@
+import {TIMERS} from '../../timers/store';
 import {BRING_UP} from '../../clinician-report/bring-up';
 import {ACTIVITY_EXTRAS} from '../../aw-kcal/activity-extras';
 import {CALORIE_WEEK} from '../../health-aa/calorie-week';
@@ -57,5 +58,7 @@ export function readAkToolSources(storage: Read): AkToolSources {
     // Session AW (kcal; owner decision 1a): the distance, effort and calories typed on an activity (aw-kcal.ts; Health gate in the answer).
     activityExtras: one(ACTIVITY_EXTRAS),
     // Session AW (programmes): which journey or programme is going, and today's day (aw-programmes.ts; device only, never sent).
-    guidedJourneys: one(GUIDED_JOURNEYS)};
+    guidedJourneys: one(GUIDED_JOURNEYS),
+    // Session AW (X1, #440): the named timers (aw-x1-due.ts), as this device keeps them.
+    timers: one(TIMERS)};
 }

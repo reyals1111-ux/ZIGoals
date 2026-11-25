@@ -7846,6 +7846,12 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :root:where([data-density=compact]) .ss-rows:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :root:where([data-density=compact]) .ss-rows li:not(#\-) { row-gap: 6px; padding-top: 6px; padding-bottom: 6px; }
 :root:where([data-density=compact]) .ss-what:not(#\-) { row-gap: 2px; }
+/*  components/tasks/aw-x1.css  */
+:where(:root[data-density=compact]) .task-remind-again:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .aw-snooze-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 3px; }
+:where(:root[data-density=compact]) .aw-snooze-list li:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .aw-snooze-add:not(#\-) { row-gap: 8px; margin-top: 8px; }
+:where(:root[data-density=compact]) .aw-snooze-add > p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/tasks/plan-day.css  */
 :where(:root[data-density=compact]) .tasks-plan-day:not(#\-) { margin-top: 0; margin-bottom: 16px; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .tasks-plan-day > summary:not(#\-) { row-gap: 3px; }
@@ -8224,6 +8230,20 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (max-width: 767.98px) { :where(:root[data-density=compact]) .today-timeline-card:not(#\-) { row-gap: 3px; padding-top: 9px; padding-bottom: 9px; } }
 :where(:root[data-density=compact]) .timeline-day-picker:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 16px; }
 :where(:root[data-density=compact]) .timeline-mark-line:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
+/*  components/timers/timers.css  */
+:where(:root[data-density=compact]) .aw-timer-strip:not(#\-) { row-gap: 6px; padding-top: 6px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .aw-timer-strip ul:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 1.5px; }
+:where(:root[data-density=compact]) .aw-timer:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .aw-timer-actions:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .aw-timer-actions button:not(#\-), :where(:root[data-density=compact]) .aw-timer-open:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) dialog.aw-timers-sheet:not(#\-) { margin-top: 8vh; margin-bottom: auto; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .aw-timers-body:not(#\-) { row-gap: 12px; padding-top: 16px; padding-bottom: 16px; }
+:where(:root[data-density=compact]) .aw-timers-head:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .aw-timers-head h2:not(#\-), :where(:root[data-density=compact]) .aw-timers-body h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .aw-timers-add:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .aw-timers-add > p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .aw-timer-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .aw-timers-bell:not(#\-) { row-gap: 10px; }
 /*  components/today-orbits/today-orbits.css  */
 :where(:root[data-density=compact]) .today-orbits:not(#\-) { row-gap: 10px; }
 :where(:root[data-density=compact]) .today-orbits-head:not(#\-) { row-gap: 4px; }

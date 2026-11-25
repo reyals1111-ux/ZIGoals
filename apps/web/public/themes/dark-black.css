@@ -10196,6 +10196,24 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
+    .aw-timer-strip:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--surface-glass, var(--panel, #030303))
+    }
+    .aw-timer-actions button:not(#\-):not(#\-), .aw-timer-open:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
+    dialog.aw-timers-sheet:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--surface-glass, var(--panel, #030303))
+    }
+    dialog.aw-timers-sheet:not(#\-):not(#\-)::backdrop {
+        background-image: none;
+        background-color: #0000008c
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
     :scope :is(.health-section-heading, .habit-section-heading) > span:not(.health-symbol):not(#\-):not(#\-) {
         background-image: none;
         background-color: #ffffff0d

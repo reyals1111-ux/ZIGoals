@@ -35,8 +35,9 @@ describe('every corpus question gets an answer of its own, in its language', () 
     const taken: string[] = [], n = novaEnv(showcaseAll()), z = zigiEnv(showcaseAll()), x = extra();
     for (const c of CORPUS) if (!OWN.has(c.id) && !SHARED.has(c.id)) for (const q of [...c.en, ...c.nl]) if (awX1Answer(q, n, x) || awX1Answer(q, z, x)) taken.push(`${c.id}: ${q}`);
     expect(taken).toEqual([]);
-    // In the corpus harness (no browser storage) nothing is read, so even the shared one stays where it was.
-    for (const q of [...CORPUS.find(c => c.id === 'av2-timers')!.en, ...CORPUS.find(c => c.id === 'av2-timers')!.nl]) expect(awX1Answer(q, n)).toBeNull();
+    // Session AW (integration, deliberate): the assistant's sources now carry the timers (env.ak.timers), so the shared
+    // question is answered here in the corpus harness too, as in the browser: it names the timers and the tasks being timed.
+    for (const q of [...CORPUS.find(c => c.id === 'av2-timers')!.en, ...CORPUS.find(c => c.id === 'av2-timers')!.nl]) { const t = text(awX1Answer(q, n)); expect(t, q).toMatch(/timer/i); expect(t, q).toMatch(/Example · |Pasta|Tasks being timed|taken die/); }
   }, 120_000);
 });
 describe('named timers (LEDGER #440)', () => {
@@ -61,7 +62,8 @@ describe('named timers (LEDGER #440)', () => {
   });
   test('unreadable timers are said, never shown as none; with no record to read, left to the other answers', () => {
     expect(text(awX1Answer('what timers are running', zigiEnv(showcaseAll()), extra({timers: null})))).toMatch(/can’t be read/);
-    expect(awX1Answer('what timers are running', zigiEnv(showcaseAll()), {})).toBeNull();
+    // Session AW (integration, deliberate): "no record to read" is now an env without the assistant's sources.
+    expect(awX1Answer('what timers are running', {...zigiEnv(showcaseAll()), ak: undefined}, {})).toBeNull();
   });
 });
 describe('remind again and snooze choices (LEDGER #438, #439)', () => {

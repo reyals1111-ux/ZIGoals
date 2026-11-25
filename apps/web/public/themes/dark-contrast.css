@@ -27263,6 +27263,48 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .aw-timer-strip:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line, #8ca0dc) 40%, #fff);
+        background-image: none;
+        background-color: var(--surface-glass, var(--panel, #000000));
+        color: color-mix(in srgb, var(--text, #f3f3f3) 25%, #fff);
+        box-shadow: 0 10px 26px -12px #000000cc
+    }
+    .aw-timer[data-state="ended"] .aw-timer-clock:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--cyan, #7bebfe) 25%, #fff)
+    }
+    .aw-timer-actions button:not(#\-):not(#\-), .aw-timer-open:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line, #8ca0dc) 40%, #fff);
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .aw-timer-actions button:focus-visible:not(#\-):not(#\-), .aw-timer-open:focus-visible:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--cyan, #45d8ef) 40%, #fff)
+    }
+    dialog.aw-timers-sheet:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line, #8ca0dc) 40%, #fff);
+        background-image: none;
+        background-color: var(--surface-glass, var(--panel, #000000));
+        color: color-mix(in srgb, var(--text, #f3f3f3) 25%, #fff);
+        box-shadow: 0 24px 60px -24px #000000cc
+    }
+    dialog.aw-timers-sheet:not(#\-):not(#\-)::backdrop {
+        background-image: none;
+        background-color: #0000008c
+    }
+    @media (forced-colors: active) {
+        .aw-timer-strip:not(#\-):not(#\-), dialog.aw-timers-sheet:not(#\-):not(#\-) {
+            border-color: CanvasText
+        }
+    }
+    @media (forced-colors: active) {
+        .aw-timer-actions button:not(#\-):not(#\-), .aw-timer-open:not(#\-):not(#\-) {
+            border-color: ButtonText
+        }
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .today-orbit:not(#\-):not(#\-) {
         border-color: color-mix(in srgb, var(--line, #959595) 40%, #fff)
     }

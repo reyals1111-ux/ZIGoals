@@ -29251,6 +29251,49 @@
         }
     }
 }
+/*  components/timers/timers.css  */
+@scope (:root[data-theme=dark]) {
+    .aw-timer-strip:not(#\-) {
+        border-color: var(--line, rgba(140, 160, 220, .3));
+        background-image: none;
+        background-color: var(--surface-glass, var(--panel, #14171c));
+        color: var(--text, #eef3ff);
+        box-shadow: 0 10px 26px -12px #000c
+    }
+    .aw-timer[data-state="ended"] .aw-timer-clock:not(#\-) {
+        color: var(--cyan, #45d8ef)
+    }
+    .aw-timer-actions button:not(#\-), .aw-timer-open:not(#\-) {
+        border-color: var(--line, rgba(140, 160, 220, .3));
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .aw-timer-actions button:focus-visible:not(#\-), .aw-timer-open:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #45d8ef)
+    }
+    dialog.aw-timers-sheet:not(#\-) {
+        border-color: var(--line, rgba(140, 160, 220, .3));
+        background-image: none;
+        background-color: var(--surface-glass, var(--panel, #14171c));
+        color: var(--text, #eef3ff);
+        box-shadow: 0 24px 60px -24px #000c
+    }
+    dialog.aw-timers-sheet:not(#\-)::backdrop {
+        background-image: none;
+        background-color: #05070b8c
+    }
+    @media (forced-colors: active) {
+        .aw-timer-strip:not(#\-), dialog.aw-timers-sheet:not(#\-) {
+            border-color: CanvasText
+        }
+    }
+    @media (forced-colors: active) {
+        .aw-timer-actions button:not(#\-), .aw-timer-open:not(#\-) {
+            border-color: ButtonText
+        }
+    }
+}
 /*  components/today-orbits/today-orbits.css  */
 @scope (:root[data-theme=dark]) {
     .today-orbit:not(#\-) {

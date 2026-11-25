@@ -32,7 +32,9 @@ export type AkToolSources = {autoRules?: AutoRules | null; bills?: BillsRecord |
   /** Session AV lane 2, batch 2: the evening plan and the workouts' extras (av2-body.ts), the net-worth sheet (av2-money.ts). */
   eveningPlan?: unknown; bodyExtras?: unknown; wealthSheet?: unknown; nutrientExtras?: unknown; moneyMore?: unknown; storeCards?: unknown; moneyLogBusiness?: unknown; workoutPlaces?: unknown; healthExtras?: unknown; notifyPrefs?: unknown; healthGoalsMore?: unknown; workoutCircuits?: unknown; plannedWorkouts?: unknown; races?: unknown; workoutHr?: unknown; calorieWeek?: unknown; bringUp?: unknown; /* Session AW (kcal) */ activityExtras?: unknown;
   /** Session AW (programmes): the Guided journeys record (lib/guided/schema.ts), for "which programme am I on" (aw-programmes.ts). */
-  guidedJourneys?: unknown} & F9ToolSources;
+  guidedJourneys?: unknown;
+  /** Session AW (X1): the named timers record (lib/timers/store.ts). */
+  timers?: unknown} & F9ToolSources;
 const where = (env: ToolEnv, journal: string, subject: string | null = null) => provenance(env, journal, subject, null, null);
 
 export const autoRulesTool: ToolDefinition<Record<string, never>> = {

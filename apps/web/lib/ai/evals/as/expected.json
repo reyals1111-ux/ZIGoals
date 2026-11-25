@@ -6618,8 +6618,8 @@
   "freshNl": "Vandaag nog geen minuten gepland of besteed. Geef een taak minuten in de editor en tijd hem met Start timer in Tasks → Today."
  },
  "av2-timers": {
-  "en": "No task timer is running. Start one in Tasks → Today (Fit my day), several at once if you like.",
-  "nl": "Er loopt geen taaktimer. Start er een in Tasks → Today (Fit my day), ook meerdere tegelijk.",
+  "en": "No timer is running. Open Timers (Tasks → More views → Timers, or the command menu) and start one by name — “Pasta”, 9 minutes; several can run at once, and each is kept to start again. A task can also be timed in Tasks → Today; none is now.",
+  "nl": "Er loopt geen timer. Open Timers (Tasks → More views → Timers, of het opdrachtmenu) en start er een met een naam — “Pasta”, 9 minuten; er kunnen er meerdere tegelijk lopen, en elke timer blijft bewaard om opnieuw te starten. Een taak kun je ook timen in Tasks → Today; er loopt er nu geen.",
   "facts": null,
   "widgets": [],
   "fresh": "No task timer is running. Start one in Tasks → Today (Fit my day), several at once if you like.",
@@ -9200,5 +9200,37 @@
   "widgets": [],
   "fresh": "Journal → Write → Morning and evening: switch on “Write each day as a morning page and an evening page”. The morning page asks “I am grateful for…” and “What would make today great?” (or your own questions); the evening page shows what you wrote that morning above its own two questions. The day stays one entry, and each page can have its own reminder (both off until you choose them). It is off now.",
   "freshNl": "Journal → Write → Morning and evening: zet “Write each day as a morning page and an evening page” aan. De ochtendpagina vraagt “Ik ben dankbaar voor…” en “Wat zou vandaag mooi maken?” (of je eigen vragen); de avondpagina toont wat je die ochtend schreef boven haar eigen twee vragen. De dag blijft één stuk, en elke pagina kan een eigen herinnering krijgen (beide uit tot je ze kiest). Het staat nu uit."
+ },
+ "awx1-timers": {
+  "en": "No timer is running. Open Timers (Tasks → More views → Timers, or the command menu) and start one by name — “Pasta”, 9 minutes; several can run at once, and each is kept to start again. A task can also be timed in Tasks → Today; none is now.",
+  "nl": "Er loopt geen timer. Open Timers (Tasks → More views → Timers, of het opdrachtmenu) en start er een met een naam — “Pasta”, 9 minuten; er kunnen er meerdere tegelijk lopen, en elke timer blijft bewaard om opnieuw te starten. Een taak kun je ook timen in Tasks → Today; er loopt er nu geen.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No task timer is running. Start one in Tasks → Today (Fit my day), several at once if you like.",
+  "freshNl": "Er loopt geen taaktimer. Start er een in Tasks → Today (Fit my day), ook meerdere tegelijk."
+ },
+ "awx1-timer-end": {
+  "en": "Your Pasta (Showcase) timer isn’t running. Start it again in Timers (Tasks → More views → Timers).",
+  "nl": "Je timer Pasta (Showcase) loopt niet. Start hem opnieuw in Timers (Tasks → More views → Timers).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No task timer is running. Start one in Tasks → Today (Fit my day), several at once if you like.",
+  "freshNl": "Je hebt nog geen gewoontes."
+ },
+ "awx1-again": {
+  "en": "A task reminder goes off once now. To have it come back until you tick Done or Snooze, choose “Remind again” in Tasks → This week → Reminders (every 5, 10, 15 or 30 minutes, 2 to 10 times), or for one task in its editor. Quiet hours hold the repeats; it works in the app with notifications off.",
+  "nl": "Een taakherinnering gaat nu één keer af. Wil je dat hij terugkomt tot je Done of Snooze kiest, kies dan “Remind again” in Tasks → This week → Reminders (elke 5, 10, 15 of 30 minuten, 2 tot 10 keer), of voor één taak in de editor. Stille uren houden de herhalingen tegen; het werkt in de app ook zonder meldingen.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "A task reminder goes off once now. To have it come back until you tick Done or Snooze, choose “Remind again” in Tasks → This week → Reminders (every 5, 10, 15 or 30 minutes, 2 to 10 times), or for one task in its editor. Quiet hours hold the repeats; it works in the app with notifications off.",
+  "freshNl": "Een taakherinnering gaat nu één keer af. Wil je dat hij terugkomt tot je Done of Snooze kiest, kies dan “Remind again” in Tasks → This week → Reminders (elke 5, 10, 15 of 30 minuten, 2 tot 10 keer), of voor één taak in de editor. Stille uren houden de herhalingen tegen; het werkt in de app ook zonder meldingen."
+ },
+ "awx1-snooze": {
+  "en": "A reminder offers the usual three: 15 min, 1 h and Tomorrow (09:00); a notification says “Snooze 1 h”. Add up to six of your own — a length, this evening at a time, tomorrow at a time, or a weekday — in Tasks → This week → Reminders; the first one goes on the notification.",
+  "nl": "Een herinnering biedt de gewone drie: 15 min, 1 uur en Tomorrow (09:00); een melding zegt “Snooze 1 h”. Voeg er tot zes van jezelf toe — een duur, vanavond om een tijd, morgen om een tijd, of een weekdag — in Tasks → This week → Reminders; de eerste staat op de melding.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "A reminder offers the usual three: 15 min, 1 h and Tomorrow (09:00); a notification says “Snooze 1 h”. Add up to six of your own — a length, this evening at a time, tomorrow at a time, or a weekday — in Tasks → This week → Reminders; the first one goes on the notification.",
+  "freshNl": "Een herinnering biedt de gewone drie: 15 min, 1 uur en Tomorrow (09:00); een melding zegt “Snooze 1 h”. Voeg er tot zes van jezelf toe — een duur, vanavond om een tijd, morgen om een tijd, of een weekdag — in Tasks → This week → Reminders; de eerste staat op de melding."
  }
 }
