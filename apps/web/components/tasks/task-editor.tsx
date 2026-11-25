@@ -20,6 +20,7 @@ import {TaskLookField} from './task-look-field';
 import {taskLook, type TaskLook} from '../../lib/tasks/look';
 import {ENERGY_HINTS, ENERGY_WORDS} from '../../lib/tasks/energy-load';
 import {TASK_ENERGY, type TaskEnergy} from '../../lib/tasks/schema';
+import {DREAD_LEVELS, DREAD_WORDS} from '../../lib/tasks/dread';
 import {r5FieldsOf, r5Patch, type R5Fields} from '../../lib/tasks/r5-fields';
 
 const HabitLinkField = lazy(() => import('./habit-link-field'));
@@ -93,6 +94,8 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
   const [look, setLook] = useState<TaskLook | null>(() => taskLook(task));
   // Session AV lane 2 (r3-plan, LEDGER #259): how much the task asks, for the day's energy.
   const [energy, setEnergy] = useState<TaskEnergy | ''>(task.energy ?? '');
+  // Session AW (X2, LEDGER #432; Amazing Marvin's dread): how much the person is dreading it, theirs only.
+  const [dread, setDread] = useState<string>(task.dread ? String(task.dread) : '');
   // Session AV lane 2 (r4-plan, LEDGER #301, #303, #304): how Plan my day and Plan my week treat it.
   const [planFields, setPlanFields] = useState<PlanFields>(() => ({chunk: task.chunk ? String(task.chunk) : '', after: (task.after ?? []).filter(x => !record || record.tasks.some(t => t.id === x)) /* a task no longer here drops out on save */, afterHours: !!task.afterHours}));
   // Session AV lane 2 (r5-plan, LEDGER #348, #349, #353, #354): where and when.
@@ -114,7 +117,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
       ...(record ? {projectId: projectId || null, sectionId: sectionId || null} : {}),
       reminders: [...[...new Set(reminders.filter(r => r !== '').map(Number))].slice(0, MAX_EDITOR_REMINDERS).map(before => ({before})), ...(remindAt ? [{before: 0, at: remindAt}] : [])], habit: habit || null, health: (health || null) as HealthLink | null,
       early: due && early ? Number(early) : null, parallel: parallel ? true : null, spent: spentValue, objective: objective || null, comments, ...(fieldValues !== undefined ? {fields: fieldValues} : {}),
-      ...(look || task.look ? {look: look ?? null} : {}), ...(energy || task.energy ? {energy: energy || null} : {}),
+      ...(look || task.look ? {look: look ?? null} : {}), ...(energy || task.energy ? {energy: energy || null} : {}), ...(dread || task.dread ? {dread: dread ? Number(dread) as 1 | 2 | 3 : null} : {}),
       ...(planFields.chunk || task.chunk ? {chunk: planFields.chunk ? Number(planFields.chunk) : null} : {}), ...(planFields.after.length || task.after ? {after: planFields.after} : {}), ...(planFields.afterHours || task.afterHours ? {afterHours: planFields.afterHours ? true : null} : {}), ...where};
     // A change to the repeat itself is a change to the series; anything else on a repeating task asks which times.
     if (task.recur && task.due && !task.doneAt && unchangedRepeat) { setAsk(patch); requestAnimationFrame(() => askRef.current?.focus()); return; }
@@ -173,6 +176,8 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
       <small id={`${id}-spent`} className={spentValue === 'invalid' ? 'tasks-field-error' : 'tasks-field-note'} role={spentValue === 'invalid' ? 'alert' : undefined}>{spentValue === 'invalid' ? 'Enter whole minutes, for example 25.' : typeof minutesValue === 'number' && typeof spentValue === 'number' ? `Planned ${minutesWords(minutesValue)}, spent ${minutesWords(spentValue)}.` : 'The timer in Tasks → Today adds to this; you can also type it.'}</small></label>
     <label className="field"><span>Energy — optional</span><select value={energy} aria-describedby={`${id}-energy`} onChange={e => setEnergy(e.target.value as TaskEnergy | '')}><option value="">Not set</option>{TASK_ENERGY.map(v => <option key={v} value={v}>{ENERGY_WORDS[v]}</option>)}</select>
       <small id={`${id}-energy`} className="tasks-field-note">{energy ? `${ENERGY_WORDS[energy]}: ${ENERGY_HINTS[energy]}. Tasks → Today adds up the day’s energy against your amount.` : 'How much it asks of you. Tasks → Today adds up the day’s energy, in calm words.'}</small></label>
+    <label className="field"><span>I’m dreading this — optional</span><select value={dread} aria-describedby={`${id}-dread`} onChange={e => setDread(e.target.value)}><option value="">Not set</option>{DREAD_LEVELS.map(v => <option key={v} value={v}>{DREAD_WORDS[v]}</option>)}</select>
+      <small id={`${id}-dread`} className="tasks-field-note">Only for you, never counted against you. Plan my day’s “Hardest first” can give the most dreaded task the first free time, and “Stuck? Help me start” has a way in.</small></label>
     <Suspense fallback={null}><TaskR5Fields task={task} today={today} due={due} time={time} value={r5} onChange={setR5} /></Suspense>
     <Suspense fallback={null}><TaskPlanFields task={task} record={record} minutes={typeof minutesValue === 'number' ? minutesValue : null} value={planFields} onChange={setPlanFields} /></Suspense>
     {!(task.recur && !task.doneAt) && repeatNote}

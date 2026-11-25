@@ -92,7 +92,7 @@ export function TasksNav({record, today, view, board, counts, projects, onGo, on
     {/* Session AV lane 2 (tasks): planning and layouts (Sunsama, Todoist, TickTick, Notion), drawn by their own chunk. */}
     <h3>Plan and views</h3>
     <ul>{([['week', 'This week'], ['table', 'Table'], ['days', 'Calendar'], ['timeline', 'Timeline'], ['insights', 'Insights'], ['organise', 'Areas and templates']] as const).map(([kind, label]) => item({kind}, label))}
-      {/* Session AV lane 2 (r6-plan, LEDGER #395): once a project has a review interval */}{record.projects?.some(p => p.review && !p.archived) && item({kind: 'review'}, 'Review', toReview)}</ul>
+      {/* Session AV lane 2 (r6-plan, LEDGER #395): once a project has a review interval; Session AW (X2, LEDGER #433, #434): or once there is a task (Moved most, Open a long time) */}{(record.tasks.length > 0 || record.projects?.some(p => p.review && !p.archived)) && item({kind: 'review'}, 'Review', toReview)}</ul>
     <h3>Projects</h3>
     {/* Session AV lane 2 (LEDGER #20, #12): projects under their area (Things' Areas, TickTick's folders). */}
     {(record.areas?.length ? [...record.areas.map(a => ({key: a.id, name: a.name as string | null, items: live.filter(p => p.areaId === a.id)})), {key: '', name: null, items: live.filter(p => !p.areaId || !record.areas!.some(a => a.id === p.areaId))}] : [{key: '', name: null, items: live}])

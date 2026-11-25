@@ -60,6 +60,7 @@ import {av2R6MoneyAnswer} from './av2-r6-money';
 import {av2R6NotesAnswer} from './av2-r6-notes';
 import {awX3Answer} from './aw-x3';
 import {av2R6PlanAnswer} from './av2-r6-plan';
+import {awX2TasksAnswer} from './aw-x2-tasks';
 import {av2R4HealthAnswer} from './av2-r4-health';
 import {av2R4PlanAnswer} from './av2-r4-plan';
 import {av2R3NotesAnswer} from './av2-r3-notes';
@@ -301,6 +302,9 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   // Session AV lane 2 (Habits and mind): its own answers, before AV's (lib/ai/local-answers/av2-habits.ts).
   if (!subject) { const own = av2HabitsAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, round 2 (Tasks: My Day, rules, fields, imports, print): before Tasks' first answers.
+  // Session AW (X2, LEDGER #432–#437, #448; Amazing Marvin): dreaded tasks, the ones put off most or open a long time, today's
+  // progress, time targets and the stuck-task guide (aw-x2-tasks.ts), before round 6's planning answers.
+  if (!subject) { const own = awX2TasksAnswer(question, env, {plan: env.nova?.taskPlan}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, round 6 (Tasks: projects on hold, in order, focus, label groups): before round 5's.
   if (!subject) { const own = av2R6PlanAnswer(question, env, {plan: env.nova?.taskPlan}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   if (!subject) { const own = av2R5PlanAnswer(question, env, {plan: env.nova?.taskPlan}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
