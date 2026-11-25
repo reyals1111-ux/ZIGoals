@@ -92,7 +92,7 @@ test.describe('FR-S-15 and FR-TJ-20: Health\'s Log food and Portions', () => {
     if (isMobile) {
       const sheet = page.getByRole('dialog', {name: 'Log a meal'});
       await expect(sheet).toBeVisible();
-      await expect(sheet.getByText('Just describe it').first()).toBeVisible();
+      await expect(sheet.getByRole('form', {name: 'Just describe it'})).toBeVisible();
       await expect.poll(() => page.evaluate(() => !!document.activeElement?.closest('dialog.phone-form-sheet'))).toBe(true);
       await serious(page, sheet);
       await page.keyboard.press('Escape');
