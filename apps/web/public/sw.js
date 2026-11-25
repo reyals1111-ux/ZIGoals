@@ -466,11 +466,11 @@ async function snooze(data, now, snoozeTo) {
  * Session AW (X1, LEDGER #438; TIER 3 (PWA)): after "Done" on a task reminder its later repeats left the snapshot; their wake
  * minutes leave the device's wake list too (where no other item needs them), so no empty notification follows.
  */
-async function dropWakes(minutes) {
+async function dropWakes(minutes, now) {
   if (!minutes.length) return;
   const [device, registration] = await Promise.all([kvGet('device'), kvGet('registration')]);
   if (!device || !registration || !registration.body) return;
-  const drop = new Set(minutes), once = (registration.body.once || []).filter(m => !drop.has(m));
+  const drop = new Set(minutes), once = (registration.body.once || []).filter(m => m * 60000 > now && !drop.has(m));
   if (once.length === (registration.body.once || []).length) return;
   const body = {...registration.body, once};
   const response = await withTimeout(fetch('/api/push-device', {method: 'PUT', headers: {'content-type': 'application/json'}, body: JSON.stringify({...body, id: device.id, secret: device.secret})}), 8000, null);
@@ -495,7 +495,7 @@ self.addEventListener('notificationclick', event => {
           const leaves = i => ids.has(i.kind + ':' + i.id) && (i.at <= now + 3_600_000 || i.kind === 'task');
           const kept = snapshot.items.filter(i => !leaves(i)), gone = snapshot.items.filter(i => leaves(i) && i.kind === 'task' && i.at > now + 60000).map(i => Math.floor(i.at / 60000)).filter(m => !kept.some(i => Math.floor(i.at / 60000) === m));
           await kvPut('snapshot', {...snapshot, items: kept});
-          await dropWakes([...new Set(gone)]).catch(() => {});
+          await dropWakes([...new Set(gone)], now).catch(() => {});
         }
       }
       await tell({type: 'zigoals:notify-action', actionId: action.actionId});
