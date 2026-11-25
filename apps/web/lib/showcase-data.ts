@@ -87,7 +87,8 @@ import {showcaseCountdowns} from './countdowns/showcase';
 import {COUNTDOWN_EXTRAS_KEY} from './countdowns/extras';
 import {MONEY_TAGS_KEY} from './money-tags/schema';
 import {showcaseMoneyTags} from './money-tags/showcase';
-import {showcaseNotes} from './notes/showcase';
+import {showcaseNoteSearches, showcaseNotes} from './notes/showcase';
+import {NOTE_SEARCHES_KEY} from './notes/saved-searches';
 import {CALENDAR_IMPORT_KEY} from './ics/calendar';
 import {showcaseCalendarImport} from './ics/showcase';
 import {withShowcasePomodoro} from './focus-sessions/showcase';
@@ -260,6 +261,8 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  records[NETWORTH_MILESTONES_KEY]=JSON.stringify(showcaseNetworthMilestones(day));records[FOCUS_SESSIONS_KEY]=JSON.stringify(withShowcasePomodoro(showcaseFocusSessions(day),day));
  // Owner follow-up 2 (B, T2): labelled example notes (with [[links]] to Showcase goals and habits) and an imported calendar.
  records[NOTES_KEY]=JSON.stringify(showcaseNotes(day));
+ // Session AW (x3; LEDGER #441): two labelled example searches kept by name in Notes.
+ records[NOTE_SEARCHES_KEY]=JSON.stringify(showcaseNoteSearches());
  // Owner follow-up 2 (N2, N3, N6): NOVA's example layout, its setup progress and two saved workflows (labelled).
  // N1: one labelled NOVA conversation with a Health task handed to ZIGi (two voices), in the tab's Showcase chats.
  {const duo=showcaseNovaChat(SHOWCASE_SCOPE,new Date(`${day}T08:00:00.000Z`));records[AI_CHATS_SESSION_KEY]=JSON.stringify({version:1,chats:[duo.chat]});records[SHOWCASE_NOVA_BRIDGE_KEY]=JSON.stringify(duo.bridge);}
