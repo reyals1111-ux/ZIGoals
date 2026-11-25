@@ -9964,6 +9964,16 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
+    .tasks-x2-track:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--surface-2, var(--line))
+    }
+    .tasks-x2-bar:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--accent, currentColor)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=black]) {
     .tasks-sort:not(#\-):not(#\-) {
         background-image: none;
         background-color: transparent

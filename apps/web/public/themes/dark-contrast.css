@@ -26531,6 +26531,40 @@
     .task[data-cancelled] .task-title:not(#\-):not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
+    .task-dread:not(#\-):not(#\-), .task-moved:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .task-stuck:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .task-stuck-way:focus-visible:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--accent, currentColor) 40%, #fff)
+    }
+    .tasks-pick:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .tasks-day-progress:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-x2-track:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--surface-2, var(--line))
+    }
+    .tasks-x2-bar:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--accent, currentColor) 30%, #000)
+    }
+    .tasks-x2-review h3 small:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-x2-list > li:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .tasks-x2-what small:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .tasks-plan-view h3 small:not(#\-):not(#\-) {

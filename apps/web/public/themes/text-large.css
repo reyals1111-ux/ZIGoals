@@ -3960,6 +3960,19 @@
 /*  components/tasks/task-attachments.css  */
 :where(:root[data-text=large]) .task-attachment-list:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .task-attachment-item small:not(#\-) { font-size: calc(14px * 1.125); }
+/*  components/tasks/tasks-aw-x2.css  */
+:where(:root[data-text=large]) .task-stuck p:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .task-stuck .task-stuck-title:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .task-stuck textarea:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .tasks-pick-body p:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .tasks-pick-one:not(#\-) { font-size: calc(17px * 1.125); }
+:where(:root[data-text=large]) .tasks-day-progress:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .tasks-x2-review h3 small:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .tasks-x2-review > p:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .tasks-x2-what:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .tasks-x2-what small:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .tasks-targets-list > li:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .tasks-targets-form input:not(#\-), :where(:root[data-text=large]) .tasks-pick select:not(#\-), :where(:root[data-text=large]) .tasks-x2-review input:not(#\-), :where(:root[data-text=large]) .tasks-targets-form select:not(#\-) { font-size: calc(16px * 1.125); }
 /*  components/tasks/tasks-plan.css  */
 :where(:root[data-text=large]) .tasks-plan-view h3:not(#\-) { font-size: calc(18px * 1.125); }
 :where(:root[data-text=large]) .tasks-plan-view h4:not(#\-) { font-size: calc(16px * 1.125); }

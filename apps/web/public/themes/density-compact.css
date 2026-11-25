@@ -7871,6 +7871,26 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .task-attachment-recording:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .task-attachment-status:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .task-file-item:not(#\-) { row-gap: 1.5px; }
+/*  components/tasks/tasks-aw-x2.css  */
+:where(:root[data-density=compact]) .task-stuck:not(#\-) { padding-top: 8px; padding-bottom: 10px; row-gap: 8px; }
+:where(:root[data-density=compact]) .task-stuck p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .task-stuck-reasons:not(#\-), :where(:root[data-density=compact]) .task-stuck-actions:not(#\-), :where(:root[data-density=compact]) .tasks-pick-actions:not(#\-), :where(:root[data-density=compact]) .tasks-x2-actions:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .task-stuck-way:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .tasks-pick:not(#\-) { padding-top: 0; padding-bottom: 10px; margin-top: 12px; margin-bottom: 12px; }
+:where(:root[data-density=compact]) .tasks-pick-body:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .tasks-pick-body p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .tasks-pick-two:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .tasks-day-progress:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .tasks-x2-review:not(#\-) { margin-top: 20px; row-gap: 8px; }
+:where(:root[data-density=compact]) .tasks-x2-review h3:not(#\-) { margin-top: 8px; margin-bottom: 0; row-gap: 2px; }
+:where(:root[data-density=compact]) .tasks-x2-review > p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .tasks-x2-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .tasks-x2-list > li:not(#\-) { row-gap: 4.5px; padding-top: 6px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .tasks-x2-what:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .tasks-targets:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .tasks-targets-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .tasks-targets-list > li:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .tasks-targets-form:not(#\-) { row-gap: 8px; }
 /*  components/tasks/tasks-plan.css  */
 :where(:root[data-density=compact]) .tasks-plan-view:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .tasks-plan-view h3:not(#\-) { margin-top: 0; margin-bottom: 0; }

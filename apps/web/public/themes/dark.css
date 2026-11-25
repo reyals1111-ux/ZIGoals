@@ -28480,6 +28480,41 @@
     .task[data-cancelled] .task-title:not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
+    .task-dread:not(#\-), .task-moved:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+}
+/*  components/tasks/tasks-aw-x2.css  */
+@scope (:root[data-theme=dark]) {
+    .task-stuck:not(#\-) {
+        border-color: var(--line)
+    }
+    .task-stuck-way:focus-visible:not(#\-) {
+        outline-color: var(--accent, currentColor)
+    }
+    .tasks-pick:not(#\-) {
+        border-color: var(--line)
+    }
+    .tasks-day-progress:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-x2-track:not(#\-) {
+        background-image: none;
+        background-color: var(--surface-2, var(--line))
+    }
+    .tasks-x2-bar:not(#\-) {
+        background-image: none;
+        background-color: var(--accent, currentColor)
+    }
+    .tasks-x2-review h3 small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-x2-list > li:not(#\-) {
+        border-color: var(--line)
+    }
+    .tasks-x2-what small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
 }
 /*  components/tasks/tasks-plan.css  */
 @scope (:root[data-theme=dark]) {
