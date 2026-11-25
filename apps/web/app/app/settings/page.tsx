@@ -46,6 +46,8 @@ import { SettingsGlyph } from "../../../components/header-art/glyphs/settings";
 import { PhoneSettingsList } from "../../../components/phone/phone-settings";
 import { KeepSettingsJump } from "../../../components/settings/keep-jump";
 import { SettingsRenderAll } from "../../../components/settings/settings-render-all";
+// Session AW Part 3 (simplicity c): the search over a static index of every section (its index loads when first used).
+import { SettingsSearch } from "../../../components/settings/settings-search";
 // Session AV lane 2 (trim-settings; weights, never a raised budget): Earn's and signing's choices show only once the chain is
 // chosen, which the browser learns after the page has loaded (the server's page never has them), so they load as their own
 // chunk then, as the tracked wallets do. Their styles stay with the page, where they always were.
@@ -163,6 +165,7 @@ export default function Settings() {
             {chain ? "Goal plans stay on this device. Your wallet controls onchain funds." : "Your records live on this device unless you turn on sync."}
           </p>
           <p className="settings-head-links"><Link className="text-link" href="/app/help" onClick={markHelpFromSettings} style={{display: "inline-flex", alignItems: "center", minHeight: 44}}>Help &amp; feedback →</Link><ShowcaseDoor/></p>
+          <SettingsSearch chain={chain}/>
         </div>
         <HeaderArtCorner><OrbitArt glyph={SettingsGlyph} spin={12}/></HeaderArtCorner>
       </div>
