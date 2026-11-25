@@ -28,6 +28,7 @@ import {text as clean} from '../tools/format';
 import {answer, asked, clockIn, closed, dayIn, hm, isQuestion, MIXED, monthIn, num, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
 import {fold} from './exact/text';
+import {latestHabitRule} from '../../habits';
 
 /**
  * Session AV lane 2 (body): NOVA's and ZIGi's on-device answers to the sleep, workouts and body features of lane 2, in
@@ -219,10 +220,24 @@ function setsPerMuscle(a: Asked): LocalReply | null {
 
 // ── The calendar (LEDGER #118) ─────────────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Session AW (p5-answers, FR-TJ-17): a habit the question names by its whole name ("What is my gym streak?" beside a habit
+ * called Gym) is that habit's streak, from the Habits journal: the habit's own name takes precedence over the workout weeks.
+ * Only an active habit, and only while Habits is shared; a habit with a longer name ("Exercise") is named only by its words.
+ */
+function namesAHabit(a: Asked): boolean {
+  if (a.env.areas.habits === false) return false;
+  const words = new Set(a.f.split(' '));
+  return a.env.habits.habits.some(h => {
+    if (latestHabitRule(h).state !== 'active') return false;
+    const own = fold(h.title).split(' ').filter(w => w.length >= 3);
+    return own.length > 0 && own.every(w => words.has(w));
+  });
+}
 /** "how many weeks in a row have I trained", "hoeveel weken op rij heb ik getraind": the week streak and the longest. */
 function trainingStreak(a: Asked): LocalReply | null {
   const en = /\bweeks? in a row\b.*\b(?:train|trained|workout|worked out|work out|exercis|gym)|\b(?:workout|training|gym) streak\b/.test(a.f), nl = /\bweken op rij\b.*\b(?:getraind|train|workout|gesport|sport)|\b(?:workout|trainings|sport)reeks\b/.test(a.f);
-  if (!(en || nl) || !isQuestion(a)) return null;
+  if (!(en || nl) || !isQuestion(a) || namesAHabit(a)) return null;
   const shut = closed(a.env, 'health'); if (shut) return shut;
   const s = weekStreak(logOf(a), a.env.healthDay, pausesIn(a)), lang = a.lang;
   if (!s.current) return answer(say(lang, `No week in a row yet: a workout this week starts one.${s.best ? ` Your longest run was ${s.best} ${s.best === 1 ? 'week' : 'weeks'}.` : ''}`, `Nog geen week op rij: een workout deze week begint er een.${s.best ? ` Je langste reeks was ${s.best} ${s.best === 1 ? 'week' : 'weken'}.` : ''}`), CALLS);
