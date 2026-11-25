@@ -468,7 +468,7 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
     <div className="ai-turn-body">
       <TurnKind cards={proposals.length > 0}/>
       {!quiet && <SafeText className="ai-local-answer" text={shown}/>}
-      {proposals.length > 0 && <ProposalList onDevice proposals={proposals} rejected={parsed?.rejected ?? []} handles={localHandles} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed?.bundle}/>}
+      {proposals.length > 0 && <ProposalList onDevice lang={questionLanguage(question) === 'nl' ? 'nl' : 'en'} proposals={proposals} rejected={parsed?.rejected ?? []} handles={localHandles} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed?.bundle}/>}
       <DataViz results={info?.results}/>
       {/* Gate C (persona round): an earlier reply keeps its examples as plain words, so its "For example:" never ends empty. */}
       {!isLast && reply?.kind === 'examples' && reply.examples.length > 0 && <ul className="ai-local-examples" aria-label="Questions ZIGi answers here">{reply.examples.map(e => <li key={e}>{e}</li>)}</ul>}
