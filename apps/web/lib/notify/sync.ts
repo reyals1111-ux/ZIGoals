@@ -17,7 +17,7 @@ import {storedHabits} from '../push/device';
 import {namesOn} from '../push/labels-sync';
 import {readHabitHealthLinks} from '../habit-health-links/store';
 import {deviceZone} from '../push/support';
-import {NOTIFY_PREFS, typeOn} from './prefs';
+import {NOTIFY_PREFS, taskAgainOf, typeOn} from './prefs';
 import {isRoutineHead} from '../routines/reminder-href';
 import {addDays, wallClock} from './zone';
 import {buildPlan, withSnoozes, type Plan, type PlanInput, type Snooze} from './plan';
@@ -32,6 +32,9 @@ import {TASKS} from '../tasks/schema';
 import {lateCount} from '../tasks/engine';
 import {TASK_PLAN} from '../tasks/plan-record';
 import {reminderInstants} from '../tasks/reminders';
+import {againFor, repeatInstants} from '../tasks/remind-again';
+import {ownSnoozes, snoozeButton} from '../tasks/snooze-choices';
+import {TIMERS, timerState} from '../timers/store';
 import {leaveByWakes} from '../tasks/leave-by';
 import {CALENDAR_IMPORT} from '../ics/calendar';
 import {NOTES} from '../notes/schema';
@@ -40,6 +43,7 @@ import {COUNTDOWNS} from '../countdowns/schema';
 import {COUNTDOWN_EXTRAS, countdownWakes} from '../countdowns/extras';
 import {JOURNAL} from '../journal/schema';
 import {reminderPlanInput} from '../journal/reminder';
+import {morningPlanInput} from '../journal/day-pages';
 import {letterWakes} from '../journal/letters';
 import {memoryWakes} from '../on-this-day/throwback';
 import {JOURNAL_DISPLAY} from '../on-this-day/store';
@@ -135,7 +139,21 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
   try { input.supplements = supplementReminders(readDeviceRecord(storage, SUPPLEMENTS).data, today); } catch { /* unreadable: no wakes */ }
   // Session AV (follow-up 1, F-TASK-NOTIFY): the reminders set on open tasks — the instant, the id, and a title for the
   // plan to show only where names are allowed.
-  try { const tasks = reminderInstants(readDeviceRecord(storage, TASKS).data, zone).filter(r => r.at > now); if (tasks.length) input.tasks = tasks.slice(0, 60).map(r => ({id: r.task.id, title: r.task.title, at: r.at})); } catch { /* tasks unreadable: no task wakes */ }
+  // Session AW (X1, LEDGER #438; TIER 3 (PWA)): a reminder set to remind again also wakes at each repeat (quiet hours hold
+  // them; lib/tasks/remind-again.ts), every ring under the first ring's id, so Done or Snooze on any of them stops them all.
+  try {
+    const fallback = taskAgainOf(prefs), quiet = quietHours(plan);
+    const rings = reminderInstants(readDeviceRecord(storage, TASKS).data, zone).flatMap(r => {
+      const again = againFor(r.reminder, fallback);
+      const base = {id: r.task.id, title: r.task.title};
+      return again ? [{...base, at: r.at, series: r.at}, ...repeatInstants(r.at, again, quiet, zone).map(at => ({...base, at, series: r.at}))] : [{...base, at: r.at}];
+    }).filter(r => r.at > now).sort((a, b) => a.at - b.at);
+    if (rings.length) input.tasks = rings.slice(0, 60);
+  } catch { /* tasks unreadable: no task wakes */ }
+  // Session AW (X1, LEDGER #440; TIER 3 (PWA)): the named timers running now wake the device at their end.
+  try { const timers = readDeviceRecord(storage, TIMERS).data.timers.filter(t => timerState(t, now) === 'running'); if (timers.length) input.timers = timers.slice(0, 20).map(t => ({id: t.id, name: t.name, at: t.endsAt!})); } catch { /* unreadable: no timer wakes */ }
+  // Session AW (X1, LEDGER #439; TIER 3 (PWA)): the person's first own snooze choice is the notification's snooze button.
+  try { const own = ownSnoozes(prefs.snoozes); if (own) input.snoozeButton = snoozeButton(own[0]!, now, zone); } catch { /* the usual "Snooze 1 h" */ }
   // Session AV lane 2 (r5-plan, LEDGER #353; TIER 3 (PWA)): "Leave by 8:40" before a timed task or an imported event with
   // travel minutes typed before it — under the tasks switch as task reminders are; a title only where names are allowed.
   try {
@@ -157,6 +175,8 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
   try { const wakes = countdownWakes(readDeviceRecord(storage, COUNTDOWNS).data, readDeviceRecord(storage, COUNTDOWN_EXTRAS).data, today); if (wakes.length) input.countdowns = wakes.map(w => ({id: w.id, title: w.title, date: w.date, days: w.days})); } catch { /* unreadable: no countdown wakes */ }
   // Session AV lane 2 (journal; LEDGER #40): the reminder to write — its time, weekdays, the days already written, the streak.
   try { const j = reminderPlanInput(readDeviceRecord(storage, JOURNAL).data, today); if (j) input.journal = j; } catch { /* unreadable: no journal wake */ }
+  // Session AW (x3; LEDGER #444): the morning page's own reminder, while "Morning and evening" and that reminder are on.
+  try { const m = morningPlanInput(readDeviceRecord(storage, JOURNAL).data, today); if (m) input.journalMorning = m; } catch { /* unreadable: no morning wake */ }
   // Session AV lane 2 (r3-notes; LEDGER #279): the days letters to open later open (an id and a day; never their words).
   try { const letters = letterWakes(readDeviceRecord(storage, JOURNAL).data, today); if (letters.length) input.letters = letters; } catch { /* unreadable: no letter wakes */ }
   // Session AV lane 2 (r4-mind; LEDGER #309): the mornings with a memory, when the person asked (how long ago only; never its words).

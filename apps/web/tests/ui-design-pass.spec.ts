@@ -61,7 +61,10 @@ test.describe('Part 1: readability foundation',()=>{
    for(const [name,part] of [['banner',page.locator('details.habit-section > summary').first()],['title',page.locator('.habit-grid > .habit-card .habit-card-heading h2').first()],['complete',page.locator('.habit-grid > .habit-card .habit-check-actions button[aria-pressed]').first()]] as const){const box=(await part.boundingBox())!;expect(box.y+box.height,name).toBeLessThanOrEqual(900);}
   }
   const zone=page.getByText('Habit journal timezone',{exact:true}),semantics=page.locator('.habit-semantics'),privacy=page.locator('.habit-privacy');
-  const z=(await zone.boundingBox())!,s=(await semantics.boundingBox())!,p=(await privacy.boundingBox())!;
+  // Session AW (local run, deliberate): the three boxes are read in one moment, so a lazy Habits block arriving between
+  // two reads (it moved the later boxes 160 px) cannot make the order look reversed. The same two comparisons.
+  await expect(zone).toBeVisible();await expect(semantics).toBeVisible();await expect(privacy).toBeVisible();
+  const {z,s,p}=await page.evaluate(()=>{const y=(el:Element|null|undefined)=>el!.getBoundingClientRect().top+scrollY;const zoneEl=[...document.querySelectorAll('.habit-timezone summary, .habit-timezone *')].find(e=>e.textContent?.trim()==='Habit journal timezone');return {z:{y:y(zoneEl)},s:{y:y(document.querySelector('.habit-semantics'))},p:{y:y(document.querySelector('.habit-privacy'))}};});
   expect(z.y).toBeGreaterThan(s.y);expect(p.y).toBeGreaterThan(s.y);
   await zone.click();await page.getByLabel('Habit timezone',{exact:true}).fill('Not/AZone');await page.getByRole('button',{name:'Save Habit timezone',exact:true}).click();
   await expect(page.locator('.habit-timezone [role=status]')).toHaveText('Choose a valid IANA timezone, such as Europe/Brussels.');

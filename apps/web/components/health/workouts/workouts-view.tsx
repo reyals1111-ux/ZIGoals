@@ -1,4 +1,5 @@
 'use client';
+import {ProgrammeLinks} from '../../guided/programme-links';
 import {setBest, SET_BEST_WORDS, withEarlier, type SetBest} from '../../../lib/workouts/set-best';
 import Link from 'next/link';
 import {LoggingFor, useLinkedDay} from '../health-day';
@@ -297,6 +298,8 @@ export default function WorkoutsView() {
           {editing === t.id && <Suspense fallback={<p className="fine" role="status">Opening…</p>}><RoutineEdit w={w} routine={t} change={change} unit={unit} onDone={() => setEditing(null)}/></Suspense>}
         </li>)}</ul></div>)}</>}
         <Fold className="av2-fold workouts-guides-fold" summary="Ready-made routines, and routines shared with you" loading="Opening the routines…"><RoutineLibrary w={w} onSave={(g, lang) => saveFromLibrary(g, lang, false)} onStart={(g, lang) => saveFromLibrary(g, lang, true)} onImport={share => change(x => addSharedRoutine(x, share, new Date()).workouts, `${share.name} is added to your routines.`)}/></Fold><Fold className="av2-fold workouts-circuits-fold" summary="Timed circuits: work, rest and rounds" loading="Opening the circuits…"><Circuits logDay={logDay || today}/></Fold>
+        {/* Session AW (programmes; owner decision 1d): the written strength and running plans, a quiet line among the folds. */}
+        <ProgrammeLinks ids={['strength-start', 'run-5k']}/>
       </section>}
     {asking === 'finish' && current && <ConfirmInline title="Finish with unticked sets?" confirmLabel="Finish workout" cancelLabel="Keep logging" tone="neutral" onConfirm={() => void finish()} onCancel={() => setAsking(null)}><p>Sets you have not ticked are left out. Tick a set when you finish it.</p></ConfirmInline>}
     {asking === 'discard' && <ConfirmInline title="Discard this workout?" confirmLabel="Discard workout" cancelLabel="Keep it" onConfirm={() => { setAsking(null); setRestUntil(null); change(discardWorkout, 'The workout in progress is discarded. Nothing was added to Health.'); }} onCancel={() => setAsking(null)}><p>Its sets are not kept.</p></ConfirmInline>}

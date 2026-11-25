@@ -41,3 +41,22 @@
 @media (max-width: 480px) { .guided-step-actions > :is(a, button) { flex: 1 1 auto; } }
 @media (prefers-reduced-motion: reduce) { .guided-step { transition: none; } }
 :root[data-app-motion=off] .guided-step { transition: none; }
+/* Session AW (programmes; owner decision 1d): written programmes. Tokens only (no new colours); every control a 44 px
+   target; the days are folds; nothing moves (the step's colour change above is the only transition, off as before). */
+.guided-empty ul { margin: 8px 0 0; padding-left: 22px; display: grid; gap: 6px; }
+.guided-empty strong { color: var(--text-strong); }
+.guided-program[data-asked] { outline: 2px solid var(--brand-cyan); outline-offset: 2px; }
+.guided-program h3:focus { outline: none; }
+.guided-program h3:focus-visible { outline: 2px solid var(--brand-cyan); outline-offset: 3px; }
+.guided-today { font-weight: 600; }
+.guided-showcase { font-weight: 500; color: var(--text-secondary); font-size: 16px; }
+.guided-days { display: grid; gap: 10px; margin: 4px 0 0; padding: 0; list-style: none; min-width: 0; }
+.guided-day > details { border: 1px solid var(--line); border-left: 3px solid var(--pillar, var(--line)); border-radius: 14px; min-width: 0; }
+.guided-day[data-done] > details { border-left-color: var(--line); }
+.guided-day > details > summary { display: flex; align-items: center; min-height: 44px; padding: 10px 14px; cursor: pointer; }
+.guided-day-head { display: grid; gap: 2px; min-width: 0; }
+.guided-day-title { font-weight: 650; font-size: 17px; color: var(--text-strong); }
+.guided-day-count { color: var(--text-secondary); font-size: 15px; }
+.guided-day-body { display: grid; gap: 10px; padding: 0 14px 14px; min-width: 0; }
+.guided-day-body > p { margin: 0; }
+.guided-day .guided-steps { margin: 0; }

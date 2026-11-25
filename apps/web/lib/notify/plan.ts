@@ -12,9 +12,15 @@ import type {HabitPartsInput} from './habit-parts';
  * one-off wake minutes, and minutes to skip. The registration never carries a name, a kind, a count or an amount, and
  * the snapshot keeps an amount (a contribution or a bill) only where names are allowed.
  */
-export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown' | 'journal' | 'money' | 'meal' | 'mood' | 'energy' | 'planDay' | 'weighIn' | 'habitPart';
+export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote' | 'unbonding' | 'validator' | 'task' | 'countdown' | 'journal' | 'money' | 'meal' | 'mood' | 'energy' | 'planDay' | 'weighIn' | 'habitPart' | 'timer';
 export type PlanItem = {at: number; kind: ItemKind; id: string; label?: string; detail?: string; href: string; actionable: boolean};
-export type Snapshot = {v: 1; written: number; zone: string; labels: boolean; quiet: {from: string; to: string}; items: PlanItem[]; summary: {date: string; done: number; total: number}; prices: PriceWatch[]};
+export type Snapshot = {v: 1; written: number; zone: string; labels: boolean; quiet: {from: string; to: string}; items: PlanItem[]; summary: {date: string; done: number; total: number}; prices: PriceWatch[];
+  /**
+   * Session AW (X1, LEDGER #439; TIER 3 (PWA)): the notification's snooze button when the person keeps snooze choices of
+   * their own — its words ("Snooze 2 h") and its length, or for a choice at a time the steps the worker reads
+   * (lib/tasks/snooze-choices.ts snoozeButton). Absent: "Snooze 1 h", as before.
+   */
+  snooze?: {title: string; ms?: number; steps?: [number, number][]}};
 export type PriceWatch = {alertId: string; coin: string; currency: 'USD' | 'EUR'; direction: 'above' | 'below'; price: string; label?: string; request: unknown};
 export type Registration = {wakes: {m: number; d: number}[]; once: number[]; skips: number[]};
 export type PlanInput = {
@@ -53,7 +59,19 @@ export type PlanInput = {
    * (lib/tasks/reminders.ts reminderInstants): the instant and the task's id; its title only where names are allowed.
    */
   tasks?: {id: string; title?: string; at: number; /** Session AV lane 2 (LEDGER #31): a reminder written in a note opens its note and has no Done. */ note?: string;
-    /** Session AV lane 2 (r5-plan, LEDGER #353): "Leave by" this time (as shown) before a task or an event; no Done; `href` opens it. */ leave?: string; href?: string}[];
+    /** Session AV lane 2 (r5-plan, LEDGER #353): "Leave by" this time (as shown) before a task or an event; no Done; `href` opens it. */ leave?: string; href?: string;
+    /**
+     * Session AW (X1, LEDGER #438; TIER 3 (PWA)): a repeat of a reminder that went off at `series` ("remind again until
+     * done"): its item keeps the first ring's id, so Done or Snooze on any ring stops them all.
+     */
+    series?: number}[];
+  /**
+   * Session AW (X1, LEDGER #440; TIER 3 (PWA)): the named timers running now (lib/timers/store.ts): when each ends and its
+   * id; its name only where names are allowed. One wake at the minute it ends.
+   */
+  timers?: {id: string; name?: string; at: number}[];
+  /** Session AW (X1, LEDGER #439): the snooze button of the person's own first choice, for the snapshot (see Snapshot.snooze). */
+  snoozeButton?: Snapshot['snooze'];
   /**
    * Session AV (1c, q1 #44; TickTick): the mornings a countdown's reminder reaches the device (lib/countdowns/extras.ts
    * countdownWakes): the day, the countdown's id, how many days are left then; its title only where names are allowed.
@@ -64,7 +82,13 @@ export type PlanInput = {
    * (lib/journal/reminder.ts reminderPlanInput): its time and weekdays, the days of the window already written, and the
    * streak a new entry keeps. Never a word of the journal.
    */
-  journal?: {time: string; weekdays: number; written: readonly string[]; streak: number};
+  journal?: {time: string; weekdays: number; written: readonly string[]; streak: number; /** Session AW (x3; LEDGER #444): the evening page's reminder while "Morning and evening" is on. */ part?: 'evening'};
+  /**
+   * Session AW (x3; LEDGER #444, The Five Minute Journal): the morning page's own reminder (lib/journal/day-pages.ts
+   * morningPlanInput) — a second journal wake a day, off until chosen: its time and weekdays and the days of the window
+   * whose morning page is written already. Never a word of the journal; under the journal switch.
+   */
+  journalMorning?: {time: string; weekdays: number; written: readonly string[]};
   /**
    * Session AV lane 2 (r3-notes; LEDGER #279, Stoic's letter to open later; TIER 3 (PWA)): the days letters open
    * (lib/journal/letters.ts letterWakes) — an id and a day only, never a word of the letter; under the journal switch.
@@ -168,7 +192,9 @@ export function buildPlan(input: PlanInput): Plan {
   if (typeOn(prefs, 'review') && input.review) daily('review', 'review', input.review.time, weekdayBit(input.review.weekday), () => ({href: '/app/review', actionable: false}), () => false);
   // Session AV lane 2 (journal; LEDGER #40): the reminder to write, on its weekdays, unless that day already has an entry;
   // its line keeps the streak ("keeps your 4-day streak"), a count only, never a word of the journal.
-  if (typeOn(prefs, 'journal') && input.journal) { const j = input.journal; daily('journal', 'journal', j.time, j.weekdays & EVERY, () => ({...(j.streak > 0 ? {detail: `keeps your ${j.streak}-day streak`} : {}), href: '/app/journal', actionable: false}), date => j.written.includes(date)); }
+  if (typeOn(prefs, 'journal') && input.journal) { const j = input.journal, page = j.part === 'evening' ? 'your evening page' : '', streakLine = j.streak > 0 ? `keeps your ${j.streak}-day streak` : '', detail = [page, streakLine].filter(Boolean).join(' · '); daily('journal', 'journal', j.time, j.weekdays & EVERY, () => ({...(detail ? {detail} : {}), href: '/app/journal', actionable: false}), date => j.written.includes(date)); }
+  // Session AW (x3; LEDGER #444): the morning page's reminder, a wake of its own, quiet once that day's morning page is written.
+  if (typeOn(prefs, 'journal') && input.journalMorning) { const j = input.journalMorning; daily('journal', 'journal-morning', j.time, j.weekdays & EVERY, () => ({detail: 'your morning page', href: '/app/journal#day-pages', actionable: false}), date => j.written.includes(date)); }
   // Session AV lane 2 (r3-plan, LEDGER #256): "Plan your day" at its own time, opening Plan my day; the overdue count rides on
   // it, or on the morning orbit when there is no plan-your-day reminder (one line, never one notification per task).
   const overdueLine = (date: string): {detail?: string} => { const n = input.overdue?.find(o => o.date === date)?.count ?? 0; return n > 0 ? {detail: n === 1 ? '1 task overdue' : `${n} tasks overdue`} : {}; };
@@ -230,7 +256,16 @@ export function buildPlan(input: PlanInput): Plan {
     // its id is not a task: id, so Done can never finish the task from it.
     push(t.leave ? {at: t.at, kind: 'task', id: `leave:${t.id}@${t.at}`, label: label(t.title), detail: `Leave by ${t.leave}`, href: t.href ?? '/app/agenda', actionable: false}
       : t.note ? {at: t.at, kind: 'task', id: `note:${t.note}@${t.at}`, label: label(t.title), href: `/app/notes?note=${encodeURIComponent(t.note)}`, actionable: false}
-      : {at: t.at, kind: 'task', id: `task:${t.id}@${t.at}`, label: label(t.title), href: `/app/tasks#task-${t.id}`, actionable: true});
+      : {at: t.at, kind: 'task', id: `task:${t.id}@${t.series ?? t.at}`, label: label(t.title), href: `/app/tasks#task-${t.id}`, actionable: true});
+  }
+  // Session AW (X1, LEDGER #440; TIER 3 (PWA)): a running timer wakes the device at the minute it ends (never before it),
+  // under its own switch; one inside quiet hours is said on the card and rings only in the app. Its name only with names on.
+  if (typeOn(prefs, 'timers')) for (const t of input.timers ?? []) {
+    if (t.at <= now || t.at > now + 2 * 86_400_000) continue;
+    const time = wallClock(t.at, zone).time;
+    if (inQuiet(time, quiet)) { refused.push({kind: 'timer', time}); continue; }
+    once.set(Math.ceil(t.at / 60000), 'timer');
+    push({at: t.at, kind: 'timer', id: `timer:${t.id}@${t.at}`, label: label(t.name), href: '/app/tasks?timers=1', actionable: false});
   }
   // Session AV (1c, q1 #44): a countdown's reminder wakes at the morning time (the end of quiet hours when the morning is
   // quiet) on the first day of its reminder and on its day, as bills do. Labelled only with names on.
@@ -310,7 +345,7 @@ export function buildPlan(input: PlanInput): Plan {
   onceList = onceList.slice(0, MAX_WAKES); wakes = wakes.slice(0, room);
   items.sort((a, b) => a.at - b.at || a.kind.localeCompare(b.kind));
   return {
-    snapshot: {v: 1, written: now, zone, labels, quiet, items: items.slice(0, 200), summary: {date: today, ...input.orbit}, prices: typeOn(prefs, 'prices') ? input.prices.slice(0, 20).map(p => labels ? p : withoutLabel(p)) : []},
+    snapshot: {v: 1, written: now, zone, labels, quiet, items: items.slice(0, 200), summary: {date: today, ...input.orbit}, prices: typeOn(prefs, 'prices') ? input.prices.slice(0, 20).map(p => labels ? p : withoutLabel(p)) : [], ...(input.snoozeButton ? {snooze: input.snoozeButton} : {})},
     registration: {wakes, once: onceList, skips: skips.sort((a, b) => a - b).slice(0, 96)},
     refused, dropped,
   };
@@ -323,7 +358,10 @@ export const registrationKey = (zone: string, quiet: {from: string; to: string},
  * hour on in the snapshot and adds that wake minute; the page, which rewrites the snapshot from the records, keeps both.
  */
 export const SNOOZE_MS = 3_600_000;
-export type Snooze = {at: number; items: {kind: string; id: string; at: number}[]};
+/** Session AW (X1, LEDGER #439): `until`, when the tap snoozed to the person's own first choice (else an hour on). */
+export type Snooze = {at: number; items: {kind: string; id: string; at: number}[]; until?: number};
+/** A task item's series ("task:<id>@<first ring>"): its rings share it (Session AW, LEDGER #438). */
+const taskOf = (i: {kind: string; id: string}) => i.kind === 'task' ? i.id.replace(/@\d+$/, '') : null;
 /**
  * The plan with each live snooze kept: the snoozed item comes back at the tap's time plus an hour (with the text it had
  * then), and its minute stays in the one-off wakes. An item done since (or switched off) is no longer in the plan built
@@ -331,17 +369,22 @@ export type Snooze = {at: number; items: {kind: string; id: string; at: number}[
  * passed item (an hour). Pure; `input` is the one the plan was built from.
  */
 export function withSnoozes(plan: Plan, input: PlanInput, snoozes: readonly Snooze[], now: number): Plan {
-  const live = snoozes.filter(s => Number.isFinite(s.at) && s.at <= now && s.at + SNOOZE_MS > now - SNOOZE_MS && Array.isArray(s.items) && s.items.length);
+  const untilOf = (s: Snooze) => typeof s.until === 'number' && Number.isFinite(s.until) && s.until > s.at ? s.until : s.at + SNOOZE_MS;
+  const live = snoozes.filter(s => Number.isFinite(s.at) && s.at <= now && untilOf(s) > now - SNOOZE_MS && Array.isArray(s.items) && s.items.length);
   if (!live.length) return plan;
   const items = [...plan.snapshot.items], once = new Set(plan.registration.once), seen = new Set(items.map(i => `${i.kind}:${i.id}:${i.at}`));
   const then = new Map<number, Plan>();
   for (const s of live) {
-    const until = s.at + SNOOZE_MS, earlier = then.get(s.at) ?? buildPlan({...input, now: s.at});
+    const until = untilOf(s), earlier = then.get(s.at) ?? buildPlan({...input, now: s.at});
     then.set(s.at, earlier);
     for (const wanted of s.items) {
       const matches = earlier.snapshot.items.filter(i => i.kind === wanted.kind && i.id === wanted.id && Math.abs(i.at - wanted.at) < 40 * 60_000);
       const item = matches.find(i => i.at === wanted.at) ?? matches[0];
       if (!item || seen.has(`${item.kind}:${item.id}:${until}`)) continue;
+      // Session AW (X1, LEDGER #438): a task snoozed in the app or from the notification (its `snooze` written on the task)
+      // is already in this plan at its snooze's end; it is not added twice.
+      const series = taskOf(item);
+      if (series && items.some(i => i.at === until && taskOf(i) === series)) continue;
       seen.add(`${item.kind}:${item.id}:${until}`);
       items.push({...item, at: until});
       if (until > now) once.add(Math.floor(until / 60_000));

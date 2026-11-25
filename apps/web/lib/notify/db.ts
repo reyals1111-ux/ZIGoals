@@ -10,7 +10,8 @@
  * snapshot is rebuilt from the records; the queue is applied, not kept).
  */
 export const NOTIFY_DB = 'zigoals-notify-v1', NOTIFY_ACTIONS_DB = 'zigoals-notify-actions-v1';
-export type QueuedAction = {actionId: string; type: 'done' | 'snooze' | 'price-fired'; at: number; date?: string | null; items?: {kind: string; id: string; at: number}[]; alertId?: string; applied?: number};
+/** Session AW (X1, LEDGER #439): `until` on a snooze, when the worker snoozed to the person's own first choice. */
+export type QueuedAction = {actionId: string; type: 'done' | 'snooze' | 'price-fired'; at: number; date?: string | null; items?: {kind: string; id: string; at: number}[]; alertId?: string; applied?: number; until?: number};
 
 function open(name: string, store: string, keyPath?: string): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {

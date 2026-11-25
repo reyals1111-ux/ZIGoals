@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {useId, useState} from 'react';
 import type {LibraryTemplate} from '../../lib/templates/goal-library';
 import {catalogueAreaLabel, catalogueAreasFor, searchCatalogue, type CatalogueArea} from '../../lib/templates/library';
-import {goalTemplateHref} from '../../lib/guided/programs';
+import {goalTemplateHref} from '../../lib/guided/template-href';
 import './library-search.css';
 
 const PAGE = 12;

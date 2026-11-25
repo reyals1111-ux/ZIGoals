@@ -6,7 +6,7 @@
 export type PaletteGroup = 'Actions' | 'Pages' | 'Recent tasks' | 'Ask or search';
 /** The groups in the order they show (and ↑/↓ walk them). */
 export const PALETTE_GROUPS: readonly PaletteGroup[] = ['Actions', 'Pages', 'Recent tasks', 'Ask or search'];
-export type PaletteRow = {id: string; group: PaletteGroup; label: string; detail?: string; words?: string; href?: string; run?: 'quick-add' | 'search' | 'zigi'; keys?: string};
+export type PaletteRow = {id: string; group: PaletteGroup; label: string; detail?: string; words?: string; href?: string; run?: 'quick-add' | 'search' | 'zigi' | /* Session AW (X1, LEDGER #440) */ 'timers'; keys?: string};
 
 const fold = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase();
 export function filterRows(rows: readonly PaletteRow[], typed: string): PaletteRow[] {

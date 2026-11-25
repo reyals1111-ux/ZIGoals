@@ -58,6 +58,10 @@ import {BUDGET_PERIODS} from '../budgets/periods';
 import {CHESS_COMPUTER} from '../chess/computer-record';
 import {EVENING_PLAN} from '../evening-plan/schema';
 import {BODY_EXTRAS} from '../body-extras/schema';
+import {ACTIVITY_EXTRAS} from '../aw-kcal/activity-extras';
+import {NOTE_SEARCHES} from '../notes/saved-searches';
+import {TIMERS} from '../timers/store';
+import {GOAL_REPEAT} from '../goals/repeat';
 import {WORKOUT_PLACES} from '../workouts/places-schema';
 import {PLANNED_WORKOUTS} from '../workouts/planned';
 import {RACES} from '../workouts/races';
@@ -288,6 +292,8 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   // Session AV lane 2, batch 2 (Health records restore with Health and its consent, as the other Health device records).
   dev('eveningPlan', 'Sleep: the evening plan', 'Health', EVENING_PLAN, true),
   dev('bodyExtras', 'Height and weight milestones', 'Health', BODY_EXTRAS, true),
+  // Session AW (1a, TIER 3 stored formats): what a person typed beside an activity; restored with Health.
+  dev('activityExtras', 'Activity distance, effort and calories you entered', 'Health', ACTIVITY_EXTRAS, true),
   dev('workoutPlaces', 'Workouts: places and equipment', 'Health', WORKOUT_PLACES, true),
   dev('healthGoalsMore', 'Health goals on any number', 'Health', MORE_GOALS, true),
   dev('workoutCircuits', 'Workouts: timed circuits', 'Health', CIRCUITS, true),
@@ -295,6 +301,12 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('races', 'Races', 'Health', RACES, true),
   dev('workoutHr', 'Heart-rate zones of runs', 'Health', WORKOUT_HR, true),
   dev('noteCards', 'Review days of note cards', 'Today and Life', NOTE_CARDS),
+  // Session AW (#441, TIER 3 stored formats): the searches kept by name in Notes.
+  dev('noteSearches', 'Saved searches of notes', 'Today and Life', NOTE_SEARCHES),
+  // Session AW (#440, TIER 3 stored formats): your named timers, kept to start again.
+  dev('timers', 'Timers: your named timers', 'Today and Life', TIMERS),
+  // Session AW (#447, TIER 3 stored formats): which goals start again, and a project's earlier results.
+  dev('goalRepeat', 'Goals that start again', 'Goals and Wealth', GOAL_REPEAT),
   dev('lowDay', 'On a low day', 'Health', LOW_DAY, true),
   dev('bringUp', 'To bring up at a visit', 'Health', BRING_UP, true),
   dev('foodPlus', 'Food diary extras (times, weekday macros, check-in)', 'Health', FOOD_PLUS, true),

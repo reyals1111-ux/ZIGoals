@@ -53,8 +53,13 @@ for (const theme of THEMES) test(`${theme}: properties, the table's columns and 
   // property was added, deliberate): the same two notes, the idea first.
   await expect.poll(() => table.locator('tbody th').allInnerTexts()).toEqual(['Fictional idea', 'Fictional trip']);
   await expect(page.getByText('2 notes of 3 pass the filters.')).toBeVisible();
-  findings = await axe(page, page.locator('.notes-filters'));
-  expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
+  // Session AW (#441, deliberate): Notes' search narrows by the same property filters (its own fold), so there are two
+  // filter groups now; each one is checked, as the one was.
+  expect(await page.locator('.notes-filters').count()).toBeGreaterThanOrEqual(1);
+  for (const group of await page.locator('.notes-filters').all()) {
+    findings = await axe(page, group);
+    expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
+  }
   // The board, by Status; move a card.
   await layouts.getByRole('button', {name: 'Board'}).click();
   const board = page.getByRole('region', {name: 'Notes as a board, by Status'});

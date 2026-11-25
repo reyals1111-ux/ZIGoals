@@ -2,9 +2,9 @@
  * Session AV lane 2, round 5 (gym; LEDGER #376, Gentler Streak's everyday activities): everyday movement offered beside
  * the twelve activity types (lib/health-activity-types.ts) when you name movement minutes, in English and Dutch. Like
  * those types it is a suggestion list only: the activity keeps the words you typed, and its minutes count as active
- * minutes (the Activity view, Today, and the Workouts movement band, #375). These names have no MET value, so no energy
- * figure is ever shown for them: `activityTypeOf` finds none of them (none starts with one of the twelve types' words;
- * lib/av2-r5-everyday.test.ts pins it). Constants only, so Health's first chunk stays small.
+ * minutes (the Activity view, Today, and the Workouts movement band, #375). No energy figure is ever worked out for any
+ * activity (Session AW, owner decision 1a); `activityTypeOf` finds none of these names (none starts with one of the twelve
+ * types' words; lib/av2-r5-everyday.test.ts pins it). Constants only, so Health's first chunk stays small.
  */
 export const EVERYDAY_MOVES: readonly {en: string; nl: string}[] = [
   {en: 'Gardening', nl: 'Tuinieren'},
