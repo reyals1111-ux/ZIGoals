@@ -1,4 +1,5 @@
 import {BRING_UP} from '../../clinician-report/bring-up';
+import {MONEY_REMOVED} from '../../money-log/removed';
 import {CALORIE_WEEK} from '../../health-aa/calorie-week';
 import {PLANNED_WORKOUTS} from '../../workouts/planned';
 import {RACES} from '../../workouts/races';
@@ -51,5 +52,7 @@ export function readAkToolSources(storage: Read): AkToolSources {
     // Round 4 (health).
     plannedWorkouts: one(PLANNED_WORKOUTS), races: one(RACES), workoutHr: one(WORKOUT_HR), calorieWeek: one(CALORIE_WEEK),
     // Round 6 (health): the visit's "To bring up" list (Health gate in the answer). The low-day plan is never an AI source.
-    bringUp: one(BRING_UP)};
+    bringUp: one(BRING_UP),
+    // Session AW X7 (LEDGER #461): Removed recently, read only by the Wealth answers (Wealth's gate in the answer).
+    moneyRemoved: one(MONEY_REMOVED)};
 }

@@ -30,7 +30,9 @@ export type AkToolSources = {autoRules?: AutoRules | null; bills?: BillsRecord |
   /** Session AV (1c, f1): the runs' per-kilometre splits (the timed running bests), today's focus habit as the habit extras keep it (read with lib/habit-focus.ts), and the money log's import review (what waits for a look). */
   splits?: SplitsRecord | null; habitFocus?: unknown; moneyReview?: MoneyReview | null; habitExtras?: unknown;
   /** Session AV lane 2, batch 2: the evening plan and the workouts' extras (av2-body.ts), the net-worth sheet (av2-money.ts). */
-  eveningPlan?: unknown; bodyExtras?: unknown; wealthSheet?: unknown; nutrientExtras?: unknown; moneyMore?: unknown; storeCards?: unknown; moneyLogBusiness?: unknown; workoutPlaces?: unknown; healthExtras?: unknown; notifyPrefs?: unknown; healthGoalsMore?: unknown; workoutCircuits?: unknown; plannedWorkouts?: unknown; races?: unknown; workoutHr?: unknown; calorieWeek?: unknown; bringUp?: unknown} & F9ToolSources;
+  eveningPlan?: unknown; bodyExtras?: unknown; wealthSheet?: unknown; nutrientExtras?: unknown; moneyMore?: unknown; storeCards?: unknown; moneyLogBusiness?: unknown; workoutPlaces?: unknown; healthExtras?: unknown; notifyPrefs?: unknown; healthGoalsMore?: unknown; workoutCircuits?: unknown; plannedWorkouts?: unknown; races?: unknown; workoutHr?: unknown; calorieWeek?: unknown; bringUp?: unknown;
+  /** Session AW X7 (LEDGER #461): Removed recently (Wealth; lib/money-log/removed.ts), for "what did I remove recently". */
+  moneyRemoved?: unknown} & F9ToolSources;
 const where = (env: ToolEnv, journal: string, subject: string | null = null) => provenance(env, journal, subject, null, null);
 
 export const autoRulesTool: ToolDefinition<Record<string, never>> = {
@@ -64,7 +66,7 @@ export const billsTool: ToolDefinition<{days?: number}> = {
     if (!record || !record.bills.length) return ok('bills', label, where(env, 'Bills'), {due: [], note: 'No bills or subscriptions are kept yet (Wealth → Upcoming bills).'});
     const due = billOccurrences(record, env.habitDay, args.days ?? 30).map(o => ({bill: text(o.title, 80), due: o.due, amount: `${fromCents(o.amountCents)} ${o.currency}`, every: o.cadence, ...(o.cancelNote ? {note: text(o.cancelNote, 160)} : {}), ...(o.cancelBy ? {actBy: o.cancelBy} : {})}));
     const capped = capRows(due, env, false);
-    return ok('bills', label, where(env, 'Bills'), {due: capped.rows, bills: record.bills.length, monthlyEstimate: monthlyEstimate(record).map(m => `${fromCents(m.cents)} ${m.currency}`),
+    return ok('bills', label, where(env, 'Bills'), {due: capped.rows, bills: record.bills.length, monthlyEstimate: monthlyEstimate(record, env.habitDay).map(m => `${fromCents(m.cents)} ${m.currency}`),
       rule: 'reminders only, per currency, never converted; the monthly figure is an estimate'}, capped.truncated);
   },
 };
