@@ -32,7 +32,7 @@ export function MaintenanceEstimator({latestGrams, weightUnit, onUse}: {latestGr
     </div>
     {issue && <p className="field-error" role="alert">{issue}</p>}
     <div className="actions"><button type="submit" className="secondary">Estimate</button></div>
-    {result && <div role="status"><p><strong>About {formatNumber(result.kcal)} kcal a day</strong> keeps your weight about steady <span className="health-estimate-tag">an estimate</span> (resting about {formatNumber(result.resting)} kcal). Your own logs refine it in the Weight view’s Maintenance estimate. Information, not advice.</p>
+    {result && <div role="status"><p><strong>About {formatNumber(result.kcal)} kcal a day</strong> keeps your weight about steady <span className="health-estimate-tag">an estimate, not medical advice</span> (resting about {formatNumber(result.resting)} kcal). Your own logs refine it in the Weight view’s Maintenance estimate.</p>
       <button type="button" className="quiet" onClick={() => onUse(result.kcal)}>Use {formatNumber(result.kcal)} kcal as my calorie target</button></div>}
   </form>;
 }
