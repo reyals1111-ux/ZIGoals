@@ -49,3 +49,9 @@
 .r6-defaults-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
 .r6-defaults-form .field { flex: 0 1 9rem; min-width: 0; }
 .r6-defaults-form input { width: 100%; box-sizing: border-box; font-size: 1rem; }
+/* Session AW (p5-fixes; FR-TJ-20): Portions with no counter chosen is one teaching line, not a card. */
+.r6-portions.r6-portions-empty { display: block; margin: 4px 0 12px; }
+.r6-portions-teach { margin: 0; line-height: 1.5; }
+.r6-portions-teach strong { font-size: 1rem; }
+.r6-portions-teach .text-link { min-height: 44px; }
+.r6-portions-status:empty { margin: 0; }

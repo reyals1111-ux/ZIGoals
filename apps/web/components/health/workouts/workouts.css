@@ -68,7 +68,7 @@
 :root[data-theme=light] .workouts-import-problem { color: #a3123a; }
 /* Session AK (4.9): supersets, RPE, rest per exercise, the warm-up and plate sheet, a calm personal-best line. */
 .workouts-exercise[data-superset] { border-inline-start: 3px solid var(--brand-cyan, #6fe6f6); padding-inline-start: 10px; }
-.workouts-superset-tag { display: inline-block; margin-inline-end: 6px; padding: 2px 8px; border-radius: 999px; font-size: 13px; font-weight: 650; color: inherit; background: color-mix(in srgb, var(--brand-cyan, #6fe6f6) 22%, transparent); vertical-align: middle; }
+.workouts-superset-tag { display: inline-block; margin-inline-end: 6px; padding: 2px 8px; border-radius: 999px; font-size: 14px; font-weight: 650; color: inherit; background: color-mix(in srgb, var(--brand-cyan, #6fe6f6) 22%, transparent); vertical-align: middle; }
 .workouts-rpe { min-height: 44px; min-width: 60px; border-radius: 10px; font-variant-numeric: tabular-nums; }
 .workouts-ex-rest { flex: 0 1 220px; }
 .workouts-ex-rest select { min-height: 44px; }

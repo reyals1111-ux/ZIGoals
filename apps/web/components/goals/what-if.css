@@ -17,4 +17,4 @@
 .what-if-result { display: grid; gap: 6px; padding: 12px; border-radius: 14px; background: var(--surface-1, var(--panel)); }
 .what-if-result p { margin: 0; }
 .what-if-headline { font-weight: 700; color: var(--text); }
-.what-if-label { font-size: 13px; color: var(--text-secondary, var(--muted)); }
+.what-if-label { font-size: 14px; color: var(--text-secondary, var(--muted)); }

@@ -7,7 +7,9 @@ const WORDS: [RegExp, (typeof EXPENSE_CATEGORIES)[number]][] = [
   [/\b(?:groceries|grocery|grocers?|greengrocer|bakery|baker|butcher|supermarket|market|albert heijn|ekoplaza|dirk|spar|groenteboer|bakker|bakkerij|slager|aldi|lidl|jumbo|delhaize|colruyt|boodschappen|supermarkt|markt)\b/i, 'Groceries'],
   [/\b(?:train|tram|bus|metro|taxi|uber|fuel|petrol|gas station|parking|ticket|trein|benzine|tanken|parkeren)\b/i, 'Transport'],
   [/\b(?:rent|mortgage|furniture|ikea|repair|huur|hypotheek|meubels|reparatie)\b/i, 'Home'],
-  [/\b(?:energy|electricity|water bill|internet|phone bill|insurance|tax|energie|stroom|verzekering|belasting)\b/i, 'Bills'],
+  // Session AW (p5-fixes; FR-L-14): an imported "Fictional Phone" row read as Other, so its confirmed bill and spending sat
+  // under Other. A phone, mobile or internet provider, broadband, utilities and the Dutch words for them now read as Bills.
+  [/\b(?:energy|electricity|water bill|internet|phone bill|insurance|tax|energie|stroom|verzekering|belasting|phone|telephone|mobile|cell ?phone|broadband|wi-?fi|fibre|fiber|telecom|utilit(?:y|ies)|gas bill|telefoon|mobiel|gsm|glasvezel|nutsbedrijf|vaste lasten)\b/i, 'Bills'],
   [/\b(?:subscription|netflix|spotify|music|abonnement)\b/i, 'Subscriptions'],
   [/\b(?:pharmacy|doctor|dentist|gym|apotheek|dokter|tandarts|sportschool)\b/i, 'Health'],
   [/\b(?:cinema|movie|concert|game|tickets?|bioscoop|film|uitje)\b/i, 'Fun'],
