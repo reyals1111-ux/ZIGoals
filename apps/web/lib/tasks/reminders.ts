@@ -1,6 +1,7 @@
 import {instantAt, wallClock} from '../zone-time';
 import type {Task, TaskReminder, Tasks} from './schema';
 import {heldProject} from './engine';
+import {againAt, againFor, type Again} from './remind-again';
 
 /**
  * Session AL (Part 8, P-LS-68, C-LS-09): task reminders. A reminder is an offset before the task's due time (a task with a
@@ -21,8 +22,8 @@ export const reminderLabel = (r: TaskReminder) => REMINDER_CHOICES.find(c => c.b
  * When each reminder of an open task with a day goes off, as instants (ms). `of` is the reminder's own instant; a reminder
  * the person snoozed (Session AV 1c, `task.snooze`) goes off at the snooze's end instead (`at`), once.
  */
-export function reminderInstants(record: Tasks, zone: string): {task: Task; at: number; before: number; of: number}[] {
-  const out: {task: Task; at: number; before: number; of: number}[] = [];
+export function reminderInstants(record: Tasks, zone: string): {task: Task; at: number; before: number; of: number; reminder: TaskReminder}[] {
+  const out: {task: Task; at: number; before: number; of: number; reminder: TaskReminder}[] = [];
   for (const t of record.tasks) {
     // Session AV lane 2 (LEDGER #3): a reminder at its own date and time (`at`) needs no day on the task.
     if (t.doneAt || !t.reminders?.length || (!t.due && !t.reminders.some(r => r.at))) continue;
@@ -33,7 +34,7 @@ export function reminderInstants(record: Tasks, zone: string): {task: Task; at: 
       if (seen.has(of)) continue; seen.add(of);
       // Session AV lane 2 (r6-plan, LEDGER #392; TIER 3 (PWA)): no reminder while its project is on hold (from its resume day, as before).
       if (record.projects?.some(p => p.hold) && heldProject(record, t, wallClock(of, zone).date)) continue;
-      out.push({task: t, at: t.snooze && t.snooze.of === of && (t.snooze.before === undefined || t.snooze.before === r.before) ? t.snooze.until : of, before: r.before, of});
+      out.push({task: t, at: t.snooze && t.snooze.of === of && (t.snooze.before === undefined || t.snooze.before === r.before) ? t.snooze.until : of, before: r.before, of, reminder: r});
     }
   }
   return out.sort((a, b) => a.at - b.at);
@@ -62,9 +63,18 @@ export function snoozeReminder(record: Tasks, taskId: string, of: number, until:
 /**
  * The reminders to show now: gone off within the last `windowMs` (12 hours by default) and not dismissed. `dismissed`
  * holds `${taskId}@${at}` keys (kept in the page's memory; a reload shows a still-recent one again, which is fine).
+ * Session AW (X1, LEDGER #438): with `again` (the device's default repeat and the quiet hours), a reminder that repeats
+ * shows its latest ring (`at`, `round` of `times`, the `next` one ahead): a ring dismissed comes back at the next repeat,
+ * until the task is done or the reminder snoozed. Without `again`, exactly as before.
  */
-export function dueReminders(record: Tasks, nowMs: number, zone: string, {windowMs = 12 * 3_600_000, dismissed = new Set<string>()}: {windowMs?: number; dismissed?: ReadonlySet<string>} = {}): {task: Task; at: number; key: string; of: number; before: number}[] {
-  return reminderInstants(record, zone).filter(r => r.at <= nowMs && r.at > nowMs - windowMs).map(r => ({task: r.task, at: r.at, key: `${r.task.id}@${r.at}`, of: r.of, before: r.before})).filter(r => !dismissed.has(r.key));
+export type DueReminder = {task: Task; at: number; key: string; of: number; before: number; round?: number; times?: number; next?: number | null};
+export function dueReminders(record: Tasks, nowMs: number, zone: string, {windowMs = 12 * 3_600_000, dismissed = new Set<string>(), again}: {windowMs?: number; dismissed?: ReadonlySet<string>; again?: {fallback: Again | null; quiet: {from: string; to: string} | null}} = {}): DueReminder[] {
+  return reminderInstants(record, zone).flatMap((r): DueReminder[] => {
+    if (!again) return r.at <= nowMs && r.at > nowMs - windowMs ? [{task: r.task, at: r.at, key: `${r.task.id}@${r.at}`, of: r.of, before: r.before}] : [];
+    const ring = againAt(r.at, againFor(r.reminder, again.fallback), again.quiet, zone, nowMs);
+    if (!ring || ring.at <= nowMs - windowMs) return [];
+    return [{task: r.task, at: ring.at, key: `${r.task.id}@${ring.at}`, of: r.of, before: r.before, ...(ring.times ? {round: ring.round, times: ring.times, next: ring.next} : {})}];
+  }).filter(r => !dismissed.has(r.key));
 }
 /** The next reminder still ahead (for a "next reminder at …" line and a single timer). */
 export function nextReminder(record: Tasks, nowMs: number, zone: string): number | null {

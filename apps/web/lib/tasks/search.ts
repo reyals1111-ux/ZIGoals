@@ -15,6 +15,7 @@ import {isFinished} from './finished';
  *   `due:2026-12-05`, `due before:2026-12-05`, `due after:…`; `recurring`, `subtask`, `done`;
  * - Session AV lane 2 (r5-plan): `doing`, `cancelled`, `plan:week`, `plan:month` (a week or a month without a day);
  * - Session AV lane 2 (r6-plan): `is:hold` (a project on hold), `is:waiting` (waiting its turn or for another task);
+ * - Session AW (X2): `is:dreaded`, `dread:1`…`dread:3` (the person's own dread mark) and `is:moved` (put off twice or more);
  * - `&` / `and` between terms (also plain spaces), `|` / `or` between groups, `!` or `-` before a term negates it.
  */
 type Pred = (t: Task) => boolean;
@@ -60,6 +61,10 @@ function term(raw: string, ctx: TaskSearchContext, record: Tasks): Pred | null {
     // task). Review B6M-9: prefixed (`is:hold`, `is:waiting`), so “hold music” or “waiting room” still match titles.
     if (low === 'is:hold' || low === 'is:on-hold') return t => !t.doneAt && !!heldProject(record, t, ctx.today);
     if (low === 'is:waiting') return t => !t.doneAt && (!!waitsTurn(record, t) || waitingFor(record, t).length > 0);
+    // Session AW (X2, LEDGER #432, #433): `is:dreaded` (any dread mark, or `dread:3` a level) and `is:moved` (put off twice or more).
+    if (low === 'is:dreaded' || low === 'is:dread') return t => !t.doneAt && !!t.dread;
+    const dr = /^dread:([1-3])$/.exec(low); if (dr) return t => !t.doneAt && t.dread === Number(dr[1]);
+    if (low === 'is:moved') return t => !t.doneAt && (t.moved ?? 0) >= 2;
     return t => fold(`${t.title} ${t.notes ?? ''}`).includes(low);
   })();
   return negate ? t => !pred(t) : pred;

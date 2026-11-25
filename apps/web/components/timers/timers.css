@@ -1,0 +1,27 @@
+/* Session AW (X1, LEDGER #440): the named timers' strip and sheet. Existing colour variables only (the command menu's
+   fallbacks); nothing animates, so Motion Off and reduced motion need no rule of their own. */
+.aw-timer-strip { position: fixed; left: calc(var(--sidebar-width, 0px) + 20px); bottom: 76px; z-index: 46; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; max-width: min(560px, calc(100vw - var(--sidebar-width, 0px) - 40px)); box-sizing: border-box; padding: 6px 8px 6px 14px; border: 1px solid var(--line, rgba(140, 160, 220, .3)); border-radius: 18px; background: var(--surface-glass, var(--panel, #0d1629)); color: var(--text, #eef3ff); font-size: 15px; box-shadow: 0 10px 26px -12px #000c; }
+.aw-timer-strip ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; flex: 1 1 auto; min-width: 0; }
+.aw-timer { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; min-width: 0; }
+.aw-timer-name { font-weight: 600; overflow-wrap: anywhere; min-width: 0; }
+.aw-timer-clock { font-variant-numeric: tabular-nums; min-width: 4ch; }
+.aw-timer[data-state="ended"] .aw-timer-clock { font-weight: 700; color: var(--cyan, #45d8ef); }
+.aw-timer-actions { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-left: auto; }
+.aw-timer-actions button, .aw-timer-open { min-height: 44px; min-width: 44px; padding: 0 12px; border: 1px solid var(--line, rgba(140, 160, 220, .3)); border-radius: 999px; background: transparent; color: inherit; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+.aw-timer-actions button:focus-visible, .aw-timer-open:focus-visible { outline: 3px solid var(--cyan, #45d8ef); outline-offset: 2px; }
+@media (max-width: 767.98px) { .aw-timer-strip { left: calc(var(--safe-left, 0px) + 12px); right: calc(var(--safe-right, 0px) + 12px); max-width: none; bottom: calc(var(--phone-tabs, 60px) + var(--safe-bottom, 0px) + 64px); } }
+dialog.aw-timers-sheet { width: min(640px, calc(100vw - 32px)); max-height: min(720px, calc(100dvh - 48px)); margin: 8vh auto auto; padding: 0; border-radius: 18px; border: 1px solid var(--line, rgba(140, 160, 220, .3)); background: var(--surface-glass, var(--panel, #0d1629)); color: var(--text, #eef3ff); box-shadow: 0 24px 60px -24px #000c; overflow-y: auto; overscroll-behavior: contain; }
+dialog.aw-timers-sheet::backdrop { background: rgb(2 6 20 / .55); }
+.aw-timers-body { display: grid; gap: 12px; padding: 16px; font-size: 16px; }
+.aw-timers-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.aw-timers-head h2, .aw-timers-body h3 { margin: 0; }
+.aw-timers-head button { min-height: 44px; }
+.aw-timers-add { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 12px; }
+.aw-timers-add .field { flex: 1 1 160px; min-width: 0; }
+.aw-timers-add input { width: 100%; min-height: 44px; font-size: 16px; box-sizing: border-box; }
+.aw-timers-add button { min-height: 44px; }
+.aw-timers-add > p { flex: 1 1 100%; margin: 0; }
+.aw-timer-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.aw-timers-bell { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 15px; }
+.aw-timers-bell input { width: 20px; height: 20px; flex: none; }
+@media (forced-colors: active) { .aw-timer-strip, dialog.aw-timers-sheet { border-color: CanvasText; } .aw-timer-actions button, .aw-timer-open { border-color: ButtonText; } }

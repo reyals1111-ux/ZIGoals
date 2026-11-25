@@ -80,14 +80,17 @@ import {SHOWCASE_SCOPE} from './ai/keys';
 import {NOVA_WORKFLOWS_KEY} from './nova/workflows/schema';
 import {showcaseNovaWorkflows} from './nova/workflows/showcase';
 import {TASKS_KEY} from './tasks/schema';
-import {showcaseTasks, showcaseTaskWhen} from './tasks/showcase';
+import {showcaseTaskPlan, showcaseTasks, showcaseTaskWhen} from './tasks/showcase';
+import {TASK_PLAN_KEY} from './tasks/plan-key';
 import {TASK_WHEN_KEY} from './tasks/when';
 import {COUNTDOWNS_KEY} from './countdowns/schema';
 import {showcaseCountdowns} from './countdowns/showcase';
 import {COUNTDOWN_EXTRAS_KEY} from './countdowns/extras';
+import {withAwKcalShowcase} from './aw-kcal/showcase';
 import {MONEY_TAGS_KEY} from './money-tags/schema';
 import {showcaseMoneyTags} from './money-tags/showcase';
-import {showcaseNotes} from './notes/showcase';
+import {showcaseNoteSearches, showcaseNotes} from './notes/showcase';
+import {NOTE_SEARCHES_KEY} from './notes/saved-searches';
 import {CALENDAR_IMPORT_KEY} from './ics/calendar';
 import {showcaseCalendarImport} from './ics/showcase';
 import {withShowcasePomodoro} from './focus-sessions/showcase';
@@ -118,6 +121,7 @@ import {showcaseRewardsShelf} from './rewards-shelf/showcase';
 import {MUSCLE_RECOVERY_KEY} from './muscle-freshness/model';
 import {showcaseMuscleRecovery} from './muscle-freshness/showcase';
 import {SHOWCASE_GUIDED_KEY, showcaseGuidedJourneys} from './guided/showcase';
+import {withAwX1Showcase} from './timers/showcase';
 // The part of the day each fictional habit is checked in and each meal is logged (the habits' own time of day).
 const HABIT_PARTS:DayPart[]=['morning','morning','afternoon','evening','evening','afternoon'],MEAL_PARTS:DayPart[]=['morning','afternoon','evening','afternoon'];
 const coin=(id:string):MarketAssetRef=>({provider:'coingecko',kind:'coin',id});
@@ -261,10 +265,12 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  records[NETWORTH_MILESTONES_KEY]=JSON.stringify(showcaseNetworthMilestones(day));records[FOCUS_SESSIONS_KEY]=JSON.stringify(withShowcasePomodoro(showcaseFocusSessions(day),day));
  // Owner follow-up 2 (B, T2): labelled example notes (with [[links]] to Showcase goals and habits) and an imported calendar.
  records[NOTES_KEY]=JSON.stringify(showcaseNotes(day));
+ // Session AW (x3; LEDGER #441): two labelled example searches kept by name in Notes.
+ records[NOTE_SEARCHES_KEY]=JSON.stringify(showcaseNoteSearches());
  // Owner follow-up 2 (N2, N3, N6): NOVA's example layout, its setup progress and two saved workflows (labelled).
  // N1: one labelled NOVA conversation with a Health task handed to ZIGi (two voices), in the tab's Showcase chats.
  {const duo=showcaseNovaChat(SHOWCASE_SCOPE,new Date(`${day}T08:00:00.000Z`));records[AI_CHATS_SESSION_KEY]=JSON.stringify({version:1,chats:[duo.chat]});records[SHOWCASE_NOVA_BRIDGE_KEY]=JSON.stringify(duo.bridge);}
- records[NOVA_KEY]=JSON.stringify(showcaseNova(day));records[NOVA_STAGE_KEY]=JSON.stringify(showcaseStage(day));records[NOVA_SETUP_KEY]=JSON.stringify(showcaseNovaSetup(day,`${day}T08:00:00.000Z`));records[NOVA_WORKFLOWS_KEY]=JSON.stringify(showcaseNovaWorkflows(day));records[TASKS_KEY]=JSON.stringify(showcaseTasks(day,platform.goals.map(g=>g.id)));records[CALENDAR_IMPORT_KEY]=JSON.stringify(showcaseCalendarImport(day));
+ records[NOVA_KEY]=JSON.stringify(showcaseNova(day));records[NOVA_STAGE_KEY]=JSON.stringify(showcaseStage(day));records[NOVA_SETUP_KEY]=JSON.stringify(showcaseNovaSetup(day,`${day}T08:00:00.000Z`));records[NOVA_WORKFLOWS_KEY]=JSON.stringify(showcaseNovaWorkflows(day));records[TASKS_KEY]=JSON.stringify(showcaseTasks(day,platform.goals.map(g=>g.id)));/* Session AW (X2, LEDGER #437) */records[TASK_PLAN_KEY]=JSON.stringify(showcaseTaskPlan());records[CALENDAR_IMPORT_KEY]=JSON.stringify(showcaseCalendarImport(day));
  records[EXPERIMENTS_KEY]=JSON.stringify(showcaseExperiments(day,habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!))));
  records[BUDGETS_KEY]=JSON.stringify(showcaseBudgets(day));
  // Session AM-2 (step 3, "NOVA connected"): labelled examples of three records Session AP added, so the Showcase's NOVA
@@ -281,6 +287,7 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  records[HEALTH_NUMBERS_KEY]=JSON.stringify(showcaseHealthNumbers(day));records[SCALES_KEY]=JSON.stringify(showcaseScales(day));records[CYCLE_KEY]=JSON.stringify(showcaseCycle(day));
  withR3HealthShowcase(records,day); // Session AV lane 2, round 3 (health): two own drinks, a protein goal and a circuit, labelled.
  withR4HealthShowcase(records,day); // Session AV lane 2, round 4 (health): two planned workouts like the Agenda's examples and one race, labelled.
+ withAwKcalShowcase(records); // Session AW (kcal): today's Showcase walk with its distance, an easy effort and 180 kcal you entered.
  // Session AW (programmes): one written programme in progress, labelled "(Showcase)" on Guided journeys (lib/guided/showcase.ts).
  records[SHOWCASE_GUIDED_KEY]=JSON.stringify(showcaseGuidedJourneys(day));
  records[MUSCLE_RECOVERY_KEY]=JSON.stringify(showcaseMuscleRecovery());
@@ -306,6 +313,7 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  // Session AU (D8, ADR-044 D-SHOWCASE): two weeks of example evening moods in Health's own `moods` group, and labelled
  // "Example · " mood tags on eight of those days (lib/showcase/au-examples.ts); the tags stay unread by ZIGi and NOVA.
  records[HEALTH_STORAGE_KEY]=JSON.stringify(healthSchema.parse(withHealthGroup(healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)),'moods',showcaseMoods(day),false)));records[MOOD_TAGS_KEY]=JSON.stringify(showcaseMoodTags(day));
+ withAwX1Showcase(records,day); // Session AW (X1, LEDGER #440): three kept timers labelled "(Showcase)", none running.
  return {day,records};
 }
 /**

@@ -44,6 +44,12 @@ export function doneChange(action: QueuedAction, today: string): {change: (d: Ha
 export function doneTaskIds(action: Pick<QueuedAction, 'items'>): string[] {
   return [...new Set((action.items ?? []).filter(i => i.kind === 'task' && typeof i.id === 'string').map(i => /^task:([A-Za-z0-9_-]{1,80})@\d+$/.exec(i.id)?.[1]).filter((id): id is string => !!id))];
 }
+/** Session AW (X1, LEDGER #438): the task reminders a snooze tap named — each task's id and its first ring (`task:<id>@<instant>`). */
+export function snoozedTaskSeries(action: Pick<QueuedAction, 'items'>): {id: string; at: number}[] {
+  const out = new Map<string, {id: string; at: number}>();
+  for (const i of action.items ?? []) { const m = i.kind === 'task' && typeof i.id === 'string' ? /^task:([A-Za-z0-9_-]{1,80})@(\d+)$/.exec(i.id) : null; if (m) out.set(i.id, {id: m[1]!, at: Number(m[2])}); }
+  return [...out.values()];
+}
 async function applyOne(action: QueuedAction, today: string): Promise<Applied | null> {
   const storage = getAppStorage();
   // Claimed first, atomically: another tab, or a crash after this, can never apply it a second time.
@@ -64,6 +70,19 @@ async function applyOne(action: QueuedAction, today: string): Promise<Applied | 
     const titles = after.habits.filter(h => ids.includes(h.id)).map(h => h.title);
     const previous = before as HabitData | null;
     return {actionId: action.actionId, message: `${titles.length === 1 ? titles[0] : `${titles.length} habits`} marked done from a notification`, ...(previous ? {undo: async () => { await updateHabits(storage, d => ({...d, habits: d.habits.map(h => ids.includes(h.id) ? previous.habits.find(p => p.id === h.id) ?? h : h)})); announceHabitsChange(); }} : {})};
+  }
+  // Session AW (X1, LEDGER #438, #439; TIER 3 (PWA)): a snooze tapped on a task reminder is kept on the task too, as one
+  // tapped in the app is, so its repeats stop until the snooze ends (then it reminds again) and the rows in the app agree.
+  if (action.type === 'snooze') {
+    const series = snoozedTaskSeries(action);
+    if (!series.length) return null;
+    const until = typeof action.until === 'number' && action.until > action.at ? action.until : action.at + 3_600_000;
+    const [{writeTasks}, {reminderInstants, snoozeReminder}, {deviceZone}] = await Promise.all([import('../tasks/device'), import('../tasks/reminders'), import('../push/support')]);
+    const zone = deviceZone();
+    try {
+      writeTasks(record => series.reduce((r, {id, at}) => { const ring = reminderInstants(r, zone).find(x => x.task.id === id && x.at === at); return ring ? snoozeReminder(r, id, ring.of, until, ring.before) : r; }, record));
+    } catch { /* gone from this device, or the list cannot be read: the worker's own snooze still holds */ }
+    return null;
   }
   if (action.type === 'price-fired' && action.alertId) {
     const record = readDeviceRecord(storage, PRICE_ALERTS).data, alert = record.alerts.find(a => a.id === action.alertId);

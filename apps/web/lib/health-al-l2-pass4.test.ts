@@ -7,7 +7,8 @@ import {checkHealthForm} from './health-field-dom';
 import {servingsWarning, sleepHoursWarning, weightAsEntered, weightJumpWarning} from './health-plausible';
 import {lookupFailure} from './health-barcode-outcome';
 import {fastingRhythm, fastingRhythmText} from './health-fasting-rhythm';
-import {activityKcalEstimate} from './health-activity-types';
+import * as activityTypes from './health-activity-types';
+import {enteredKcalText, extraParts} from './aw-kcal/activity-extras';
 import {maintenanceEstimate, maintenanceIssue} from './health-maintenance';
 import {mealKcalTarget, setMealPref} from './health-extras';
 import {waterDayDone, WATER_NO_TARGET} from './health-daily';
@@ -110,11 +111,15 @@ describe('competitor rows built (A11)', () => {
     expect(fastingRhythmText(r)).toBe('Fasts that reached your own target: 2 days in a row · 3 of the last 7 days. Rest days are fine; a longer fast is not counted as more.');
     expect(fastingRhythmText(fastingRhythm([], '2026-11-04'))).toBeNull();
   });
-  it('C-MO-39: a labelled estimate of the energy an activity used; unknown without type, minutes or weight', () => {
-    expect(activityKcalEstimate('Walk', 60, 80_000)).toBe(280);
-    expect(activityKcalEstimate('Gardening', 60, 80_000)).toBeNull();
-    expect(activityKcalEstimate('Walk', 0, 80_000)).toBeNull();
-    expect(activityKcalEstimate('Walk', 60, null)).toBeNull();
+  // Session AW (1a, deliberate): owner decision 1a (ADR-046) removes C-MO-39's estimate ("About 280 kcal used" for an hour's
+  // walk at 80 kg): no estimated calorie burn anywhere. The equally strict replacement pins that nothing works one out any
+  // more (the module has no estimator), that an activity with nothing typed shows no calorie figure, and that a typed one
+  // is shown with its source.
+  it('C-MO-39 (Session AW 1a): no estimate of the energy an activity used; calories show only as typed, with their source', () => {
+    expect(Object.keys(activityTypes)).toEqual(['ACTIVITY_TYPES', 'activityTypeOf']);
+    expect(extraParts(null, 'km')).toEqual([]);
+    expect(extraParts({kcal: 280}, 'km')).toEqual(['280 kcal · you entered']);
+    expect(enteredKcalText(280)).toBe('280 kcal · you entered');
   });
   it('C-MO-04: a maintenance estimate (Mifflin–St Jeor × activity), refused outside its adult range', () => {
     expect(maintenanceEstimate({sex: 'female', ageYears: 30, heightCm: 165, weightKg: 60, activity: 'sedentary'})).toEqual({resting: 1320, kcal: 1580});

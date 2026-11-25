@@ -2,7 +2,9 @@
 // 1. Push (D1): a push carries no payload. This worker reads the device's own snapshot (IndexedDB zigoals-notify-v1),
 //    composes the text here (sw-compose.js) and ALWAYS shows one notification (A2). "Done" and "Snooze 1 h" go to the
 //    action queue (zigoals-notify-actions-v1); the page applies them once, with Undo. Nothing about an item ever leaves
-//    the device: a snooze only adds a wake minute to this device's registration.
+//    the device: a snooze only adds a wake minute to this device's registration. Session AW (X1, LEDGER #438–#440): a task
+//    reminder's repeats share its id (Done or Snooze ends them all, and their wake minutes leave), the snooze button can
+//    be the person's own first choice (snapshot.snooze), and a named timer's end says so.
 // 2. Offline (QA-23, A4): navigations and the app's own page data are network-first with a short timeout, the cached
 //    copy used only offline; only hashed /_next/static files are cache-first; icons, brand art, fonts and the manifest
 //    are network-first in this build's own cache. Never cached: /api/*, any other origin, anything but GET, anything but
@@ -82,6 +84,9 @@
     if (kinds.vote) lines.push(plural(kinds.vote.length, 'vote you follow ends within a day', 'votes you follow end within a day'));
     // Session AL sweep 4 (C-DVG-68, C-BN-06): from the positions last read on the device; never a name or an amount.
     if (kinds.unbonding) lines.push('Unstaked ZIG is back in your wallet today');
+    // Session AW (X1, LEDGER #440): a named timer's end, by name only where names are allowed.
+    var timers = kinds.timer || [];
+    if (timers.length) lines.push(named && timers.every(function (t) { return t.label; }) ? timers.slice(0, 2).map(function (t) { return t.label + ' timer is done'; }).join(' · ') + (timers.length > 2 ? ' and ' + (timers.length - 2) + ' more' : '') : timers.length === 1 ? 'A timer is done' : timers.length + ' timers are done');
     if (kinds.validator) lines.push('A validator you stake with is not earning: see Staking');
     if (kinds.windDown) lines.push('Time to wind down');
     if (kinds.review) lines.push('Your weekly Life review is ready');
@@ -94,7 +99,10 @@
     var first = due[0], actionable = habits.concat(taskItems).filter(function (h) { return h.actionable; });
     var url = kinds.planDay ? appPath(kinds.planDay[0].href) || '/app/tasks' : kinds.morning ? '/app/checklist' : (first && appPath(first.href)) || '/app';
     if (!lines.length) return {title: 'ZIGoals', body: summary ? summary + ' Nothing is due right now.' : 'Nothing is due right now.', tag: 'zigoals-summary', actions: [], data: {url: '/app', items: []}};
-    var actions = actionable.length ? [{action: 'done', title: 'Done'}, {action: 'snooze', title: 'Snooze 1 h'}] : (kinds.morning || kinds.evening || kinds.review || kinds.planDay) ? [] : [{action: 'snooze', title: 'Snooze 1 h'}];
+    // Session AW (X1, LEDGER #439): the person's own first snooze choice names the button ("Snooze 2 h"); a timer alone has none.
+    var snoozeTitle = snapshot && snapshot.snooze && typeof snapshot.snooze.title === 'string' && snapshot.snooze.title ? String(snapshot.snooze.title).slice(0, 32) : 'Snooze 1 h';
+    var onlyTimers = due.length > 0 && due.every(function (i) { return i.kind === 'timer'; });
+    var actions = actionable.length ? [{action: 'done', title: 'Done'}, {action: 'snooze', title: snoozeTitle}] : (kinds.morning || kinds.evening || kinds.review || kinds.planDay || onlyTimers) ? [] : [{action: 'snooze', title: snoozeTitle}];
     return {title: 'ZIGoals', body: lines.join(' · ').slice(0, 240), tag: 'zigoals-reminder', actions: actions, data: {url: url, date: snapshot && snapshot.summary ? snapshot.summary.date : null, items: due.filter(function (i) { return i.kind !== 'morning' && i.kind !== 'evening' && i.kind !== 'planDay'; }).map(function (i) { return {kind: i.kind, id: i.id, at: i.at}; })}};
   }
   // A price alert crossed (the same rule as lib/price-alerts/engine.ts): the quote's integer price over its decimals,
@@ -126,6 +134,17 @@
       return url.origin === origin && (url.pathname === '/app' || url.pathname.indexOf('/app/') === 0) ? url.pathname + url.search + url.hash : null;
     } catch { return null; }
   }
+  // Session AW (X1, LEDGER #439): when a snooze tapped at `now` ends — the own first choice's length, or the last of its
+  // steps that has begun (the page worked them out in the person's zone), else an hour on.
+  function snoozeUntil(snapshot, now) {
+    var c = snapshot && snapshot.snooze, hour = now + 3600000;
+    if (!c || typeof c !== 'object') return hour;
+    if (typeof c.ms === 'number' && c.ms >= 60000 && c.ms <= 86400000 * 8) return now + c.ms;
+    var steps = Array.isArray(c.steps) ? c.steps : [], until = null;
+    steps.forEach(function (st) { if (Array.isArray(st) && typeof st[0] === 'number' && typeof st[1] === 'number' && st[0] <= now) until = st[1]; });
+    return until !== null && until > now + 60000 ? until : hour;
+  }
+  scope.zigoalsSnoozeUntil = snoozeUntil;
   scope.zigoalsCompose = compose;
   scope.zigoalsAppPath = appPath;
   scope.zigoalsCrossedAlerts = crossedAlerts;
@@ -419,20 +438,43 @@ self.addEventListener('push', event => {
   // Every push shows exactly one notification (A2): the composed one, or this calm line if anything above failed.
   event.waitUntil(showFor(Date.now()).catch(() => self.registration.showNotification('ZIGoals', {body: 'Open ZIGoals to see what is due today.', tag: 'zigoals-summary', icon: ICON, badge: BADGE, data: {url: '/app', items: []}})));
 });
-async function snooze(data, now) {
-  const until = now + 3_600_000, minute = Math.floor(until / 60000);
+async function snooze(data, now, snoozeTo) {
+  const until = typeof snoozeTo === 'number' && snoozeTo > now ? snoozeTo : now + 3_600_000, minute = Math.floor(until / 60000);
   const [snapshot, device, registration] = await Promise.all([kvGet('snapshot'), kvGet('device'), kvGet('registration')]);
-  // The snoozed items come back in an hour: the snapshot holds them at the new time, and the wake list gains that minute.
+  // The snoozed items come back at the snooze's end: the snapshot holds them at the new time, and the wake list gains that
+  // minute. Session AW (X1, LEDGER #438): a task reminder's later repeats (same id) leave, and so do their wake minutes.
+  let gone = [];
   if (snapshot && Array.isArray(snapshot.items)) {
     const ids = new Set((data.items || []).map(i => i.kind + ':' + i.id));
-    const back = snapshot.items.filter(i => ids.has(i.kind + ':' + i.id) && Math.abs(i.at - now) < 40 * 60000).map(i => ({...i, at: until}));
-    await kvPut('snapshot', {...snapshot, items: [...snapshot.items, ...back].sort((a, b) => a.at - b.at)});
+    const near = new Map();
+    for (const i of snapshot.items) { const key = i.kind + ':' + i.id; if (ids.has(key) && Math.abs(i.at - now) < 40 * 60000 && (!near.has(key) || Math.abs(i.at - now) < Math.abs(near.get(key).at - now))) near.set(key, i); }
+    const back = [...near.values()].map(i => ({...i, at: until}));
+    const repeats = snapshot.items.filter(i => i.kind === 'task' && ids.has(i.kind + ':' + i.id) && i.at > now + 60000);
+    gone = repeats.map(i => i.at);
+    const kept = snapshot.items.filter(i => repeats.indexOf(i) < 0);
+    await kvPut('snapshot', {...snapshot, items: [...kept, ...back].sort((a, b) => a.at - b.at)});
+    gone = gone.filter(at => !kept.some(i => Math.floor(i.at / 60000) === Math.floor(at / 60000)));
   }
   if (device && registration && registration.body) {
-    const body = {...registration.body, once: [...new Set([...(registration.body.once || []).filter(m => m * 60000 > now), minute])].sort((a, b) => a - b).slice(-48)};
+    const drop = new Set(gone.map(at => Math.floor(at / 60000)));
+    const body = {...registration.body, once: [...new Set([...(registration.body.once || []).filter(m => m * 60000 > now && !drop.has(m)), minute])].sort((a, b) => a - b).slice(-48)};
     const response = await withTimeout(fetch('/api/push-device', {method: 'PUT', headers: {'content-type': 'application/json'}, body: JSON.stringify({...body, id: device.id, secret: device.secret})}), 8000, null);
     if (response && response.ok) await kvPut('registration', {...registration, body});
   }
+}
+/**
+ * Session AW (X1, LEDGER #438; TIER 3 (PWA)): after "Done" on a task reminder its later repeats left the snapshot; their wake
+ * minutes leave the device's wake list too (where no other item needs them), so no empty notification follows.
+ */
+async function dropWakes(minutes, now) {
+  if (!minutes.length) return;
+  const [device, registration] = await Promise.all([kvGet('device'), kvGet('registration')]);
+  if (!device || !registration || !registration.body) return;
+  const drop = new Set(minutes), once = (registration.body.once || []).filter(m => m * 60000 > now && !drop.has(m));
+  if (once.length === (registration.body.once || []).length) return;
+  const body = {...registration.body, once};
+  const response = await withTimeout(fetch('/api/push-device', {method: 'PUT', headers: {'content-type': 'application/json'}, body: JSON.stringify({...body, id: device.id, secret: device.secret})}), 8000, null);
+  if (response && response.ok) await kvPut('registration', {...registration, body});
 }
 self.addEventListener('notificationclick', event => {
   const note = event.notification, data = note.data || {}, now = Date.now();
@@ -440,12 +482,21 @@ self.addEventListener('notificationclick', event => {
   if (event.action === 'done' || event.action === 'snooze') {
     const action = {actionId: (self.crypto && self.crypto.randomUUID ? self.crypto.randomUUID() : String(now) + Math.random()), type: event.action, at: now, date: data.date || null, items: (data.items || []).filter(i => event.action === 'snooze' || i.kind === 'habit' || i.kind === 'task')};
     event.waitUntil((async () => {
+      // Session AW (X1, LEDGER #439): the snooze's end (the person's own first choice) goes with the tap, for the page.
+      let until = null;
+      if (event.action === 'snooze') { try { until = self.zigoalsSnoozeUntil(await kvGet('snapshot'), now); } catch { until = now + 3_600_000; } action.until = until; }
       await queue(action);
-      if (event.action === 'snooze') await snooze(data, now).catch(() => {});
+      if (event.action === 'snooze') await snooze(data, now, until).catch(() => {});
       if (event.action === 'done') {
-        // The done items leave the snapshot at once, so the next push cannot ask for them again.
+        // The done items leave the snapshot at once, so the next push cannot ask for them again. Session AW (X1, LEDGER
+        // #438): a task reminder's repeats (the same id) leave whenever they were due, with their wake minutes.
         const snapshot = await kvGet('snapshot').catch(() => null), ids = new Set(action.items.map(i => i.kind + ':' + i.id));
-        if (snapshot && Array.isArray(snapshot.items)) await kvPut('snapshot', {...snapshot, items: snapshot.items.filter(i => !(ids.has(i.kind + ':' + i.id) && i.at <= now + 3_600_000))});
+        if (snapshot && Array.isArray(snapshot.items)) {
+          const leaves = i => ids.has(i.kind + ':' + i.id) && (i.at <= now + 3_600_000 || i.kind === 'task');
+          const kept = snapshot.items.filter(i => !leaves(i)), gone = snapshot.items.filter(i => leaves(i) && i.kind === 'task' && i.at > now + 60000).map(i => Math.floor(i.at / 60000)).filter(m => !kept.some(i => Math.floor(i.at / 60000) === m));
+          await kvPut('snapshot', {...snapshot, items: kept});
+          await dropWakes([...new Set(gone)], now).catch(() => {});
+        }
       }
       await tell({type: 'zigoals:notify-action', actionId: action.actionId});
     })());

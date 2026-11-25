@@ -25,3 +25,12 @@
 .habit-trend-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); }
 .habit-trend-items li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; padding: 8px 10px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); font-size: 15px; overflow-wrap: anywhere; min-width: 0; }
 .habit-trend-line { margin: 6px 0; }
+/* Session AW (habits-tj7; owner decision 1e, FR-TJ-7): a consistency card with nothing to show yet waits for data, and one
+   teaching line stands in its place (habit-consistency.tsx). With the week waiting, the 30 days take the first row whole
+   (no empty cell beside them); on a phone a lone card fills the swipe row. Layout only: no colour, no new type size. */
+.habit-consistency-lone > .habit-consistency-month { grid-column: 1 / -1; }
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  :root .habits-workspace .habit-consistency > article:only-child { flex: 0 0 100%; }
+}
+.habit-consistency-teach { display: grid; gap: 6px; }
+.habit-consistency-teach > .habit-teach-line { margin: 0; }

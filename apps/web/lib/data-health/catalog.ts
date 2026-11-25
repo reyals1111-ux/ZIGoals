@@ -143,6 +143,11 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   // Session AV lane 2 (nl-days, R3; q3-36): Health's "Hide calories and weight" switch, a display choice of this device
   // (exported and restored; never synced; the account erase leaves it, as every display choice).
   hideBodyFigures: ['Hide calories and weight (a display choice)', 'Health'],
+  // Session AW (ADR-046): the session's device records, labelled in lib/aw-<group>-keys.ts.
+  activityExtras: [AV2_CATALOG_LABELS.activityExtras[0], AV2_CATALOG_LABELS.activityExtras[1]],
+  noteSearches: [AV2_CATALOG_LABELS.noteSearches[0], AV2_CATALOG_LABELS.noteSearches[1]],
+  timers: [AV2_CATALOG_LABELS.timers[0], AV2_CATALOG_LABELS.timers[1]],
+  goalRepeat: [AV2_CATALOG_LABELS.goalRepeat[0], AV2_CATALOG_LABELS.goalRepeat[1]],
 };
 /** Session AM (ADR-038 D18): the one record of which only a part travels, in the words the Data health page shows. */
 export const NOVA_PARTLY_SYNCED_LABEL = 'NOVA: layout and pinned widgets (quick access, persona, names, instructions and side bars stay on this device)';
@@ -154,7 +159,7 @@ export const NOVA_PARTLY_SYNCED_LABEL = 'NOVA: layout and pinned widgets (quick 
 export const DEVICE_SYNCED: Partial<Record<keyof typeof DEVICE_KEYS, {home: Home; area: string; label?: string}>> = {
   accounts: {home: 'sync', area: 'Goals & Wealth'}, milestoneDates: {home: 'sync', area: 'Goals & Wealth'},
   // Part 2 (C1, C4): the encrypted extras sections, on unless turned off in Settings → Sync; Health's only with its consent.
-  goalExtras: {home: 'sync', area: 'Goals'}, averageGoals: {home: 'sync', area: 'Goals'},
+  goalExtras: {home: 'sync', area: 'Goals'}, averageGoals: {home: 'sync', area: 'Goals'}, /* Session AW */ goalRepeat: {home: 'sync', area: 'Goals'}, activityExtras: {home: 'sync-consent', area: 'Health'},
   calculator: {home: 'sync', area: 'Wealth'}, lifeReview: {home: 'sync', area: 'Life review'}, todayCards: {home: 'sync', area: 'Today'}, remindersPlan: {home: 'sync', area: 'Today'},
   habitExtras: {home: 'sync', area: 'Habits'}, routineRun: {home: 'sync', area: 'Habits'}, game: {home: 'sync', area: 'Journey'},
   healthCoach: {home: 'sync-consent', area: 'Health'}, microTargets: {home: 'sync-consent', area: 'Health'}, macroMode: {home: 'sync-consent', area: 'Health'}, aisles: {home: 'sync-consent', area: 'Health'}, measurementsCustom: {home: 'sync-consent', area: 'Health'}, healthVitamins: {home: 'sync-consent', area: 'Health'},

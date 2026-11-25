@@ -28,7 +28,8 @@ const COLS: SortKey[] = ['name', 'tags', 'words', 'links', 'changed', 'made'];
 const OPS_FOR: Record<string, PropFilter['op'][]> = {text: ['contains', 'is', 'not', 'set', 'unset'], choice: ['is', 'not', 'set', 'unset'], number: ['atLeast', 'atMost', 'is', 'set', 'unset'], date: ['atLeast', 'atMost', 'is', 'set', 'unset'], tick: ['ticked', 'unticked']};
 const NO_VALUE_OPS: readonly PropFilter['op'][] = ['set', 'unset', 'ticked', 'unticked'];
 type ColKey = SortKey | `prop:${string}`;
-function Filters({notes, filters, onChange}: {notes: readonly Note[]; filters: PropFilter[]; onChange: (f: PropFilter[]) => void}) {
+/** Session AW (x3; LEDGER #441): also the Notes search's property filters, so a saved search keeps them (exported). */
+export function Filters({notes, filters, onChange}: {notes: readonly Note[]; filters: PropFilter[]; onChange: (f: PropFilter[]) => void}) {
   const names = useMemo(() => propNames(notes), [notes]);
   if (!names.length) return null;
   const typeOf = (n: string) => names.find(x => x.name === n)?.type ?? 'text';

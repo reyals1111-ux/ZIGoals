@@ -65,6 +65,19 @@ const timeBlockSchema = z.looseObject({
   on: day.optional().catch(undefined),
 }).refine(b => b.from < b.to && (!!b.days?.length || !!b.on));
 export type TimeBlock = z.infer<typeof timeBlockSchema>;
+/**
+ * Session AW (X2, LEDGER #437; Amazing Marvin's time targets; TIER 3 (stored format), additive and optional): "5 h a week on
+ * Writing" — a target in minutes a week or a month (`per`) for a project, an area or a label (`kind`, `of`: the project's or
+ * area's id, or the label), met from the dated focus blocks of its tasks (lib/tasks/time-targets.ts). A target that cannot
+ * be read is dropped on read, never the others; older builds keep `timeTargets` untouched (the record is loose).
+ */
+export const TIME_TARGET_KINDS = ['project', 'area', 'label'] as const;
+export const MAX_TIME_TARGETS = 20, MAX_TARGET_MINUTES = {week: 7 * 24 * 60, month: 31 * 24 * 60} as const;
+const timeTargetSchema = z.looseObject({
+  id: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/), kind: z.enum(TIME_TARGET_KINDS), of: z.string().regex(/^[\p{L}\p{N}_-]{1,80}$/u),
+  minutes: z.number().int().min(1).max(MAX_TARGET_MINUTES.month), per: z.enum(['week', 'month']),
+}).refine(t => t.minutes <= MAX_TARGET_MINUTES[t.per]);
+export type TimeTarget = z.infer<typeof timeTargetSchema>;
 export const taskPlanSchema = z.looseObject({
   version: z.literal(1),
   defaultReminder: z.number().int().min(0).max(10_080).optional().catch(undefined),
@@ -116,6 +129,8 @@ export const taskPlanSchema = z.looseObject({
    * schema). An id that cannot be read is dropped; a focus with nothing left is no focus; older builds keep it untouched.
    */
   focus: z.preprocess(v => readFocus(v) ?? undefined, z.looseObject({projects: z.array(z.string()).max(MAX_FOCUS).optional(), areas: z.array(z.string()).max(MAX_FOCUS).optional()}).optional()),
+  /** Session AW (X2, LEDGER #437): time targets for a project, an area or a label (see timeTargetSchema above). */
+  timeTargets: z.preprocess(v => Array.isArray(v) ? v.filter(x => timeTargetSchema.safeParse(x).success).slice(0, MAX_TIME_TARGETS) : undefined, z.array(timeTargetSchema).optional()),
 });
 export type TaskPlan = z.infer<typeof taskPlanSchema>;
 export const emptyTaskPlan = (): TaskPlan => ({version: 1});

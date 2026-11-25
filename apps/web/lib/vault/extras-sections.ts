@@ -28,6 +28,8 @@ import {MONEY_REVIEW} from '../money-review/review';
 import {WORKOUTS} from '../workouts/schema';
 import {WORKOUT_SPLITS} from '../workouts/splits-schema';
 import type {ExtrasChoiceSectionName} from './extras-keys';
+import {ACTIVITY_EXTRAS} from '../aw-kcal/activity-extras';
+import {GOAL_REPEAT} from '../goals/repeat';
 import {fitNovaArrangement, fitNovaStage, NOVA_DEVICE_FIELDS, NOVA_STAGE_DEVICE_FIELDS, NOVA_SYNC_FIELDS} from './extras-nova';
 
 /**
@@ -57,14 +59,17 @@ export type ExtrasSectionName = 'goals' | 'life' | 'habits' | 'health' | 'checkl
 export type ExtrasRecord = {spec: DeviceRecordSpec<unknown>; deviceFields?: readonly string[]; syncFields?: readonly string[]; verbatim?: true; fit?: (merged: Record<string, unknown>, local: Record<string, unknown> | undefined, remote: Record<string, unknown> | undefined) => Record<string, unknown>};
 export type ExtrasSection = {name: ExtrasSectionName; consent: 'account' | 'health'; records: readonly ExtrasRecord[]};
 /** Session AV lane 2 (sync): the journal's fields that stay on each device (see EXTRAS_CHOICE_SECTION_LIST). */
-export const JOURNAL_DEVICE_FIELDS = ['shareWithAi', 'versions', 'reminder', 'todayLines', 'affirmations'] as const;
+// Session AW (#444, TIER 3 sync): the morning reminder rings where it was set, as `reminder` does.
+export const JOURNAL_DEVICE_FIELDS = ['shareWithAi', 'versions', 'reminder', 'todayLines', 'affirmations', 'morningReminder'] as const;
 const record = <T,>(spec: DeviceRecordSpec<T>, deviceFields?: readonly string[], more?: Pick<ExtrasRecord, 'syncFields' | 'fit' | 'verbatim'>): ExtrasRecord => ({spec: spec as DeviceRecordSpec<unknown>, ...(deviceFields ? {deviceFields} : {}), ...more});
 export const EXTRAS_SECTIONS: readonly ExtrasSection[] = [
-  {name: 'goals', consent: 'account', records: [record(GOAL_EXTRAS, ['dormant']), record(AVERAGE_GOALS)]},
+  // Session AW (#447, TIER 3 sync; review b1 M2): a goal that starts again travels with the goals, so every device sees the
+  // period already turned (its turn writes the synced goal) and the earlier results; a build before AW carries it unread.
+  {name: 'goals', consent: 'account', records: [record(GOAL_EXTRAS, ['dormant']), record(AVERAGE_GOALS), record(GOAL_REPEAT)]},
   {name: 'life', consent: 'account', records: [record(CALCULATOR), record(LIFE_REVIEW), record(TODAY_CARDS), record(REMINDERS_PLAN)]},
   {name: 'habits', consent: 'account', records: [record(HABIT_EXTRAS, ['folds', 'listMode']), record(ROUTINE_RUN), record(GAME)]},
   // Health-describing records travel only under the Health consent (SYNC_HOMES rule), never pre-ticked.
-  {name: 'health', consent: 'health', records: [record(HEALTH_COACH), record(MICRO_TARGETS), record(MACRO_MODE), record(AISLES_RECORD), record(MEASUREMENTS_CUSTOM), record(HEALTH_VITAMINS)]},
+  {name: 'health', consent: 'health', records: [record(HEALTH_COACH), record(MICRO_TARGETS), record(MACRO_MODE), record(AISLES_RECORD), record(MEASUREMENTS_CUSTOM), record(HEALTH_VITAMINS), /* Session AW (1a, TIER 3 sync; review b1 M1): an activity's distance, effort and calories you entered, under the Health consent */ record(ACTIVITY_EXTRAS)]},
   // Session AK (8.10, AFL8; TIER 3 (auth/sync)): the Checklist's favourites, custom items, orbits and day counts travel;
   // its Health quick inputs (`healthItems`) and today's tick receipts (`today`, which can name a Health entry) stay on each
   // device, so nothing Health-describing leaves without the Health consent. Effective once private-sync is redeployed.

@@ -12,6 +12,7 @@ import {TasksGlyph} from './tasks-glyph';
 import {TaskRow, TaskStatusLine} from './task-parts';
 import {PASTE_PARENT, SmartAdd} from './smart-add';
 import {ReminderRows} from './reminder-rows';
+import {useRemindAgain} from './use-remind-again';
 import {TasksNav, viewKey, readView, viewTitle} from './tasks-nav';
 import {useTaskList} from './use-task-list';
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -83,6 +84,9 @@ const OccurrenceEdit = lazy(() => import('./occurrence-edit'));
 const ProjectStates = lazy(() => import('./project-states'));
 const ProjectReview = lazy(() => import('./project-review'));
 const FocusBar = lazy(() => import('./focus-bar'));
+// Session AW (X2; Amazing Marvin): today's progress in Today's heading line (#436) and Review's Moved most and Open a long time (#433, #434), each its own chunk.
+const DayProgressLine = lazy(() => import('./day-progress-line'));
+const ReviewExtras = lazy(() => import('./review-extras'));
 /** Session AV lane 2 (r6-plan, LEDGER #394): the views Focus narrows (never the Inbox, a project's own view or Completed). */
 const FOCUS_KINDS = new Set<TaskView['kind']>(['today', 'upcoming', 'all', 'overdue', 'label', 'priority', 'matrix', 'days']);
 const AREA_KEY = 'zigoals:task-area';
@@ -179,7 +183,8 @@ export function TasksPage() {
   // A saved filter view waits for the search chunk (it would read as empty); a typed query keeps the view's list meanwhile.
   const ready = tasks.loaded && (view.kind !== 'filter' || !!matchTasks);
   const counts = useMemo(() => taskCounts(record, today, clock), [record, today, clock]); // RR-8: the list's own clock
-  const reminders = useMemo(() => tasks.loaded ? dueReminders(record, now, checklistZone(), {dismissed}) : [], [tasks.loaded, record, now, dismissed]);
+  const again = useRemindAgain(); // Session AW (X1, LEDGER #438): a reminder repeats until done or snoozed
+  const reminders = useMemo(() => tasks.loaded ? dueReminders(record, now, checklistZone(), {dismissed, again}) : [], [tasks.loaded, record, now, dismissed, again]);
   const salvage = useMemo(() => tasks.unreadable ? salvageTasks() : null, [tasks.unreadable]);
   const visibleIds = useMemo(() => shown.map(t => t.id), [shown]);
   const selectMode = selecting || selected.size > 0;
@@ -354,7 +359,7 @@ export function TasksPage() {
   let body: ReactNode;
   const own = view.kind === 'evening' || view.kind === 'someday' || view.kind === 'matrix' || view.kind === 'review' || PLAN_KINDS.has(view.kind);
   if (view.kind === 'review') {
-    body = <LoadBoundary label="Review"><Suspense fallback={<ZgSkeleton label="Opening…" block lines={2} />}><ProjectReview list={list} onOpen={id => go({kind: 'project', id})} /></Suspense></LoadBoundary>;
+    body = <LoadBoundary label="Review"><Suspense fallback={<ZgSkeleton label="Opening…" block lines={2} />}><ProjectReview list={list} onOpen={id => go({kind: 'project', id})} /><ReviewExtras list={list} onOpen={openTask} /></Suspense></LoadBoundary>;
   } else if (PLAN_KINDS.has(view.kind)) {
     body = <LoadBoundary label={viewTitle(view, record)}><Suspense fallback={<ZgSkeleton label="Opening…" block lines={2} />}><PlanViews kind={view.kind as 'week'} list={list} goals={goals} focus={focusOn ? viewFocus : null} /></Suspense></LoadBoundary>;
   } else if (own) {
@@ -431,6 +436,12 @@ export function TasksPage() {
       setDropNote(made ? `${made === 1 ? 'An Inbox task holds the file' : `${made} Inbox tasks hold the files`}: open one to see it.${said ? ` ${said}` : ''}` : said);
     }).catch(() => setDropNote('The files could not be kept on this device.'));
   };
+  // Session AW (X2, LEDGER #433–#435): a task named in Review or picked for you opens in a view that lists it, its editor open.
+  function openTask(t: Task) {
+    if (!(view.kind === 'today' && shown.some(x => x.id === (t.parentId ?? t.id)))) go(t.doneAt ? {kind: 'completed'} : t.projectId ? {kind: 'project', id: t.projectId} : t.due && t.due <= today ? {kind: 'today'} : {kind: 'inbox'});
+    setFocusId(t.parentId ?? t.id); setEditId(t.id); if (t.parentId) setExpanded(s => new Set(s).add(t.parentId!));
+    requestAnimationFrame(() => document.getElementById(`task-${t.id}`)?.scrollIntoView({block: 'center'}));
+  }
   const openTaskFromFiles = (taskId: string) => { const t = record.tasks.find(x => x.id === taskId); if (!t) return; setFilesOpen(false); go(t.doneAt ? {kind: 'completed'} : t.projectId ? {kind: 'project', id: t.projectId} : {kind: 'inbox'}); setFocusId(t.parentId ?? t.id); setEditId(t.id); };
 
   return <div className="tasks-page" data-tasks={ready ? 'ready' : 'loading'} onDragOver={e => { if (hasFiles(e)) e.preventDefault(); }} onDrop={dropFiles}>
@@ -446,8 +457,8 @@ export function TasksPage() {
         <h2>Reminders</h2>
         {/* Session AV (1c, q1 #1): Done, Snooze (15 min, 1 h, tomorrow) and Dismiss on every reminder. */}
         <ReminderRows reminders={reminders} className="tasks-reminder-list" label="Reminders that have gone off" change={list.change} onDone={t => list.toggle(t, true)} onDismiss={key => setDismissed(s => new Set(s).add(key))} onFocus={setFocus} fallback={() => addField.current}
-          line={r => <span><span dir="auto">{r.task.title}</span> · {r.task.time ? `${formatClock(r.task.time)}` : 'today'}{r.task.due && r.task.due !== today ? ` · ${formatDate(r.task.due, {weekday: true, year: false})}` : ''}</span>} />
-        <p className="fine">Reminders show here and on Today while the app is open. On your device’s notifications only when notifications are switched on in Settings.</p>
+          line={r => <span><span dir="auto">{r.task.title}</span> · {r.task.time ? `${formatClock(r.task.time)}` : 'today'}{r.task.due && r.task.due !== today ? ` · ${formatDate(r.task.due, {weekday: true, year: false})}` : ''}{r.round ? ` · again, ${r.round} of ${r.times}` : ''}</span>} />
+        <p className="fine">Reminders show here and on Today while the app is open; one set to remind again comes back until you tick Done or Snooze (Tasks → This week → Reminders). On your device’s notifications only when notifications are switched on in Settings.</p>
       </section>}
       {filesOpen && <section className="panel tasks-files-panel" aria-labelledby="tasks-files-title"><h2 id="tasks-files-title"><NebulaFlow identity="tasks-files-title">Files</NebulaFlow></h2>
         <LoadBoundary label="Files"><Suspense fallback={<p className="fine">Opening…</p>}><FilesView titles={new Map(record.tasks.map(t => [t.id, t.title]))} onOpenTask={openTaskFromFiles}/></Suspense></LoadBoundary>
@@ -462,6 +473,8 @@ export function TasksPage() {
         <section className="panel tasks-main" aria-labelledby="tasks-view-title">
           <header className="tasks-view-head">
             <h2 id="tasks-view-title">{title} <small>{view.kind === 'completed' || own ? '' : shown.length ? plural(shown.length, 'task') : 'none open'}{view.kind !== 'completed' && counts.overdue && view.kind !== 'overdue' ? ` · ${formatNumber(counts.overdue)} overdue in all` : ''}</small></h2>
+            {/* Session AW (X2, LEDGER #436): today's tasks done and where the day is, inside this heading line (no card of its own) */}
+            {view.kind === 'today' && !query && !tasks.unreadable && <LoadBoundary quiet><Suspense fallback={null}><DayProgressLine record={record} today={today} clock={clock} doneDay={list.doneDay} /></Suspense></LoadBoundary>}
             {!!record.areas?.length && view.kind !== 'project' && <label className="field tasks-area-pick"><span>Area</span><select value={areaId} onChange={e => chooseArea(e.target.value)}><option value="">All areas</option>{record.areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>}
             {project && <ProjectTools project={project} board={board} setup={setupFor === project.id} onSetup={() => setSetupFor(setupFor === project.id ? null : project.id)} onBoard={b => go(view, b)} onEdit={patch => list.change(r => editProject(r, project.id, patch), patch.archived ? `Archived “${project.name}”.` : `Saved “${patch.name ?? project.name}”.`)} onRemove={() => { list.change(r => removeProject(r, project.id), `Removed the project “${project.name}”; its tasks are in the Inbox.`, 'The project is back.'); go({kind: 'inbox'}); }} />}
             {/* Session AV lane 2 (r6-plan, LEDGER #394): Focus on chosen projects or areas, in the views it narrows */}
@@ -486,7 +499,7 @@ export function TasksPage() {
           {(view.kind === 'today' || view.kind === 'upcoming') && !query && !tasks.unreadable && <LoadBoundary quiet><Suspense fallback={null}><NoteReminders kind={view.kind} today={today} /></Suspense></LoadBoundary>}
           {/* Session AV (D-CI1987): below the list, so Today's first task starts where it did (A10-11). */}
           {view.kind === 'today' && !query && (() => { const w = dayLoadWords(viewLoad(shown)); return w ? <p className="fine tasks-day-load">{w}</p> : null; })()}{/* Session AV (1c, q1 #39): every task in Today's list, overdue ones too */}{/* Session AV (F-TASK-MINUTES): the day's load in minutes */}
-          {view.kind === 'today' && !query && !tasks.unreadable && record.tasks.length > 0 && <LoadBoundary quiet><Suspense fallback={null}><PlanDay record={record} today={today} clock={clock} shown={shown} focus={focusOn ? viewFocus : null} change={list.change} doneDay={list.doneDay} onPlan={id => list.change(r => editMany(r, [id], () => ({due: today}), today, {allowPast: true}), 'Task planned for today.', 'The task is back on its own day.')}/></Suspense></LoadBoundary>}
+          {view.kind === 'today' && !query && !tasks.unreadable && record.tasks.length > 0 && <LoadBoundary quiet><Suspense fallback={null}><PlanDay record={record} today={today} clock={clock} shown={shown} focus={focusOn ? viewFocus : null} change={list.change} doneDay={list.doneDay} onPlan={id => list.change(r => editMany(r, [id], () => ({due: today}), today, {allowPast: true}), 'Task planned for today.', 'The task is back on its own day.')} onOpen={openTask} onFocus={t => setFocus(t)}/></Suspense></LoadBoundary>}
           {view.kind === 'today' && !query && record.tasks.some(t => isFinished(t) && list.doneDay(t.doneAt!) === today) && /* review B5L-3: finishes only */ <p className="fine"><button type="button" className="text-link" onClick={() => go({kind: 'completed'})}>Done today: {formatNumber(record.tasks.filter(t => isFinished(t) && list.doneDay(t.doneAt!) === today).length)} →</button></p>}
           {/* Session AV lane 2 (tasks-r2, LEDGER #225): below the list, so the list starts where it did (A10-11). */}
           {view.kind !== 'completed' && !own && visibleIds.length > 0 && <p className="tasks-print-line"><button type="button" className="text-link" onPointerEnter={() => void import('./tasks-print').catch(() => undefined)} onClick={() => setPrinting(true)}>Print this list</button></p>}

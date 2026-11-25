@@ -144,3 +144,9 @@ legend .onboarding-count { display: inline; margin-left: 8px; }
 .quick-add-trigger[data-tour-spot] { outline: 3px solid #a9e8ed; outline-offset: 4px; box-shadow: 0 0 0 8px #a9e8ed33; }
 @media (prefers-reduced-motion: no-preference) { :root:not([data-app-motion=off]) .quick-add-trigger[data-tour-spot] { animation: onboarding-spot 1.6s ease-in-out 2; } }
 @keyframes onboarding-spot { 50% { box-shadow: 0 0 0 14px #a9e8ed1f; } }
+/* Session AW Part 3 (simplicity c): the welcome's one-tap ways to a daily thing (welcome-card.tsx QuickStarts), in the card's
+   own colours; no transition or animation. */
+.onboarding-quick { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line, #25334f); }
+.onboarding-quick > p { margin: 0 0 4px; color: var(--text-meta, #c2d0e5); font-size: 15px; line-height: 1.45; }
+.onboarding-quick ul { display: flex; flex-wrap: wrap; gap: 0 18px; margin: 0; padding: 0; list-style: none; }
+.onboarding-quick .text-link { display: inline-flex; align-items: center; min-height: 44px; font-size: 16px; }

@@ -6,6 +6,7 @@ import {formatDate, formatNumber, formatWeekday} from '../../lib/visual-format';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {addLocalDays} from '../../lib/local-date';
 import {journalDay} from '../../lib/journal/journal-day';
+import {DAY_PAGE_TEMPLATE, dayPagesOn, partWritten} from '../../lib/journal/day-pages';
 import {ENERGY, ENERGY_WORDS} from '../../lib/energy/schema';
 import {JOURNAL, restoreJournalEntry, type EntryVersion, type JournalEntry} from '../../lib/journal/schema';
 import {putBackVersions, removeWithVersions} from '../../lib/journal/versions';
@@ -79,6 +80,8 @@ const JournalPhotos = lazy(() => import('./journal-photos'));
 const SkyLine = lazy(() => import('./entry-sky'));
 const SkyPlaceSettings = lazy(() => import('./entry-sky').then(m => ({default: m.SkyPlaceSettings})));
 const WordGoalSettings = lazy(() => import('./journal-word-goal').then(m => ({default: m.WordGoalSettings})));
+// Session AW (x3; LEDGER #444, The Five Minute Journal): Morning and evening, loaded when its fold opens.
+const DayPages = lazy(() => import('./day-pages'));
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
@@ -119,7 +122,7 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
   }, []);
   // Session AV lane 2 (r4-mind; LEDGER #325): a feeling word's choices link to #write-it-out and #thought-check; the fold opens.
   useEffect(() => {
-    const go = () => { const h = window.location.hash.slice(1); if (h !== 'write-it-out' && h !== 'thought-check') return; requestAnimationFrame(() => { const f = document.getElementById(h) as HTMLDetailsElement | null; if (f) { f.open = true; f.scrollIntoView({block: 'start'}); f.querySelector<HTMLElement>('summary')?.focus(); } }); };
+    const go = () => { const h = window.location.hash.slice(1); if (h !== 'write-it-out' && h !== 'thought-check' && h !== 'day-pages') return; requestAnimationFrame(() => { const f = document.getElementById(h) as HTMLDetailsElement | null; if (f) { f.open = true; f.scrollIntoView({block: 'start'}); f.querySelector<HTMLElement>('summary')?.focus(); } }); };
     go(); window.addEventListener('hashchange', go); return () => window.removeEventListener('hashchange', go);
   }, [journal.loaded]);
   // Session AV lane 2 (LEDGER #35, #42): photos and voice notes no entry names any more leave this browser after 30 days.
@@ -163,6 +166,8 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
     <section className="panel" aria-labelledby="journal-write"><h2 id="journal-write">Write</h2><JournalCompose book={shownBook === 'all' || shownBook === 'main' ? null : shownBook}/>
       {/* Session AK (B2, lane B): the Journal's sibling for longer thoughts — today's note beside what this day holds. */}
       <p className="fine journal-notes-link">Longer thoughts and ideas go in <Link className="text-link" href="/app/notes?day=today">today&rsquo;s note</Link>, beside what this day holds. There, type <code>[[</code> and a name to link a goal or a habit, for example <code>[[Run a 10k]]</code>.</p>
+      {/* Session AW (x3; LEDGER #444): one day's entry as a morning page and an evening page, open by itself once switched on. */}
+      <JournalFold id="day-pages" className="day-pages-fold" label="Morning and evening" open={dayPagesOn(journal.data)} summary={<>Morning and evening <span className="fine">· {dayPagesOn(journal.data) ? (['morning', 'evening'] as const).filter(p => partWritten(journal.data, today, p)).map(p => p === 'morning' ? 'morning page written' : 'evening page written').join(', ') || 'today’s two pages' : 'a morning page and an evening page, off'}</span></>}><DayPages/></JournalFold>
       <JournalFold id="write-it-out" className="write-it-out-fold" label="Write it out" summary={<>Write it out <span className="fine">· a page that is never saved</span></>}><WriteItOut/></JournalFold>
       <JournalFold id="thought-check" className="thought-check-fold" label="the thought check" summary={<>Check a thought <span className="fine">· thinking traps, as self-reflection</span></>}><ThoughtCheck/></JournalFold></section>
     {/* Session AV lane 2 (fr-layout, FR-L-6, FR-MAX-3, FR-S-8): "On this day" under Write, not above it — with memories it
@@ -193,7 +198,7 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
         </div>
         <JournalCalendar entries={journal.data.entries} wordGoal={journal.data.wordGoal} today={today} picked={from && from === to ? from : null} onPick={d => { setFrom(d ?? ''); setTo(d ?? ''); setPeriodPick(null); }} pickedPeriod={periodPick} onPeriod={p => { setPeriodPick(p); if (p) { setFrom(''); setTo(''); } }}/>
       </JournalFold>
-      {(() => { const n = new Set(journal.data.entries.flatMap(e => e.template ? [e.template] : [])).size; return <JournalFold id="journal-prompt-answers" className="journal-prompt-answers-fold" label="every answer to a prompt" open={!!promptPick} summary={<>Every answer to a prompt <span className="fine">· {n ? `${n === 1 ? '1 prompt' : `${n} prompts`} written from` : 'what you wrote under each heading'}</span></>}><PromptAnswers journal={journal.data} picked={promptPick} onDay={showDay}/></JournalFold>; })()}
+      {(() => { const n = new Set(journal.data.entries.flatMap(e => e.template && e.template !== DAY_PAGE_TEMPLATE ? [e.template] : [])).size; /* Session AW (x3): a day page is not one of its prompts */ return <JournalFold id="journal-prompt-answers" className="journal-prompt-answers-fold" label="every answer to a prompt" open={!!promptPick} summary={<>Every answer to a prompt <span className="fine">· {n ? `${n === 1 ? '1 prompt' : `${n} prompts`} written from` : 'what you wrote under each heading'}</span></>}><PromptAnswers journal={journal.data} picked={promptPick} onDay={showDay}/></JournalFold>; })()}
       {tags.length > 0 && <div className="journal-tag-filter" role="group" aria-label="Filter by tag">
         <button type="button" className="quiet" aria-pressed={!shownTag} onClick={() => setTag(null)}>All entries</button>
         {tags.map(t => <button key={t.tag} type="button" className="quiet" aria-pressed={shownTag?.toLowerCase() === t.tag.toLowerCase()} onClick={() => setTag(t.tag)}>#{t.tag} <small>{t.count}</small></button>)}
