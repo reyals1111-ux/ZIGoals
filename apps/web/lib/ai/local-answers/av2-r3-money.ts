@@ -116,6 +116,8 @@ const sheetOf = (env: ToolEnv): WealthSheet | null => (env as ToolEnv & {wealthS
 const pctIn = (lang: Lang, share: number) => lang === 'nl' ? `${Math.round(share * 100)}%` : formatPercent(share * 100);
 /** "How much of my credit card limit have I used", "hoeveel van mijn creditcardlimiet heb ik gebruikt". */
 function cardUse(a: Asked): LocalReply | null {
+  // Session AW (X7, LEDGER #464): what is on the card this statement and its next payment are X7's answer (aw-x7-money.ts).
+  if (/\bso far this statement\b|\bnext (?:credit ?card )?payment\b/.test(a.f)) return null;
   const en = /\bcredit ?cards?\b/.test(a.f) && /\b(?:limits?|used|use|utili[sz]ation|available|due|statement)\b/.test(a.f);
   const nl = /creditcardlimiet/.test(a.f) || (/\bcreditcards?\b/.test(a.f) && /\b(?:limiet|gebruikt|beschikbaar|betalen|betaald|afschrift|vervalt)\b/.test(a.f));
   if (!(en || nl) || /\b(?:paid with|betaald met|spent with|uitgegeven met|by payment|per betaalwijze)\b/.test(a.f)) return null;
