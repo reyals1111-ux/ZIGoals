@@ -2481,6 +2481,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .habit-trend-items:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
 :where(:root[data-density=compact]) .habit-trend-items li:not(#\-) { row-gap: 3px; padding-top: 6px; padding-bottom: 6px; }
 :where(:root[data-density=compact]) .habit-trend-line:not(#\-) { margin-top: 6px; margin-bottom: 6px; }
+:where(:root[data-density=compact]) .habit-consistency-teach:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .habit-consistency-teach > .habit-teach-line:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/habits/habit-week-grid.css  */
 :where(:root[data-density=compact]) .habit-week-cue:not(#\-) { margin-top: 0; margin-bottom: 0; }
 @media (max-width: 479px) { :where(:root[data-density=compact]) .habit-week-table th:not(#\-), :where(:root[data-density=compact]) .habit-week-table td:not(#\-) { padding-top: 3px; padding-bottom: 3px; } }
