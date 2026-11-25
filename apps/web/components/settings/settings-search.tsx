@@ -45,7 +45,7 @@ export function SettingsSearch({chain}: {chain: boolean}) {
   return <div className="settings-search" role="search" aria-label="Settings">
     <label htmlFor={`${id}-q`}>Search Settings</label>
     <input ref={field} id={`${id}-q`} type="search" value={query} maxLength={MAX_QUERY} autoComplete="off" spellCheck={false} enterKeyHint="go"
-      placeholder="For example: dark mode, backup, meldingen" aria-describedby={`${id}-n`} aria-controls={shown ? `${id}-r` : undefined}
+      placeholder="For example: dark mode, backup, meldingen" aria-describedby={`${id}-n`} aria-controls={shown && results.length > 0 ? `${id}-r` : undefined}
       onFocus={() => { load(); setOpen(true); }} onChange={e => { load(); setOpen(true); setQuery(e.target.value.slice(0, MAX_QUERY)); }} onKeyDown={onField}/>
     <p id={`${id}-n`} role="status" className="settings-search-status">{status}</p>
     {shown && results.length > 0 && <ul id={`${id}-r`} ref={list} className="settings-search-results" aria-label={`Settings matching “${words}”`} onKeyDown={onList}>

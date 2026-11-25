@@ -106,7 +106,7 @@ test('quiet hours hold the repeats; the editor and This week set them; own snooz
   await choices.getByLabel('Remind again').selectOption('5');
   await expect.poll(async () => (await prefsOf(page)).taskAgain).toEqual({every: 5, times: 6});
   await expect(choices.getByRole('list', {name: 'The usual snooze choices'})).toContainText('15 min');
-  await choices.getByLabel('Minutes').fill('90');
+  await choices.getByLabel('Minutes', {exact: true}).fill('90');
   await choices.getByRole('button', {name: 'Add the choice'}).click();
   await choices.getByLabel('Snooze', {exact: true}).selectOption('weekday');
   await choices.getByLabel('Weekday').selectOption('1');
