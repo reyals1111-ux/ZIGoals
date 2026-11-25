@@ -119,6 +119,7 @@ import { healthGroupIn } from "../../lib/vault/w-homes";
 import { MeditationCard } from "./meditation/meditation-card";
 import { WorkoutsCard } from "./workouts/workouts-card";
 import { useDeviceRecord } from "../ai/use-device-record";
+import { SETUP_FOCUSES, quickCountersShown, turnOnQuickCounters, type SetupFocuses } from "../../lib/aw-p5-fixes/fitness-choice";
 import { MEAL_ESTIMATES, estimateLine } from "../../lib/meal-estimates/schema";
 import { MEDITATION_RUN } from "../../lib/meditation/schema";
 import { MACRO_MODE, splitGrams } from "../../lib/health-aa/macro-mode";
@@ -264,6 +265,8 @@ const blankZero = (form: FormData, key: string, max: number) => formString(form,
 
 export function HealthApp() {
   const store = useHealth();
+  // Session AW (p5-fixes; FR-S-14): the welcome's choices, read once on this device, decide whether the example counters wait.
+  const setupRecord = useDeviceRecord(SETUP_FOCUSES), setup = setupRecord.loaded && !setupRecord.unreadable ? setupRecord.data : null;
   // H7: linked habits tick themselves off from this journal while it is open.
   const habits = useHabits();
   useAutoCheckIns({ habits, health: store });
@@ -280,10 +283,12 @@ export function HealthApp() {
   if (view === "meditation") return <LoadBoundary title="Meditation" label="Meditation"><Suspense fallback={<section className="panel"><h1>Meditation</h1><Skeleton label="Opening Meditation…" block/></section>}><MeditationView /></Suspense></LoadBoundary>;
   if (view === "workouts") return <LoadBoundary title="Workouts" label="Workouts"><Suspense fallback={<section className="panel"><h1>Workouts</h1><Skeleton label="Opening Workouts…" block/></section>}><WorkoutsView /></Suspense></LoadBoundary>;
   if (view === "devices") return <LoadBoundary title="Devices" label="Devices"><Suspense fallback={<section className="panel"><h1>Devices</h1><Skeleton label="Opening Devices…" block/></section>}><DevicesView /></Suspense></LoadBoundary>;
-  return <HealthWorkspace data={store.data} update={store.update} />;
+  return <HealthWorkspace data={store.data} update={store.update} setup={setup} />;
 }
 
-function HealthWorkspace({ data, update }: { data: HealthData; update: Update }) {
+function HealthWorkspace({ data, update, setup = null }: { data: HealthData; update: Update; setup?: SetupFocuses | null }) {
+  // Session AW (p5-fixes; FR-S-14): Push-ups, Pull-ups and Squats wait for a first use or "Move more" (Activity offers them).
+  const countersOn = quickCountersShown(data, setup);
   const startParams = useSearchParams(), tabParam = startParams.get("tab")?.toLowerCase() ?? "", viewParam = startParams.get("view")?.toLowerCase() ?? "";
   // Session AL (P-MO-21; MO-018, MO-083, MO-096, BUG-080): every view answers to ?view=<name> too (?view=weight opened the
   // Diary), and the view chosen is written back to the address, so a reload or a shared link opens the same view.
@@ -424,11 +429,11 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     <a className="skip" href="#health-views">Skip to Health views</a>
     {/* Session AB-Design (owner request 21): the shared header pattern — eyebrow, title, slogan, then the page's actions in the same style as Goals, Habits and Wealth; the old care card is this header. */}
     <PillarHero pillar="health" className="health-heading" titleId="health-title" art={<OrbitArt glyph={HealthGlyph} tone="health" spin={14}/>} eyebrow="Your everyday wellbeing" title="A little care, every day." lede={<>{/* Session AV lane 2 (fr-layout, FR-TJ-10; CI, pillar-phone-length): Workouts' own page from the first screen, in the lede's line so a phone's buttons stay as they were */}Your food, water, movement and progress. Your private journal. <Link className="text-link health-hero-workouts" href="/app/health?view=workouts">Workouts →</Link></>} about="health" buttons={<>{/* Session AK RB (RELEASE_REVIEW_2 R2-19): "Log weight" takes the settings link's place among the logging buttons; privacy and backups stay in the text row beside Ask ZIGi ("Back up private data ↗"). */}<button type="button" className={heroNext === "weight" ? "primary" : "secondary"} onClick={() => { setView("Weight"); revealWhenShown("health-weight-entry", true); }}>Log weight</button><button type="button" className={heroNext === "water" ? "primary" : "secondary"} onClick={() => { setView("Diary"); revealWhenShown("water", ["#health-water-amount", "input, select"]); }}>Log water</button><button type="button" className={heroNext === "food" ? "primary" : "secondary"} onClick={() => { setView("Diary"); /* Session AW (p5-fixes; FR-S-15, FR-TJ-12): on a phone the first tap opens the Log a meal sheet itself (it was a scroll to the card's own "Log a meal" button); the card comes into view under it, and the sheet's focus and Close work as from that button */ if (phone) { revealWhenShown("health-entry-action"); setLogging(true); } else revealWhenShown("health-entry-action", ['form[aria-label="Log a meal"] select', "select, input, button"]); }}>Log food</button></>}/><LayoutLockButton/>
-    {!phone && <ExerciseCounters data={data} update={update} date={date} />}
+    {!phone && countersOn && <ExerciseCounters data={data} update={update} date={date} />}
     {/* On a phone the title comes first, then the journal date it drives, then the quick counters (desktop keeps
         the counters at the top, Part 18.6, and the date beside the views). */}
     {phone && <div className="health-date-strip">{dateControl}</div>}
-    {phone && <ExerciseCounters data={data} update={update} date={date} />}
+    {phone && countersOn && <ExerciseCounters data={data} update={update} date={date} />}
     {/* Phase 2, Part 5 (owner request 33): the highlight tiles — the figures of the trend, energy and coach cards below. */}
     <LoadBoundary quiet><Suspense fallback={null}><HealthHighlights data={data} today={date} unit={dailyData(data).preferences.weightUnit} /></Suspense></LoadBoundary>
     <LayoutRegion region="body" items={[
@@ -459,7 +464,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
       {view === "Measurements" && <><LoadBoundary label="Your measurements"><Suspense fallback={<div aria-busy="true" style={{ minHeight: 220 }} />}><BodyMeasurements data={data} perform={perform}/></Suspense></LoadBoundary><LoadBoundary quiet><Suspense fallback={null}><MeasurementsAa data={data} today={date} /></Suspense></LoadBoundary><LazyFold summary="Your numbers: blood pressure and lab values">{() => <YourNumbers today={today} />}</LazyFold></>}
       {/* Session AK RB (R2-8): the weight trend, energy estimate and coach open the Weight view (the tiles at the top link here). */}
       {view === "Weight" && <><LoadBoundary quiet><div className="health-aa-highlights"><Suspense fallback={null}><WeightCards data={data} date={date} today={today} perform={perform} /></Suspense></div></LoadBoundary><LoadBoundary quiet><Suspense fallback={null}><HealthR3 part="weigh-in" data={data} today={today} /></Suspense></LoadBoundary><WeightView data={data} update={update} today={today} date={date} choice={dateChoice} perform={perform} invalid={invalid} onDate={chooseDate} />{/* Session AW (X6; Happy Scale, LEDGER #457, #456): folded, loaded when opened */}<LazyFold summary="Notes and new lows in your weigh-ins" open={typeof window !== "undefined" && window.location.hash === "#weigh-notes"}>{() => <BodyX6 part="weigh-notes" data={data} today={today} unit={dailyData(data).preferences.weightUnit} />}</LazyFold><LazyFold summary="A day you name: where the trend would be (an estimate)" open={typeof window !== "undefined" && window.location.hash === "#named-days"}>{() => <BodyX6 part="named-days" data={data} today={today} unit={dailyData(data).preferences.weightUnit} />}</LazyFold></>}
-      {view === "Activity" && <><ActivityView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} /><LoadBoundary quiet><Suspense fallback={null}><HealthPlus part="activity" data={data} today={today} /></Suspense></LoadBoundary></>}
+      {view === "Activity" && <>{!countersOn && <p className="fine health-counters-off">{/* Session AW (p5-fixes; FR-S-14) */}Quick exercise counters (push-ups, pull-ups, squats or your own) are off: you did not choose moving more. <button type="button" className="text-link" onClick={() => void perform(turnOnQuickCounters, "Quick counters are on, at the top of Health.")}>Show quick counters</button></p>}<ActivityView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} /><LoadBoundary quiet><Suspense fallback={null}><HealthPlus part="activity" data={data} today={today} /></Suspense></LoadBoundary></>}
       {view === "Targets" && <><HideFiguresToggle />{/* Session AV (owner follow-up 1, F-HIDE-FIGURES) */}<TargetsView key={`${JSON.stringify(data.targets)}:${dailyData(data).preferences.weightUnit}`} targets={data.targets} weightUnit={dailyData(data).preferences.weightUnit} perform={perform} invalid={invalid} /><LoadBoundary quiet><Suspense fallback={null}><TargetPanels data={data} date={date} /></Suspense></LoadBoundary>{/* Session AV lane 2 (food, LEDGER #88, #97) */}<LazyFold summary="Targets by weekday (optional)">{() => <FoodPlus part="weekdays" targets={data.targets} today={today} />}</LazyFold><LazyFold summary="Sugar alcohols for net carbs (optional)">{() => <FoodPlus part="sugar-alcohols" data={data} />}</LazyFold><LazyFold summary="Weekly calorie budget (optional)">{() => <CalorieWeekCard data={data} date={date} today={today} />}</LazyFold>{/* Session AL fourth pass (C-MO-04, C-DVG-42) */}<LazyFold summary="Estimate my maintenance calories (optional)">{() => <MaintenanceEstimator latestGrams={weightTrend(data, date).latestGrams} weightUnit={dailyData(data).preferences.weightUnit} onUse={kcal => void perform(latest => setHealthTargets(latest, { ...latest.targets, kcal }), `Calorie target set to ${formatNumber(kcal)} kcal a day, from the estimate. Change it any time.`)} />}</LazyFold></>}
     </fieldset></div>
     {/* Session AK RB (RELEASE_REVIEW_2 R2-8): the weight trend, energy and coach cards moved into the Weight view; the
