@@ -49,7 +49,7 @@ const money = (value: unknown) => { const m = /^(-?\d+(?:\.\d+)?) (\S+)$/.exec(S
 const who = (env: ToolEnv | null) => env && novaEnvInfo(env) ? 'NOVA' : 'ZIGi';
 /** A routine asked for (written for the person), never "show/open my routines" (navigation) or a routine's own name. */
 const ROUTINE_ASK = /\b(?:give|get|make|build|design|write|plan|suggest|recommend|create|need|want)\s+(?:me\s+|myself\s+)?(?:a|an|my|some)\b[^.?!]{0,30}\broutines?\b|\b\d+[- ]?(?:minutes?|mins?|min)\s+(?:\w+\s+)?routines?\b|^\s*(?:a\s+)?(?:quick\s+|short\s+|simple\s+|good\s+)?(?:morning|evening|night|bedtime|nighttime|wind[- ]down|sleep)\s+routines?(?:\s+for\s+(?:me|tonight|tomorrow|today))?\s*[.!?]*\s*$|\broutines?\s+for\s+(?:tonight|tomorrow|my (?:mornings?|evenings?|nights?))\b/i;
-const brainPlace = (env: ToolEnv | null, lang: Lang) => env && novaEnvInfo(env) ? say(lang, 'NOVA → setup (“Build NOVA’s brain”)', 'NOVA → setup (“Build NOVA’s brain”)') : say(lang, 'Settings → ZIGi · your companion', 'Instellingen → ZIGi · je metgezel');
+const brainPlace = (env: ToolEnv | null, lang: Lang) => env && novaEnvInfo(env) ? say(lang, 'NOVA → setup (“Build NOVA’s brain”)', 'NOVA → setup (“Build NOVA’s brain”)') : say(lang, 'Settings → ZIGi · your companion', 'Settings → ZIGi · your companion');
 
 /** The device's own answer to a question in its words (the lookups, then the overview ZIGi shares with NOVA), or null. */
 export function deviceAnswer(question: string, env: ToolEnv): LocalReply | null {

@@ -84,8 +84,12 @@ describe('Wealth', () => {
     expect(r).not.toContain('could not find a goal');
     expect(text(zigi('Wat zijn mijn budgetdoelen?'))).toContain('doel €\u00a0300,00'); // Session AV lane 2 (fr-answers; FR-TJ-4, deliberate): a Dutch answer writes its figures the Dutch way ("€ 950,00", "73,48 kg"); the same figures, as strictly
   });
-  test('the debt planner is named in Dutch in a Dutch answer (q2 #16)', () => {
-    expect(text(zigi('wanneer ben ik schuldenvrij'))).toContain('Vermogen → Wat je schuldig bent');
+  // Session AW (p5-answers, FR-TJ-16, deliberate): the app's labels are English, so the Dutch answer names the planner as the
+  // app shows it (as NOVA → Permissions already is), never a Dutch screen that does not exist; as strictly, the whole path.
+  test('the debt planner is named as the app shows it in a Dutch answer (q2 #16, FR-TJ-16)', () => {
+    const t = text(zigi('wanneer ben ik schuldenvrij'));
+    expect(t).toContain('Wealth → What you owe → Plan paying off your debts');
+    expect(t).not.toMatch(/Vermogen →|Wat je schuldig bent/);
     expect(text(zigi('laat mijn aflossingsschema zien'))).toContain('Nog te betalen na 3 maanden');
   });
   test('Wealth closed: nothing of it is read (each answer under its own switch)', () => {
