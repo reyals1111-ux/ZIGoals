@@ -119,13 +119,14 @@ export function notesAnswer(q: Query, env: ToolEnv): Exact | null {
   return out(t(lang, `${n.total} ${n.total === 1 ? 'note' : 'notes'} in all; ${n.inbox} ${n.inbox === 1 ? 'waits' : 'wait'} in your inbox. The newest is from ${when}.`, `${n.total} ${n.total === 1 ? 'notitie' : 'notities'} in totaal; ${n.inbox} ${n.inbox === 1 ? 'wacht' : 'wachten'} in je inbox. De nieuwste is van ${when}.`), {notes: n.total, inbox: n.inbox, newest: last ? calendarDay(last.at, env.habitZone) : null}, [{id: 'notes-constellation', fallback: 'notes'}]);
 }
 
+// Session AW (p5-answers, S-10): a Dutch answer writes its times on the 24-hour clock ("19:00"), as it writes its dates; English as before.
 export function agendaAnswer(q: Query, env: ToolEnv): Exact | null {
   const lang = q.lang, today = env.habitDay, out = answer(q, ['Your agenda', 'Je agenda']), r = runTool('agenda', {}, env);
   if (!r.ok) return null;
   const items = (r.data.items as {day: string; time?: string; what: string; kind: string; state: string}[] | undefined) ?? [];
   const tomorrow = /\b(?:tomorrow|morgen)\b/.test(q.read), week = /\b(?:week)\b/.test(q.read) || q.period === 'this-week', from = tomorrow ? addLocalDays(today, 1) : today, to = week ? addLocalDays(today, 6) : from;
   const hit = items.filter(i => i.day >= from && i.day <= to), label = tomorrow ? t(lang, 'tomorrow', 'morgen') : week ? t(lang, 'the next 7 days', 'de komende 7 dagen') : t(lang, 'today', 'vandaag');
-  const name = (i: typeof items[number]) => `${i.time ? `${formatClock(i.time)} ` : ''}${plain(i.what)}`, facts = {from, to, items: hit.length, open: hit.filter(i => i.state === 'open').length, timed: hit.filter(i => i.time).length};
+  const name = (i: typeof items[number]) => `${i.time ? `${lang === 'nl' ? i.time : formatClock(i.time)} ` : ''}${plain(i.what)}`, facts = {from, to, items: hit.length, open: hit.filter(i => i.state === 'open').length, timed: hit.filter(i => i.time).length};
   const widgets: ExactWidget[] = [{id: 'day-timeline', fallback: 'hour-grid'}, {id: 'agenda-clock'}];
   if (!hit.length) return out(t(lang, `Nothing is on your agenda ${label}.`, `Er staat niets op je agenda ${label}.`), facts, widgets);
   if (q.ask === 'next') {
