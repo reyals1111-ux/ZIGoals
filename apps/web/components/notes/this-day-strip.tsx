@@ -40,6 +40,11 @@ export default function ThisDayStrip({day, exclude = [], title = 'This day', rea
   // eslint-disable-next-line react-hooks/exhaustive-deps -- `shown` reads `view`, listed here
   [loaded, day, view, habits.error, habits.data, health.error, health.data, workouts.unreadable, workouts.data, money.unreadable, money.data, platform.error, platform.data, journal.unreadable, journal.data]);
   const kept = items.filter(i => !exclude.includes(i.pillar));
+  // Session AW (simplicity-b, Part 3): a day with nothing logged is one teaching line, not a titled box saying so; the strip
+  // comes back with its title as soon as the day holds a habit, a meal, a workout, money or a contribution.
+  if (loaded && !kept.length && !unread.length && !readBack) return <section className="note-this-day-quiet" aria-label={title}>
+    <p className="fine">{title}: habits you check in, meals, workouts, money entries and contributions show here as links once you log them, never copied into the note.</p>
+  </section>;
   return <section className="note-this-day" aria-labelledby={`this-day-${day}`}>
     <h3 id={`this-day-${day}`} className="note-this-day-title">{title}</h3>
     {readBack && <p className="fine note-this-day-read">Read back on {formatDate(readBack, {weekday: true})}.</p>}
