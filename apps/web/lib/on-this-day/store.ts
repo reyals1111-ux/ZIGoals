@@ -34,6 +34,12 @@ export const journalDisplaySchema = z.looseObject({
     name: z.string().trim().min(1).max(60).optional().catch(undefined),
     off: z.literal(true).optional().catch(undefined),
   }).optional().catch(undefined),
+  /**
+   * Session AW (x3; LEDGER #442, Evernote's faster playback; TIER 3 (stored format), additive and optional): the speed
+   * the journal's voice notes play at on this device (1, 1.25, 1.5 or 2 times; absent: 1). A value this build cannot read
+   * is dropped (1 is used); older builds keep it untouched and play voice notes in the browser's own player.
+   */
+  voiceSpeed: z.union([z.literal(1), z.literal(1.25), z.literal(1.5), z.literal(2)]).optional().catch(undefined),
 });
 export type JournalDisplay = z.infer<typeof journalDisplaySchema>;
 export const emptyJournalDisplay = (): JournalDisplay => ({version: 1});
