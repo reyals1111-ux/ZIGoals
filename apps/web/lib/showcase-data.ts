@@ -108,6 +108,7 @@ import {HEALTH_NUMBERS_KEY} from './health-numbers/store';
 import {showcaseHealthNumbers} from './health-numbers/showcase';
 import {withR3HealthShowcase} from './r3-health-showcase';
 import {withR4HealthShowcase} from './r4-health-showcase';
+import {withX6BodyShowcase} from './body-extras/showcase';
 import {SCALES_KEY} from './scales/store';
 import {showcaseScales} from './scales/showcase';
 import {CYCLE_KEY} from './cycle/store';
@@ -280,6 +281,7 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  records[HEALTH_NUMBERS_KEY]=JSON.stringify(showcaseHealthNumbers(day));records[SCALES_KEY]=JSON.stringify(showcaseScales(day));records[CYCLE_KEY]=JSON.stringify(showcaseCycle(day));
  withR3HealthShowcase(records,day); // Session AV lane 2, round 3 (health): two own drinks, a protein goal and a circuit, labelled.
  withR4HealthShowcase(records,day); // Session AV lane 2, round 4 (health): two planned workouts like the Agenda's examples and one race, labelled.
+ withX6BodyShowcase(records,day); // Session AW (X6; #456, #457): two named days ahead and two notes on the Showcase's weigh-ins, labelled.
  records[MUSCLE_RECOVERY_KEY]=JSON.stringify(showcaseMuscleRecovery());
  // Session AJ (item 15, D9): a waiting price alert and one that fired and was seen (lib/price-alerts/showcase.ts).
  records[PRICE_ALERTS_KEY]=JSON.stringify(showcasePriceAlerts(day));
