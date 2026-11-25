@@ -78,7 +78,8 @@ test('without the API there is no "Pop out"', async ({page, isMobile}) => {
   await expect(panel(page).getByRole('button', {name: 'Pop out ZIGi into a mini window'})).toHaveCount(0);
 });
 
-test('the same chat goes on in the mini window; "Back to tab" and ZIGi\'s button bring it back; a private screen pauses it', async ({page, context, isMobile}) => {
+// Session AW (deliberate, D-MINI81): "Back to tab", ZIGi's button and its own close are the next test, from the same setup.
+test('the same chat goes on in the mini window; a private screen pauses it', async ({page, context, isMobile}) => {
   test.skip(isMobile, 'computers only');
   await bestPictureInPicture(page);
   await seed(page);
@@ -115,6 +116,30 @@ test('the same chat goes on in the mini window; "Back to tab" and ZIGi\'s button
   expect(await chat.evaluate(el => (el as HTMLElement).inert)).toBe(true);
   await page.locator('dialog.wealth-sheet[open]').getByRole('button', {name: 'Close dialog'}).click();
   await expect(mini.getByText('Paused while a private screen is open in the tab')).toHaveCount(0);
+});
+
+// Session AW (zigi-mini-window:81, deliberate; ADR-046 D-MINI81): the one test became two, every step and assertion
+// kept. In run 2032 (WebKit desktop) it reached its last step at about 58 s of its 60 s on both attempts: no step hung,
+// the sum was too long (Wealth's "+ Add asset" and its close took 6–8 s each there). The second test starts from the
+// same setup, the same chat with the same two answers, so its "Back to tab" checks read the same counts.
+test('the mini window: "Back to tab", ZIGi\'s button and its own close each bring the chat back as it was', async ({page, context, isMobile}) => {
+  test.skip(isMobile, 'computers only');
+  await bestPictureInPicture(page);
+  await seed(page);
+  await page.goto('/app/habits');
+  await openButton(page).click();
+  await panel(page).getByLabel('Ask ZIGi about your records').fill('How many minutes did I meditate this month?');
+  await panel(page).getByRole('button', {name: 'Send', exact: true}).click();
+  await expect(panel(page).locator('.ai-turn-assistant')).toHaveCount(1);
+  const opened = context.waitForEvent('page');
+  await panel(page).getByRole('button', {name: 'Pop out ZIGi into a mini window'}).click();
+  const mini = await opened;
+  const chat = mini.locator('section.ai-chat-pip');
+  await expect(chat).toBeVisible();
+  await expect(chat.locator('.ai-turn-assistant')).toHaveCount(1);
+  await chat.getByLabel('Ask ZIGi about your records').fill('How many minutes did I meditate this month?');
+  await chat.getByRole('button', {name: 'Send', exact: true}).click();
+  await expect(chat.locator('.ai-turn-assistant')).toHaveCount(2);
   // "Back to tab": the window closes and the panel opens in the tab with the same conversation.
   await clickThatCloses(mini, chat.getByRole('button', {name: 'Back to the tab'}));
   await expect.poll(() => mini.isClosed()).toBe(true);
