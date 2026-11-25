@@ -116,10 +116,255 @@ RULES (unchanged)
 - English UI, USD/EUR; ZIGi and NOVA in EN and NL.
 - Merge commits only, never rebase or force-push. Commit and push per part or batch. The STATUS entry is the final commit.
 
-## The plan as presented
-(Recorded after plan mode; see below.)
+## The plan as presented (25 Nov 2026, verbatim)
 
-## Owner approval (verbatim)
-(Recorded after plan mode.)
+
+### Context
+This is the last big session before the friends Alpha. Branch `feature/session-aw-finish-line` from `main` `8fa8aa1d`
+(Alpha #59). Draft PR #110 is open. Part 0 is done and pushed in `485bd80b`: frozen readers #37–#59, ADR-046 with the
+brief verbatim, AW_RESUME and the STATUS Part 0 entry. CI run 2031 on Part 0 is the baseline. After this session the
+owner does every manual step once. This plan, your approval and any amendments go verbatim into ADR-046, and there are
+no questions after it.
+
+**What I read (25 Nov).** The inventory of every row that needs a verdict:
+- Round 7: 31 rows to build and 2 Carried (#443 OCR, and #448, which is now buildable as written content).
+- 23 whole-row Carried rows and one built in part (#124).
+- 41 built rows with a Carried part.
+- UNFINISHED: 19 carried, 0 open (the file's counts line is stale), 38 that need the owner (all decided 21 Nov).
+- QUALITY: 3 batch-1 Minors.
+- FRIEND_READINESS: 15 Carried, 3 Partly, FR-TJ-7 and FR-L-5's Showcase part.
+
+**Measured "before"** (production build of `8fa8aa1d`, Chromium, CPU 4×, 390×844 phone, median of 3, empty profile):
+
+| route | FCP | hydrated (TTI proxy) | blocking time | JS kB | weight / budget (kB) |
+|---|---|---|---|---|---|
+| Today | 740 | **4312** | 2200 | 989 | 533.9 / 567 |
+| Habits | 436 | 3276 | 1508 | 823 | 471.9 / 504 |
+| Health | 476 | 3397 | 1813 | 869 | 504.9 / 531 |
+| Wealth | 476 | 3217 | 1625 | 998 | 477.3 / 512 |
+| Tasks | 468 | 3264 | 1646 | 779 | 442.0 / 468 |
+| Journal | 448 | 2968 | 1322 | 783 | 442.8 / 458 |
+| Settings | 512 | **4386** | 2049 | 913 | 521.7 / 531 (9.3 kB headroom, the least) |
+| NOVA | 356 | 3092 | **2039** | 1148 | 392.4 / 458 |
+
+Settings and Today are the slowest to hydrate. NOVA has the most JS and a long blocking time. The probe script stays
+in the scratchpad and is described in ADR-046, so the "after" numbers are taken the same way.
+
+### How the work runs (team and pace, as you approved)
+- I am the integrator, on `feature/session-aw-finish-line`.
+- Up to 6 builder helpers at once. Each works in its own worktree on `aw/<group>` and runs typecheck, lint and unit
+  tests there. No builds, no browser runs.
+- Up to 2 review/research helpers. One fresh reviewer, who did not write the code, checks each batch. Every Blocker and
+  Major is fixed before the batch is pushed.
+- Only I edit the shared files: Help, What's new, the shard lists, the theme sheets, the catalogue, the
+  export/erase/backup and restore registries, the device-key lists, the frozen-reader fixture, the corpus
+  `expected.json` and STATUS. Each builder hands back a short registry list.
+- Per batch I merge each group with a merge commit and run typecheck, lint, the full unit suite and the frozen readers.
+  Then one production build, the route budgets (≥ 5 kB headroom everywhere, no budget raised) and the batch's specs plus
+  the touched areas' specs (2 workers, one run at a time). Then I push, but only when no CI run is in progress. While CI
+  runs I keep integrating locally. AW_RESUME and the PR description carry "Safe to merge now: yes/no (CI run N)".
+
+### Batches (each one: builders → reviewer → fixes → integrate → push)
+
+**Batch 1: owner decisions, speed and round 7 groups X1 and X2**
+1. **1a kcal (TIER 3 stored formats).**
+   - Remove `activityKcalEstimate`/`ACTIVITY_MET` (`lib/health-activity-types.ts`) and its one display
+     (`components/health/health-app.tsx:736`). I'll also sweep workouts, NOVA and answers for any estimated burn.
+   - A manual activity gets optional distance, effort and "calories (you entered)". These live in a new additive side
+     record keyed by activity id, because `activitySchema` is strict: changing it would break readers #37–#59.
+   - Imported calories read "from your file".
+   - The energy card's maintenance stays, labelled "estimate, not medical advice".
+   - UNFINISHED BL-13 becomes true again. The record goes into export, erase, restore, the catalogue, sync (health
+     consent) and the frozen fixture.
+2. **1d written programmes and Read aloud.**
+   - Five programmes in `lib/guided/programs.ts`: 4-week beginner strength, 0→5 km in 8 weeks, 14-day habit starter,
+     7-day sleep reset, and a 10-day meditation starter built from `lib/meditation/guides.ts`.
+   - They need days with steps, so the existing guided schema gets an additive extension, and progress is kept in the
+     existing `zigoals:guided-journeys:v1` record (also additive).
+   - Each health programme carries the care line: "general guidance, not medical advice; stop if something hurts".
+     Nothing promises a result.
+   - A shared `ReadAloud` button using `speechSynthesis`, shown only when `getVoices()` has a voice. It goes on the
+     meditation guides, the stretches player and programme steps. It reuses the voice choice in
+     `lib/ai/voice-privacy.ts`, and nothing is sent anywhere.
+   - Showcase, Help and What's new for both.
+   - This closes ledger #54, #72 (written part), #78, #113, #120, #125, #330, and #195/#196/#278/#448 as written
+     content.
+3. **1e FR-TJ-7, inside the Habits baseline, phone and desktop.**
+   - Today's habits and their Complete buttons come first.
+   - Empty time groups fold into one "Add a habit" line.
+   - "Your week in motion" at all 0 and "Trend per habit · Not enough days yet" stay hidden until there is data, each
+     with one teaching line instead.
+   - Files: `components/habits/habit-sections.tsx`, `habits-workspace.tsx`, `habit-consistency.tsx`,
+     `habit-trend-list.tsx`. Styles unchanged.
+4. **Speed and the slow-load class.**
+   - Settings: groups below the first screen move to lazy sections, and the ZIGi body mounts without waiting on the
+     whole page's hydration. Less work runs before first paint, and there are no blocking timers.
+   - This is the cause of `zigi-voice-z:199` and `zigi-alive:54/137`.
+   - Today's first scripts get the same treatment.
+   - NOVA: work that is not part of the first frame starts after first paint (D36, `nova-dashboard:210`, ND-1). AR's
+     composition and look stay unchanged.
+   - Each is measured before and after with the probe and recorded in ADR-046.
+5. **Round 7 X1 (Due): #438–#440.** Remind again, own snooze times, and named timers (a new device record; TIER 3
+   stored formats and PWA).
+6. **Round 7 X2 (Amazing Marvin): #432–#437 and #448.** Task fields are additive optional fields (TIER 3). Everything
+   lands behind "More" or Review: no first-screen cards.
+
+**Batch 2: the rest of round 7 and the simplicity pass**
+- X3 (Evernote and Five Minute Journal): #441, #442 (the transcript part stays Carried: needs a model), #444, #445.
+- X4 (Strides): #446, and #447 only if count goals live in the local store. If they live in a vault or chain record,
+  #447 is Carried as a protected area.
+- X5 (Paprika): #449–#455.
+- X6 (Happy Scale and Sleep as Android): #456–#460.
+- X7 (Cashew and Money Manager): #461–#464.
+- **Simplicity (Part 3)**, split over three builders:
+  - (a) Today, Goals, Health, Wealth.
+  - (b) Tasks, Journal, Notes, Agenda and NOVA's entry.
+  - (c) A search on the Settings page (EN and NL words, from one index shared with `lib/search/static.ts`) with the
+    groups in a clear order. Help search aliases for competitor names ("snowball", "time blocking", "streak freeze"…),
+    with "where to find it" on each entry. Also "Your first five" and first-run guidance for the five personas, and
+    What's new grouped and short.
+  - Rule for every first screen: the main action within one phone screen; empty, 0 and "not enough data" cards hidden
+    behind one teaching line; advanced tools behind "More"/"Customise"; no new cards. Protected areas stay untouched.
+  - Before and after persona walks go to `docs/review/session-aw/SIMPLICITY.md`, run by a review helper with
+    Playwright: taps and scroll depth to each pillar's main action at 390 and 1440, empty and Showcase.
+
+**Batch 3: everything Carried, once more (Part 5)**
+- **Answers in Dutch and NL** (one builder): FR-S-13, FR-TJ-16, FR-MAX-6, FR-TJ-17, FR-S-16 (ZIGi's Health-closed
+  reply), S-10. Router fixes, with the corpus re-recorded by me.
+- **Small app fixes** (one builder):
+  - CR-22 (14 px labels);
+  - QUALITY b1 #9 (44 px day buttons), #13 (Showcase data within the pinned counts), #17 (task photo count);
+  - FR-S-15/FR-TJ-12 ("Log food" opens the sheet lazily);
+  - FR-TJ-20, FR-L-14 (bill categories on import), FR-TJ-23/FR-L-16 ("Add money to this goal" on its page);
+  - FR-L-17 (an Erase row on the phone), FR-L-5's Showcase part, FR-S-14's Health and Today parts;
+  - S-8 (only if it is outside the shell navigation);
+  - the water card's late drinks row;
+  - #93 (one retry of the CIQUAL download; otherwise it needs an outside service).
+- **Already-have checks.** I open each file and record "already have (file)" for BL-10 chess, CR-19, M-9, PK-6, PK-10,
+  PK-16, L-9 and PK-18.
+- **Speed rows** FR-S-19 and FR-TJ-22 (Help, Showcase Wealth/Today to usable) are fixed in batch 1's speed work, and the
+  numbers are re-measured.
+
+**Batch 4: trust, friend-readiness and fixes (Part 6)**
+- A unit and spec round trip: export → erase → restore for every record kind, including #59's and AW's new records.
+- An encrypted backup restore across #58 → #59 → this head, and the frozen readers #37–#59 green.
+- A privacy page audit against what the app really sends: the network calls in the code, compared line by line.
+- Fresh-agent persona walks of Sanne, Tom, Lina, Max and Jules over a first week with Playwright's clock (empty and
+  Showcase, 390 and 1440, Nebula and Light) → `docs/review/session-aw/FRIEND_READINESS.md`. Every Blocker and Major and
+  the quick Minors get fixed, then a fresh helper re-checks.
+
+**Running through all batches (Part 2, mine)**
+- **Intermittents**, each fixed at its cause with at most 2 attempts in this session: the WebKit slow load and NOVA's
+  slow start (the speed work above), `zigi-browser-agents:126`, `earn-guide-zigi:54` (the popup wait), D34,
+  `sign-in-codes-browser` after A45-1, and D-SYNC (the account-browser form reset; TIER 3 sync, in its own commit).
+  Each one fixed leaves the registry with its evidence. Each one not fixed is Carried with "2 failed attempts".
+- **CI (TIER 3 CI).** WebKit goes from 4 to 6 shards, and the main lists are repacked from the measured minutes of the
+  AW runs. The aim is no shard over 45 min on the slowest runner. The 60-min limit and the 2 workers stay.
+- **Suite health.** Overlapping specs are merged only where the replacement is equally strict, labelled
+  "Session AW (<id>, deliberate)". I report the worker-minutes per run.
+
+**Part 7, then Part 8**
+- OWNER_STEPS.md is rewritten as one ordered checklist: deploy #60, private-sync, verifier, landing, food Worker, Reown,
+  optional switches, acceptance redeploy + Stage 8, hardening, friends. The market policy window gets its own date
+  note.
+- I touch `workers/*` and `landing/` only where needed. Each such change is listed with its reason. The landing copy is
+  checked against the app ("ZIGi · your companion", features, privacy).
+- Then FIRST_WEEK, FRIENDS_GUIDE, Known limitations and the Help screenshots (labelled Showcase). Then ADR-046's closing
+  table (E1–E5, ledger counts, speed before and after, worker-minutes, intermittents), the STATUS final entry as the
+  last commit, and a ≤ 12-line report.
+
+### Verdicts I will give unless you amend (E2 causes only)
+- **Recorded audio or video** (#73, #74, #75, #76, #122, #211's audio, #290's video, #325, #77's recorded library):
+  against a named rule, owner decision 1d.
+- **Declined dependencies** #274, #322, #368, #443: a new dependency the owner declined (1c).
+- **#41 passkey and PK-17**: Carried, "owner: Beta" (1b).
+- **#47 Habitica classes and skills**: Carried as decided in 1d ("game content, game layer off by default"), under
+  "against a named rule: owner decision 1d".
+- **#124's population benchmarks**: against a named rule, the "no comparing with others" rule that round 7 already cites
+  for Sleep as Android's national average.
+- **#285 licensed glycemic table**: needs an outside service (licensed third-party data).
+- **#234 expert articles**: the written self-help part is built; clinical content stays Carried, against a named rule
+  (no medical advice).
+- **CI-2 (WebKit segfault) and CI-3 (GPU-less renderer stall)**: against a named rule, owner rule 7 (engine crashes are
+  recorded, not chased).
+- **KL-8 "English only"**: against a named rule (English UI).
+- **Parts Carried inside built rows**: they keep their causes where these are already E2 causes (outside service, model,
+  native-only, named rule, protected area).
+- **UNFINISHED's 38 "needs the owner" rows**: each gets the owner's 21 Nov decision as its verdict ("already have",
+  "against a named rule: owner decision", or an owner step in OWNER_STEPS).
+
+### Rules I keep
+- No merge, deploy, dispatch or new dependency.
+- Stored data only additive, in TIER 3 commits.
+- No assertion, timeout or budget loosened.
+- At most 2 attempts per problem.
+- Merge commits only.
+- Labels ≥ 14 px, targets ≥ 44 px, contrast ≥ 4.5:1.
+- Motion Off stays still.
+- ZIGi and NOVA in EN and NL.
+- The STATUS entry is the final commit.
+
+### Verification
+- **Per batch:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (the registry, erase-coverage, shard and theme tests and the
+  corpus), and `node scripts/frozen-readers.mjs`. Then `NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED pnpm build`,
+  `node scripts/check-weight-budget.mjs http://127.0.0.1:3101`, the speed probe, and Playwright on the batch's and
+  touched areas' specs at 320, 390 and 1440 in five themes (axe, keyboard, Motion Off).
+- **CI:** E1, two consecutive first-attempt green full runs on the final head, or the defined fallback with each
+  registered intermittent named.
+
+
+## Owner approval (verbatim, 25 Nov 2026)
+The plan-mode approval ("User has approved your plan. You can now start coding."), followed by this message from the owner:
+
+APPROVED, with these amendments (they override the plan where they differ). After this: no more questions; record this message verbatim in ADR-046, then continue in auto mode.
+
+1. NEVER IDLE, OVERLAP THE BATCHES. Batches are integration points, not waiting rooms. While batch N is reviewed, built, measured or in CI, builders already work on batch N+1's groups in their worktrees (round 7 X3–X7, the simplicity groups, the Part 5 builders). Keep up to 6 builders busy for the whole session. Only integration, builds and browser runs are serialized.
+
+2. SPEED TARGETS (Part 2, measured with your probe, same settings, median of 3):
+ - every route "hydrated" ≤ 3,000 ms (Today 4,312 and Settings 4,386 now);
+ - blocking time down ≥ 30 % on Today, Settings and NOVA;
+ - NOVA blocking ≤ 1,500 ms;
+ - no route's JS grows.
+ If a target is not met after 2 attempts, record the numbers and the cause in ADR-046. Speed is also measured with the Showcase loaded (FR-S-19, FR-TJ-22), not only empty.
+
+3. READ ALOUD PRIVACY (Part 1d). Chrome's network voices (`localService === false`, e.g. "Google …") send the text to a server. Offer only voices with `localService === true`. If none exist, the button is not shown. One line in Help and on the privacy page says so ("uses your device's own voice; nothing is sent"). A spec proves a non-local voice is never chosen.
+
+4. NO ESTIMATED BURN ANYWHERE (Part 1a). Also sweep NOVA and ZIGi answers, widgets, the corpus, exports, Showcase and Help for estimated calories burned. A question like "how many calories did I burn" answers with what was entered or imported, with its source, or says honestly that ZIGoals does not estimate it. Corpus cases EN + NL.
+
+5. CARRIED PARTS INSIDE BUILT ROWS (Part 5). For each of the 41: if a part's cause is not one of the E2 causes (outside service, model, native-only, named rule, declined dependency, protected area outside FR-TJ-7, 2 failed attempts), build that part now. Fix UNFINISHED.md's stale counts line.
+
+6. A WHOLE-APP SWEEP (new, Part 6). On the production build, every route × 390 and 1440 × empty and Showcase:
+ - no console errors or warnings (hydration mismatches, React keys, failed requests other than the deliberate offline ones);
+ - every button, link and menu item has an accessible name and does something (open safe controls only; never money, wallet, signing, erase or send);
+ - no "NaN", "undefined", "null", "Invalid Date", raw keys or `{placeholders}` visible;
+ - no text cut off at 320 px or at 200 % zoom.
+ Write results to docs/review/session-aw/SWEEP.md and fix every finding.
+
+7. OFFLINE AND WEBKIT FOR NEW WORK (Part 6).
+ - Every new record and screen from AV and AW works offline after one online visit (PWA), with a spec.
+ - Add the key new flows to the WebKit phone set: FR-TJ-7's Habits, a programme day, Read aloud absent without a local voice, kcal "you entered", the Settings search, and a round 7 timer.
+
+8. SIMPLICITY GUARD. Every tool moved behind "More" or "Customise" stays findable by Help search and the Settings or app search, with a spec per pillar. The before/after walks in SIMPLICITY.md include the number of cards on each first screen.
+
+9. CI TARGETS.
+ - Worker-minutes per run reported every run; aim below 1,300 by merging overlapping specs only where the replacement is equally strict.
+ - WebKit 4 → 6 shards is approved (TIER 3 CI).
+ - If two consecutive first-attempt green runs aren't reached after the last batch, spend up to two more CI rounds fixing causes before using the fallback.
+
+10. PRIVACY AND LANDING (Part 6/7).
+ - The privacy audit covers the app's privacy page and `landing/privacy.html`; both must match what the app sends, incl. Read aloud and every lane-2/AW feature.
+ - The landing's feature copy matches #60 (ZIGi · your companion; main features by pillar; no claims beyond what is built).
+ - Landing changes are owner-deployed: list them in OWNER_STEPS.
+
+11. VERDICT WORDING. #124's population benchmarks: cite the exact rule text and its source file in the verdict. If no such rule exists in the repo, mark it "needs an outside service (published reference data)" instead. #47 stays Carried as planned.
+
+12. FINAL REPORT ADDS. The ≤ 12-line report also states:
+ - the speed before → after per route;
+ - the ledger totals across AV + AW (built / Carried by cause);
+ - worker-minutes per run;
+ - any owner decision still open (should be none).
+ OWNER_STEPS.md ends with what friends receive.
+
+Everything else in the plan is approved as written. Use the whole budget; continue after any pause or reset from AW_RESUME without asking; the owner may type "wrap up".
 
 ## Decisions
