@@ -16,7 +16,7 @@ import {addLocalDays} from '../lib/local-date';
  * is no Motion Off case.
  *
  * "The first screen": the first card's Complete starts no more than one viewport height below the app's top bar (the
- * phone's `.phone-topbar`, the computer's `.app-topbar`), read at the top of the page. Before: y 1,680–2,004 on a phone
+ * phone's `.phone-topbar`; a computer has none, so its page top), read at the top of the page. Before: y 1,680–2,004 on a phone
  * and 2,570 at 1440 with one habit; 2,004 and 2,461 in the Showcase (FRIEND_READINESS FR-TJ-7).
  */
 test.use({timezoneId: 'Europe/Amsterdam'});
@@ -33,7 +33,8 @@ async function onFirstScreen(page: Page, complete: Locator) {
     return {top: button.getBoundingClientRect().top + scrollY, header: bar ? bar.bottom + scrollY : 0, height: innerHeight};
   });
   test.info().annotations.push({type: 'first Complete', description: JSON.stringify(m)});
-  expect(m.header, JSON.stringify(m)).toBeGreaterThan(0);
+  // A phone has its top bar; a computer's layout has none (the sidebar), so there the header is the page top (0).
+  if (test.info().project.name === 'mobile') expect(m.header, JSON.stringify(m)).toBeGreaterThan(0);
   expect(m.top - m.header, `the first Complete starts within one screen of the top bar: ${JSON.stringify(m)}`).toBeLessThanOrEqual(m.height);
 }
 /** Today's habits come before Today's rhythm, Routines and the consistency block; the tools that stood above them follow. */
@@ -42,8 +43,8 @@ async function habitsFirst(page: Page, isMobile: boolean) {
     expect(await before(page, '.habits-workspace .habit-grid > .habit-card', after), after).toBe(true);
   expect(await before(page, '.habits-workspace .habit-grid > .habit-card', '.habit-list-tools'), 'Reorder / Cards / Compact').toBe(true);
   if (isMobile) expect(await before(page, '.habits-workspace .habit-grid > .habit-card', '.habit-phone-ideas'), 'Habit ideas').toBe(true);
-  // The filters stay above the cards.
-  expect(await before(page, '.habit-filter-bar', '.habits-workspace .habit-grid > .habit-card')).toBe(true);
+  // Session AW (integration, CI 2032): the filters and area chips follow today's cards (decision 1e), so the cards come first.
+  expect(await before(page, '.habits-workspace .habit-grid > .habit-card', '.habit-filter-bar')).toBe(true);
 }
 /** No zero-state card: no empty time-of-day group, and a consistency card only with data in it. */
 async function noZeroCards(page: Page) {
