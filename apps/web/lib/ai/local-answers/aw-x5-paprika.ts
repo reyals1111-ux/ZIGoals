@@ -99,8 +99,8 @@ function lastMadeAnswer(a: Ask): LocalReply | null {
 const MEAL_NL: Record<string, string> = {Breakfast: 'ontbijt', Lunch: 'lunch', Dinner: 'avondeten', Snacks: 'tussendoor'};
 /** "what's my menu for next week", "what is on the menu this week", "wat is mijn menu voor volgende week" (#454). */
 function menuAnswer(a: Ask): LocalReply | null {
-  const en = /\bmenus?\b.*\b(?:next|this|coming) week\b|\b(?:next|this|coming) week'?s? menu\b|\bwhat(?:s| is| are)? (?:my )?menus\b|\bwhich menus\b|\bmeals? (?:planned|plan) (?:for )?(?:next|this|the coming) week\b/.test(a.f);
-  const nl = /\bmenus?\b.*\b(?:volgende|deze|komende) week\b|\b(?:volgende|deze|komende) week\b.*\bop het menu\b|\bwelke menus?\b|\bmijn menus\b|\bmaaltijden\b.*\b(?:volgende|deze|komende) week\b/.test(a.f);
+  const en = /\bmenus?\b.*\b(?:next|this|coming) week\b|\b(?:next|this|coming) week'?s? menu\b|\bwhat(?:s| is| are)? (?:my )?menus\b|\bwhich menus\b/.test(a.f);
+  const nl = /\bmenus?\b.*\b(?:volgende|deze|komende) week\b|\b(?:volgende|deze|komende) week\b.*\bop het menu\b|\bwelke menus?\b|\bmijn menus\b/.test(a.f);
   if (!(en || nl)) return null;
   const shut = closed(a.env, 'health'); if (shut) return shut;
   const day = healthDay(a), monday = addLocalDays(day, -((localWeekday(day) + 6) % 7)), thisWeek = /\b(?:this|deze) week\b/.test(a.f), start = thisWeek ? monday : addLocalDays(monday, 7), end = addLocalDays(start, 6);

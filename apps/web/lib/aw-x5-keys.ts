@@ -6,7 +6,7 @@
  * - `zigoals:food-plus:v1` (lib/food-plus/schema.ts): `made` (days a recipe was made, by recipe id), `stars` (1–5 by
  *   recipe id) and `menus` (up to 12 weeks of meals kept by name).
  * - `zigoals:grocery:v1` (lib/grocery/schema.ts): `useBy` (a use-by day per pantry item, by its folded name).
- * #449's timers live in #440's own record (`zigoals:timers:v1`, group X1); until that is merged a cooking timer is an
+ * #449's timers live in #440's own record (the timers record of group X1); until that is merged a cooking timer is an
  * in-page countdown held in memory only. #450, #451 and #453 store nothing new (#453 writes ordinary recipes, foods and
  * steps).
  */

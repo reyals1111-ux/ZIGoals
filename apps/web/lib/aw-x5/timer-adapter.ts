@@ -1,7 +1,7 @@
 /**
  * Session AW (X5, LEDGER #449): the ONE place the cooking view starts a named timer. Round 7's #440 (group X1, branch
  * `aw/x1-due`) owns the timers: `startNamedTimer(name, seconds)` in `lib/timers/start.ts` writes its device record
- * `zigoals:timers:v1`, and its strip shows every running timer on every page, with Pause, +1 min, Stop and a bell.
+ * (the timers record), and its strip shows every running timer on every page, with Pause, +1 min, Stop and a bell.
  *
  * Until X1 is merged this branch cannot name that module: a static `import('../timers/start')` of a file that does not
  * exist breaks the type check and the bundle, and a computed specifier would be fetched by the browser at run time. So
