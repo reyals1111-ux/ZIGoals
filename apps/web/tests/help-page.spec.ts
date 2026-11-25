@@ -164,7 +164,9 @@ test('the wording follows the owner principle: sync once, backups optional, logi
   await questions.getByText('Where do prices come from?', {exact: true}).click();
   await expect(questions.getByText('ZIGoals asks only about the public assets you choose, never your amounts, Goals or wallet.')).toBeVisible();
   await questions.getByText('Can I look up a food by its barcode?', {exact: true}).click();
-  await expect(questions.getByText('Only the barcode number is sent, through ZIGoals to Open Food Facts; the camera picture stays on your device.')).toBeVisible();
+  // Session AW (Part 6 privacy audit, deliberate): the answer also names USDA FoodData Central, where a barcode goes when
+  // Open Food Facts does not know it (workers' food service); the same exact sentence check.
+  await expect(questions.getByText('Only the barcode number is sent, through ZIGoals to Open Food Facts and, for a product it doesn’t know, USDA FoodData Central; the camera picture stays on your device.')).toBeVisible();
 });
 
 test('questions open and close from the keyboard', async ({page}) => {
