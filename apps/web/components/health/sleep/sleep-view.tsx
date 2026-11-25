@@ -69,6 +69,8 @@ const NightDreams = lazy(() => import('./night-dreams'));
 const HealthR4 = lazy(() => import('../r4/health-r4'));
 // Session AV lane 2, round 6 (r6-body; AutoSleep, LEDGER #419, #423): tonight's bedtime, and time asleep of time in bed.
 const SleepR6 = lazy(() => import('../r6/sleep-parts'));
+// Session AW (X6; Sleep as Android, LEDGER #460, #459): the goal over 14 or 30 days, and renaming or removing a tag.
+const SleepX6 = lazy(() => import('../x6/sleep-x6'));
 
 const nightLine = (n: SleepNight) => {
   const a = asleep(n)!;
@@ -152,7 +154,7 @@ export default function SleepView() {
       {patterns.length ? <ul>{patterns.map(p => <li key={p.id}><p>{p.sentence}</p><details><summary>How this is worked out</summary><p className="fine">Average time asleep on the {p.withTag.nights} logged nights with the tag and the {p.without.nights} without it, from {formatDate(p.window.start)} to {formatDate(p.window.end)}. Shown only with at least 14 logged nights and 5 on each side.</p></details></li>)}</ul>
         : <p className="fine">Patterns appear once you have logged at least 14 nights in 60 days, with a tag on at least 5 of them and missing from at least 5 others. They describe your log; they do not explain it.</p>}
     </section>
-    <section className="panel" aria-labelledby="sleep-goal-title"><h2 id="sleep-goal-title">Your sleep goal</h2><LoadBoundary quiet><Suspense fallback={null}><SleepNeed store={store} onDone={done}/></Suspense></LoadBoundary><SleepGoalForm key={`goal-${sleep.goal?.updatedAt ?? 'none'}`} store={store} onDone={done}/></section>
+    <section className="panel" aria-labelledby="sleep-goal-title"><h2 id="sleep-goal-title">Your sleep goal</h2><LoadBoundary quiet><Suspense fallback={null}><SleepX6 part="goal-period" store={store}/></Suspense></LoadBoundary><LoadBoundary quiet><Suspense fallback={null}><SleepNeed store={store} onDone={done}/></Suspense></LoadBoundary><SleepGoalForm key={`goal-${sleep.goal?.updatedAt ?? 'none'}`} store={store} onDone={done}/></section>
     <section className="panel sleep-recent" aria-labelledby="sleep-recent-title">
       <h2 id="sleep-recent-title">Recent nights and naps</h2>
       {/* Session AV lane 2 (P-22): the latest five, then "Show all" (the page was 13,800 px at 390) */}{nights.length ? <ul className="sleep-nights" id="sleep-nights-list">{(allNights ? nights : nights.slice(0, 5)).map(n => <li key={n.id}>
@@ -167,6 +169,7 @@ export default function SleepView() {
       </li>)}</ul> : <p>No nights yet. Log one above, or tap “I’m going to bed” tonight.</p>}
       {nights.length > 5 && <button type="button" className="text-link sleep-nights-all" aria-controls="sleep-nights-list" aria-expanded={allNights} onClick={() => setAllNights(!allNights)}>{allNights ? 'Show the latest five' : `Show all ${nights.length}`}</button>}
     </section>
+    {sleep.nights.some(n => n.tags?.length) && <OnDemandFold className="x6-tags-fold" summary="Rename or remove a sleep tag" label="your sleep tags"><SleepX6 part="tags" store={store}/></OnDemandFold>}
     <p className="fine sleep-privacy">Nothing here is medical advice. Imported nights keep the source they came from.</p>
   </div>;
 }
