@@ -8730,6 +8730,34 @@
     .guided-done-mark:not(#\-) {
         color: var(--text-secondary)
     }
+    .guided-empty strong:not(#\-) {
+        color: var(--text-strong)
+    }
+    .guided-program[data-asked]:not(#\-) {
+        outline-color: var(--brand-cyan)
+    }
+    .guided-program h3:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    .guided-program h3:focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan)
+    }
+    .guided-showcase:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .guided-day > details:not(#\-) {
+        border-color: var(--line);
+        border-left-color: var(--pillar, var(--line))
+    }
+    .guided-day[data-done] > details:not(#\-) {
+        border-left-color: var(--line)
+    }
+    .guided-day-title:not(#\-) {
+        color: var(--text-strong)
+    }
+    .guided-day-count:not(#\-) {
+        color: var(--text-secondary)
+    }
 }
 /*  components/habits/auto-rules.css  */
 @scope (:root[data-theme=dark]) {
@@ -27113,6 +27141,12 @@
 @scope (:root[data-theme=dark]) {
     .push-names .ai-switch-copy small:not(#\-) {
         color: var(--muted,#aab2d9)
+    }
+}
+/*  components/read-aloud/read-aloud.css  */
+@scope (:root[data-theme=dark]) {
+    .read-aloud-state:not(#\-) {
+        color: var(--text-secondary)
     }
 }
 /*  components/reminders/reminders-plan.css  */

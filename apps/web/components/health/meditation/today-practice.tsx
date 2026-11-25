@@ -5,6 +5,7 @@ import {DEFAULT_BELLS} from '../../../lib/meditation/engine';
 import {ring} from '../../../lib/meditation/bells';
 import {startRun} from '../../../lib/meditation/timer';
 import type {MeditationStore} from './use-meditation';
+import {ReadAloud} from '../../read-aloud/read-aloud';
 
 /**
  * Session AV lane 2 (habits pillar; LEDGER #71, #77 — Headspace's Today's Meditation, Calm's daily): today's written
@@ -25,6 +26,8 @@ export default function TodayPractice({store, today, onStarted}: {store: Meditat
     <p className="eyebrow">{g.minutes} min · {step === 0 ? (lang === 'nl' ? 'vandaag' : 'today') : (lang === 'nl' ? 'een andere' : 'another one')}</p>
     <h3 className="meditation-today-title">{t.title}</h3>
     <ol className="meditation-today-steps">{t.steps.map(s => <li key={s}>{s}</li>)}</ol>
+    {/* Session AW (programmes; amendment 3): the guide read in this device's own voice, shown only when it has one. */}
+    <ReadAloud key={`${g.id}-${lang}`} lang={lang} what={t.title} text={`${t.title}. ${t.steps.join(' ')}`}/>
     {/* Session AV lane 2 (polish4): in Dutch the buttons and the note under them are Dutch too, as the routine library's are. */}
     <p className="meditation-today-actions">
       <button type="button" className="primary" onClick={begin}>{lang === 'nl' ? `Begin · ${g.minutes} min met de bel` : `Begin · ${g.minutes} min with the bell`}</button>

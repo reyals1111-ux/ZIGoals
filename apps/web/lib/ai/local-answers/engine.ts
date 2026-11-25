@@ -55,6 +55,7 @@ import {av2R5GymAnswer} from './av2-r5-gym';
 import {av2R5NotesAnswer} from './av2-r5-notes';
 import {av2R5PlanAnswer} from './av2-r5-plan';
 import {av2R6BodyAnswer} from './av2-r6-body';
+import {awProgrammesAnswer} from './aw-programmes';
 import {av2R6MoneyAnswer} from './av2-r6-money';
 import {av2R6NotesAnswer} from './av2-r6-notes';
 import {awX3Answer} from './aw-x3';
@@ -277,6 +278,9 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   // typed on an activity or a file brought in, with its source, or honestly says ZIGoals does not work it out — before the
   // food answers, which read it as the calories eaten (aw-kcal.ts).
   if (!subject) { const own = awKcalAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
+  // Session AW (programmes): which programme or journey is going, and today's day and step (aw-programmes.ts), before
+  // the AV answers, so "today's run" on a programme is its programme day, not a planned workout or the step count.
+  if (!subject) { const own = awProgrammesAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV (owner follow-up 2, item 1c; the fresh reviewers' check 5): the AV features' own questions (task reminders,
   // countdowns, bills a year, payday, budget targets, running bests, the sleep score, the journal's tags…), from each
   // feature's own pure function, before the exact layer reads their words as another part of life (av-answers.ts).

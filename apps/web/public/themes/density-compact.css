@@ -2415,6 +2415,13 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .guided-step h4:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .guided-step-number:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .guided-step-actions:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .guided-empty ul:not(#\-) { margin-top: 6px; margin-bottom: 0; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .guided-days:not(#\-) { row-gap: 10px; margin-top: 4px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .guided-day > details > summary:not(#\-) { padding-top: 7.5px; padding-bottom: 7.5px; }
+:where(:root[data-density=compact]) .guided-day-head:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .guided-day-body:not(#\-) { row-gap: 10px; padding-top: 0; padding-bottom: 14px; }
+:where(:root[data-density=compact]) .guided-day-body > p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .guided-day .guided-steps:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/habits/auto-rules.css  */
 :where(:root[data-density=compact]) .auto-rules:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .auto-rules h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -7393,6 +7400,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .reminder-offer:not(#\-) { margin-top: 6px; }
 :where(:root[data-density=compact]) .push-names .ai-switch-row:not(#\-) { row-gap: 9px; padding-top: 4.5px; padding-bottom: 4.5px; }
 :where(:root[data-density=compact]) .push-names .ai-switch-copy:not(#\-) { row-gap: 2px; }
+/*  components/read-aloud/read-aloud.css  */
+:where(:root[data-density=compact]) .read-aloud:not(#\-) { row-gap: 8px; }
 /*  components/reminders/reminders-plan.css  */
 :where(:root[data-density=compact]) .reminders-plan:not(#\-) { row-gap: 20px; }
 :where(:root[data-density=compact]) .reminders-push p:not(#\-) { margin-top: 0; margin-bottom: 6px; }

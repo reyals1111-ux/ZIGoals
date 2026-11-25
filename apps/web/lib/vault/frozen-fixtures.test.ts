@@ -266,8 +266,8 @@ export function frozenFixture() {
     templates: [], exercises: [], restSeconds: 90, plates: {unit: 'kg', bar: 20, plates: [{size: 20, pairs: 2}, {size: 10, pairs: 2}]}});
   checks.push({key: WORKOUTS_KEY, module: './workouts/schema', spec: 'WORKOUTS', expect: {'workouts.0.name': 'Run (imported)'}});
   // Session AJ (item 34, D13; TIER 3 (stored format)): Guided journeys, a new device-only key (fictional).
-  records[GUIDED_JOURNEYS_KEY] = JSON.stringify({version: 1, journeys: [{programId: 'walking-start', startedOn: '2026-10-27', done: ['walk-1']}]});
-  checks.push({key: GUIDED_JOURNEYS_KEY, module: './guided/schema', spec: 'GUIDED_JOURNEYS', expect: {'journeys.0.programId': 'walking-start'}});
+  records[GUIDED_JOURNEYS_KEY] = JSON.stringify({version: 1, journeys: [/* Session AW (programmes): a programme with steps done, unknown fields to older builds */ {programId: 'run-5k', startedOn: '2026-11-10', done: ['w1-r1', 'w1-r2', 'w1-r3'], stepsDone: ['w2-r1/warm-up'], showcase: true}, {programId: 'walking-start', startedOn: '2026-10-27', done: ['walk-1']}]});
+  checks.push({key: GUIDED_JOURNEYS_KEY, module: './guided/schema', spec: 'GUIDED_JOURNEYS', expect: {'journeys.0.programId': 'run-5k', 'journeys.1.programId': 'walking-start'}});
   // Session AK Part 2 (ADR-036 Q3; TIER 3 (stored format)): notification choices, a new device-only key.
   records[NOTIFY_KEY] = JSON.stringify({version: 1, types: {habits: true, evening: true, future: false}, morning: {time: '07:45'}, here: true});
   checks.push({key: NOTIFY_KEY, module: './notify/prefs', spec: 'NOTIFY_PREFS', expect: {'morning.time': '07:45'}});

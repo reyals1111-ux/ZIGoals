@@ -119,6 +119,7 @@ import {showcaseCycle} from './cycle/showcase';
 import {showcaseRewardsShelf} from './rewards-shelf/showcase';
 import {MUSCLE_RECOVERY_KEY} from './muscle-freshness/model';
 import {showcaseMuscleRecovery} from './muscle-freshness/showcase';
+import {SHOWCASE_GUIDED_KEY, showcaseGuidedJourneys} from './guided/showcase';
 // The part of the day each fictional habit is checked in and each meal is logged (the habits' own time of day).
 const HABIT_PARTS:DayPart[]=['morning','morning','afternoon','evening','evening','afternoon'],MEAL_PARTS:DayPart[]=['morning','afternoon','evening','afternoon'];
 const coin=(id:string):MarketAssetRef=>({provider:'coingecko',kind:'coin',id});
@@ -285,6 +286,8 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  withR3HealthShowcase(records,day); // Session AV lane 2, round 3 (health): two own drinks, a protein goal and a circuit, labelled.
  withR4HealthShowcase(records,day); // Session AV lane 2, round 4 (health): two planned workouts like the Agenda's examples and one race, labelled.
  withAwKcalShowcase(records); // Session AW (kcal): today's Showcase walk with its distance, an easy effort and 180 kcal you entered.
+ // Session AW (programmes): one written programme in progress, labelled "(Showcase)" on Guided journeys (lib/guided/showcase.ts).
+ records[SHOWCASE_GUIDED_KEY]=JSON.stringify(showcaseGuidedJourneys(day));
  records[MUSCLE_RECOVERY_KEY]=JSON.stringify(showcaseMuscleRecovery());
  // Session AJ (item 15, D9): a waiting price alert and one that fired and was seen (lib/price-alerts/showcase.ts).
  records[PRICE_ALERTS_KEY]=JSON.stringify(showcasePriceAlerts(day));

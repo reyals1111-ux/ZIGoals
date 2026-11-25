@@ -8374,6 +8374,34 @@
     .guided-done-mark:not(#\-):not(#\-) {
         color: color-mix(in srgb, var(--text-secondary) 25%, #fff)
     }
+    .guided-empty strong:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-strong) 25%, #fff)
+    }
+    .guided-program[data-asked]:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--brand-cyan) 40%, #fff)
+    }
+    .guided-program h3:focus:not(#\-):not(#\-) {
+        outline-color: currentcolor
+    }
+    .guided-program h3:focus-visible:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--brand-cyan) 40%, #fff)
+    }
+    .guided-showcase:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-secondary) 25%, #fff)
+    }
+    .guided-day > details:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff);
+        border-left-color: var(--pillar, var(--line))
+    }
+    .guided-day[data-done] > details:not(#\-):not(#\-) {
+        border-left-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .guided-day-title:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-strong) 25%, #fff)
+    }
+    .guided-day-count:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-secondary) 25%, #fff)
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .auto-rules-fine:not(#\-):not(#\-), .auto-rules-empty:not(#\-):not(#\-) {
@@ -25215,6 +25243,11 @@
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .push-names .ai-switch-copy small:not(#\-):not(#\-) {
         color: color-mix(in srgb, var(--muted,#dbdbdb) 25%, #fff)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .read-aloud-state:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-secondary) 25%, #fff)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
