@@ -479,8 +479,6 @@ export function TasksPage() {
           {view.kind !== 'completed' && view.kind !== 'filter' && !own && <SmartAdd record={record} today={today} onAdd={addFromLine} onAddMany={addManyFromLines} defaults={defaults} inputRef={addField} makeProject={makeProject} goals={goals.open} />}
           <header className="tasks-view-head">
             <h2 id="tasks-view-title">{title} <small>{view.kind === 'completed' || own ? '' : shown.length ? plural(shown.length, 'task') : 'none open'}{view.kind !== 'completed' && counts.overdue && view.kind !== 'overdue' ? ` · ${formatNumber(counts.overdue)} overdue in all` : ''}</small></h2>
-            {/* Session AW (X2, LEDGER #436): today's tasks done and where the day is, inside this heading line (no card of its own) */}
-            {view.kind === 'today' && !query && !tasks.unreadable && <LoadBoundary quiet><Suspense fallback={null}><DayProgressLine record={record} today={today} clock={clock} doneDay={list.doneDay} /></Suspense></LoadBoundary>}
             {!!record.areas?.length && view.kind !== 'project' && <label className="field tasks-area-pick"><span>Area</span><select value={areaId} onChange={e => chooseArea(e.target.value)}><option value="">All areas</option>{record.areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>}
             {project && <ProjectTools project={project} board={board} setup={setupFor === project.id} onSetup={() => setSetupFor(setupFor === project.id ? null : project.id)} onBoard={b => go(view, b)} onEdit={patch => list.change(r => editProject(r, project.id, patch), patch.archived ? `Archived “${project.name}”.` : `Saved “${patch.name ?? project.name}”.`)} onRemove={() => { list.change(r => removeProject(r, project.id), `Removed the project “${project.name}”; its tasks are in the Inbox.`, 'The project is back.'); go({kind: 'inbox'}); }} />}
             {/* Session AV lane 2 (r6-plan, LEDGER #394): Focus on chosen projects or areas, in the views it narrows */}
@@ -498,6 +496,10 @@ export function TasksPage() {
           {selectMode && !selected.size && <p className="fine tasks-select-hint" role="status">Tick the tasks to act on together; Escape ends selecting.</p>}
           <TaskStatusLine error={list.error} />
           {!tasks.unreadable && body}
+          {/* Session AW (X2, LEDGER #436): today's tasks done and where the day is, one line under Today's list (no card of its
+              own). In the heading line it took a row of its own and pushed the Showcase's first task below the first screen at
+              768 (CI run 2034, a10-life A10-11). */}
+          {view.kind === 'today' && !query && !tasks.unreadable && <LoadBoundary quiet><Suspense fallback={null}><DayProgressLine record={record} today={today} clock={clock} doneDay={list.doneDay} /></Suspense></LoadBoundary>}
           {empty && <EmptyState title={query ? 'Nothing matches' : !record.tasks.length ? 'Your list starts here' : view.kind === 'today' ? 'Nothing due today' : 'Nothing here'} level={2} art="orbit">
             {query ? 'Try fewer words, or one operator such as p1, today or #project.' : counts.open ? 'Open another view on the left, or add one above.' : 'Type a few words above, like “Call the dentist tomorrow 10am”. Add a day, “every …”, p1–p4, #project or @label as you type.'}
           </EmptyState>}

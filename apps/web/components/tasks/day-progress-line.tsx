@@ -8,8 +8,8 @@ import {formatClock} from '../../lib/visual-format';
 import './tasks-aw-x2.css';
 
 /**
- * Session AW (X2, LEDGER #436; Amazing Marvin's progress bar and "the day is N % through"), inside Tasks → Today's heading
- * line (never a card of its own, so Today's first screen is as it was), its own chunk: "2 of 5 of today’s tasks done", a thin
+ * Session AW (X2, LEDGER #436; Amazing Marvin's progress bar and "the day is N % through"), one line under Tasks → Today's
+ * list (never a card of its own, so Today's first screen is as it was; in the heading line it pushed the first task down), its own chunk: "2 of 5 of today’s tasks done", a thin
  * bar, and beside it how far the working hours have gone. Two facts side by side, never compared and never "behind";
  * nothing before the first task planned for today. The hours are the person's own (Tasks → This week). No motion: the bar's
  * width is set, never animated.

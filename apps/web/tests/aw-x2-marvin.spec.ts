@@ -53,7 +53,8 @@ for (const theme of THEMES) test(`${theme}: today's progress, Hardest first, Pic
 
   // #436: two facts in Today's heading line, never "behind"; nothing of it is a card of its own.
   await page.goto('/app/tasks?view=today'); await settle(page); await ready(page);
-  const line = page.locator('.tasks-view-head .tasks-day-progress');
+  // Session AW (integration, deliberate; CI run 2034, a10-life A10-11): the line sits under Today's list, in the list's own panel; the same words.
+  const line = page.locator('.tasks-main .tasks-day-progress');
   await expect(line).toContainText('1 of 3 of today’s tasks done');
   await expect(line).toContainText('the day is 50 % through');
   await expect(line).not.toContainText(/behind|late/i);

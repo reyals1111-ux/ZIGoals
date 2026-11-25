@@ -74,7 +74,8 @@ test('Tasks: "New task" opens the list, whole on the first screen; This evening,
     await wholeOnFirstScreen(page, add, `Tasks, ${said(p)}: New task`);
     // It opens the list card, ahead of the heading line (with X2's "of today's tasks done") and Select and Filter.
     expect(await follows(page, '.tasks-main .tasks-smart-add', '#tasks-view-title'), said(p)).toBe(true);
-    if (p.showcase) await expect(page.locator('.tasks-view-head .tasks-day-progress')).toContainText(/of today’s tasks done/);
+    // Session AW (integration, deliberate): X2's progress line sits under Today's list (a10-life A10-11); the same words.
+    if (p.showcase) await expect(page.locator('.tasks-main .tasks-day-progress')).toContainText(/of today’s tasks done/);
     const nav = page.getByRole('navigation', {name: 'Task views'}), chip = nav.locator('.tasks-nav-more-toggle');
     const moved = [/^This evening/, /^Someday/, /^Priority matrix$/, /^Completed$/];
     for (const name of [/^Inbox/, /^Today/, /^Upcoming/, /^All open/]) await expect(nav.getByRole('button', {name}), said(p)).toBeVisible();
