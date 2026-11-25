@@ -108,6 +108,7 @@ import {HEALTH_NUMBERS_KEY} from './health-numbers/store';
 import {showcaseHealthNumbers} from './health-numbers/showcase';
 import {withR3HealthShowcase} from './r3-health-showcase';
 import {withR4HealthShowcase} from './r4-health-showcase';
+import {withX7Showcase} from './money-log/aw-x7-showcase';
 import {SCALES_KEY} from './scales/store';
 import {showcaseScales} from './scales/showcase';
 import {CYCLE_KEY} from './cycle/store';
@@ -289,6 +290,7 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  records[ENERGY_KEY]=JSON.stringify(showcaseEnergy(day));
  // Session W Part 12: fictional accounts and debts on this tab's Showcase device (lib/accounts/showcase.ts).
  records[ACCOUNTS_KEY]=JSON.stringify(showcaseAccounts(day));
+ withX7Showcase(records,day); // Session AW X7 (money): two entries in Removed recently, the Music bill ending (3 of 24 left), the credit card's statement days, labelled.
  // Session W Part 14: fictional chess (usernames never sent; the Showcase asks no site) in settings v3 and its device cache.
  {const chess=showcaseChess(day);records[DASHBOARD_SETTINGS_KEY]=JSON.stringify(dashboardSettingsSchema.parse(withSettingsGroup(dashboardSettingsSchema.parse(JSON.parse(records[DASHBOARD_SETTINGS_KEY]??JSON.stringify(emptyDashboardSettings()))),'chess',chess.settings,false)));records[CHESS_CACHE_KEY]=JSON.stringify(chess.cache);}
  // Session W Part 19: four fictional links to reserved example addresses in settings v3 `links`.
