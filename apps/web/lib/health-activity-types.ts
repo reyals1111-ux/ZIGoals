@@ -9,17 +9,10 @@ export function activityTypeOf(name: string): ActivityType | null {
   const text = name.trim().toLowerCase();
   return ACTIVITY_TYPES.find(t => text === t.toLowerCase() || text.startsWith(`${t.toLowerCase()} `)) ?? null;
 }
-/**
- * Session AL fourth pass (C-MO-39): typical MET values per type (2011 Compendium of Physical Activities, moderate pace),
- * for a labelled estimate of the energy an activity used. Information only: it never changes a calorie target.
+/*
+ * Session AW (kcal; owner decision 1a, ADR-046): the table of typical intensities per type and the per-activity calorie
+ * figure worked out from it (Session AL fourth pass, C-MO-39) are gone: ZIGoals never estimates the calories an activity
+ * burned (lib/aw-kcal/no-estimate.test.ts keeps it so). Calories
+ * appear only when the person typed them on the activity (lib/aw-kcal/activity-extras.ts, "you entered") or a file
+ * brought them in ("from your file").
  */
-export const ACTIVITY_MET: Readonly<Record<ActivityType, number>> = {Walk: 3.5, Run: 9.8, Cycling: 7.5, Swimming: 6, 'Strength training': 5, Yoga: 2.5, Pilates: 3, Hiking: 6, Dance: 5, 'Team sport': 7, Rowing: 7, Stretching: 2.3};
-/**
- * kcal ≈ MET × body weight (kg) × hours, rounded to 5 kcal; null (unknown, never zero) without a known type, minutes or
- * a weight reading.
- */
-export function activityKcalEstimate(name: string, minutes: number, weightGrams: number | null): number | null {
-  const type = activityTypeOf(name);
-  if (!type || !(minutes > 0) || weightGrams === null || !(weightGrams > 0)) return null;
-  return Math.round(ACTIVITY_MET[type] * weightGrams / 1000 * minutes / 60 / 5) * 5;
-}

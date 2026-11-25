@@ -4,9 +4,10 @@ import {axe, THEMES, applyTheme} from './p6-helpers';
 
 /**
  * Session AV lane 2, round 5 (gym; Gentler Streak, LEDGER #376): Health → Activity offers everyday movement beside the
- * twelve types, in English and Dutch; "Gardening" for 45 minutes counts its minutes and shows no energy figure, while a
- * walk (one of the twelve, with a weight logged) keeps the labelled estimate it had — at 390 and 1440, in Nebula, Light
- * and Dark, axe-clean, no sideways scroll at 320. Fictional data.
+ * twelve types, in English and Dutch; "Gardening" for 45 minutes counts its minutes and shows no energy figure, and so
+ * does a walk (one of the twelve, with a weight logged) unless its calories are typed, then "· you entered" (Session AW,
+ * owner decision 1a: no estimate) — at 390 and 1440, in Nebula, Light and Dark, axe-clean, no sideways scroll at 320.
+ * Fictional data.
  */
 for (const theme of THEMES) test(`${theme}: everyday movement counts minutes, with no energy figure`, async ({page, isMobile}) => {
   await applyTheme(page, theme);
@@ -29,7 +30,16 @@ for (const theme of THEMES) test(`${theme}: everyday movement counts minutes, wi
   await form.getByLabel('Minutes').fill('30');
   await form.getByRole('button', {name: 'Save activity'}).click();
   const walk = page.locator('article.health-library-row').filter({has: page.getByRole('heading', {name: 'Walk', exact: true})});
-  await expect(walk).toContainText('kcal used');
+  // Session AW (1a, deliberate): this asserted the estimate ("kcal used"), which owner decision 1a removes. Equally strict:
+  // the walk shows its minutes and no calorie figure at all (a weight is logged, so the old estimate would have shown),
+  // and calories the person types are shown as typed, with their source.
+  await expect(walk).toContainText('30 minutes');
+  await expect(walk).not.toContainText('kcal');
+  await expect(walk).not.toContainText('estimate');
+  await walk.getByRole('button', {name: 'Edit activity Walk'}).click();
+  await form.getByLabel('Calories (you entered, optional)').fill('210');
+  await form.getByRole('button', {name: 'Save correction'}).click();
+  await expect(walk).toContainText('210 kcal · you entered');
 
   const findings = await axe(page, page.locator('.health-activity-overview'));
   expect(findings.filter(v => v.impact === 'serious' || v.impact === 'critical'), JSON.stringify(findings)).toEqual([]);
