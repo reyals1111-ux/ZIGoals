@@ -28,6 +28,7 @@ import {REMINDERS_PLAN} from '../../reminders-plan/schema';
 import {HABIT_EXTRAS} from '../../habits-extras/schema';
 import {WORKOUT_SPLITS} from '../../workouts/splits-schema';
 import {MONEY_REVIEW} from '../../money-review/review';
+import {GUIDED_JOURNEYS} from '../../guided/schema';
 
 /**
  * Session AK (Part 12): the device records ZIGi's AK tools read, read at the moment of the question (like the rest
@@ -51,5 +52,7 @@ export function readAkToolSources(storage: Read): AkToolSources {
     // Round 4 (health).
     plannedWorkouts: one(PLANNED_WORKOUTS), races: one(RACES), workoutHr: one(WORKOUT_HR), calorieWeek: one(CALORIE_WEEK),
     // Round 6 (health): the visit's "To bring up" list (Health gate in the answer). The low-day plan is never an AI source.
-    bringUp: one(BRING_UP)};
+    bringUp: one(BRING_UP),
+    // Session AW (programmes): which journey or programme is going, and today's day (aw-programmes.ts; device only, never sent).
+    guidedJourneys: one(GUIDED_JOURNEYS)};
 }
