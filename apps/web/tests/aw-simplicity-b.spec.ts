@@ -20,6 +20,10 @@ import {axe, settle, type Theme} from './p6-helpers';
  * group handed back for the Help page, which only the integrator edits; until they are in, those lines fail.
  */
 test.use({timezoneId: 'Europe/Amsterdam'});
+// Session AW (simplicity-b, fix after the integrated run): one fixed morning, the before walk's (Wed 25 Nov 2026 09:30
+// in Amsterdam). The integrated run crossed midnight: the Showcase was built for one day while the Journal read the
+// next, so today's energy (and its feeling-word line) was not there. The clock flows on from this time.
+test.beforeEach(async ({page}) => { await page.clock.install({time: new Date('2026-11-25T09:30:00+01:00')}); });
 const serious = (found: Awaited<ReturnType<typeof axe>>) => found.filter(v => v.impact === 'serious' || v.impact === 'critical');
 const width = (isMobile: boolean) => isMobile ? 390 : 1440;
 type Profile = {showcase: boolean; theme: Theme};
@@ -120,9 +124,10 @@ test('Journal: "Today’s entry" whole on the first screen; the feeling word and
     await expect(write.getByRole('form', {name: 'Three good things'})).toBeVisible();
     await fold.locator('summary').click();
     if (p.showcase) {
-      // The Showcase rated today's energy: the feeling word's line is under the entry, with Change.
-      expect(await follows(page, 'form[aria-label="Write in your journal"]', '.journal-compose > .mood-words-fold'), said(p)).toBe(true);
+      // The Showcase rated today's energy: the feeling word's line is under the entry, with Change (drawn first, then its
+      // place read).
       await expect(write.locator('.mood-words-trigger').getByRole('button', {name: 'Change'})).toBeVisible();
+      expect(await follows(page, 'form[aria-label="Write in your journal"]', '.journal-compose > .mood-words-fold'), said(p)).toBe(true);
     }
     expect(serious(await axe(page, write)), said(p)).toEqual([]);
   }
@@ -161,8 +166,10 @@ test('Notes: Capture on the first screen; in the Notes view "New note" first and
     await title.fill('Fictional trip ideas');
     await page.getByRole('button', {name: 'Make note'}).click();
     await expect(page.getByRole('heading', {name: 'Fictional trip ideas'})).toBeVisible();
-    // Back on Today, Capture leads again.
+    // Back on Today, Capture leads again (the workspace is its own chunk: both drawn first, then their order read).
     await go(page, '/app/notes');
+    await expect(page.getByLabel('Capture a note', {exact: true})).toBeVisible();
+    await expect(page.locator('section.note-day')).toBeVisible();
     expect(await follows(page, 'section.note-capture-panel', 'section.note-day'), said(p)).toBe(true);
     expect(serious(await axe(page, page.locator('.notes-workspace'))), said(p)).toEqual([]);
   }
