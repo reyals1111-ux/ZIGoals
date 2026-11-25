@@ -1,3 +1,4 @@
+import {readFileSync} from 'node:fs';
 import {expect, test, type Page} from '@playwright/test';
 import {axe, THEMES, applyTheme, type Theme} from './p6-helpers';
 import {freshDevice, hydrated, offlineApi} from './ah-helpers';
@@ -37,41 +38,22 @@ async function start(page: Page, theme: Theme | null, isMobile: boolean) {
 }
 /**
  * The journal's media store with photos and one voice note. Session AW (x3, deliberate; CI run 2033): the voice note is a
- * real two-second recording made in the page, as the app makes one (MediaRecorder WebM/Opus from a test tone, started by
- * a click so the audio may run), in place of a generated WAV stored as audio/webm, which Chrome would not load. Its length
- * is then the recording's own, and the skips below land on its start and its end.
+ * real 40-second WebM/Opus recording of a test tone (tests/fixtures/media/voice-tone-40s.webm, made once with Chromium's
+ * MediaRecorder, as the app records), in place of a generated WAV stored as audio/webm, which Chrome would not load.
  */
 async function seedMedia(page: Page, photos: string[], audio: string | null) {
-  if (audio) {
-    await page.evaluate(() => {
-      const b = document.createElement('button'); b.id = 'x3-record'; b.textContent = 'Record the fictional tone'; b.style.position = 'fixed'; b.style.top = '0'; b.style.left = '0'; b.style.zIndex = '99999';
-      b.onclick = () => { (window as unknown as {x3Recording: Promise<Blob>}).x3Recording = new Promise<Blob>((resolve, reject) => {
-        const ctx = new AudioContext(), osc = ctx.createOscillator(), dest = ctx.createMediaStreamDestination(), chunks: Blob[] = [];
-        osc.connect(dest);
-        const rec = new MediaRecorder(dest.stream, {mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm'});
-        rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
-        rec.onstop = () => { void ctx.close(); resolve(new Blob(chunks, {type: 'audio/webm'})); };
-        rec.onerror = () => reject(new Error('the recorder failed'));
-        // Timed by the audio clock (the page's timers are Playwright's clock): the tone ends after two seconds, then the recording.
-        osc.onended = () => rec.stop();
-        void ctx.resume().then(() => { rec.start(250); osc.start(); osc.stop(ctx.currentTime + 2); });
-      }); };
-      document.body.append(b);
-    });
-    await page.locator('#x3-record').click();
-  }
-  await page.evaluate(async ([png, photoIds, audioId, at]) => {
+  const voiceB64 = audio ? readFileSync(new URL('./fixtures/media/voice-tone-40s.webm', import.meta.url)).toString('base64') : '';
+  await page.evaluate(async ([png, photoIds, audioId, at, voice64]) => {
     const bytes = Uint8Array.from(atob(png as string), c => c.charCodeAt(0));
-    const voice = audioId ? await (window as unknown as {x3Recording: Promise<Blob>}).x3Recording : null;
-    document.getElementById('x3-record')?.remove();
+    const voice = audioId ? new Blob([Uint8Array.from(atob(voice64 as string), c => c.charCodeAt(0))], {type: 'audio/webm'}) : null;
     const db = await new Promise<IDBDatabase>((resolve, reject) => { const r = indexedDB.open('zigoals-journal-media-v1', 1); r.onupgradeneeded = () => r.result.createObjectStore('media'); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); });
     await new Promise<void>((resolve, reject) => {
       const t = db.transaction('media', 'readwrite'), s = t.objectStore('media');
       for (const id of photoIds as string[]) s.put({kind: 'photo', blob: new Blob([bytes], {type: 'image/webp'}), type: 'image/webp', bytes: bytes.length, at}, `local:${id}`);
-      if (audioId && voice) s.put({kind: 'audio', blob: voice, type: 'audio/webm', bytes: voice.size, seconds: 2, at}, `local:${audioId}`);
+      if (audioId && voice) s.put({kind: 'audio', blob: voice, type: 'audio/webm', bytes: voice.size, seconds: 40, at}, `local:${audioId}`);
       t.oncomplete = () => { db.close(); resolve(); }; t.onerror = () => reject(t.error);
     });
-  }, [PNG, photos, audio, AT] as const);
+  }, [PNG, photos, audio, AT, voiceB64] as const);
 }
 /** A length on the player's clock (whole seconds, rounded down), as lib/journal/voice-speed.ts `clock` writes it. */
 const clockOf = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds) % 60).padStart(2, '0')}`;
@@ -119,15 +101,15 @@ test('Morning and evening: the morning page, then the evening page with this mor
 });
 
 test('a voice note faster, 15 seconds either way, and the photo of the day in its month', async ({page, isMobile}) => {
-  test.skip(page.context().browser()?.browserType().name() !== 'chromium', 'the test tone is recorded with Chromium’s MediaRecorder');
+  test.skip(page.context().browser()?.browserType().name() !== 'chromium', 'the WebM/Opus recording is played by Chromium');
   await start(page, 'light', isMobile);
   await page.evaluate(k => localStorage.setItem(k, JSON.stringify({version: 1, shareWithAi: false, followUps: false, entries: [
     {id: 'e1', date: '2026-11-03', text: 'A fictional walk by the sea.', createdAt: '2026-11-03T18:00:00.000Z', photos: ['m-photo0001']},
-    {id: 'e2', date: '2026-11-20', text: 'A fictional market morning.', createdAt: '2026-11-20T09:00:00.000Z', photos: ['m-photo0002', 'm-photo0003'], audio: [{id: 'm-audio0001', seconds: 2}]}]})), JOURNAL_KEY);
+    {id: 'e2', date: '2026-11-20', text: 'A fictional market morning.', createdAt: '2026-11-20T09:00:00.000Z', photos: ['m-photo0002', 'm-photo0003'], audio: [{id: 'm-audio0001', seconds: 40}]}]})), JOURNAL_KEY);
   await seedMedia(page, ['m-photo0001', 'm-photo0002', 'm-photo0003'], 'm-audio0001');
   await page.goto('/app/journal'); await hydrated(page);
   const row = page.locator('ol.journal-entries > li').filter({hasText: 'market morning'});
-  const player = row.getByRole('group', {name: /^Voice note of .*, 0:02$/});
+  const player = row.getByRole('group', {name: /^Voice note of .*, 0:40$/});
   const audioEl = player.locator('audio');
   await expect(player.getByRole('button', {name: '1×', exact: true})).toHaveAttribute('aria-pressed', 'true');
   // 1.5×, kept on this device for every voice note.
@@ -139,16 +121,14 @@ test('a voice note faster, 15 seconds either way, and the photo of the day in it
   await expect.poll(() => audioEl.evaluate(a => Number.isFinite((a as HTMLAudioElement).duration) && (a as HTMLAudioElement).duration > 0)).toBe(true);
   const whole = clockOf(await audioEl.evaluate(a => (a as HTMLAudioElement).duration));
   await expect(player.locator('.voice-player-time')).toHaveText(`0:00 of ${whole}`);
-  // 15 seconds forward stops at the end; 15 back from there stops at the start (Session AW (x3, deliberate): the
-  // recording is two seconds long, so both skips are checked at their bounds).
+  expect(whole).toBe('0:40');
   await player.getByRole('button', {name: 'Forward 15 seconds'}).click();
-  await expect(player.locator('.voice-player-time')).toHaveText(`${whole} of ${whole}`);
-  await expect.poll(() => audioEl.evaluate(a => (a as HTMLAudioElement).currentTime)).toBeGreaterThan(1);
+  await expect(player.locator('.voice-player-time')).toHaveText('0:15 of 0:40');
   await player.getByRole('button', {name: 'Forward 15 seconds'}).click();
-  await expect(player.locator('.voice-player-time')).toHaveText(`${whole} of ${whole}`);
+  await player.getByRole('button', {name: 'Forward 15 seconds'}).click();
+  await expect(player.locator('.voice-player-time')).toHaveText('0:40 of 0:40');
   await player.getByRole('button', {name: 'Back 15 seconds'}).click();
-  await expect(player.locator('.voice-player-time')).toHaveText(`0:00 of ${whole}`);
-  await expect.poll(() => audioEl.evaluate(a => (a as HTMLAudioElement).currentTime)).toBe(0);
+  await expect(player.locator('.voice-player-time')).toHaveText('0:25 of 0:40');
   // Keyboard: Play is a button reached and pressed like any other.
   await player.getByRole('button', {name: 'Play', exact: true}).focus();
   await page.keyboard.press('Enter');
@@ -173,7 +153,7 @@ test('a voice note faster, 15 seconds either way, and the photo of the day in it
   await expect(strip.getByRole('button', {name: /^The month after/})).toBeDisabled();
   await expect(strip.getByRole('button', {name: /^The month before/})).toBeDisabled();
   // The voice note plays here too, at the speed kept.
-  await expect(page.locator('#journal-photos').getByRole('group', {name: /^Voice note from .*, 0:02$/}).getByRole('button', {name: '1.5×'})).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#journal-photos').getByRole('group', {name: /^Voice note from .*, 0:40$/}).getByRole('button', {name: '1.5×'})).toHaveAttribute('aria-pressed', 'true');
   await serious(page, page.locator('#journal-photos'));
   await strip.getByRole('button', {name: /^Photo of the day, Fri, Nov 20/}).click();
   await expect(page.locator('ol.journal-entries > li')).toHaveCount(1);
@@ -227,7 +207,7 @@ test('a Notes search narrowed by a tag, kept by name, opened in one tap, renamed
 test('every new part in Nebula, Light and Dark: axe-clean, and still with Motion Off', async ({page, isMobile}) => {
   await start(page, null, isMobile); // the theme is set per loop below (applyTheme would reset it on every load)
   await page.evaluate(([j, n, s]) => {
-    localStorage.setItem(j, JSON.stringify({version: 1, shareWithAi: false, followUps: false, dayPages: {on: true}, entries: [{id: 'e2', date: '2026-11-20', text: 'A fictional market morning.', createdAt: '2026-11-20T09:00:00.000Z', photos: ['m-photo0002'], audio: [{id: 'm-audio0001', seconds: 2}]}]}));
+    localStorage.setItem(j, JSON.stringify({version: 1, shareWithAi: false, followUps: false, dayPages: {on: true}, entries: [{id: 'e2', date: '2026-11-20', text: 'A fictional market morning.', createdAt: '2026-11-20T09:00:00.000Z', photos: ['m-photo0002'], audio: [{id: 'm-audio0001', seconds: 40}]}]}));
     localStorage.setItem(n, JSON.stringify({version: 1, voice: false, notes: [{id: 'n-trip', kind: 'topic', title: 'Fictional trip ideas', body: 'Lisbon #travel', createdAt: '2026-11-10T09:00:00.000Z'}]}));
     localStorage.setItem(s, JSON.stringify({version: 1, searches: [{id: 'ns-fiction1', name: 'Fictional travel', tag: 'travel'}]}));
     localStorage.setItem('zigoals:motion:v1', 'off');
