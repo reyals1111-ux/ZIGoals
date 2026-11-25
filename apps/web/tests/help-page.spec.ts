@@ -224,7 +224,8 @@ for (let quarter = 0; quarter < HELP_QUARTERS; quarter++) test(`viewing Help ask
   await page.goto('/app/help');await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   await expect(page.locator('html')).toHaveAttribute('data-logo-intro', /^(reduced-motion|played|hidden)$/);
   const summaries = await page.locator('.help-question > summary').all();
-  expect(summaries.length, 'every answer on the page').toBeGreaterThanOrEqual(709);
+  // A fresh profile: the chain answers wait for the chain choice (PK-10), so the page holds every other answer, 700 and more.
+  expect(summaries.length, 'every answer on the page').toBeGreaterThanOrEqual(700);
   for (const [index, summary] of summaries.entries()) if (index % HELP_QUARTERS === quarter) await summary.click();
   await page.waitForTimeout(500);
   expect(requests).toEqual([]);
