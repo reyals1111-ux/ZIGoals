@@ -59,7 +59,7 @@ export function againAt(start: number, again: Again | null, quiet: {from: string
 }
 /** The editor's choice for a task: its reminders' own repeat, "off", or the default (nothing written). */
 export type AgainChoice = {kind: 'default'} | {kind: 'off'} | {kind: 'own'; again: Again};
-export function againChoiceOf(task: {reminders?: readonly {again?: Again | false}[]}): AgainChoice {
+export function againChoiceOf(task: {reminders?: readonly {before?: number; at?: string; again?: Again | false}[]}): AgainChoice {
   const r = task.reminders?.find(x => x.again !== undefined);
   if (!r) return {kind: 'default'};
   if (r.again === false) return {kind: 'off'};

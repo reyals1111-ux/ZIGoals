@@ -64,7 +64,8 @@ describe('remind again on the notifications (LEDGER #438)', () => {
     const realNow = Date.now; Date.now = () => now;
     try { await sw.click('snooze', [{kind: 'task', id: `task:task_a@${first}`, at: first}]); } finally { Date.now = realNow; }
     const items = (sw.store.get('snapshot') as Snapshot).items.filter(i => i.kind === 'task');
-    expect(items.map(i => i.at)).toEqual([now + 7_200_000]);
+    // The ring tapped stays where it was (as before); the later repeats leave; it comes back at the snooze's end.
+    expect(items.map(i => i.at)).toEqual([first, now + 7_200_000]);
     expect(fetched.at(-1)!.body.once).toEqual([Math.floor((now + 7_200_000) / 60000)]);
     const tap = [...sw.store.values()].find(v => (v as {type?: string})?.type === 'snooze') as {until: number};
     expect(tap.until).toBe(now + 7_200_000);
