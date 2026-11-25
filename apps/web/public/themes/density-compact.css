@@ -6280,6 +6280,9 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .onboarding-game-level span:last-child:not(#\-) { row-gap: 2px; }
 :where(:root[data-density=compact]) .onboarding-game-pill:not(#\-) { padding-top: 0; padding-bottom: 0; }
 @media (min-width: 768px) { :root:where([data-density=compact]) .onboarding[data-step="data"] .onboarding-actions:not(#\-) { margin-top: 12px; padding-top: 10px; padding-bottom: 10px; } }
+:where(:root[data-density=compact]) .onboarding-quick:not(#\-) { margin-top: 14px; padding-top: 12px; }
+:where(:root[data-density=compact]) .onboarding-quick > p:not(#\-) { margin-top: 0; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .onboarding-quick ul:not(#\-) { row-gap: 0; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 /*  components/orbit-card/orbit-card.css  */
 :root:where([data-density=compact]) .orbit-card:not(#\-) { row-gap: 12px; }
 :root:where([data-density=compact]) .orbit-card h2:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -7627,6 +7630,12 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 /*  components/settings/settings-forms.css  */
 :where(:root[data-density=compact]) .settings-page .platform-form label.checkbox input[type="checkbox"]:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .settings-page .settings-try-it:not(#\-) { margin-top: 8px; }
+/*  components/settings/settings-search.css  */
+:where(:root[data-density=compact]) .settings-search:not(#\-) { row-gap: 6px; margin-top: 12px; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .settings-search-status:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .settings-search-results:not(#\-) { row-gap: 0; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .settings-search-results a:not(#\-) { row-gap: 1px; padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .settings-search-help:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/share-cards/share-cards.css  */
 :where(:root[data-density=compact]) .share-sheet:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .share-sheet h3:not(#\-) { margin-top: 0; margin-bottom: 0; }

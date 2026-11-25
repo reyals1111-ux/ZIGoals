@@ -1,3 +1,5 @@
+import {HELP_ALIASES} from './help-aliases';
+import {chainSettingIds, settingsSearchItems} from '../settings-search';
 import type {SearchItem} from './engine';
 
 /**
@@ -64,29 +66,10 @@ export const PAGES: readonly SearchItem[] = [
   {id: 'page:zigi-memory', kind: 'page', title: 'What ZIGi remembers', subtitle: 'ZIGi', href: '/app/zigi/memory', keywords: ['memory', 'remember', 'forget', 'zigi memory', 'zigi notes', 'what zigi knows', 'personal notes']},
 ];
 
-export const SETTINGS: readonly SearchItem[] = [
-  {id: 'setting:privacy', kind: 'setting', title: 'Keep a copy of your progress', subtitle: 'Data & privacy', href: '/app/settings#privacy', keywords: ['backup', 'export', 'private backups']},
-  {id: 'setting:your-data', kind: 'setting', title: 'Your data', subtitle: 'Data & privacy', href: '/app/settings/data', keywords: ['data health', 'storage', 'where', 'sync', 'device', 'privacy']},
-  {id: 'setting:your-pages', kind: 'setting', title: 'Your pages & buttons', subtitle: 'Your app', href: '/app/settings#your-pages', keywords: ['hide page', 'quick add', 'navigation']},
-  {id: 'setting:appearance', kind: 'setting', title: 'Motion', subtitle: 'Appearance', href: '/app/settings#appearance', keywords: ['animations', 'reduced motion', 'appearance', 'theme', 'dark', 'light', 'nebula']},
-  {id: 'setting:time-zone', kind: 'setting', title: 'Time zone', subtitle: 'Your app', href: '/app/settings#time-zone', keywords: ['journal zone', 'travel']},
-  {id: 'setting:wrap-up', kind: 'setting', title: 'Daily wrap-up', subtitle: 'Your app', href: '/app/settings#wrap-up', keywords: ['evening', 'reminder']},
-  {id: 'setting:habits', kind: 'setting', title: 'Habit settings', subtitle: 'Your areas', href: '/app/settings#habits-settings', keywords: ['rhythm', 'week start']},
-  {id: 'setting:health', kind: 'setting', title: 'Health settings', subtitle: 'Your areas', href: '/app/settings#health-settings', keywords: ['units', 'targets', 'water unit', 'consent']},
-  {id: 'setting:chess', kind: 'setting', title: 'Chess settings', subtitle: 'Your areas', href: '/app/settings#chess', keywords: ['chess.com', 'lichess', 'username']},
-  {id: 'setting:market-data', kind: 'setting', title: 'Market data sources', subtitle: 'Your areas', href: '/app/settings#market-data', keywords: ['prices', 'coingecko', 'quotes']},
-  {id: 'setting:switch-import', kind: 'setting', title: 'Switch from another app', subtitle: 'Your areas', href: '/app/settings#switch-import', keywords: ['import', 'csv']},
-  // Session AK X1 (RELEASE_REVIEW R4): the Account & devices group itself (its wallet panel shows once the chain is chosen).
-  {id: 'setting:account', kind: 'setting', title: 'Account & devices', subtitle: 'Account', href: '/app/settings#settings-account', keywords: ['sign in', 'sync', 'devices', 'email']},
-  {id: 'setting:network', kind: 'setting', title: 'Network', subtitle: 'Account', href: '/app/settings#network', keywords: ['zigchain', 'testnet']},
-  {id: 'setting:contract', kind: 'setting', title: 'The financial layer', subtitle: 'Account', href: '/app/settings#contract', keywords: ['contract', 'wallet']},
-  {id: 'setting:your-ai', kind: 'setting', title: 'ZIGi, your assistant', subtitle: 'ZIGi', href: '/app/settings#your-ai', keywords: ['ai', 'assistant', 'model', 'voice', 'notes']},
-  {id: 'setting:diagnostics', kind: 'setting', title: 'Advanced diagnostics', subtitle: 'Help & diagnostics', href: '/app/settings#diagnostics', keywords: ['debug', 'storage']},
-  {id: 'setting:feedback', kind: 'setting', title: 'Send feedback', subtitle: 'Help & diagnostics', href: '/app/settings#send-feedback', keywords: ['report', 'bug', 'contact']},
-];
-
-/** Session AK X1 (RELEASE_REVIEW R4): Settings entries that exist only once the chain is chosen (lib/chain-choice.ts). */
-export const CHAIN_SETTINGS: ReadonlySet<string> = new Set(['setting:network', 'setting:contract']);
+// Session AW (Part 3; simplicity-c): Settings' own search index (lib/settings-search) is the one list, EN and NL words
+// for every section and anchor, here as on the Settings page (its test fails on an anchor the index misses).
+export const SETTINGS: readonly SearchItem[] = settingsSearchItems({chain: true});
+export const CHAIN_SETTINGS: ReadonlySet<string> = chainSettingIds();
 
 /** [section id, label] as components/help/help-page.tsx's TOPICS. */
 export const HELP_TOPICS: readonly [string, string][] = [
@@ -150,6 +133,8 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["aw-x3-day-photo", "How do I pick a photo of the day and see a month of them?"],
   ["aw-x4-goal-repeat", "How do I make a goal start again each week, month or year?"],
   ["aw-x4-year", "Can I see my whole year, or all time?"],
+  ["aw-settings-search", "Can I search Settings?"],
+  ["aw-quick-start", "Can I start with one thing instead of the setup?"],
   ["av-task-notify", "Can a task remind me when ZIGoals is closed?"],
   ["av-nl-tasks", "Can I type a task in Dutch?"],
   ["av-good-things", "What is “Three good things” in the Journal?"],
@@ -811,5 +796,5 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
 export const HELP_ITEMS: readonly SearchItem[] = [
   ...HELP_TOPICS.map(([id, label]): SearchItem => ({id: `help-topic:${id}`, kind: 'help', title: label, subtitle: 'Help topic', href: `/app/help#${id}`})),
   // The question's id names its topic ("export-everything", "w-import"), so its words find the answer too.
-  ...HELP_QUESTIONS.map(([id, question]): SearchItem => ({id: `help:${id}`, kind: 'help', title: question, subtitle: 'Help', href: `/app/help#help-${id}`, keywords: id.split('-').filter(w => w.length > 2)})),
+  ...HELP_QUESTIONS.map(([id, question]): SearchItem => ({id: `help:${id}`, kind: 'help', title: question, subtitle: 'Help', href: `/app/help#help-${id}`, keywords: [...id.split('-').filter(w => w.length > 2), ...(HELP_ALIASES[id] ?? [])] /* Session AW (Part 3): competitors' names too */})),
 ];

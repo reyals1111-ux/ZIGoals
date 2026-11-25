@@ -23601,6 +23601,12 @@
         outline-color: #013b3f;
         box-shadow: 0 0 0 8px #6dabaf1c
     }
+    .onboarding-quick:not(#\-) {
+        border-top-color: var(--line, #c2cbdd)
+    }
+    .onboarding-quick > p:not(#\-) {
+        color: var(--text-meta, #08111e)
+    }
 }
 /*  components/orbit-card/orbit-card.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
@@ -26936,6 +26942,36 @@
     @media (forced-colors: active) {
         .settings-page .settings-fold-chevron:not(#\-) {
             color: CanvasText
+        }
+    }
+}
+/*  components/settings/settings-search.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    .settings-search > label:not(#\-) {
+        color: var(--text)
+    }
+    .settings-search-status:not(#\-) {
+        color: var(--text-meta, #08111e)
+    }
+    .settings-search-results:not(#\-) {
+        border-color: var(--line, #c2cbdd)
+    }
+    .settings-search-results li + li:not(#\-) {
+        border-top-color: var(--line, #c2cbdd)
+    }
+    .settings-search-results a:not(#\-) {
+        color: var(--text);
+        box-shadow: none
+    }
+    .settings-search-results a:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #45d8ef)
+    }
+    .settings-search-results small:not(#\-) {
+        color: var(--text-meta, #08111e)
+    }
+    @media (forced-colors: active) {
+        .settings-search-results:not(#\-), .settings-search-results li + li:not(#\-) {
+            border-color: CanvasText
         }
     }
 }

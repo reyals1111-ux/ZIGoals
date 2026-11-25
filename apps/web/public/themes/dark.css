@@ -24104,6 +24104,12 @@
         outline-color: #a9e8ed;
         box-shadow: 0 0 0 8px #a9e8ed33
     }
+    .onboarding-quick:not(#\-) {
+        border-top-color: var(--line, #25334f)
+    }
+    .onboarding-quick > p:not(#\-) {
+        color: var(--text-meta, #c2d0e5)
+    }
 }
 /*  components/orbit-card/orbit-card.css  */
 @scope (:root[data-theme=dark]) {
@@ -27678,6 +27684,36 @@
     @media (forced-colors: active) {
         .settings-page .settings-fold-chevron:not(#\-) {
             color: CanvasText
+        }
+    }
+}
+/*  components/settings/settings-search.css  */
+@scope (:root[data-theme=dark]) {
+    .settings-search > label:not(#\-) {
+        color: var(--text)
+    }
+    .settings-search-status:not(#\-) {
+        color: var(--text-meta, #c2d0e5)
+    }
+    .settings-search-results:not(#\-) {
+        border-color: var(--line, #25334f)
+    }
+    .settings-search-results li + li:not(#\-) {
+        border-top-color: var(--line, #25334f)
+    }
+    .settings-search-results a:not(#\-) {
+        color: var(--text);
+        box-shadow: none
+    }
+    .settings-search-results a:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #45d8ef)
+    }
+    .settings-search-results small:not(#\-) {
+        color: var(--text-meta, #c2d0e5)
+    }
+    @media (forced-colors: active) {
+        .settings-search-results:not(#\-), .settings-search-results li + li:not(#\-) {
+            border-color: CanvasText
         }
     }
 }

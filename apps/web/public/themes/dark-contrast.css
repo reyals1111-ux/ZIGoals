@@ -22348,6 +22348,12 @@
         outline-color: #dbdbdb;
         box-shadow: 0 0 0 8px #a9e8ed33
     }
+    .onboarding-quick:not(#\-):not(#\-) {
+        border-top-color: color-mix(in srgb, var(--line, #969696) 40%, #fff)
+    }
+    .onboarding-quick > p:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-meta, #dadada) 25%, #fff)
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     :scope .orbit-card-count:not(#\-):not(#\-) {
@@ -25759,6 +25765,35 @@
     @media (forced-colors: active) {
         .settings-page .settings-fold-chevron:not(#\-):not(#\-) {
             color: CanvasText
+        }
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .settings-search > label:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text) 25%, #fff)
+    }
+    .settings-search-status:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-meta, #dadada) 25%, #fff)
+    }
+    .settings-search-results:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line, #969696) 40%, #fff)
+    }
+    .settings-search-results li + li:not(#\-):not(#\-) {
+        border-top-color: color-mix(in srgb, var(--line, #969696) 40%, #fff)
+    }
+    .settings-search-results a:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text) 25%, #fff);
+        box-shadow: none
+    }
+    .settings-search-results a:focus-visible:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--cyan, #45d8ef) 40%, #fff)
+    }
+    .settings-search-results small:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-meta, #dadada) 25%, #fff)
+    }
+    @media (forced-colors: active) {
+        .settings-search-results:not(#\-):not(#\-), .settings-search-results li + li:not(#\-):not(#\-) {
+            border-color: CanvasText
         }
     }
 }
