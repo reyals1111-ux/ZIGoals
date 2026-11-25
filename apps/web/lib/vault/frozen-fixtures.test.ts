@@ -100,6 +100,8 @@ const FROZEN_READERS: Record<string, {module: string; spec: string}> = {
   'zigoals:macro-mode:v1': {module: './health-aa/macro-mode', spec: 'MACRO_MODE'}, 'zigoals:aisles:v1': {module: './health-aa/aisles', spec: 'AISLES_RECORD'},
   'zigoals:measurements-custom:v1': {module: './health-aa/measurements-custom', spec: 'MEASUREMENTS_CUSTOM'},
   'zigoals:health-vitamins:v1': {module: './health-vitamins/schema', spec: 'HEALTH_VITAMINS'},
+  // Session AW: two section records a build before AW does not know (its reader says ABSENT; the section carries them unread).
+  'zigoals:activity-extras:v1': {module: './aw-kcal/activity-extras', spec: 'ACTIVITY_EXTRAS'}, 'zigoals:goal-repeat:v1': {module: './goals/repeat', spec: 'GOAL_REPEAT'},
   // Session AM (ADR-038 D18; TIER 3 (sync)): the NOVA section's two records (#52 and later read NOVA's own record; the
   // stage record is this session's, absent before it).
   [NOVA_KEY]: {module: './nova/store', spec: 'NOVA_STORE'}, [NOVA_STAGE_KEY]: {module: './nova/stage/record', spec: 'NOVA_STAGE'},
@@ -124,6 +126,8 @@ export function frozenFixture() {
     'zigoals:routine-run:v1': {version: 1, run: {version: 1, headId: 'showcase-morning', day: '2026-10-13', step: 1, startedAt: '2026-10-13T07:00:00.000Z', stepStartedAt: '2026-10-13T07:05:00.000Z', done: ['stretch'], skipped: []}},
     'zigoals:aisles:v1': {version: 1, overrides: {'oat milk': 'Dairy & eggs'}},
     'zigoals:health-vitamins:v1': {version: 1, foods: {'health_fixture-oats': {cMg: 0, dUg: 2500, b12Ug: 400}}, entries: {'health_fixture-entry-1': {dUg: 2500}}, targets: {dUg: 15000}},
+    'zigoals:activity-extras:v1': {version: 1, items: {'health_activity-fixture-01': {distanceKm: 4.2, effort: 'easy', kcal: 180}}},
+    'zigoals:goal-repeat:v1': {version: 1, goals: {'9205': {every: 'month', since: '2026-11-01', period: 'month:2026-11', setAt: '2026-11-01T10:00:00.000Z'}}},
   };
   for (const [key, value] of Object.entries(SEEDS)) if (!a.has(key)) a.set(key, JSON.stringify(value));
   // Session AJ (item 35; TIER 3 (stored format) + TIER 3 (auth/sync)): a habit's everyday clock time in the synced habit
