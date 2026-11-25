@@ -5,6 +5,7 @@ import {getAppStorage} from '../../showcase-storage';
 import type {Again} from '../../tasks/remind-again';
 import {ownSnoozes, snoozeLabel} from '../../tasks/snooze-choices';
 import {wallClock} from '../../zone-time';
+import type {TaskPlan} from '../../tasks/plan-record';
 import {fold} from './exact/text';
 import {text as clean} from '../tools/format';
 import type {ToolEnv} from '../tools/env';
@@ -61,9 +62,17 @@ function timersAnswer(a: Ask): LocalReply | null {
   const nl = /\bwelke timers?\b|\btimers? (?:lopen|loopt|staan|staat) (?:er )?(?:nu )?(?:aan)?\b|\bhoeveel tijd (?:heeft|hebben) (?:mijn |de )?timers?\b|\bmijn timers\b|\blopen er timers\b|\bloopt er (?:een )?timer\b/.test(a.f);
   if (!(en || nl)) return null;
   const got = timersOf(a); if (!got) return null; if ('reply' in got) return got.reply;
-  const live = activeTimers(got.timers, a.now);
-  if (!live.length) return answer(NONE(a), CALLS);
-  return answer([say(a.lang, `${count(live.length, 'en', ['timer is', 'timers are'], ['', ''])} on:`, `${count(live.length, 'nl', ['', ''], ['timer staat', 'timers staan'])} aan:`), ...live.slice(0, 10).map(t => line(a, t))].join('\n'), CALLS);
+  const live = activeTimers(got.timers, a.now), timed = taskTimers(a);
+  if (!live.length && !timed.length) return answer(say(a.lang, `${NONE(a)} A task can also be timed in Tasks → Today; none is now.`, `${NONE(a)} Een taak kun je ook timen in Tasks → Today; er loopt er nu geen.`), CALLS);
+  const parts = live.length ? [say(a.lang, `${count(live.length, 'en', ['timer is', 'timers are'], ['', ''])} on:`, `${count(live.length, 'nl', ['', ''], ['timer staat', 'timers staan'])} aan:`), ...live.slice(0, 10).map(t => line(a, t))] : [];
+  // A question about "timers" covers the tasks being timed too (Tasks → Today), the answer round 6 gave on its own.
+  if (timed.length) parts.push(say(a.lang, `Tasks being timed (${timed.length}):`, `Taken die getimed worden (${timed.length}):`), ...timed.slice(0, 8));
+  return answer(parts.join('\n'), CALLS);
+}
+/** The tasks being timed in Tasks → Today (the planning record's count-up timers), each with its minutes so far. */
+function taskTimers(a: Ask): string[] {
+  const nova = a.env.nova as (typeof a.env.nova & {taskPlan?: TaskPlan | null}) | null | undefined, tasks = nova?.tasks?.tasks ?? [];
+  return (nova?.taskPlan?.timers ?? []).flatMap(t => { const task = tasks.find(x => x.id === t.taskId); if (!task) return []; const m = Math.max(1, Math.round((a.now - t.since) / 60_000)); return [`• ${clean(task.title, 60)}: ${say(a.lang, `${m} min so far`, `${m} min tot nu`)}`]; });
 }
 /** "when does my pasta timer end", "wanneer is mijn pastatimer klaar", "wanneer gaat de timer van de was af" (LEDGER #440). */
 function timerEndAnswer(a: Ask): LocalReply | null {

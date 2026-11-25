@@ -28,17 +28,30 @@ describe('every corpus question gets an answer of its own, in its language', () 
   test('other questions are left to the other answers', () => {
     for (const q of ['plan my day', 'what is due today', 'remind me to call mum at 6', 'which tasks are overdue', 'how long did I sleep', 'what are my reminders']) expect(awX1Answer(q, zigiEnv(showcaseAll()), extra())).toBeNull();
   });
-  test('no other question of today’s corpus is answered here (wiring it first moves nothing)', () => {
+  // Session AW (x1-due, deliberate): round 6's "which timers are running" (`av2-timers`) is taken in the browser, where the
+  // named timers can be read: one answer names both kinds (tested below). Every other question stays with its own answer.
+  const SHARED = new Set(['av2-timers']);
+  test('no other question of today’s corpus is answered here (wiring it first moves nothing but the shared timers one)', () => {
     const taken: string[] = [], n = novaEnv(showcaseAll()), z = zigiEnv(showcaseAll()), x = extra();
-    for (const c of CORPUS) if (!OWN.has(c.id)) for (const q of [...c.en, ...c.nl]) if (awX1Answer(q, n, x) || awX1Answer(q, z, x)) taken.push(`${c.id}: ${q}`);
+    for (const c of CORPUS) if (!OWN.has(c.id) && !SHARED.has(c.id)) for (const q of [...c.en, ...c.nl]) if (awX1Answer(q, n, x) || awX1Answer(q, z, x)) taken.push(`${c.id}: ${q}`);
     expect(taken).toEqual([]);
+    // In the corpus harness (no browser storage) nothing is read, so even the shared one stays where it was.
+    for (const q of [...CORPUS.find(c => c.id === 'av2-timers')!.en, ...CORPUS.find(c => c.id === 'av2-timers')!.nl]) expect(awX1Answer(q, n)).toBeNull();
   }, 120_000);
 });
 describe('named timers (LEDGER #440)', () => {
   test('which are running, paused or done; none says how to start one', () => {
     expect(text(awX1Answer('what timers are running', zigiEnv(showcaseAll()), extra()))).toMatch(/^2 timers are on:\n• Pasta: 8 min left \(ends at .+\)\n• Laundry: paused, 40 min left$/);
     expect(text(awX1Answer('welke timers lopen er', zigiEnv(showcaseAll()), extra()))).toMatch(/^2 timers staan aan:\n• Pasta: nog 8 min \(klaar om \d\d:\d\d\)\n• Laundry: gepauzeerd, nog 40 min$/);
-    expect(text(awX1Answer('what timers are running', zigiEnv(freshAll()), extra({timers: emptyTimers()})))).toMatch(/^No timer is running\. Open Timers/);
+    expect(text(awX1Answer('what timers are running', zigiEnv(freshAll()), extra({timers: emptyTimers()})))).toMatch(/^No timer is running\. Open Timers.*A task can also be timed in Tasks → Today; none is now\.$/);
+  });
+  test('a question about timers also names the tasks being timed', () => {
+    const s = showcaseAll(), task = s.nova!.tasks!.tasks.find(t => !t.doneAt)!;
+    s.nova = {...s.nova, taskPlan: {version: 1, timers: [{taskId: task.id, since: s.now!.getTime() - 25 * 60_000}]}} as typeof s.nova;
+    const t = text(awX1Answer('which timers are running', zigiEnv(s), extra()));
+    expect(t).toMatch(/^2 timers are on:\n• Pasta: /);
+    expect(t).toContain(`Tasks being timed (1):\n• ${task.title}: 25 min so far`);
+    expect(text(awX1Answer('welke timers lopen er', zigiEnv(s), extra({timers: emptyTimers()})))).toMatch(/^Taken die getimed worden \(1\):\n• .+: 25 min tot nu$/);
   });
   test('when one ends, by its name; one not found lists the running ones', () => {
     expect(text(awX1Answer('when does my pasta timer end', zigiEnv(showcaseAll()), extra()))).toMatch(/^Your Pasta timer ends at .+, in 8 min\.$/);
