@@ -1,7 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {describe, expect, it} from 'vitest';
 import {SETTINGS_GROUP_IDS} from '../settings-folds';
-import {SETTINGS_GROUP_TITLES, SETTINGS_INDEX, entryHref, searchSettings, settingsSearchItems, shownEntries} from './index';
+import {SETTINGS_GROUP_TITLES, SETTINGS_INDEX, chainSettingIds, entryHref, searchSettings, settingsSearchItems, shownEntries} from './index';
 
 /**
  * Session AW Part 3 (simplicity c): the Settings search's index covers every anchor on the Settings page, the lower
@@ -15,7 +15,6 @@ function settingsSources(): {path: string; text: string}[] {
   const later = read('../../components/settings/settings-later.tsx');
   const fromLater = [...later.matchAll(/from '(\.\.?\/[^']+)'/g)].map(m => new URL(`${m[1]}.tsx`, new URL('../../components/settings/', import.meta.url)).pathname);
   const direct = ['../../components/ai/ai-settings-section.tsx', '../../components/ai/ai-settings.tsx', '../../components/settings/nova-settings-links.tsx', '../../components/vault-sync-panel.tsx', '../../components/device-lock.tsx', '../../components/showcase-controls.tsx', '../../components/settings/customize-settings.tsx', '../../components/settings/af-earn-section.tsx', '../../components/settings/af-signing-section.tsx'].map(p => new URL(p, import.meta.url).pathname);
-  expect(fromLater.length, 'settings-later.tsx lists the lower groups’ parts').toBeGreaterThanOrEqual(20);
   return [PAGE, ...fromLater, ...direct].map(p => ({path: p, text: readFileSync(p.startsWith('/') ? p : new URL(p, import.meta.url), 'utf8')}));
 }
 /** The anchors a jump can land on: ids on sections, cards and groups (not a heading's, a note's or a field's own id). */
@@ -38,6 +37,8 @@ describe('the Settings search index (Session AW Part 3)', () => {
   const everyId = new Set([...anchors, ...sources.flatMap(s => [...s.text.matchAll(/\bid="([a-z0-9-]+)"/g)].map(m => m[1]!))]);
 
   it('covers every anchor on the Settings page, the lower groups and the ZIGi/NOVA group included', () => {
+    // The lower groups' parts are read through settings-later.tsx (25 parts today).
+    expect(sources.length).toBeGreaterThanOrEqual(30);
     expect(anchors.size).toBeGreaterThan(50);
     const indexed = new Set(SETTINGS_INDEX.map(e => e.anchor));
     const missing = [...anchors].filter(id => !indexed.has(id));
@@ -106,6 +107,10 @@ describe('the Settings search index (Session AW Part 3)', () => {
     expect(items.length).toBe(shownEntries().length);
     for (const item of items) { expect(item.kind).toBe('setting'); expect(item.href).toMatch(/^\/app\/(settings|welcome)/); }
     expect(new Set(items.map(i => i.id)).size).toBe(items.length);
+    const all = settingsSearchItems({chain: true});
+    expect(all.length).toBe(SETTINGS_INDEX.length);
+    expect(all.find(i => i.href === '/app/settings#time-zone')?.id).toBe('setting:time-zone');
+    expect([...chainSettingIds()].sort()).toEqual(all.filter(i => !items.some(x => x.id === i.id)).map(i => i.id).sort());
   });
   it('finds nothing for words that name no setting, and never throws on markup or a stray sign', () => {
     expect(searchSettings('zzqx')).toEqual([]);

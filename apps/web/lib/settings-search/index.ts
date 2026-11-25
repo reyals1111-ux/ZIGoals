@@ -115,8 +115,8 @@ export const SETTINGS_INDEX: readonly SettingsEntry[] = [
   E('zigi-reminders-group-title', 'settings-zigi', 'ZIGi’s reminders', ['zigi reminders', 'knock', 'check-in', 'weekly reminder'], ['herinneringen van zigi', 'kloppen', 'wekelijkse herinnering']),
   E('zigi-reminders', 'settings-zigi', 'ZIGi’s weekly reminders', ['reminders list', 'goal check-ins', 'remove reminder'], ['lijst van herinneringen', 'herinnering verwijderen']),
   E('zigi-your-day', 'settings-zigi', 'Morning brief and evening recap', ['morning brief', 'brief', 'evening recap', 'recap', 'daily summary', 'summary'], ['ochtendoverzicht', 'avondoverzicht', 'samenvatting', 'dagoverzicht']),
-  E('zigi-auto-accept', 'settings-zigi', 'Auto-accept ZIGi’s cards', ['auto-accept', 'automatic', 'without a tap', 'daily cap'], ['automatisch accepteren', 'automatisch', 'zonder tik', 'daglimiet'], {jump: 'your-ai'}),
-  E('zigi-advanced', 'settings-zigi', 'ZIGi advanced: spend, instructions, turn off', ['tokens', 'cost', 'spend', 'spend protection', 'cap', 'usage', 'custom instructions', 'instructions', 'turn off zigi', 'delete chats'], ['kosten', 'uitgaven', 'limiet', 'gebruik', 'instructies', 'zigi uitzetten', 'chats verwijderen'], {jump: 'your-ai'}),
+  E('zigi-auto-accept-title', 'settings-zigi', 'Auto-accept ZIGi’s cards', ['auto-accept', 'automatic', 'without a tap', 'daily cap'], ['automatisch accepteren', 'automatisch', 'zonder tik', 'daglimiet'], {jump: 'your-ai'}),
+  E('zigi-advanced-title', 'settings-zigi', 'ZIGi advanced: spend, instructions, turn off', ['tokens', 'cost', 'spend', 'spend protection', 'cap', 'usage', 'custom instructions', 'instructions', 'turn off zigi', 'delete chats'], ['kosten', 'uitgaven', 'limiet', 'gebruik', 'instructies', 'zigi uitzetten', 'chats verwijderen'], {jump: 'your-ai'}),
   E('nova-settings', 'settings-zigi', 'NOVA, ZIGi’s command center', ['nova', 'command center', 'command centre', 'brain', 'brain setup', 'what nova can see', 'allow health', 'memory', 'cost cap'], ['nova', 'commandocentrum', 'brein', 'wat nova ziet', 'gezondheid toestaan', 'geheugen', 'kostenlimiet']),
   // Help & diagnostics
   E('settings-help', 'settings-help', 'Help & diagnostics', ['help', 'support', 'faq'], ['hulp', 'ondersteuning', 'vragen']),
@@ -176,7 +176,15 @@ export function searchSettings(query: string, {chain = false, limit = 8}: {chain
   return hits.slice(0, limit).map(h => h.entry);
 }
 
+/** Each entry's id in global Search: `setting:<anchor>`, and `setting:<anchor>:2` for a second entry on the same anchor. */
+function itemIds(): string[] {
+  const seen = new Map<string, number>();
+  return SETTINGS_INDEX.map(e => { const n = (seen.get(e.anchor) ?? 0) + 1; seen.set(e.anchor, n); return n === 1 ? `setting:${e.anchor}` : `setting:${e.anchor}:${n}`; });
+}
 /** The same entries as global Search items (`/app/settings#…`), for lib/search/static.ts. */
 export function settingsSearchItems({chain = false}: {chain?: boolean} = {}): SearchItem[] {
-  return SETTINGS_INDEX.flatMap((entry, i) => entry.chain && !chain ? [] : [{...toItem(entry, i), id: `setting-index:${entry.anchor}:${i}`, href: entry.href ?? `/app/settings#${entry.jump ?? entry.anchor}`}]);
+  const ids = itemIds();
+  return SETTINGS_INDEX.flatMap((entry, i) => entry.chain && !chain ? [] : [{...toItem(entry, i), id: ids[i]!, href: entry.href ?? `/app/settings#${entry.jump ?? entry.anchor}`}]);
 }
+/** The global Search ids that show only once the chain is chosen (as lib/search/static.ts's CHAIN_SETTINGS). */
+export const chainSettingIds = (): ReadonlySet<string> => { const ids = itemIds(); return new Set(SETTINGS_INDEX.flatMap((e, i) => e.chain ? [ids[i]!] : [])); };

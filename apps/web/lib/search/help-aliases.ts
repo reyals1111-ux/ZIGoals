@@ -89,7 +89,7 @@ export const HELP_ALIASES: Readonly<Record<string, readonly string[]>> = {
   'av2-j-can-i-change-an-entry-after-saving-it': ['edit entry', 'version history', 'earlier version'],
   'av2-j-can-i-save-an-entry-as-a-template': ['template', 'reuse entry', 'day one templates'],
   'av2-j-can-i-add-photos-or-a-voice-note-to-a-jo': ['photo', 'voice note', 'audio', 'record', 'day one audio'],
-  'av2-j-how-do-i-link-one-entry-to-another-day': ['link', 'backlink', 'wiki link', '[[ ]]', 'obsidian links'],
+  'av2-j-how-do-i-link-one-entry-to-another-day': ['link', 'backlink', 'wiki link', 'double brackets', 'obsidian links'],
   'av2-j-can-i-bring-my-day-one-journal-into-zigo': ['day one import', 'import journal', 'json', 'migrate'],
   'av2-j-how-do-i-take-my-journal-out': ['export journal', 'markdown', 'pdf', 'backup journal'],
   'av2-j-can-a-note-make-itself-every-week': ['repeating template', 'recurring note', 'notion repeating', 'weekly note'],
