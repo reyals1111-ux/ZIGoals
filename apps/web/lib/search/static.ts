@@ -110,6 +110,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["aw-phone-erase", "Where is Erase everything on a phone?"],
   ["aw-today-coach", "When does the weekly coach show on Today?"],
   ["aw-log-food-phone", "How do I log food in one tap on a phone?"],
+  ["aw-health-closed", "Why can’t ZIGi read my Health?"],
   // Session AV (ADR-045 Part 8).
   ["av-new-tasks", "Which parts of Tasks came with this version?"],
   ["av-new-money", "Which parts of Money came with this version?"],

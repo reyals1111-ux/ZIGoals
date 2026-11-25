@@ -503,4 +503,5 @@ export const HELP_ALIASES: Readonly<Record<string, readonly string[]>> = {
   'aw-phone-erase': ['erase', 'delete everything', 'wipe', 'reset device', 'remove all data', 'wissen', 'alles verwijderen'],
   'aw-today-coach': ['coach', 'weekly check-in', 'macrofactor', 'calorie target', 'weigh-in'],
   'aw-log-food-phone': ['log food', 'meal', 'myfitnesspal', 'cronometer', 'lose it', 'eten loggen'],
+  'aw-health-closed': ['allow health', 'include health', 'health page data', 'privacy', 'toestaan', 'gezondheid delen'],
 };
