@@ -19,6 +19,12 @@ export type FileRead = {recipes: FileRecipe[]; skipped: string[]; photosLeftOut:
 export const RECIPE_ZIP_CAPS: ZipCaps = {maxArchive: 40 * 1024 * 1024, maxEntries: 2000, maxFile: 8 * 1024 * 1024, maxTotal: 60 * 1024 * 1024, maxRatio: 100};
 /** Each recipe's JSON once unpacked (with its photo, before it is left out). */
 export const MAX_RECIPE_JSON = 12 * 1024 * 1024, MAX_TEXT_FILE = 1024 * 1024, MAX_FILE_RECIPES = 200;
+/**
+ * Session AW (review b2 M1; the notes reader's Z1B-5 rule): one unpacking budget for the whole export. Every byte an entry
+ * inflates counts, also for an entry that then fails, and every entry tried counts toward the 200, so an export of many
+ * small gzip bombs stops after this much work instead of unpacking each one up to its own cap.
+ */
+export const MAX_EXPORT_UNPACKED = 96 * 1024 * 1024;
 export const RECIPE_FILE_ACCEPT = '.paprikarecipes,.paprikarecipe,.md,.markdown,.txt,text/plain,text/markdown';
 export type RecipeFileKind = 'paprika-archive' | 'paprika-one' | 'text';
 export function recipeFileKind(name: string): RecipeFileKind | null {
@@ -30,7 +36,7 @@ export function recipeFileKind(name: string): RecipeFileKind | null {
 export class RecipeFileError extends Error {}
 
 /** Unpacks gzip bytes with the platform's DecompressionStream, refusing past `max` bytes of output. */
-export async function gunzip(bytes: Uint8Array, max: number): Promise<Uint8Array> {
+export async function gunzip(bytes: Uint8Array, max: number, spent?: {bytes: number}): Promise<Uint8Array> {
   if (typeof DecompressionStream === 'undefined') throw new RecipeFileError('This browser cannot open compressed recipe files.');
   const reader = new Blob([bytes as BlobPart]).stream().pipeThrough(new DecompressionStream('gzip')).getReader(), parts: Uint8Array[] = [];
   let total = 0;
@@ -39,6 +45,7 @@ export async function gunzip(bytes: Uint8Array, max: number): Promise<Uint8Array
       const {done, value} = await reader.read();
       if (done) break;
       total += value.length;
+      if (spent) spent.bytes += value.length;
       if (total > max) { await reader.cancel().catch(() => undefined); throw new RecipeFileError('larger than ZIGoals reads'); }
       parts.push(value);
     }
@@ -82,7 +89,7 @@ export function markdownToText(md: string): string {
     .trimEnd()).join('\n');
 }
 /** A recipe file into the recipes it holds (at most 200), what was left aside and why, and how many photos were left out. */
-export async function readRecipeFile(name: string, bytes: Uint8Array): Promise<FileRead> {
+export async function readRecipeFile(name: string, bytes: Uint8Array, budget = MAX_EXPORT_UNPACKED): Promise<FileRead> {
   const kind = recipeFileKind(name);
   if (!kind) throw new RecipeFileError('Choose a .paprikarecipes export, a .paprikarecipe, or a Markdown or text recipe (.md, .txt).');
   if (kind === 'text') {
@@ -92,8 +99,9 @@ export async function readRecipeFile(name: string, bytes: Uint8Array): Promise<F
     const parsed = parseRecipeText(body);
     return {recipes: [parsed.title === 'Pasted recipe' ? {...parsed, title: name.replace(/\.[^.]+$/, '').slice(0, 100) || 'Imported recipe'} : parsed], skipped: [], photosLeftOut: 0};
   }
-  const one = async (data: Uint8Array): Promise<{recipe: FileRecipe; photos: number} | null> => {
-    const raw = isGzip(data) ? await gunzip(data, MAX_RECIPE_JSON) : data.length <= MAX_RECIPE_JSON ? data : (() => { throw new RecipeFileError('larger than ZIGoals reads'); })();
+  const spent = {bytes: 0};
+  const one = async (data: Uint8Array, max = MAX_RECIPE_JSON): Promise<{recipe: FileRecipe; photos: number} | null> => {
+    const raw = isGzip(data) ? await gunzip(data, max, spent) : data.length <= MAX_RECIPE_JSON ? data : (() => { throw new RecipeFileError('larger than ZIGoals reads'); })();
     let json: unknown;
     try { json = JSON.parse(text(raw)); } catch { throw new RecipeFileError('not a recipe ZIGoals can read'); }
     return fromPaprikaJson(json);
@@ -109,10 +117,14 @@ export async function readRecipeFile(name: string, bytes: Uint8Array): Promise<F
   catch (e) { throw new RecipeFileError(e instanceof ZipError ? e.message.replace('ZIP archive', 'recipe export').replace('This ZIP', 'This export') : 'This export could not be read.'); }
   const recipes: FileRecipe[] = [], skipped: string[] = zipSkipped.map(z => `${z.name.replace(/^.*\//, '')}: ${z.reason}`);
   let photosLeftOut = 0;
+  let tried = 0;
   for (const f of files) {
     const label = f.name.replace(/^.*\//, '').replace(/\.paprikarecipe$/i, '');
-    if (recipes.length >= MAX_FILE_RECIPES) { skipped.push(`${label}: more than ${MAX_FILE_RECIPES} recipes in one file`); continue; }
-    try { const read = await one(f.data); if (read) { recipes.push(read.recipe); photosLeftOut += read.photos; } else skipped.push(`${label}: no recipe in it`); }
+    if (tried >= MAX_FILE_RECIPES) { skipped.push(`${label}: more than ${MAX_FILE_RECIPES} recipes in one file`); continue; }
+    const left = budget - spent.bytes;
+    if (left <= 0) { skipped.push(`${label}: the export is larger than ZIGoals reads in one go`); continue; }
+    tried++;
+    try { const read = await one(f.data, Math.min(MAX_RECIPE_JSON, left)); if (read) { recipes.push(read.recipe); photosLeftOut += read.photos; } else skipped.push(`${label}: no recipe in it`); }
     catch (e) { skipped.push(`${label}: ${e instanceof RecipeFileError ? e.message : 'damaged'}`); }
   }
   if (!recipes.length && !skipped.length) throw new RecipeFileError('This export holds no recipe.');

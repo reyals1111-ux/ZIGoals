@@ -69,7 +69,7 @@ for (const theme of THEMES) test(`${theme}: this week against the last, notes an
   const named = page.getByRole('region', {name: 'A day you name'});
   await expect(named).toContainText('If the last 4 weeks’ pace continued; an estimate, not medical advice.');
   await named.getByRole('textbox', {name: 'Name of the day'}).fill('The wedding');
-  await named.getByLabel('The day').fill('2026-12-18');
+  await named.getByLabel('The day', {exact: true}).fill('2026-12-18');
   await named.getByRole('button', {name: 'Keep this day'}).click();
   const item = named.getByRole('listitem').filter({hasText: 'The wedding'});
   await expect(item.locator('.x6-figure')).toHaveText(/^About \d+(\.\d)? kg$/);

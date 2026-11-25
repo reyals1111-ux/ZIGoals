@@ -81,13 +81,18 @@ for (const theme of THEMES) test(`${theme}: cooking — scaled, ticked, the meth
   await page.keyboard.press('ArrowRight');
   await expect(view.getByRole('button', {name: 'Start 45 min timer'})).toBeVisible();
   await view.getByRole('button', {name: 'Start 45 min timer'}).click();
-  const timers = view.getByRole('list', {name: 'Timers in this cooking'});
+  // Session AW (x5-paprika, deliberate; integration): with X1's named timers merged, the cooking view's timers run in
+  // Timers (lib/aw-x5/timer-adapter.ts), so they show in the strip on every page, not in the view's in-page fallback
+  // list (which stays away). The same checks: two at once, the first 5:00 left, its end said, cleared with one left.
+  await expect(view.getByRole('list', {name: 'Timers in this cooking'})).toHaveCount(0);
+  const timers = page.getByRole('group', {name: 'Timers running'});
   await expect(timers.getByRole('listitem')).toHaveCount(2);
-  await expect(timers.getByRole('listitem').first()).toContainText(/Soften the leek 5:00 left|Soften the leek 4:5\d left/);
+  await expect(timers.getByRole('listitem').first()).toContainText('Fictional pea soup · Soften the leek');
+  await expect(timers.getByRole('listitem').first()).toContainText(/5:00|4:5\d/);
   await page.clock.runFor(5 * 60_000 + 2_000);
-  await expect(timers.getByRole('listitem').first()).toContainText('time’s up');
-  await expect(view.getByRole('status').filter({hasText: 'Time’s up: Fictional pea soup · Soften the leek.'})).toBeVisible();
-  await timers.getByRole('button', {name: 'Clear the timer Fictional pea soup · Soften the leek'}).click();
+  await expect(timers.getByRole('listitem').first()).toContainText('Done');
+  await expect(page.getByRole('status').filter({hasText: 'Timer done: “Fictional pea soup · Soften the leek”.'})).toBeVisible();
+  await timers.getByRole('button', {name: 'Stop Fictional pea soup · Soften the leek'}).click();
   await expect(timers.getByRole('listitem')).toHaveCount(1);
   await expect(view.getByRole('group', {name: 'Cook for'}).getByRole('button', {name: 'Half'})).toHaveAttribute('aria-pressed', 'true');
   await clean(page, view);

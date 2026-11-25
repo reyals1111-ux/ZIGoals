@@ -19,6 +19,12 @@ export default function PortionCounters({date, today}: {date: string; today: str
   const day = date === today ? 'today' : `on ${formatDate(date)}`;
   const count = (c: PortionCounter, by: 1 | -1) => { const now = countOn(p, c.id, date), next = Math.max(0, Math.min(MAX_PORTION_COUNT, now + by)); save(r => countPortion(r, c.id, date, by), `${nameOf(c)}: ${next} ${day}.`); };
   const close = () => { setEditing(false); requestAnimationFrame(() => opener.current?.focus()); };
+  // Session AW (p5-fixes; FR-TJ-20): with no counter chosen the card was mostly empty space around one link. Until one is
+  // chosen it is one teaching line with its link (no card), in the same section, so "Choose what to count" opens it here.
+  if (!p.counters.length && !editing) return <section className="r6-portions r6-portions-empty" aria-labelledby={`${id}-title`}>
+    <p className="r6-portions-teach"><strong id={`${id}-title`}>Portions {day === 'today' ? 'today' : day}</strong>{' · '}<span className="fine">Count fruit, vegetables or fish with one tap, or something of your own. None is on until you choose it, and there is no “off track”.</span>{' '}<button ref={opener} type="button" className="text-link" aria-expanded={false} onClick={() => setEditing(true)}>Choose what to count</button></p>
+    <p className="fine r6-portions-status" role="status" aria-live="polite">{status}</p>
+  </section>;
   return <section className="panel r6-portions" aria-labelledby={`${id}-title`}>
     <h3 id={`${id}-title`} className="r6-subtitle">Portions {day === 'today' ? 'today' : day}</h3>
     {p.counters.length ? <ul className="r6-portion-list">{p.counters.map(c => { const n = countOn(p, c.id, date), name = nameOf(c); return <li key={c.id} className="r6-portion">

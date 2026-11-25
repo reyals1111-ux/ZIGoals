@@ -40,9 +40,12 @@ describe('every question is answered, EN and NL, and refused while Wealth is clo
   });
 });
 describe('claims none of the corpus questions', () => {
-  test('every intent of the corpus', () => {
-    const env = zigiEnv(showcaseAll());
-    for (const intent of CORPUS) for (const q of [...intent.en, ...intent.nl]) expect(awX7MoneyAnswer(q, env), `${intent.id}: ${q}`).toBeNull();
+  // Session AW (integration, deliberate): the corpus now holds X7's own intents (AW_X7_MONEY, wired by the integrator), which
+  // it must answer; every other intent of the corpus it still leaves alone, and its own are checked below and in the corpus.
+  test('every intent of the corpus but its own', () => {
+    const env = zigiEnv(showcaseAll()), own = new Set(AW_X7_MONEY.map(i => i.id));
+    expect(CORPUS.filter(i => own.has(i.id))).toHaveLength(AW_X7_MONEY.length);
+    for (const intent of CORPUS) if (!own.has(intent.id)) for (const q of [...intent.en, ...intent.nl]) expect(awX7MoneyAnswer(q, env), `${intent.id}: ${q}`).toBeNull();
   }, 120_000);
 });
 describe('the answers before it in engine.ts claim none of its questions', () => {

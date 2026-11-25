@@ -182,7 +182,7 @@ test('a Notes search narrowed by a tag, kept by name, opened in one tap, renamed
   await expect(search.locator('.note-results > li')).toHaveCount(1);
   await expect(search.locator('.note-results')).toContainText('Fictional trip ideas');
   await serious(page, search);
-  await search.getByLabel('Keep this search as').fill('Trip ideas');
+  await search.getByRole('textbox', {name: 'Keep this search as'}).fill('Trip ideas');
   await search.getByRole('button', {name: 'Keep this search', exact: true}).click();
   await expect.poll(async () => (await read<{searches: {name: string; words?: string; tag?: string}[]}>(page, NOTE_SEARCHES_KEY))?.searches).toEqual([expect.objectContaining({name: 'Trip ideas', words: 'trip', tag: 'travel'})]);
   // Cleared, then opened again in one tap.

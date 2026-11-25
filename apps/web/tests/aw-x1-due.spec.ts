@@ -108,9 +108,12 @@ test('quiet hours hold the repeats; the editor and This week set them; own snooz
   await expect(choices.getByRole('list', {name: 'The usual snooze choices'})).toContainText('15 min');
   await choices.getByLabel('Minutes', {exact: true}).fill('90');
   await choices.getByRole('button', {name: 'Add the choice'}).click();
-  await choices.getByLabel('Snooze', {exact: true}).selectOption('weekday');
-  await choices.getByLabel('Weekday').selectOption('1');
-  await choices.getByLabel('Time').fill('09:00');
+  // Session AW (integration): a label that wraps a select is named with its options too ("SnoozeFor a length…"), so the
+  // snooze form's selects are found in its own order (the kind, then the weekday) and the time by its exact label.
+  const snoozeForm = choices.getByRole('form', {name: 'Add a snooze choice'});
+  await snoozeForm.getByRole('combobox').first().selectOption('weekday');
+  await snoozeForm.getByRole('combobox').nth(1).selectOption('1');
+  await snoozeForm.getByLabel('Time', {exact: true}).fill('09:00');
   await choices.getByRole('button', {name: 'Add the choice'}).click();
   await expect.poll(async () => (await prefsOf(page)).snoozes).toEqual([{for: 90}, {at: '09:00', day: 1}]);
   await expect(choices.getByRole('list', {name: 'Your snooze choices'})).toContainText('1 h 30 min · on the notification');

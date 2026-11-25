@@ -127,7 +127,7 @@ for (const theme of THEMES) test(`${theme}: a bill that ends — 3 of 24 left, a
   const form = phone.getByRole('form', {name: 'Edit Phone contract'});
   await form.getByLabel('When it ends').selectOption('after');
   await expect(form.getByLabel('First payment on')).toHaveValue('2026-11-20');
-  await form.getByLabel('Number of payments').fill('24');
+  await form.getByRole('textbox', {name: 'Number of payments'}).fill('24');
   await form.getByLabel('First payment on').fill('2025-02-20');
   expect(await serious(page, form)).toEqual([]);
   await form.getByRole('button', {name: 'Save bill'}).click();
@@ -150,7 +150,7 @@ for (const theme of THEMES) test(`${theme}: a bill that ends — 3 of 24 left, a
   await add.getByLabel('When it ends').selectOption('after');
   await add.getByRole('button', {name: 'Save bill'}).click();
   await expect(add.getByRole('alert')).toHaveText('Enter how many payments, from 1 to 600.');
-  await add.getByLabel('Number of payments').fill('12');
+  await add.getByRole('textbox', {name: 'Number of payments'}).fill('12');
   expect(await serious(page, add)).toEqual([]);
   await add.getByRole('button', {name: 'Save bill'}).click();
   expect((await readRecord<BillsRecord>(page, BILLS_KEY)).bills.find(b => b.title === 'Sofa instalments')!.ends).toEqual({after: 12, from: '2026-11-14'});

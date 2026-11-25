@@ -13058,6 +13058,11 @@
     .journal-calendar-empty[data-today]:not(#\-) {
         outline-color: currentColor
     }
+    @media (max-width: 389.98px) {
+        :scope main .panel .journal-calendar-grid:not(#\-) {
+            --journal-bleed: calc(16px + 1px + var(--phone-gutter,16px) - 4px)
+        }
+    }
     .journal-books-row:not(#\-) {
         border-bottom-color: var(--line)
     }

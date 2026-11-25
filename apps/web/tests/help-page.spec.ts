@@ -164,7 +164,9 @@ test('the wording follows the owner principle: sync once, backups optional, logi
   await questions.getByText('Where do prices come from?', {exact: true}).click();
   await expect(questions.getByText('ZIGoals asks only about the public assets you choose, never your amounts, Goals or wallet.')).toBeVisible();
   await questions.getByText('Can I look up a food by its barcode?', {exact: true}).click();
-  await expect(questions.getByText('Only the barcode number is sent, through ZIGoals to Open Food Facts; the camera picture stays on your device.')).toBeVisible();
+  // Session AW (Part 6 privacy audit, deliberate): the answer also names USDA FoodData Central, where a barcode goes when
+  // Open Food Facts does not know it (workers' food service); the same exact sentence check.
+  await expect(questions.getByText('Only the barcode number is sent, through ZIGoals to Open Food Facts and, for a product it doesn’t know, USDA FoodData Central; the camera picture stays on your device.')).toBeVisible();
 });
 
 test('questions open and close from the keyboard', async ({page}) => {
@@ -222,7 +224,8 @@ for (let quarter = 0; quarter < HELP_QUARTERS; quarter++) test(`viewing Help ask
   await page.goto('/app/help');await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   await expect(page.locator('html')).toHaveAttribute('data-logo-intro', /^(reduced-motion|played|hidden)$/);
   const summaries = await page.locator('.help-question > summary').all();
-  expect(summaries.length, 'every answer on the page').toBeGreaterThanOrEqual(709);
+  // A fresh profile: the chain answers wait for the chain choice (PK-10), so the page holds every other answer, 700 and more.
+  expect(summaries.length, 'every answer on the page').toBeGreaterThanOrEqual(700);
   for (const [index, summary] of summaries.entries()) if (index % HELP_QUARTERS === quarter) await summary.click();
   await page.waitForTimeout(500);
   expect(requests).toEqual([]);
@@ -550,7 +553,8 @@ test('Session AF: the wealth-unlocked answers open from a hash, and nothing is w
     // (Session AG Polish 2, ADR-031: its four answers join this section and open from their hashes the same way.)
     ['ag2-quick-add', 'once it has changed, Undo only takes it off your orbit and the habit stays on Habits'],
     ['ag2-planets', 'each next planet lights once everything in the orbit before it is done'],
-    ['ag2-progress', 'A segment lights the moment you tick its item, even out of order'],
+    // Session AW (Help where-check, deliberate): the bar was taken out in AG Polish 3; the answer now says so, and what is there instead.
+    ['ag2-progress', 'reaching each orbit’s planet is the tracker now'],
     ['ag2-celebration', 'you see its last frame at once'],
     ['af-checklist-timers', 'the whole night lands on Health'],
     ['af-checklist-launcher', 'Your path stays on this device: it is not synced yet'],

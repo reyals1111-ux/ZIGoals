@@ -19,8 +19,8 @@
 .tasks-pick-one { font-size: 17px; font-weight: 600; overflow-wrap: anywhere; }
 .tasks-pick-two { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
 .tasks-pick-two button { text-align: start; white-space: normal; overflow-wrap: anywhere; }
-/* Today's progress and where the day is (#436), in Tasks → Today's heading line */
-.tasks-day-progress { flex: 1 1 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 0; font-size: 15px; color: var(--text-secondary, var(--muted)); }
+/* Today's progress and where the day is (#436), one line under Tasks → Today's list */
+.tasks-day-progress { flex: 1 1 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 12px 0 0; font-size: 15px; color: var(--text-secondary, var(--muted)); }
 .tasks-x2-track { display: block; height: 10px; border-radius: 5px; background: var(--surface-2, var(--line)); overflow: hidden; min-width: 0; }
 .tasks-x2-bar { display: block; height: 100%; border-radius: 5px; background: var(--accent, currentColor); }
 .tasks-day-progress .tasks-x2-track { flex: 0 1 160px; min-width: 96px; }

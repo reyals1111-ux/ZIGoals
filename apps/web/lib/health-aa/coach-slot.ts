@@ -7,8 +7,14 @@
  * Balanced) no longer gets the coach on Today: with Health shown, the card waits for a first Health record of any kind
  * (`records`). A weight alone always shows it. `records` left out keeps the earlier rule (unknown, not zero).
  */
-export const coachSlotShown = ({healthShown, weights, records}: {healthShown: boolean; weights: number; records?: number}): boolean =>
-  weights > 0 || (healthShown && (records === undefined || records > 0));
+/*
+ * Session AW (p5-fixes; FR-S-14, Today part): a person with no weight interest who logged only water or meals still got
+ * "Weekly check-in · Your coach · Log a weight" on Today. When the caller says whether a goal weight is set
+ * (`weightGoal`), the coach waits for a first weigh-in or that goal weight; Health's Weight view keeps the full coach.
+ * `weightGoal` left out keeps the rule above (as the earlier callers had it).
+ */
+export const coachSlotShown = ({healthShown, weights, records, weightGoal}: {healthShown: boolean; weights: number; records?: number; weightGoal?: boolean}): boolean =>
+  weights > 0 || (healthShown && (weightGoal !== undefined ? weightGoal : records === undefined || records > 0));
 
 /** Session AL (NB-254): where "Log a weight →" goes: the Weight view, with its weight field focused (not the Diary). */
 export const LOG_WEIGHT_HREF = '/app/health?view=weight&add=weight';

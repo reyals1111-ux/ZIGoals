@@ -225,11 +225,16 @@ test.describe('Part 2: personal layouts',()=>{
   // Session AC: the order is read while arranging, where the default's hidden twins (Daily Habits, the Next Goal action)
   // are listed with "Show card"; a move steps past a hidden card as past any other.
   const initial=await order(page,'today:main');
+  // Session AW (simplicity-a, deliberate; owner brief Part 3): the default order now starts with the day's habits (Daily
+  // Habits and its twin), so the Whole-life overview is no longer first; the same move is asserted at its own place: it
+  // and the card after it swap, everything else stays, and Reset restores the default exactly. As strict.
+  const life=initial.indexOf('builtin:whole-life');expect(life).toBeGreaterThanOrEqual(0);expect(life+1).toBeLessThan(initial.length);
+  const moved=[...initial.slice(0,life),initial[life+1],initial[life],...initial.slice(life+2)];
   await page.getByRole('button',{name:`Move Whole-life overview down`,exact:true}).click();
-  await expect.poll(()=>order(page,'today:main')).toEqual([initial[1],initial[0],...initial.slice(2)]);
+  await expect.poll(()=>order(page,'today:main')).toEqual(moved);
   await page.reload();await expect(page.locator('[data-layout-region="today:main"]').first()).toBeVisible();
   await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
-  await expect.poll(()=>order(page,'today:main')).toEqual([initial[1],initial[0],...initial.slice(2)]);
+  await expect.poll(()=>order(page,'today:main')).toEqual(moved);
   await page.getByRole('button',{name:'Reset this page',exact:true}).click();
   await expect.poll(()=>order(page,'today:main')).toEqual(initial);
  });

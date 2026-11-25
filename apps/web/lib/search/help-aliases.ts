@@ -498,4 +498,9 @@ export const HELP_ALIASES: Readonly<Record<string, readonly string[]>> = {
   'aw-simple-wealth-filters': ['filter holdings', 'accounts', 'debts', 'assets', 'needs attention', 'what you have', 'rekeningen', 'schulden', 'bezittingen'],
   'aw-simple-first-goal': ['plan my first goal', 'first goal', 'destination', 'start with what matters', 'eerste doel plannen'],
   'aw-tasks-more-views': ['more views', 'fewer views', 'tasks menu', 'views', 'meer weergaven'],
+  // Session AW Part 5 (p5-fixes)
+  'aw-goal-add-money': ['add money', 'fund goal', 'contribute', 'deposit', 'top up', 'savings goal', 'ynab target', 'monzo pots', 'inleggen'],
+  'aw-phone-erase': ['erase', 'delete everything', 'wipe', 'reset device', 'remove all data', 'wissen', 'alles verwijderen'],
+  'aw-today-coach': ['coach', 'weekly check-in', 'macrofactor', 'calorie target', 'weigh-in'],
+  'aw-log-food-phone': ['log food', 'meal', 'myfitnesspal', 'cronometer', 'lose it', 'eten loggen'],
 };

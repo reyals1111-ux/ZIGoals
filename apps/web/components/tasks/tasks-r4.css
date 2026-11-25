@@ -28,3 +28,9 @@
 .task-plan-fields legend { font-size: 15px; padding: 0 4px; }
 .task-plan-fields .field { flex: 1 1 200px; min-width: 0; }
 .task-plan-fields .task-editor-check { flex: 1 1 100%; min-height: 44px; }
+
+/* Session AW (X2 #435; CI run 2034, a10-life A10-11): Fit my day and Pick one for me side by side where both fit; an
+   open one takes the whole row, the other wraps below it. Layout only, no colour. */
+.tasks-plan-folds { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-start; min-width: 0; }
+.tasks-plan-folds > details { flex: 1 1 240px; min-width: 0; margin: 0; }
+.tasks-plan-folds > details[open] { flex-basis: 100%; }

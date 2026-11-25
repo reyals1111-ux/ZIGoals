@@ -3,6 +3,8 @@ import "./phone-settings.css";
 import Link from "next/link";
 import { AppIcon } from "../app-icon";
 import { usePhoneChrome } from "./use-phone-layout";
+import { useSyncExternalStore } from "react";
+import { isShowcase } from "../../lib/showcase-storage";
 
 /**
  * Settings on a phone (Session E): a grouped list under the title, like the system settings app, that takes the place of
@@ -25,6 +27,9 @@ const GROUPS: { title: string; rows: [label: string, note: string, target: strin
     ["Privacy & storage", "What stays in this browser", "privacy"],
     ["Export everything", "Optional: one readable ZIP of all your records", "export-everything"],
     ["Import from other apps", "Apple Health, Samsung, Oura, Loop", "switch-import"],
+    // Session AW (p5-fixes; FR-L-17): FRIENDS_GUIDE §8 sends people to Erase everything, the last part of Backup & restore;
+    // the phone list had no row for it. Last here, as on the page.
+    ["Erase everything", "Remove every ZIGoals record from this browser", "erase-everything"],
   ] },
   { title: "Your app", rows: [
     ["Pages & start page", "Hide what you don’t use; where ZIGoals opens", "your-pages"],
@@ -39,6 +44,8 @@ const GROUPS: { title: string; rows: [label: string, note: string, target: strin
     ["Weekly review day", "The day Today offers your review", "habits-settings"],
     ["Health targets", "Calories, water, steps and units", "health-settings"],
     ["Guide on this device", "Calm notes from your own records", "guide"],
+    // Session AW (p5-fixes; FR-L-17): Notifications (habits, tasks, bills and the rest, on time) had no row either.
+    ["Notifications", "Habits, tasks, bills and more, on time", "notifications"],
     ["Reminders when closed", "Push on this device, opt-in", "reminders"],
     ["Market data sources", "Price sources and freshness", "market-data"],
   ] },
@@ -70,14 +77,17 @@ const GROUPS: { title: string; rows: [label: string, note: string, target: strin
 
 /** Rows shown only once the chain is chosen (lib/chain-choice.ts). */
 const CHAIN_ROWS = new Set(["wallet-network"]);
+/** Session AW (p5-fixes; FR-L-17): rows whose section the Showcase leaves out (its tab erases nothing of yours). */
+const NOT_IN_SHOWCASE = new Set(["erase-everything"]);
+const noSubscribe = () => () => {};
 export function PhoneSettingsList({ chain = true }: { chain?: boolean }) {
-  const show = usePhoneChrome();
+  const show = usePhoneChrome(), showcase = useSyncExternalStore(noSubscribe, isShowcase, () => false);
   if (!show) return null;
   return <nav className="phone-settings-list" aria-label="Settings sections">
     {GROUPS.map(group => <section key={group.title} aria-label={group.title}>
       <h2>{group.title}</h2>
       <ul>
-        {group.rows.filter(([, , target]) => chain || !CHAIN_ROWS.has(target)).map(([label, note, target]) => {
+        {group.rows.filter(([, , target]) => (chain || !CHAIN_ROWS.has(target)) && !(showcase && NOT_IN_SHOWCASE.has(target))).map(([label, note, target]) => {
           const content = <><span className="phone-settings-copy"><strong>{label}</strong><small>{note}</small></span><span className="phone-settings-chevron" aria-hidden="true"><AppIcon name="back" size={18} /></span></>;
           // Section rows jump within the page; the welcome row and Your data open their own pages (phones only, by the owner's choice).
           return <li key={`${target}:${label}`}>{target.startsWith("/") ? <Link href={target} aria-label={label}>{content}</Link> : <a href={`#${target}`} aria-label={label}>{content}</a>}</li>;
