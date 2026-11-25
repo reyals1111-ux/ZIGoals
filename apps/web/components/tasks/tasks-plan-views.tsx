@@ -28,6 +28,7 @@ import {isCancelled, isFinished} from '../../lib/tasks/finished';
 const TaskEditor = lazy(() => import('./task-editor'));
 // Session AV lane 2 (r4-plan, LEDGER #300, #301, #305): Plan my week, the floating repeats and the working hours, their own chunks.
 const PlanWeek = lazy(() => import('./plan-week'));
+const ReminderChoices = lazy(() => import('./reminder-choices'));
 const FloatingRepeats = lazy(() => import('./plan-week').then(m => ({default: m.FloatingRepeats})));
 const TaskHoursSettings = lazy(() => import('./task-hours-settings'));
 /** Session AV lane 2 (r5-plan, LEDGER #348; Akiflow's time slots): named time blocks (its own chunk). */
@@ -125,6 +126,8 @@ function WeekView({list, goals, record, today}: {list: List; goals: Goals; recor
       : <p className="fine">Every open task has a day.</p>}
     <WeekTable list={list} record={record} days={days} today={today} />
     <TaskPlanSettings />
+    {/* Session AW (X1, LEDGER #438, #439): remind again and own snooze choices, their own chunk. */}
+    <Suspense fallback={null}><ReminderChoices /></Suspense>
     <Suspense fallback={null}><TaskHoursSettings /></Suspense>
     <Suspense fallback={null}><TimeBlocksSettings today={today} /></Suspense>
   </section>;

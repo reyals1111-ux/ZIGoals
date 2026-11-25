@@ -9,6 +9,7 @@ import {checklistZone} from '../../lib/checklist/zone';
 import {formatClock, formatNumber} from '../../lib/visual-format';
 import {useTaskList} from './use-task-list';
 import {ReminderRows} from './reminder-rows';
+import {useRemindAgain} from './use-remind-again';
 import './today-tasks-due.css';
 
 /**
@@ -24,7 +25,8 @@ export function TodayTasksDue() {
   // Session AV lane 2 (r6-plan, LEDGER #394): with a focus on, only its tasks (said in the line; no Tab stop is added).
   const focusRead = useDeviceRecord(FOCUS_VIEW), focus = tasks.loaded && !tasks.unreadable ? liveFocus(focusRead.data, tasks.data) : null;
   const due = useMemo(() => tasks.loaded && !tasks.unreadable ? viewTasks(tasks.data, {kind: 'today'}, today, clock).filter(t => inFocus(t, focus, tasks.data)) : [], [tasks.loaded, tasks.unreadable, tasks.data, today, clock, focus]);
-  const reminders = useMemo(() => tasks.loaded && !tasks.unreadable ? dueReminders(tasks.data, now, checklistZone(), {dismissed}) : [], [tasks.loaded, tasks.unreadable, tasks.data, now, dismissed]);
+  const again = useRemindAgain(); // Session AW (X1, LEDGER #438)
+  const reminders = useMemo(() => tasks.loaded && !tasks.unreadable ? dueReminders(tasks.data, now, checklistZone(), {dismissed, again}) : [], [tasks.loaded, tasks.unreadable, tasks.data, now, dismissed, again]);
   if (!tasks.loaded || tasks.unreadable || (!due.length && !reminders.length)) return null;
   const overdue = due.filter(t => taskState(t, today, clock) === 'overdue').length, first = due.find(t => taskState(t, today, clock) !== 'overdue') ?? due[0];
   return <section className="today-tasks-due" aria-label="Tasks due today">

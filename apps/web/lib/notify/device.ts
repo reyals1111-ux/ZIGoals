@@ -81,7 +81,7 @@ export async function turnOnNotifications(publicKey: string): Promise<TurnOn> {
 export type Refresh = {ok: boolean; message: string; sent: boolean};
 /** The "Snooze 1 h" taps the worker queued (applied or not: applying one changes no record); none when the queue cannot be read. */
 export async function queuedSnoozes(): Promise<Snooze[]> {
-  try { return (await readActions()).filter(a => a.type === 'snooze' && Array.isArray(a.items)).map(a => ({at: a.at, items: a.items!})); } catch { return []; }
+  try { return (await readActions()).filter(a => a.type === 'snooze' && Array.isArray(a.items)).map(a => ({at: a.at, items: a.items!, ...(typeof a.until === 'number' ? {until: a.until} : {})})); } catch { return []; }
 }
 /** Nothing to wake for: the Worker refuses an empty wake list (security review F2). */
 export const emptyRegistration = (r: Registration) => r.wakes.length + r.once.length === 0;

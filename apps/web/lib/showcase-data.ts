@@ -121,6 +121,7 @@ import {showcaseRewardsShelf} from './rewards-shelf/showcase';
 import {MUSCLE_RECOVERY_KEY} from './muscle-freshness/model';
 import {showcaseMuscleRecovery} from './muscle-freshness/showcase';
 import {SHOWCASE_GUIDED_KEY, showcaseGuidedJourneys} from './guided/showcase';
+import {withAwX1Showcase} from './timers/showcase';
 // The part of the day each fictional habit is checked in and each meal is logged (the habits' own time of day).
 const HABIT_PARTS:DayPart[]=['morning','morning','afternoon','evening','evening','afternoon'],MEAL_PARTS:DayPart[]=['morning','afternoon','evening','afternoon'];
 const coin=(id:string):MarketAssetRef=>({provider:'coingecko',kind:'coin',id});
@@ -312,6 +313,7 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  // Session AU (D8, ADR-044 D-SHOWCASE): two weeks of example evening moods in Health's own `moods` group, and labelled
  // "Example · " mood tags on eight of those days (lib/showcase/au-examples.ts); the tags stay unread by ZIGi and NOVA.
  records[HEALTH_STORAGE_KEY]=JSON.stringify(healthSchema.parse(withHealthGroup(healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)),'moods',showcaseMoods(day),false)));records[MOOD_TAGS_KEY]=JSON.stringify(showcaseMoodTags(day));
+ withAwX1Showcase(records,day); // Session AW (X1, LEDGER #440): three kept timers labelled "(Showcase)", none running.
  return {day,records};
 }
 /**

@@ -22,6 +22,7 @@ import {ENERGY_HINTS, ENERGY_WORDS} from '../../lib/tasks/energy-load';
 import {TASK_ENERGY, type TaskEnergy} from '../../lib/tasks/schema';
 import {DREAD_LEVELS, DREAD_WORDS} from '../../lib/tasks/dread';
 import {r5FieldsOf, r5Patch, type R5Fields} from '../../lib/tasks/r5-fields';
+import {againChoiceOf, againPatch, type AgainChoice} from '../../lib/tasks/remind-again';
 
 const HabitLinkField = lazy(() => import('./habit-link-field'));
 /** Session AV lane 2 (roadmap, LEDGER #8): photos and voice notes on the task, on this device (its own chunk). */
@@ -42,6 +43,8 @@ const TaskR5Fields = lazy(() => import('./task-r5-fields'));
 const TaskR5Actions = lazy(() => import('./task-r5-actions'));
 /** Session AV lane 2 (r6-plan, LEDGER #393, #396): subtasks in order, and a repeat's record (its own chunk). */
 const TaskR6Parts = lazy(() => import('./task-r6-parts'));
+// Session AW (X1, LEDGER #438): remind again until done, its own chunk.
+const RemindAgainField = lazy(() => import('./remind-again-field'));
 /** Session AV lane 2 (r4-plan, LEDGER #305; Motion): a repeat that floats in its week or month, typed in words. */
 const FLOATING = /^(?:once (?:a|per|this|each|every) (week|month)(?:,? any day)?|any day (?:this|a|each|every|of the) (week|month)|(?:een keer|eens|1x) per (week|maand))$/i;
 /** Session AV (1c, q1 #1): the editor offers up to three reminders a task (the record keeps up to five). */
@@ -100,6 +103,8 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
   const [planFields, setPlanFields] = useState<PlanFields>(() => ({chunk: task.chunk ? String(task.chunk) : '', after: (task.after ?? []).filter(x => !record || record.tasks.some(t => t.id === x)) /* a task no longer here drops out on save */, afterHours: !!task.afterHours}));
   // Session AV lane 2 (r5-plan, LEDGER #348, #349, #353, #354): where and when.
   const [r5, setR5] = useState<R5Fields>(() => r5FieldsOf(task));
+  // Session AW (X1, LEDGER #438): whether its reminders come back until Done or Snooze (the default, off, or its own).
+  const [again, setAgain] = useState<AgainChoice>(() => againChoiceOf(task));
   const save = (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim()) { setTitleError('A task needs a title.'); return; }
@@ -115,7 +120,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
       ...(unchangedRepeat ? {} : {recur: recur ? {...recur, text: repeat.trim().slice(0, 120)} : null}),
       labels: labels.split(/[\s,]+/).map(l => l.replace(/^@/, '')).filter(Boolean),
       ...(record ? {projectId: projectId || null, sectionId: sectionId || null} : {}),
-      reminders: [...[...new Set(reminders.filter(r => r !== '').map(Number))].slice(0, MAX_EDITOR_REMINDERS).map(before => ({before})), ...(remindAt ? [{before: 0, at: remindAt}] : [])], habit: habit || null, health: (health || null) as HealthLink | null,
+      reminders: [...[...new Set(reminders.filter(r => r !== '').map(Number))].slice(0, MAX_EDITOR_REMINDERS).map(before => ({before, ...againPatch(again)})), ...(remindAt ? [{before: 0, at: remindAt, ...againPatch(again)}] : [])], habit: habit || null, health: (health || null) as HealthLink | null,
       early: due && early ? Number(early) : null, parallel: parallel ? true : null, spent: spentValue, objective: objective || null, comments, ...(fieldValues !== undefined ? {fields: fieldValues} : {}),
       ...(look || task.look ? {look: look ?? null} : {}), ...(energy || task.energy ? {energy: energy || null} : {}), ...(dread || task.dread ? {dread: dread ? Number(dread) as 1 | 2 | 3 : null} : {}),
       ...(planFields.chunk || task.chunk ? {chunk: planFields.chunk ? Number(planFields.chunk) : null} : {}), ...(planFields.after.length || task.after ? {after: planFields.after} : {}), ...(planFields.afterHours || task.afterHours ? {afterHours: planFields.afterHours ? true : null} : {}), ...where};
@@ -168,6 +173,7 @@ export function TaskEditor({task, today, goals, linked, record, habits = [], onS
     {/* Session AV lane 2 (LEDGER #3; Todoist, TickTick): a reminder at a date and time of its own, also for a task with no day. */}
     <label className="field"><span>Remind me at — optional</span><input type="datetime-local" value={remindAt} aria-describedby={`${id}-remind-at`} onChange={e => setRemindAt(e.target.value.slice(0, 16))} />
       <small id={`${id}-remind-at`} className="tasks-field-note">{remindAt ? `A reminder on ${formatDate(remindAt.slice(0, 10), {weekday: true, year: false})} at ${formatClock(remindAt.slice(11, 16))}.` : 'Any day and time, apart from the task’s own. In the add line, “!2h” reminds 2 hours before and “!18:30” at that time.'}</small></label>
+    <Suspense fallback={null}><RemindAgainField value={again} onChange={setAgain} hasReminder={(!!due && reminders.some(r => r !== '')) || !!remindAt} /></Suspense>
     {/* Session AV lane 2 (LEDGER #17; Things' start early): in Today some days before its day. */}
     <label className="field"><span>Start early</span><select value={early} disabled={!due} onChange={e => setEarly(e.target.value)}><option value="">On its day</option>{[1, 2, 3, 5, 7, 14].map(n => <option key={n} value={n}>{n === 1 ? '1 day before' : `${n} days before`}</option>)}</select></label>
     {/* Session AV lane 2 (LEDGER #27; Sunsama's background tasks). */}

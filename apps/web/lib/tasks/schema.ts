@@ -84,7 +84,14 @@ export type Recur = z.infer<typeof recurSchema>;
  * `before` stays (0 for such a reminder), so an older build still reads the reminder as "at the time" of a dated task.
  */
 export const REMINDER_AT = /^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d$/;
-export const reminderSchema = z.looseObject({before: z.number().int().min(0).max(40_320), at: z.string().regex(REMINDER_AT).optional().catch(undefined)});
+/**
+ * Session AW (X1, LEDGER #438; Due's "remind again"; TIER 3 (stored format), additive and optional): `again` repeats a
+ * reminder that has gone off every 5, 10, 15 or 30 minutes, 2 to 10 times, until the task is done or the reminder snoozed
+ * (lib/tasks/remind-again.ts); `false` keeps this reminder from following the device's default. A value this build cannot
+ * read is dropped on read; older builds keep it untouched (the object is loose) and remind once, as before.
+ */
+export const reminderAgainSchema = z.union([z.literal(false), z.looseObject({every: z.union([z.literal(5), z.literal(10), z.literal(15), z.literal(30)]), times: z.number().int().min(2).max(10)})]);
+export const reminderSchema = z.looseObject({before: z.number().int().min(0).max(40_320), at: z.string().regex(REMINDER_AT).optional().catch(undefined), again: reminderAgainSchema.optional().catch(undefined)});
 export type TaskReminder = z.infer<typeof reminderSchema>;
 
 /**

@@ -61,6 +61,7 @@ import {av2R6NotesAnswer} from './av2-r6-notes';
 import {awX3Answer} from './aw-x3';
 import {av2R6PlanAnswer} from './av2-r6-plan';
 import {awX2TasksAnswer} from './aw-x2-tasks';
+import {awX1Answer, readAwX1Extra} from './aw-x1-due';
 import {av2R4HealthAnswer} from './av2-r4-health';
 import {av2R4PlanAnswer} from './av2-r4-plan';
 import {av2R3NotesAnswer} from './av2-r3-notes';
@@ -306,6 +307,8 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   // progress, time targets and the stuck-task guide (aw-x2-tasks.ts), before round 6's planning answers.
   if (!subject) { const own = awX2TasksAnswer(question, env, {plan: env.nova?.taskPlan}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, round 6 (Tasks: projects on hold, in order, focus, label groups): before round 5's.
+  // Session AW (X1, LEDGER #438–#440; Due): named timers, remind again and own snooze choices, read from this device.
+  if (!subject) { const own = awX1Answer(question, env, readAwX1Extra()); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   if (!subject) { const own = av2R6PlanAnswer(question, env, {plan: env.nova?.taskPlan}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   if (!subject) { const own = av2R5PlanAnswer(question, env, {plan: env.nova?.taskPlan}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   if (!subject) { const own = av2R4PlanAnswer(question, env, {plan: env.nova?.taskPlan}); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }

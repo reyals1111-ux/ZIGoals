@@ -12,6 +12,7 @@ import {TasksGlyph} from './tasks-glyph';
 import {TaskRow, TaskStatusLine} from './task-parts';
 import {PASTE_PARENT, SmartAdd} from './smart-add';
 import {ReminderRows} from './reminder-rows';
+import {useRemindAgain} from './use-remind-again';
 import {TasksNav, viewKey, readView, viewTitle} from './tasks-nav';
 import {useTaskList} from './use-task-list';
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -182,7 +183,8 @@ export function TasksPage() {
   // A saved filter view waits for the search chunk (it would read as empty); a typed query keeps the view's list meanwhile.
   const ready = tasks.loaded && (view.kind !== 'filter' || !!matchTasks);
   const counts = useMemo(() => taskCounts(record, today, clock), [record, today, clock]); // RR-8: the list's own clock
-  const reminders = useMemo(() => tasks.loaded ? dueReminders(record, now, checklistZone(), {dismissed}) : [], [tasks.loaded, record, now, dismissed]);
+  const again = useRemindAgain(); // Session AW (X1, LEDGER #438): a reminder repeats until done or snoozed
+  const reminders = useMemo(() => tasks.loaded ? dueReminders(record, now, checklistZone(), {dismissed, again}) : [], [tasks.loaded, record, now, dismissed, again]);
   const salvage = useMemo(() => tasks.unreadable ? salvageTasks() : null, [tasks.unreadable]);
   const visibleIds = useMemo(() => shown.map(t => t.id), [shown]);
   const selectMode = selecting || selected.size > 0;
@@ -455,8 +457,8 @@ export function TasksPage() {
         <h2>Reminders</h2>
         {/* Session AV (1c, q1 #1): Done, Snooze (15 min, 1 h, tomorrow) and Dismiss on every reminder. */}
         <ReminderRows reminders={reminders} className="tasks-reminder-list" label="Reminders that have gone off" change={list.change} onDone={t => list.toggle(t, true)} onDismiss={key => setDismissed(s => new Set(s).add(key))} onFocus={setFocus} fallback={() => addField.current}
-          line={r => <span><span dir="auto">{r.task.title}</span> · {r.task.time ? `${formatClock(r.task.time)}` : 'today'}{r.task.due && r.task.due !== today ? ` · ${formatDate(r.task.due, {weekday: true, year: false})}` : ''}</span>} />
-        <p className="fine">Reminders show here and on Today while the app is open. On your device’s notifications only when notifications are switched on in Settings.</p>
+          line={r => <span><span dir="auto">{r.task.title}</span> · {r.task.time ? `${formatClock(r.task.time)}` : 'today'}{r.task.due && r.task.due !== today ? ` · ${formatDate(r.task.due, {weekday: true, year: false})}` : ''}{r.round ? ` · again, ${r.round} of ${r.times}` : ''}</span>} />
+        <p className="fine">Reminders show here and on Today while the app is open; one set to remind again comes back until you tick Done or Snooze (Tasks → This week → Reminders). On your device’s notifications only when notifications are switched on in Settings.</p>
       </section>}
       {filesOpen && <section className="panel tasks-files-panel" aria-labelledby="tasks-files-title"><h2 id="tasks-files-title"><NebulaFlow identity="tasks-files-title">Files</NebulaFlow></h2>
         <LoadBoundary label="Files"><Suspense fallback={<p className="fine">Opening…</p>}><FilesView titles={new Map(record.tasks.map(t => [t.id, t.title]))} onOpenTask={openTaskFromFiles}/></Suspense></LoadBoundary>

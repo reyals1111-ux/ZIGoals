@@ -4,6 +4,7 @@ import {labelsInUse, projectHeld, viewTasks, type TaskView} from '../../lib/task
 import {TASK_COLOURS, LEVEL_WORDS, type Project, type TaskColour, type TaskLevel, type Tasks} from '../../lib/tasks/schema';
 import {formatNumber} from '../../lib/visual-format';
 import {TEXT_LIMITS} from '../../lib/limits/text'; // Session AO (M-011): the one limits table
+import {openTimersEvent} from '../../lib/timers/open';
 
 /**
  * Session AL (Part 8, P-LS-06, LS-045): the views of Tasks — Inbox, Today, Upcoming, everything, overdue, completed
@@ -92,7 +93,9 @@ export function TasksNav({record, today, view, board, counts, projects, onGo, on
     {/* Session AV lane 2 (tasks): planning and layouts (Sunsama, Todoist, TickTick, Notion), drawn by their own chunk. */}
     <h3>Plan and views</h3>
     <ul>{([['week', 'This week'], ['table', 'Table'], ['days', 'Calendar'], ['timeline', 'Timeline'], ['insights', 'Insights'], ['organise', 'Areas and templates']] as const).map(([kind, label]) => item({kind}, label))}
-      {/* Session AV lane 2 (r6-plan, LEDGER #395): once a project has a review interval; Session AW (X2, LEDGER #433, #434): or once there is a task (Moved most, Open a long time) */}{(record.tasks.length > 0 || record.projects?.some(p => p.review && !p.archived)) && item({kind: 'review'}, 'Review', toReview)}</ul>
+      {/* Session AV lane 2 (r6-plan, LEDGER #395): once a project has a review interval; Session AW (X2, LEDGER #433, #434): or once there is a task (Moved most, Open a long time) */}{(record.tasks.length > 0 || record.projects?.some(p => p.review && !p.archived)) && item({kind: 'review'}, 'Review', toReview)}
+      {/* Session AW (X1, LEDGER #440): named timers, several at once, in their own sheet (not a view). */}
+      <li><button type="button" className="tasks-nav-item" aria-haspopup="dialog" onClick={openTimersEvent}><span>Timers</span></button></li></ul>
     <h3>Projects</h3>
     {/* Session AV lane 2 (LEDGER #20, #12): projects under their area (Things' Areas, TickTick's folders). */}
     {(record.areas?.length ? [...record.areas.map(a => ({key: a.id, name: a.name as string | null, items: live.filter(p => p.areaId === a.id)})), {key: '', name: null, items: live.filter(p => !p.areaId || !record.areas!.some(a => a.id === p.areaId))}] : [{key: '', name: null, items: live}])
