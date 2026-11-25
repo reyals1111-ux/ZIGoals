@@ -368,3 +368,46 @@ APPROVED, with these amendments (they override the plan where they differ). Afte
 Everything else in the plan is approved as written. Use the whole budget; continue after any pause or reset from AW_RESUME without asking; the owner may type "wrap up".
 
 ## Decisions
+
+### D-CI2031 — the baseline run on Part 0 (main's code)
+[Run 2031](https://github.com/reyals1111-ux/ZIGoals/actions/runs/45632710558) on `485bd80b` (docs only over `main`):
+29 of 32 jobs green on the first attempt. Red: main shard 10, `earn-guide-zigi:54` (mobile, both attempts; third
+sighting after runs 1937 and 2028), and WebKit shard 2, `zigi-voice-z:199` (both attempts; the registered WebKit
+slow-load class). Main shard walls 26.9–53.6 min (shard 2), WebKit 22.4–29.9, a11y 12.7–25.5. Measured from the
+JSON reports: **main suite 1,227 worker-minutes** (retries included), a11y 97.
+
+### D-EARN54 — `earn-guide-zigi:54`, fixed at its cause (attempt 1)
+Reproduced locally: 3 of 4 failed with tracing on, 0 of 4 with tracing off. The trace showed no hang, only the test
+timeout: three guides, a reload and every phone fold twice made the one test longer than 45 s once CI's
+`retain-on-failure` tracing records every action. The "Open Valdora" click was just the step in flight at 45 s. The test
+is now two tests with the same setup and every step and assertion kept (`3115574d`, labelled deliberate in the spec):
+24 of 24 with tracing on, both projects, two workers. No timeout raised.
+
+### D-SPEED — Part 2, speed (probe: `scratchpad/tools/speed.cjs`)
+The probe opens each route in Playwright's Chromium (the sandbox build) on the production build: CPU throttled 4× over
+CDP, a 390×844 touch viewport and an empty profile. It records FCP, DCL, load, "hydrated" (the moment `<html
+data-app-hydrated>` is set, which the shell writes after hydration), the long-task blocking time until 1.5 s after load
+and the scripts' transfer size. Each figure is the median of 3 runs. A/B runs alternate the base build (`8fa8aa1d`,
+:3102) and the new build (:3101) route by route, so the machine's load (six builders) hits both alike.
+- **Attempt 1, Settings** (`1df5ca90`): the parts of the five lower groups (27 components, about 130 modules only they
+  use) load as their own chunk, still rendered by the server, with their 18 stylesheets kept with the page. Settings'
+  weight is 521.7 → 409.5 kB. Traced A/B: hydrated 5,563 → 4,913 ms, blocking 3,093 → 2,482 ms. Untraced A/B: hydrated
+  5,118 → 4,998 ms. The largest single task (about 1.6 s, React's hydration of the page's server HTML) is unchanged. Each
+  of the other routes measures +1.2 kB: turbopack cut the shared shell into one more chunk, with the same modules in it
+  (each module's code is unchanged; gzip of six chunks is about 1.2 kB more than five).
+- **Attempt 1, NOVA** (`3e2153c1`, D36): the star's first-frame read-back (`readPixels`) ran in the same task as its
+  draw, which held the page until the GPU process had finished the frame. On a runner's software GPU that is about
+  200 ms a frame unthrottled (dev profile, `StarSystem…prove`). It now runs 120 ms later, on the same frames, with the
+  same "two empty frames mean empty" rule. The probe's CPU throttle does not slow the GPU process, so this sandbox shows
+  no change (blocking 2,047 → 2,072 ms, noise). The fix is aimed at CI's loaded runners.
+- To be continued (attempt 2), with the numbers in the closing table.
+
+### D-CI-WEBKIT6 and D-CI-SHARDS-AW — TIER 3 CI (`48eb8149`)
+- WebKit runs in six shards, not four (owner amendment 9). The lists are packed from run 2031's WebKit logs (each test
+  start's gap at two workers). Shard 1 holds `zigi-accept-correct` alone, the old floor (about 25 min on one worker in
+  WebKit desktop). Its independent cases now run in parallel on the job's two workers (`describe.configure({mode:
+  'parallel'})`, deliberate, every case unchanged).
+- The WebKit results JSON is uploaded for every shard on every run, so later packing reads measured durations.
+- The twenty main lists are repacked from run 2031's JSON per-file durations, about 62 worker-min each (AV's lists
+  measured 45–85).
+- The 60-min limit, the two workers and every test stay.
