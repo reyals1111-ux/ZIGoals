@@ -1,3 +1,4 @@
+import {join} from 'node:path';
 import {readFileSync} from 'node:fs';
 import {expect, test, type Page} from '@playwright/test';
 import {axe, THEMES, applyTheme, type Theme} from './p6-helpers';
@@ -42,7 +43,7 @@ async function start(page: Page, theme: Theme | null, isMobile: boolean) {
  * MediaRecorder, as the app records), in place of a generated WAV stored as audio/webm, which Chrome would not load.
  */
 async function seedMedia(page: Page, photos: string[], audio: string | null) {
-  const voiceB64 = audio ? readFileSync(new URL('./fixtures/media/voice-tone-40s.webm', import.meta.url)).toString('base64') : '';
+  const voiceB64 = audio ? readFileSync(join(__dirname, 'fixtures', 'media', 'voice-tone-40s.webm')).toString('base64') : '';
   await page.evaluate(async ([png, photoIds, audioId, at, voice64]) => {
     const bytes = Uint8Array.from(atob(png as string), c => c.charCodeAt(0));
     const voice = audioId ? new Blob([Uint8Array.from(atob(voice64 as string), c => c.charCodeAt(0))], {type: 'audio/webm'}) : null;
