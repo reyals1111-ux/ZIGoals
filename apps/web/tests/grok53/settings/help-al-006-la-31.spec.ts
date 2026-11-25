@@ -39,10 +39,18 @@ test('PR-034: What\'s new opens with this version — NOVA, Notes, Tasks, the Ch
   // Session AV follow-up 2 (1d, deliberate test change, equally strict): the session's 53 lines became six, one per pillar
   // (77 → 30). Each line opens its own answer; each answer is checked to name its parts, and every one of the 53 answers
   // it replaced is still on the page, each opening by its own link as before.
-  await expect(list.getByRole('link')).toHaveCount(30);
+  // Session AW (ADR-046 Part 3, deliberate; CI run 2034): this session's answers in six lines first, one per area (Health,
+  // Habits, Tasks, the Journal and Notes, Goals, Money), each opening its own answer, which names its parts (30 → 36).
+  await expect(list.getByRole('link')).toHaveCount(36);
+  for (const [id, starts] of [['aw-new-health', 'Health: '], ['aw-new-habits', 'Habits: '], ['aw-new-tasks', 'Tasks: reminders that come back'], ['aw-new-journal', 'Journal and Notes: '], ['aw-new-goals', 'Goals and the Life review: '], ['aw-new-money', 'Money: removed entries']] as const) {
+    await expect(list.getByRole('link', {name: new RegExp(`^${starts}`)}).and(list.locator(`a[href="#help-${id}"]`))).toHaveCount(1);
+    await expect(page.locator(`#help-${id}`)).toHaveCount(1);
+  }
   const groups: [string, string, string[]][] = [["av-new-tasks", "Tasks: ", ["task-notify", "nl-tasks", "tasks-done", "review-tasks", "deadlines", "paste-list", "plan-day", "task-minutes", "matrix-pause", "countdown-yearly"]], ["av-new-money", "Money: ", ["vs-last", "budget-targets", "budget-pace", "bill-calendar", "bills-month", "bills-year", "income-flow", "debt-plan", "money-attention", "money-search", "category-suggest", "watch", "move-alert", "month-recap", "import-categories"]], ["av-new-health", "Health: ", ["quick-kcal", "words-match", "high-in", "repeat-plan", "nutrient-range", "hide-figures", "sleep-score", "sleep-long", "workout-weeks", "workout-calendar", "run-bests", "set-best", "factors", "report-more"]], ["av-new-habits", "Habits: ", ["yesterday", "miss-reason", "two-day", "focus-habit", "habit-look", "week-grid"]], ["av-new-journal", "Journal: ", ["prompt-day", "good-things", "journal-tags", "own-templates", "journal-today", "journal-day"]], ["av-new-data", "Your records: ", ["keep", "updates"]]];
   for (const [id, starts, parts] of groups) {
-    await expect(list.getByRole('link', {name: new RegExp(`^${starts}`)})).toHaveAttribute('href', `#help-${id}`);
+    // Session AW (deliberate): this session's Tasks and Money lines start with the same words, so the link is the one
+    // whose name starts so and that opens this answer; one such link, as before.
+    await expect(list.getByRole('link', {name: new RegExp(`^${starts}`)}).and(list.locator(`a[href="#help-${id}"]`))).toHaveCount(1);
     await expect(page.locator(`#help-${id}`)).toHaveCount(1);
     // Session AV lane 2 (fixb1b; PK-10, owner decision 21 Nov: chain answers wait for the chain choice, deliberate): on
     // this fresh profile the coin-move and portfolio-value alerts (a chain answer, lib/help/chain-help.ts) are not on the
@@ -52,7 +60,7 @@ test('PR-034: What\'s new opens with this version — NOVA, Notes, Tasks, the Ch
   }
   expect(groups.flatMap(g => g[2])).toHaveLength(53);
   await expect(page.locator('#help-av-new-money')).not.toContainText('alerts on a percent move');
-  await list.getByRole('link', {name: /^Money: /}).click();
+  await list.getByRole('link', {name: /^Money: /}).and(list.locator('a[href="#help-av-new-money"]')).click();
   await expect(page).toHaveURL(/#help-av-new-money$/);
   await expect(page.locator('#help-av-new-money')).toHaveAttribute('open', '');
   await expect(page.locator('#help-av-new-money')).toContainText('the debt planner in your own order');

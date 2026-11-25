@@ -484,4 +484,9 @@ export const HELP_ALIASES: Readonly<Record<string, readonly string[]>> = {
   'av2-r-can-i-play-chess-against-the-computer': ['chess engine', 'play computer', 'stockfish', 'chess bot'],
   'ap-new-first-five': ['first steps', 'getting started', 'onboarding', 'checklist'],
   'aj-guided': ['guided journeys', 'programs', 'programmes', 'focus sessions', 'life score', 'couch to 5k', 'c25k'],
+  // Session AW, round 7 X7 (Cashew, Money Manager)
+  'aw-money-removed': ['removed', 'deleted', 'recently deleted', 'trash', 'bin', 'undo delete', 'restore entry', 'put back', 'cashew'],
+  'aw-money-bill-ends': ['contract', 'end date', 'last payment', 'instalments', 'installments', 'payments left', 'fixed term', 'phone contract', 'cashew'],
+  'aw-money-copy': ['copy', 'duplicate', 'repeat entry', 'clone', 'cashew'],
+  'aw-money-card-payment': ['credit card', 'statement', 'next payment', 'card bill', 'balance due', 'money manager'],
 };

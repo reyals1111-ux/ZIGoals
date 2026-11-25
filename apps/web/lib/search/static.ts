@@ -97,6 +97,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["aw-new-tasks", "Which parts of Tasks came with this version?"],
   ["aw-new-journal", "Which parts of the Journal and Notes came with this version?"],
   ["aw-new-goals", "Which parts of Goals and the Life review came with this version?"],
+  ["aw-new-money", "Which parts of Money came with this version?"],
   // Session AV (ADR-045 Part 8).
   ["av-new-tasks", "Which parts of Tasks came with this version?"],
   ["av-new-money", "Which parts of Money came with this version?"],
@@ -197,6 +198,10 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["av-month-recap", "Can I see a month in short, or start a month fresh?"],
   ["av-prompt-day", "What is today's question in the Journal?"],
   ["av-bills-year", "What do my bills come to in a year?"],
+  ["aw-money-removed", "How do I put back an entry I removed?"],
+  ["aw-money-bill-ends", "How do I set when a bill ends?"],
+  ["aw-money-copy", "How do I copy an entry?"],
+  ["aw-money-card-payment", "How much is my next credit card payment?"],
   ["av-keep", "How do I keep my records safe on my phone?"],
   ["av-updates", "What happens when a new version of ZIGoals comes out?"],
   ["av-import-categories", "Can I check the categories before an import?"],

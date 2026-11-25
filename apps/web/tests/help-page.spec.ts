@@ -200,7 +200,12 @@ test('feedback opens an email to the Alpha address with a short template, and se
   await expect(page.getByRole('link', {name: 'Private security contact: hello@zigoals.app', exact: true})).toHaveAttribute('href', 'mailto:hello@zigoals.app');
 });
 
-test('viewing Help asks no server and writes nothing', async ({page}) => {
+// Session AW (help-page, deliberate; CI run 2034): Help now has 709 answers (668 at #59), and opening every one in a single
+// test ran past its two minutes on CI with tracing on. The answers are opened in four quarters (every fourth one, so each
+// test opens about 177), each in its own test with the same setup and the same two checks; together they open every
+// answer, as the one test did. No timeout is raised.
+const HELP_QUARTERS = 4;
+for (let quarter = 0; quarter < HELP_QUARTERS; quarter++) test(`viewing Help asks no server and writes nothing (answers ${quarter + 1} of every ${HELP_QUARTERS})`, async ({page}) => {
   // Session W Part 24: 61 answers are opened one by one (19 new); on the phone project, with tracing, that takes about a
   // minute, so the test has two. Every check below is unchanged.
   test.setTimeout(120_000);
@@ -216,7 +221,9 @@ test('viewing Help asks no server and writes nothing', async ({page}) => {
   page.on('request', request => { const url = new URL(request.url()); if (url.pathname.startsWith('/api/')) requests.push(url.pathname); });
   await page.goto('/app/help');await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   await expect(page.locator('html')).toHaveAttribute('data-logo-intro', /^(reduced-motion|played|hidden)$/);
-  for (const summary of await page.locator('.help-question > summary').all()) await summary.click();
+  const summaries = await page.locator('.help-question > summary').all();
+  expect(summaries.length, 'every answer on the page').toBeGreaterThanOrEqual(709);
+  for (const [index, summary] of summaries.entries()) if (index % HELP_QUARTERS === quarter) await summary.click();
   await page.waitForTimeout(500);
   expect(requests).toEqual([]);
   expect(await snapshot()).toEqual(before);
