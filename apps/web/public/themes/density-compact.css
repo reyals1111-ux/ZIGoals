@@ -663,6 +663,10 @@ html:where([data-density=compact])[data-zigi-launcher="shown"] .zigi-explain-cor
 :where(:root[data-density=compact]) .agenda-day-title:not(#\-) { row-gap: 10px; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .agenda-today:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .agenda-nothing:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .agenda-quiet:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .agenda-add:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .agenda-add-day:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .agenda-panel > .agenda-add .tasks-add:not(#\-) { margin-top: 0; }
 :where(:root[data-density=compact]) .agenda-items:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .agenda-item:not(#\-) { row-gap: 7.5px; padding-top: 4.5px; padding-bottom: 4.5px; }
 :where(:root[data-density=compact]) .agenda-time:not(#\-) { padding-top: 11px; }
@@ -1627,6 +1631,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .today-wealth-trend:not(#\-) { row-gap: 6px; margin-top: 6px; }
 :where(:root[data-density=compact]) .today-skips ul:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .today-skips .today-skip:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .personalized-today .today-primary>.placed-module>*:not(#\-) { margin-bottom: 0; }
 /*  components/dashboard/hero-fold.css  */
 :where(:root[data-density=compact]) .hero-fold:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .today-hero-folded:not(#\-) { padding-top: 0; padding-bottom: 0; margin-bottom: 14px; }
@@ -3182,6 +3187,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .health-water .health-water-settings > .r3-water:not(#\-) { margin-top: 0; }
 :where(:root[data-density=compact]) .health-water > .phone-fold:not(#\-) { margin-top: 12px; }
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-density=compact]) .health-content > details.panel:not([open]):not(#\-) { padding-top: 0; padding-bottom: 0; margin-bottom: 6px; } }
+:where(:root[data-density=compact]) .health-page > .health-teach-line:not(#\-) { margin-top: 14px; margin-bottom: 4px; }
 /*  components/health/health-day.css  */
 :where(:root[data-density=compact]) .health-page .health-date-bar:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .health-page .health-date-step:not(#\-) { padding-top: 0; padding-bottom: 0; }
@@ -4719,6 +4725,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .note-this-day:not(#\-) { row-gap: 8px; padding-top: 12px; padding-bottom: 12px; }
 :where(:root[data-density=compact]) .note-this-day-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .note-this-day p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-this-day-quiet p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .note-this-day-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
 :where(:root[data-density=compact]) .note-day-chip:not(#\-) { row-gap: 8px; padding-top: 4px; padding-bottom: 4px; }
 :where(:root[data-density=compact]) .note-day-dot:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -8132,6 +8139,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (max-width: 900px) { :where(:root[data-density=compact]) .tasks-layout > .tasks-nav .tasks-nav-item:not(#\-) { padding-top: 4.5px; padding-bottom: 4.5px; } }
 @media (max-width: 900px) { :where(:root[data-density=compact]) .tasks-layout > .tasks-nav h3:not(#\-) { margin-top: 6px; margin-bottom: 2px; } }
 @media (max-width: 900px) { :where(:root[data-density=compact]) .tasks-layout > .tasks-nav .tasks-nav-area h4:not(#\-) { margin-top: 4px; margin-bottom: 2px; } }
+@media (max-width: 900px) { :where(:root[data-density=compact]) .tasks-layout > .tasks-nav .tasks-nav-more > .tasks-nav-later:not(#\-) { margin-top: 4px; } }
 :where(:root[data-density=compact]) .tasks-nav-more:not(#\-) { row-gap: 4px; }
 @media (max-width: 700px) { :where(:root[data-density=compact]) .tasks-layout > .tasks-nav .tasks-nav-more:not(#\-) { row-gap: 0; } }
 @media (max-width: 700px) { :where(:root[data-density=compact]) .tasks-page:not(#\-), :where(:root[data-density=compact]) .tasks-page > .tasks-layout:not(#\-) { row-gap: 10px; } }

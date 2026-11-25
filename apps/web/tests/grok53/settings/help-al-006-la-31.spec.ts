@@ -39,10 +39,11 @@ test('PR-034: What\'s new opens with this version — NOVA, Notes, Tasks, the Ch
   // Session AV follow-up 2 (1d, deliberate test change, equally strict): the session's 53 lines became six, one per pillar
   // (77 → 30). Each line opens its own answer; each answer is checked to name its parts, and every one of the 53 answers
   // it replaced is still on the page, each opening by its own link as before.
-  // Session AW (ADR-046 Part 3, deliberate; CI run 2034): this session's answers in six lines first, one per area (Health,
-  // Habits, Tasks, the Journal and Notes, Goals, Money), each opening its own answer, which names its parts (30 → 36).
-  await expect(list.getByRole('link')).toHaveCount(36);
-  for (const [id, starts] of [['aw-new-health', 'Health: '], ['aw-new-habits', 'Habits: '], ['aw-new-tasks', 'Tasks: reminders that come back'], ['aw-new-journal', 'Journal and Notes: '], ['aw-new-goals', 'Goals and the Life review: '], ['aw-new-money', 'Money: removed entries']] as const) {
+  // Session AW (ADR-046 Part 3, deliberate; CI run 2034): this session's answers in seven lines first, one per area (Health,
+  // Habits, Tasks, the Journal and Notes, Goals, Money) and the calmer first screens, each opening its own answer, which
+  // names its parts (30 → 37).
+  await expect(list.getByRole('link')).toHaveCount(37);
+  for (const [id, starts] of [['aw-new-health', 'Health: '], ['aw-new-habits', 'Habits: '], ['aw-new-tasks', 'Tasks: reminders that come back'], ['aw-new-journal', 'Journal and Notes: '], ['aw-new-goals', 'Goals and the Life review: '], ['aw-new-money', 'Money: removed entries'], ['aw-new-simple', 'Calmer first screens: ']] as const) {
     await expect(list.getByRole('link', {name: new RegExp(`^${starts}`)}).and(list.locator(`a[href="#help-${id}"]`))).toHaveCount(1);
     await expect(page.locator(`#help-${id}`)).toHaveCount(1);
   }
