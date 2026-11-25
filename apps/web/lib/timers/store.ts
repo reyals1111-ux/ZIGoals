@@ -108,7 +108,9 @@ export function startTimer(r: Timers, {name, seconds}: {name: string; seconds: n
   const timer: Timer = timerSchema.parse({id, name: clean, seconds, endsAt: now + seconds * 1000, used: now});
   let list = [...r.timers, timer];
   while (list.length > MAX_TIMERS) {
-    const leave = [...list].filter(t => t.id !== id && timerState(t, now) === 'kept').sort((a, b) => a.used - b.used)[0];
+    // Session AW (review b1 m4): a kept timer goes first, then one that has ended; a running or paused one never.
+    const leave = [...list].filter(t => t.id !== id && timerState(t, now) === 'kept').sort((a, b) => a.used - b.used)[0]
+      ?? [...list].filter(t => t.id !== id && timerState(t, now) === 'ended').sort((a, b) => a.used - b.used)[0];
     if (!leave) throw new Error('Twenty timers is the most this device keeps, and they are all running. Stop one first.');
     list = list.filter(t => t.id !== leave.id);
   }

@@ -36,7 +36,7 @@ export const WEBKIT_SHARDS: readonly (readonly string[])[] = [
   ['au/webkit-au-tom.spec.ts', 'revb1-zigi-notes.spec.ts', 'webkit-earn.spec.ts', 'zigi-aa.spec.ts', 'zigi-alive.spec.ts', 'zigi-chat-backdrop.spec.ts', 'zigi-context-pack.spec.ts', 'zigi-emotions.spec.ts', 'zigi-history-undo.spec.ts', 'zigi-memory-page.spec.ts', 'zigi-memory.spec.ts', 'zigi-phone-rest.spec.ts', 'zigi-send-focus.spec.ts', 'zigi-voice-dictation.spec.ts'],
   // Shard 4, 27.6 worker-min.
   ['au/webkit-au-max.spec.ts', 'grok53/ai/al-zigi-idle.spec.ts', 'webkit-checklist.spec.ts', 'webkit-governance.spec.ts', 'webkit-smoke.spec.ts', 'zigi-act.spec.ts', 'zigi-composer-switch.spec.ts', 'zigi-help-settings.spec.ts', 'zigi-knock.spec.ts', 'zigi-personality.spec.ts', 'zigi-safety.spec.ts', 'zigi-settings-reserve.spec.ts', 'zigi-states.spec.ts', 'zigi-v2-captures.spec.ts'],
-  // Shard 5, 27.3 worker-min.
+  // Shard 5, 30.3 worker-min (27.3 and webkit-aw-flows, counted 3).
   ['grok53/tasks/ls-006-043-zigi-on-tasks.spec.ts', 'webkit-av-keep.spec.ts', 'webkit-phone.spec.ts', 'webkit-zigi-freeze.spec.ts', 'zigi-auto-accept.spec.ts', 'zigi-face-z.spec.ts', 'zigi-hosted.spec.ts', 'zigi-memory-af.spec.ts', 'zigi-mini-window.spec.ts', 'zigi-no-model-ab.spec.ts', 'zigi-page-awareness-af.spec.ts', 'zigi-proactive.spec.ts', 'zigi-robustness.spec.ts', 'webkit-aw-flows.spec.ts'],
   // Shard 6, 27.3 worker-min.
   ['au/webkit-au-sanne.spec.ts', 'av2-zigi-hello.spec.ts', 'grok53/shell/zigi-hold-busy.spec.ts', 'webkit-add-money.spec.ts', 'webkit-staking.spec.ts', 'zigi-chat-polish.spec.ts', 'zigi-checklist-af.spec.ts', 'zigi-earn-coach-af.spec.ts', 'zigi-local-answers.spec.ts', 'zigi-oneline-z.spec.ts', 'zigi-photo.spec.ts', 'zigi-question-context.spec.ts', 'zigi-stress.spec.ts'],
