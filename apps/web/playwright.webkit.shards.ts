@@ -24,20 +24,26 @@ export const SHARDS_FILE = 'apps/web/playwright.webkit.shards.ts';
 
 /** Paths relative to apps/web/tests/, with forward slashes. */
 export const WEBKIT_SHARDS: readonly (readonly string[])[] = [
-  // Shard 1, 45.2 worker-min: one worker runs the desktop zigi-accept-correct group (≈25 min, the job's floor), the
-  // other its mobile group (≈13 min) and the rest (≈20 min in all), so this shard has slack on its second worker.
-  ['webkit-celebration.spec.ts', 'zigi-accept-correct.spec.ts', 'zigi-act.spec.ts', 'zigi-brief-af.spec.ts', 'zigi-memory-af.spec.ts', 'zigi-part-boundary.spec.ts'],
-  // Shard 2, 37.5 worker-min.
-  ['grok53/shell/zigi-hold-busy.spec.ts', 'zigi-a11y-pass.spec.ts', 'zigi-alive.spec.ts', 'zigi-checklist-af.spec.ts', 'zigi-help-settings.spec.ts', 'zigi-memory.spec.ts', 'zigi-mini-window.spec.ts', 'zigi-page-awareness-af.spec.ts', 'zigi-question-context.spec.ts', 'zigi-simulated-day.spec.ts', 'zigi-states.spec.ts', 'zigi-stress.spec.ts', 'zigi-voice-z.spec.ts'],
-  // Shard 3, 37.4 worker-min.
-  ['grok53/tasks/ls-006-043-zigi-on-tasks.spec.ts', 'webkit-add-money.spec.ts', 'webkit-governance.spec.ts', 'webkit-smoke.spec.ts', 'webkit-zigi-freeze.spec.ts', 'zigi-aa.spec.ts', 'zigi-chat-backdrop.spec.ts', 'zigi-composer-switch.spec.ts', 'zigi-emotions.spec.ts', 'zigi-knock.spec.ts', 'zigi-local-answers.spec.ts', 'zigi-no-model-ab.spec.ts', 'zigi-personality.spec.ts', 'zigi-phone-rest.spec.ts', 'zigi-plans-af.spec.ts', 'zigi-proactive.spec.ts', 'zigi-safety.spec.ts', 'zigi-send-focus.spec.ts', 'zigi-tools.spec.ts', 'zigi-v2-captures.spec.ts', 'zigi-voice-dictation.spec.ts'],
-  // Shard 4, 35.7 worker-min.
-  // Session AV lane 2 (batch 2): ZIGi's hello in place and ZIGi's notes on a phone, about 1 min each (shard 4 was the shortest).
-  ['au/webkit-au-tom.spec.ts', 'webkit-av-keep.spec.ts', 'au/webkit-au-jules.spec.ts', 'au/webkit-au-lina.spec.ts', 'au/webkit-au-sanne.spec.ts', 'au/webkit-au-max.spec.ts', 'grok53/ai/al-zigi-idle.spec.ts', 'webkit-checklist.spec.ts', 'webkit-earn.spec.ts', 'webkit-phone.spec.ts', 'webkit-staking.spec.ts', 'webkit-theme-parity.spec.ts', 'webkit-timeline.spec.ts', 'zigi-auto-accept.spec.ts', 'zigi-chat-polish.spec.ts', 'zigi-context-pack.spec.ts', 'zigi-earn-coach-af.spec.ts', 'zigi-face-z.spec.ts', 'zigi-history-undo.spec.ts', 'zigi-hosted.spec.ts', 'zigi-memory-page.spec.ts', 'zigi-oneline-z.spec.ts', 'zigi-photo.spec.ts', 'zigi-robustness.spec.ts', 'zigi-settings-reserve.spec.ts', 'av2-zigi-hello.spec.ts', 'revb1-zigi-notes.spec.ts'],
+  // Session AW (TIER 3 CI, Part 2; owner amendment 9: 4 -> 6 shards; ADR-046 D-CI-WEBKIT6): run 2031's four WebKit logs
+  // (each test start's gap at two workers, per file), longest first to the list with the fewest minutes so far. Shard 1
+  // holds zigi-accept-correct alone, the old floor (about 25 min on one worker): its tests are independent and now run in
+  // parallel on the job's two workers (the spec says so); its minutes here are the per-worker half.
+  // Shard 1, 21.0 worker-min.
+  ['zigi-accept-correct.spec.ts'],
+  // Shard 2, 27.4 worker-min.
+  ['au/webkit-au-jules.spec.ts', 'au/webkit-au-lina.spec.ts', 'webkit-celebration.spec.ts', 'webkit-theme-parity.spec.ts', 'webkit-timeline.spec.ts', 'zigi-a11y-pass.spec.ts', 'zigi-brief-af.spec.ts', 'zigi-part-boundary.spec.ts', 'zigi-plans-af.spec.ts', 'zigi-simulated-day.spec.ts', 'zigi-tools.spec.ts', 'zigi-voice-z.spec.ts'],
+  // Shard 3, 27.8 worker-min.
+  ['au/webkit-au-tom.spec.ts', 'revb1-zigi-notes.spec.ts', 'webkit-earn.spec.ts', 'zigi-aa.spec.ts', 'zigi-alive.spec.ts', 'zigi-chat-backdrop.spec.ts', 'zigi-context-pack.spec.ts', 'zigi-emotions.spec.ts', 'zigi-history-undo.spec.ts', 'zigi-memory-page.spec.ts', 'zigi-memory.spec.ts', 'zigi-phone-rest.spec.ts', 'zigi-send-focus.spec.ts', 'zigi-voice-dictation.spec.ts'],
+  // Shard 4, 27.6 worker-min.
+  ['au/webkit-au-max.spec.ts', 'grok53/ai/al-zigi-idle.spec.ts', 'webkit-checklist.spec.ts', 'webkit-governance.spec.ts', 'webkit-smoke.spec.ts', 'zigi-act.spec.ts', 'zigi-composer-switch.spec.ts', 'zigi-help-settings.spec.ts', 'zigi-knock.spec.ts', 'zigi-personality.spec.ts', 'zigi-safety.spec.ts', 'zigi-settings-reserve.spec.ts', 'zigi-states.spec.ts', 'zigi-v2-captures.spec.ts'],
+  // Shard 5, 27.3 worker-min.
+  ['grok53/tasks/ls-006-043-zigi-on-tasks.spec.ts', 'webkit-av-keep.spec.ts', 'webkit-phone.spec.ts', 'webkit-zigi-freeze.spec.ts', 'zigi-auto-accept.spec.ts', 'zigi-face-z.spec.ts', 'zigi-hosted.spec.ts', 'zigi-memory-af.spec.ts', 'zigi-mini-window.spec.ts', 'zigi-no-model-ab.spec.ts', 'zigi-page-awareness-af.spec.ts', 'zigi-proactive.spec.ts', 'zigi-robustness.spec.ts'],
+  // Shard 6, 27.3 worker-min.
+  ['au/webkit-au-sanne.spec.ts', 'av2-zigi-hello.spec.ts', 'grok53/shell/zigi-hold-busy.spec.ts', 'webkit-add-money.spec.ts', 'webkit-staking.spec.ts', 'zigi-chat-polish.spec.ts', 'zigi-checklist-af.spec.ts', 'zigi-earn-coach-af.spec.ts', 'zigi-local-answers.spec.ts', 'zigi-oneline-z.spec.ts', 'zigi-photo.spec.ts', 'zigi-question-context.spec.ts', 'zigi-stress.spec.ts'],
 ];
 
 /** Measured worker-minutes per shard (the comments above); a new spec goes to the smallest. */
-export const WEBKIT_SHARD_MINUTES: readonly number[] = [45.2, 37.5, 37.4, 37.7];
+export const WEBKIT_SHARD_MINUTES: readonly number[] = [21.0, 27.4, 27.8, 27.6, 27.3, 27.3];
 
 /** Every spec under `testsDir` that the WebKit config selects, relative and with forward slashes, sorted. */
 export function webkitSpecFiles(testsDir: string): string[] {

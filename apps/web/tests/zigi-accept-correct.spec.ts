@@ -250,6 +250,10 @@ const CASES: readonly Case[] = [
 ];
 const FIRST_FOOD = JSON.parse(buildShowcase(DAY).records['zigoals:health:v1']!).foods[0].name as string;
 const ZONES = ['UTC', 'Europe/Brussels', 'Asia/Tokyo'] as const;
+// Session AW (TIER 3 CI, ADR-046 D-CI-WEBKIT6, deliberate): the cases are independent (each its own page, seed, server
+// mock and clock; `pageNow` is read inside its own test), so a shard's two workers share them instead of one worker taking
+// the whole file (about 25 min in WebKit's desktop project, the job's floor). Every case and assertion is unchanged.
+test.describe.configure({mode: 'parallel'});
 
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 // Session AC (item 16): WebKit's phone runs lost the Undo press (the card stayed added, the chat open). Where each press,
