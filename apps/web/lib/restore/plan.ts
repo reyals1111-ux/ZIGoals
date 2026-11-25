@@ -59,6 +59,7 @@ import {CHESS_COMPUTER} from '../chess/computer-record';
 import {EVENING_PLAN} from '../evening-plan/schema';
 import {BODY_EXTRAS} from '../body-extras/schema';
 import {ACTIVITY_EXTRAS} from '../aw-kcal/activity-extras';
+import {NOTE_SEARCHES} from '../notes/saved-searches';
 import {WORKOUT_PLACES} from '../workouts/places-schema';
 import {PLANNED_WORKOUTS} from '../workouts/planned';
 import {RACES} from '../workouts/races';
@@ -298,6 +299,8 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('races', 'Races', 'Health', RACES, true),
   dev('workoutHr', 'Heart-rate zones of runs', 'Health', WORKOUT_HR, true),
   dev('noteCards', 'Review days of note cards', 'Today and Life', NOTE_CARDS),
+  // Session AW (#441, TIER 3 stored formats): the searches kept by name in Notes.
+  dev('noteSearches', 'Saved searches of notes', 'Today and Life', NOTE_SEARCHES),
   dev('lowDay', 'On a low day', 'Health', LOW_DAY, true),
   dev('bringUp', 'To bring up at a visit', 'Health', BRING_UP, true),
   dev('foodPlus', 'Food diary extras (times, weekday macros, check-in)', 'Health', FOOD_PLUS, true),

@@ -13096,6 +13096,45 @@
             box-shadow: none
         }
     }
+    .voice-player-time:not(#\-) {
+        color: var(--text)
+    }
+    .voice-player-speeds button[aria-pressed="true"]:not(#\-) {
+        border-color: var(--brand-cyan);
+        color: var(--text-strong,var(--text))
+    }
+    .journal-photo-tile.is-audio:not(#\-) {
+        border-color: var(--line)
+    }
+    .journal-day-photo-mark[aria-pressed="true"]:not(#\-) {
+        border-color: var(--brand-cyan);
+        color: var(--text-strong,var(--text))
+    }
+    .journal-day-strip-cell.is-blank:not(#\-) {
+        border-color: var(--line);
+        color: var(--text)
+    }
+    .journal-day-strip-open:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--brand-violet) 10%,transparent);
+        color: inherit
+    }
+    .journal-day-strip-open:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    .journal-day-strip-n:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--bg) 78%,transparent);
+        color: var(--text)
+    }
+    .day-pages-parts button[aria-pressed="true"]:not(#\-) {
+        border-color: var(--brand-cyan);
+        color: var(--text-strong,var(--text))
+    }
+    .day-pages-morning:not(#\-) {
+        border-color: var(--line)
+    }
 }
 /*  components/journal/on-this-day.css  */
 @scope (:root[data-theme=dark]) {
@@ -14901,6 +14940,12 @@
     .notes-table tfoot th:not(#\-), .notes-table tfoot td:not(#\-) {
         border-top-color: color-mix(in srgb, currentColor 30%, transparent);
         border-bottom-color: currentcolor
+    }
+    .note-saved-list button[aria-pressed="true"]:not(#\-) {
+        border-color: var(--brand-cyan)
+    }
+    .note-saved-manage-list li:not(#\-) {
+        border-bottom-color: var(--line)
     }
 }
 /*  components/notes/this-day-strip.css  */

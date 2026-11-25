@@ -4679,6 +4679,14 @@
         background-image: none;
         background-color: color-mix(in srgb,var(--bg) 78%,transparent)
     }
+    .journal-day-strip-open:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--brand-violet) 10%,transparent)
+    }
+    .journal-day-strip-n:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--bg) 78%,transparent)
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=black]) {
     @media (hover: hover) and (pointer: fine) {

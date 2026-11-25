@@ -2075,6 +2075,17 @@
 :where(:root[data-text=large]) .journal-person-remove:not(#\-) { font-size: calc(18px * 1.125); }
 :where(:root[data-text=large]) .journal-photo-day:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .journal-photo-voice:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .voice-player button:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .voice-player-time:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .journal-photo-voice-open:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .journal-day-strip h3:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .journal-day-strip-month:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .journal-day-strip-cell.is-blank:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .journal-day-strip-n:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .day-pages-form textarea:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .day-pages-morning dt:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .day-pages-morning dd:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .day-pages-time input:not(#\-) { font-size: calc(16px * 1.125); }
 /*  components/journal/on-this-day.css  */
 :where(:root[data-text=large]) .on-this-day-title:not(#\-) { font-size: calc(18px * 1.125); }
 :where(:root[data-text=large]) .today-journal-lines:not(#\-) { font-size: calc(15px * 1.125); }
@@ -2282,6 +2293,9 @@
 @media (max-width: 900px) { :where(:root[data-text=large]) .note-marks select:not(#\-), :where(:root[data-text=large]) .notes-board-card select:not(#\-), :where(:root[data-text=large]) .note-table-grid input:not(#\-) { font-size: calc(16px * 1.125); } }
 :where(:root[data-text=large]) .note-card-question:not(#\-) { font-size: calc(18px * 1.125); }
 :where(:root[data-text=large]) .note-card-answer:not(#\-) { font-size: calc(17px * 1.125); }
+:where(:root[data-text=large]) .note-narrow select:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .note-keep-search input:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .note-saved-manage-list input:not(#\-) { font-size: calc(16px * 1.125); }
 /*  components/notes/this-day-strip.css  */
 :where(:root[data-text=large]) .note-this-day-title:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .note-day-chip-detail:not(#\-) { font-size: calc(14px * 1.125); }

@@ -12500,6 +12500,45 @@
             box-shadow: none
         }
     }
+    .voice-player-time:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text) 25%, #fff)
+    }
+    .voice-player-speeds button[aria-pressed="true"]:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan) 40%, #fff);
+        color: var(--text-strong,var(--text))
+    }
+    .journal-photo-tile.is-audio:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .journal-day-photo-mark[aria-pressed="true"]:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan) 40%, #fff);
+        color: var(--text-strong,var(--text))
+    }
+    .journal-day-strip-cell.is-blank:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff);
+        color: color-mix(in srgb, var(--text) 25%, #fff)
+    }
+    .journal-day-strip-open:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--brand-violet) 10%,transparent);
+        color: inherit
+    }
+    .journal-day-strip-open:focus-visible:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--cyan) 40%, #fff)
+    }
+    .journal-day-strip-n:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--bg) 78%,transparent);
+        color: color-mix(in srgb, var(--text) 25%, #fff)
+    }
+    .day-pages-parts button[aria-pressed="true"]:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan) 40%, #fff);
+        color: var(--text-strong,var(--text))
+    }
+    .day-pages-morning:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .on-this-day-list li:not(#\-):not(#\-) {
@@ -14164,6 +14203,12 @@
     .notes-table tfoot th:not(#\-):not(#\-), .notes-table tfoot td:not(#\-):not(#\-) {
         border-top-color: color-mix(in srgb, currentColor 30%, transparent);
         border-bottom-color: currentcolor
+    }
+    .note-saved-list button[aria-pressed="true"]:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan) 40%, #fff)
+    }
+    .note-saved-manage-list li:not(#\-):not(#\-) {
+        border-bottom-color: color-mix(in srgb, var(--line) 40%, #fff)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
