@@ -45,7 +45,7 @@ export const AV2_CATALOG_LABELS = {
   budgetPeriods: ['Budgets: pay periods, the paycheck fill and debts paid from a budget', 'Wealth'],
   chessComputer: ['Chess: your game against the computer and your results by level', 'Chess'],
   eveningPlan: ['Sleep: your evening plan', 'Health'],
-  bodyExtras: ['Body: your height and weight milestones', 'Health'],
+  bodyExtras: ['Body: your height, weight milestones, days you name for the trend and notes on weigh-ins', 'Health'], // Session AW (#456, #457)
   workoutPlaces: ['Workouts: your places and their equipment', 'Health'],
   healthGoalsMore: ['Health goals: averages over 7, 14 or 30 days on nutrients, measurements and your own numbers', 'Health'],
   workoutCircuits: ['Workouts: your timed circuits', 'Health'],

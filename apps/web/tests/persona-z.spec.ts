@@ -349,10 +349,12 @@ test('10b. phones: Habits\' hero actions take at most two rows from 360 px, and 
   // was the first block under the hero) follows your habits and Routines now. As strict: the first block under the hero,
   // now the habit filters' first chip, within the same budget for the hero: the figure sat 36 px into its block (14 px of
   // padding and the eyebrow's line) and the chip sits 4 px into its row, so 634 for the figure is 602 for the chip.
-  const figure = page.getByRole('group', {name: 'Filter habits'}).getByRole('button').first();
+  // Session AW (FR-TJ-7, integration, deliberate; CI 2033): the filters follow today's cards too, so the first block under
+  // the hero is the first time-of-day group, whose banner starts at its block's top: the same budget, 634 − 36 = 598.
+  const figure = page.locator('details.habit-section > summary').first();
   await expect(figure).toBeVisible();
   // With the links stacked the first figure started 656 px down a 664 px screen (and below it while the page arrived); then about 608.
-  expect((await figure.boundingBox())!.y, 'the first block under the hero starts well inside the first screen').toBeLessThanOrEqual(602);
+  expect((await figure.boundingBox())!.y, 'the first block under the hero starts well inside the first screen').toBeLessThanOrEqual(598);
 });
 
 test('11. Help is the last item of the sidebar and of More; Help\'s "Send feedback" opens the feedback form', async ({page}) => {

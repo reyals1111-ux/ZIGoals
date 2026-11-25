@@ -78,7 +78,8 @@ export async function voiceFakes(page: Page) {
     Object.defineProperty(navigator, 'mediaDevices', {configurable: true, value: {getUserMedia: async () => new AudioContext().createMediaStreamDestination().stream}});
     const spoken: string[] = [];
     w.__spoken = spoken;
-    Object.defineProperty(window, 'speechSynthesis', {configurable: true, value: {speaking: false, speak(u: SpeechSynthesisUtterance) { if (u.text) spoken.push(u.text); setTimeout(() => u.onend?.(new Event('end') as SpeechSynthesisEvent), 10); }, cancel() {}, getVoices() { return [{lang: 'en-GB', name: 'Daniel'}, {lang: 'nl-BE', name: 'Ellen'}]; }}});
+    // Session AW (owner decision 1d; deliberate): the device's own voices (`localService`), the only ones ZIGoals reads with.
+    Object.defineProperty(window, 'speechSynthesis', {configurable: true, value: {speaking: false, speak(u: SpeechSynthesisUtterance) { if (u.text) spoken.push(u.text); setTimeout(() => u.onend?.(new Event('end') as SpeechSynthesisEvent), 10); }, cancel() {}, getVoices() { return [{lang: 'en-GB', name: 'Daniel'}, {lang: 'nl-BE', name: 'Ellen'}].map(v => ({...v, localService: true})); }}});
   });
 }
 export const spoken = (page: Page) => page.evaluate(() => (window as unknown as {__spoken: string[]}).__spoken);

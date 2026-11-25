@@ -9,11 +9,11 @@ import type {SetupState} from '../use-setup';
 
 const LINE = 'Hello. I am NOVA, speaking on this device.';
 const subscribeNothing = () => () => undefined;
-/** Speaks one line with the best voice for the language (a local one in Strict) and resolves when it ended or failed. */
+/** Speaks one line with the best voice on this device for the language and resolves when it ended or failed. */
 function speakTest(language: string, localOnly: boolean): Promise<{spoke: boolean; voice: SpeechVoiceLike | null; error?: string}> {
   const synth = typeof window === 'undefined' ? undefined : window.speechSynthesis;
   if (!synth || typeof SpeechSynthesisUtterance === 'undefined') return Promise.resolve({spoke: false, voice: null, error: 'this browser has no speech output'});
-  const voices = synth.getVoices(), voice = pickVoice(voices, language, localOnly);
+  const voices = synth.getVoices(), voice = pickVoice(voices, language, true); // Session AW: a voice on this device only, in every mode (localOnly kept for the caller's wording)
   if (!voice) return Promise.resolve({spoke: false, voice: null});
   return new Promise(resolve => {
     const u = new SpeechSynthesisUtterance(LINE), real = voices.find(v => v.name === voice.name) ?? null;
@@ -36,7 +36,7 @@ export default function VoiceStep({setup}: {setup: SetupState}) {
   const set = (change: Parameters<typeof settings.update>[0]) => { try { settings.update(change); setError(''); } catch (cause) { setError(deviceSettingFailureMessage(cause)); } };
   return <>
     <p>Voice is optional and off until you choose it. NOVA reads answers aloud with your device’s own speech; you can talk to it where your browser allows.</p>
-    <label className="ai-check"><input type="checkbox" checked={s.voice.readAloud} onChange={e => set(c => ({...c, voice: {...c.voice, readAloud: e.target.checked}}))}/> Read answers aloud <small>{strict ? 'Strict: only voices that run on this device.' : 'With this device’s voices; some browsers offer online voices too.'}</small></label>
+    <label className="ai-check"><input type="checkbox" checked={s.voice.readAloud} onChange={e => set(c => ({...c, voice: {...c.voice, readAloud: e.target.checked}}))}/> Read answers aloud <small>Only voices that run on this device; an online voice is never used.</small></label>
     <label className="ai-check"><input type="checkbox" checked={s.voice.transcription === 'browser'} disabled={strict && s.voice.transcription !== 'browser'} onChange={e => set(c => ({...c, voice: {...c.voice, transcription: e.target.checked ? 'browser' : 'off'}}))}/> Talk to NOVA (speech input) <small>{browserSpeechDisclosure(browser, false)}</small></label>
     {strict && <p className="nova-note" role="note">In Strict, speech input stays off here: most browsers send the audio to their maker’s speech service. Type, or use your keyboard’s own dictation.</p>}
     {error && <p role="alert" className="fine">{error}</p>}

@@ -61,6 +61,7 @@ import {BODY_EXTRAS} from '../body-extras/schema';
 import {ACTIVITY_EXTRAS} from '../aw-kcal/activity-extras';
 import {NOTE_SEARCHES} from '../notes/saved-searches';
 import {TIMERS} from '../timers/store';
+import {GOAL_REPEAT} from '../goals/repeat';
 import {WORKOUT_PLACES} from '../workouts/places-schema';
 import {PLANNED_WORKOUTS} from '../workouts/planned';
 import {RACES} from '../workouts/races';
@@ -290,7 +291,7 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('chessComputer', 'Chess: games against the computer', 'Today and Life', CHESS_COMPUTER),
   // Session AV lane 2, batch 2 (Health records restore with Health and its consent, as the other Health device records).
   dev('eveningPlan', 'Sleep: the evening plan', 'Health', EVENING_PLAN, true),
-  dev('bodyExtras', 'Height and weight milestones', 'Health', BODY_EXTRAS, true),
+  dev('bodyExtras', 'Height, milestones, named days and weigh-in notes', 'Health', BODY_EXTRAS, true),
   // Session AW (1a, TIER 3 stored formats): what a person typed beside an activity; restored with Health.
   dev('activityExtras', 'Activity distance, effort and calories you entered', 'Health', ACTIVITY_EXTRAS, true),
   dev('workoutPlaces', 'Workouts: places and equipment', 'Health', WORKOUT_PLACES, true),
@@ -304,6 +305,8 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('noteSearches', 'Saved searches of notes', 'Today and Life', NOTE_SEARCHES),
   // Session AW (#440, TIER 3 stored formats): your named timers, kept to start again.
   dev('timers', 'Timers: your named timers', 'Today and Life', TIMERS),
+  // Session AW (#447, TIER 3 stored formats): which goals start again, and a project's earlier results.
+  dev('goalRepeat', 'Goals that start again', 'Goals and Wealth', GOAL_REPEAT),
   dev('lowDay', 'On a low day', 'Health', LOW_DAY, true),
   dev('bringUp', 'To bring up at a visit', 'Health', BRING_UP, true),
   dev('foodPlus', 'Food diary extras (times, weekday macros, check-in)', 'Health', FOOD_PLUS, true),
@@ -403,7 +406,7 @@ export const partValueOf = (part: ModulePart | DevicePart, raw: string): unknown
 /** The text a device part's value is stored as. */
 export const partTextOf = (part: ModulePart | DevicePart, value: unknown): string => part.kind === 'device' && part.text ? String(value) : JSON.stringify(value);
 /** What a file may hold and this never restores, said in the preview. */
-export const NEVER_RESTORED = 'Never restored: keys and secrets (Export everything never holds them), notifications, ZIGi’s settings, usage and conversations, an import’s undo, a timer or routine in progress, the welcome’s setup, display choices (except Hide calories and weight, which comes back with Health), recent searches, linked wallet addresses, Point & tell notes, Earn progress and choices, today’s Checklist ticks, the staking journal and the practice/real choice, linked wallet balances, Goal Vault links, validator health alerts, ZIGi\'s plans, My universe milestones, Day timeline times and the Stories you opened and legacy simulation Goals (use an encrypted copy for those).';
+export const NEVER_RESTORED = 'Never restored: keys and secrets (Export everything never holds them), notifications, ZIGi’s settings, usage and conversations, an import’s undo, a timer or routine in progress, the welcome’s setup, display choices (except Hide calories and weight, which comes back with Health), recent searches, linked wallet addresses, Point & tell notes, Earn progress and choices, today’s Checklist ticks, the staking journal and the practice/real choice, linked wallet balances, Goal Vault links, validator health alerts, ZIGi\'s plans, My universe milestones, Day timeline times, money entries you removed (Removed recently) and the Stories you opened and legacy simulation Goals (use an encrypted copy for those).';
 export const NEWER_PART_MESSAGE = 'Saved by a newer ZIGoals. Update the app on this device, then restore this part.';
 export const INVALID_PART_MESSAGE = 'This part did not read as a valid record, so it is left out.';
 export const MAX_DEVICE_PART_CHARS = 5_000_000;

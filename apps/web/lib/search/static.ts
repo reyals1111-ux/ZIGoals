@@ -1,3 +1,5 @@
+import {HELP_ALIASES} from './help-aliases';
+import {chainSettingIds, settingsSearchItems} from '../settings-search';
 import type {SearchItem} from './engine';
 
 /**
@@ -64,29 +66,10 @@ export const PAGES: readonly SearchItem[] = [
   {id: 'page:zigi-memory', kind: 'page', title: 'What ZIGi remembers', subtitle: 'ZIGi', href: '/app/zigi/memory', keywords: ['memory', 'remember', 'forget', 'zigi memory', 'zigi notes', 'what zigi knows', 'personal notes']},
 ];
 
-export const SETTINGS: readonly SearchItem[] = [
-  {id: 'setting:privacy', kind: 'setting', title: 'Keep a copy of your progress', subtitle: 'Data & privacy', href: '/app/settings#privacy', keywords: ['backup', 'export', 'private backups']},
-  {id: 'setting:your-data', kind: 'setting', title: 'Your data', subtitle: 'Data & privacy', href: '/app/settings/data', keywords: ['data health', 'storage', 'where', 'sync', 'device', 'privacy']},
-  {id: 'setting:your-pages', kind: 'setting', title: 'Your pages & buttons', subtitle: 'Your app', href: '/app/settings#your-pages', keywords: ['hide page', 'quick add', 'navigation']},
-  {id: 'setting:appearance', kind: 'setting', title: 'Motion', subtitle: 'Appearance', href: '/app/settings#appearance', keywords: ['animations', 'reduced motion', 'appearance', 'theme', 'dark', 'light', 'nebula']},
-  {id: 'setting:time-zone', kind: 'setting', title: 'Time zone', subtitle: 'Your app', href: '/app/settings#time-zone', keywords: ['journal zone', 'travel']},
-  {id: 'setting:wrap-up', kind: 'setting', title: 'Daily wrap-up', subtitle: 'Your app', href: '/app/settings#wrap-up', keywords: ['evening', 'reminder']},
-  {id: 'setting:habits', kind: 'setting', title: 'Habit settings', subtitle: 'Your areas', href: '/app/settings#habits-settings', keywords: ['rhythm', 'week start']},
-  {id: 'setting:health', kind: 'setting', title: 'Health settings', subtitle: 'Your areas', href: '/app/settings#health-settings', keywords: ['units', 'targets', 'water unit', 'consent']},
-  {id: 'setting:chess', kind: 'setting', title: 'Chess settings', subtitle: 'Your areas', href: '/app/settings#chess', keywords: ['chess.com', 'lichess', 'username']},
-  {id: 'setting:market-data', kind: 'setting', title: 'Market data sources', subtitle: 'Your areas', href: '/app/settings#market-data', keywords: ['prices', 'coingecko', 'quotes']},
-  {id: 'setting:switch-import', kind: 'setting', title: 'Switch from another app', subtitle: 'Your areas', href: '/app/settings#switch-import', keywords: ['import', 'csv']},
-  // Session AK X1 (RELEASE_REVIEW R4): the Account & devices group itself (its wallet panel shows once the chain is chosen).
-  {id: 'setting:account', kind: 'setting', title: 'Account & devices', subtitle: 'Account', href: '/app/settings#settings-account', keywords: ['sign in', 'sync', 'devices', 'email']},
-  {id: 'setting:network', kind: 'setting', title: 'Network', subtitle: 'Account', href: '/app/settings#network', keywords: ['zigchain', 'testnet']},
-  {id: 'setting:contract', kind: 'setting', title: 'The financial layer', subtitle: 'Account', href: '/app/settings#contract', keywords: ['contract', 'wallet']},
-  {id: 'setting:your-ai', kind: 'setting', title: 'ZIGi, your assistant', subtitle: 'ZIGi', href: '/app/settings#your-ai', keywords: ['ai', 'assistant', 'model', 'voice', 'notes']},
-  {id: 'setting:diagnostics', kind: 'setting', title: 'Advanced diagnostics', subtitle: 'Help & diagnostics', href: '/app/settings#diagnostics', keywords: ['debug', 'storage']},
-  {id: 'setting:feedback', kind: 'setting', title: 'Send feedback', subtitle: 'Help & diagnostics', href: '/app/settings#send-feedback', keywords: ['report', 'bug', 'contact']},
-];
-
-/** Session AK X1 (RELEASE_REVIEW R4): Settings entries that exist only once the chain is chosen (lib/chain-choice.ts). */
-export const CHAIN_SETTINGS: ReadonlySet<string> = new Set(['setting:network', 'setting:contract']);
+// Session AW (Part 3; simplicity-c): Settings' own search index (lib/settings-search) is the one list, EN and NL words
+// for every section and anchor, here as on the Settings page (its test fails on an anchor the index misses).
+export const SETTINGS: readonly SearchItem[] = settingsSearchItems({chain: true});
+export const CHAIN_SETTINGS: ReadonlySet<string> = chainSettingIds();
 
 /** [section id, label] as components/help/help-page.tsx's TOPICS. */
 export const HELP_TOPICS: readonly [string, string][] = [
@@ -109,6 +92,24 @@ export const HELP_TOPICS: readonly [string, string][] = [
 /** [question id, question] as components/help/help-page.tsx's HelpQuestion elements. */
 export const HELP_QUESTIONS: readonly [string, string][] = [
   ["at-screens", "What do the main pages look like?"],
+  ["aw-new-health", "Which parts of Health came with this version?"],
+  ["aw-new-habits", "Which parts of Habits came with this version?"],
+  ["aw-new-tasks", "Which parts of Tasks came with this version?"],
+  ["aw-new-journal", "Which parts of the Journal and Notes came with this version?"],
+  ["aw-new-goals", "Which parts of Goals and the Life review came with this version?"],
+  ["aw-new-money", "Which parts of Money came with this version?"],
+  ["aw-new-simple", "Which first screens are calmer in this version?"],
+  ["aw-simple-today-order", "Why are my habits right under the Checklist on Today?"],
+  ["aw-simple-goals-search", "How do I search or sort my goals on a phone?"],
+  ["aw-simple-counters", "Where are the Quick counters in Health?"],
+  ["aw-simple-weight-tiles", "When do the weight trend tiles show at the top of Health?"],
+  ["aw-simple-wealth-filters", "Where are the All, Accounts and Debts filters in Wealth?"],
+  ["aw-simple-first-goal", "On a new device, where do I plan my first goal?"],
+  ["aw-tasks-more-views", "Where are This evening, Someday and Completed on my phone?"],
+  ["aw-goal-add-money", "How do I put money toward a goal from its page?"],
+  ["aw-phone-erase", "Where is Erase everything on a phone?"],
+  ["aw-today-coach", "When does the weekly coach show on Today?"],
+  ["aw-log-food-phone", "How do I log food in one tap on a phone?"],
   // Session AV (ADR-045 Part 8).
   ["av-new-tasks", "Which parts of Tasks came with this version?"],
   ["av-new-money", "Which parts of Money came with this version?"],
@@ -123,6 +124,42 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["av2-new-journal", "Which other parts of the Journal came with this version?"],
   ["av2-new-records", "What else came with this version for keeping my records?"],
   ["av2-new-more", "Which other parts of ZIGoals came with this version?"],
+  ["aw-programmes", "How do I follow a programme, like a training plan or a sleep reset?"],
+  ["aw-programme-strength", "Is there a beginner strength plan?"],
+  ["aw-programme-5k", "Is there a couch-to-5k plan?"],
+  ["aw-read-aloud", "Can ZIGoals read a meditation or a programme step aloud?"],
+  ["aw-kcal-calories-burned", "Does ZIGoals work out the calories an activity burned?"],
+  ["aw-habits-order", "In what order does Habits show today’s habits and the history cards?"],
+  ["aw-remind-again", "How do I get a reminder to remind me again until I’ve done it?"],
+  ["aw-own-snooze", "Can I choose my own snooze times?"],
+  ["aw-timers", "How do I run a named timer, or several at once?"],
+  ["aw-x2-dread", "How do I mark a task I’m dreading, and do it first?"],
+  ["aw-x2-moved", "How do I see the tasks I keep putting off?"],
+  ["aw-x2-long-open", "Where are the tasks that have sat for a long time?"],
+  ["aw-x2-pick", "Can the app pick a task for me?"],
+  ["aw-x2-day-progress", "How far am I with today’s tasks?"],
+  ["aw-x2-time-targets", "How do I set a time target for a project or label?"],
+  ["aw-x2-stuck", "What can I do when I’m stuck on a task?"],
+  ["aw-x3-saved-search", "How do I keep a Notes search and open it again?"],
+  ["aw-x3-voice-speed", "Can I play a journal voice note faster?"],
+  ["aw-x3-day-pages", "How do I write a morning page and an evening page?"],
+  ["aw-x3-day-photo", "How do I pick a photo of the day and see a month of them?"],
+  ["aw-x4-goal-repeat", "How do I make a goal start again each week, month or year?"],
+  ["aw-x4-year", "Can I see my whole year, or all time?"],
+  ["aw-settings-search", "Can I search Settings?"],
+  ["aw-quick-start", "Can I start with one thing instead of the setup?"],
+  ["aw-x5-step-timer", "Can a recipe step start a timer while I cook?"],
+  ["aw-x5-scale", "How do I cook a recipe for more or fewer people?"],
+  ["aw-x5-tick", "Can I tick off ingredients and see the whole method while cooking?"],
+  ["aw-x5-use-soon", "How do I see what to use soon from my pantry?"],
+  ["aw-x5-recipe-files", "Can I import recipes from Paprika or a Markdown file?"],
+  ["aw-x5-menus", "Can I keep a week of meals as a menu?"],
+  ["aw-x5-last-made", "Can I see when I last made a recipe and rate it?"],
+  ["aw-x6-named-day", "How do I see what the trend reaches by a day I name?"],
+  ["aw-x6-weigh-notes", "How do I add a note to a weigh-in, or see my new lows?"],
+  ["aw-x6-week-compare", "How does my weight this week compare with last week?"],
+  ["aw-x6-sleep-tags", "How do I rename or remove a sleep tag on every night?"],
+  ["aw-x6-sleep-goal-period", "How am I doing on my sleep goal over two weeks or a month?"],
   ["av-task-notify", "Can a task remind me when ZIGoals is closed?"],
   ["av-nl-tasks", "Can I type a task in Dutch?"],
   ["av-good-things", "What is “Three good things” in the Journal?"],
@@ -173,6 +210,10 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["av-month-recap", "Can I see a month in short, or start a month fresh?"],
   ["av-prompt-day", "What is today's question in the Journal?"],
   ["av-bills-year", "What do my bills come to in a year?"],
+  ["aw-money-removed", "How do I put back an entry I removed?"],
+  ["aw-money-bill-ends", "How do I set when a bill ends?"],
+  ["aw-money-copy", "How do I copy an entry?"],
+  ["aw-money-card-payment", "How much is my next credit card payment?"],
   ["av-keep", "How do I keep my records safe on my phone?"],
   ["av-updates", "What happens when a new version of ZIGoals comes out?"],
   ["av-import-categories", "Can I check the categories before an import?"],
@@ -729,7 +770,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["ag-polish", "What’s new in the Checklist?"],
   ["ag2-quick-add", "How do I add something to my Checklist quickly?"],
   ["ag2-planets", "When does an orbit’s planet light up?"],
-  ["ag2-progress", "What does the bar at the top of the Checklist show?"],
+  ["ag2-progress", "Is there still a progress bar on the Checklist?"],
   ["ag2-celebration", "What happens when I finish my day?"],
   ["af-checklist-timers", "What are the timers in the corner of the Checklist?"],
   ["af-checklist-launcher", "Where is the Checklist button, and can I hide it?"],
@@ -784,5 +825,5 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
 export const HELP_ITEMS: readonly SearchItem[] = [
   ...HELP_TOPICS.map(([id, label]): SearchItem => ({id: `help-topic:${id}`, kind: 'help', title: label, subtitle: 'Help topic', href: `/app/help#${id}`})),
   // The question's id names its topic ("export-everything", "w-import"), so its words find the answer too.
-  ...HELP_QUESTIONS.map(([id, question]): SearchItem => ({id: `help:${id}`, kind: 'help', title: question, subtitle: 'Help', href: `/app/help#help-${id}`, keywords: id.split('-').filter(w => w.length > 2)})),
+  ...HELP_QUESTIONS.map(([id, question]): SearchItem => ({id: `help:${id}`, kind: 'help', title: question, subtitle: 'Help', href: `/app/help#help-${id}`, keywords: [...id.split('-').filter(w => w.length > 2), ...(HELP_ALIASES[id] ?? [])] /* Session AW (Part 3): competitors' names too */})),
 ];

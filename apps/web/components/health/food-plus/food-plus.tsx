@@ -23,7 +23,9 @@ export type FoodPlusProps =
   | {part: 'fit-plan'; data: HealthData; date: string; today: string; perform: Perform}
   | {part: 'day-plans'; data: HealthData; date: string; perform: Perform}
   // Session AV lane 2, round 6 (r6-body; LEDGER #418): portion counters for the diary's day.
-  | {part: 'portions'; date: string; today: string};
+  | {part: 'portions'; date: string; today: string}
+  // Session AW (X5, LEDGER #455): "Sort recipes" (last made, stars, name) above the recipe list.
+  | {part: 'recipe-order'; data: HealthData; onOrder: (ids: readonly string[] | null) => void};
 const SaveMeal = lazy(() => import('./save-meal'));
 const ExtraMealNames = lazy(() => import('./extra-meals'));
 const EntryTimes = lazy(() => import('./entry-times'));
@@ -33,6 +35,7 @@ const Oracle = lazy(() => import('./oracle'));
 const PartialDay = lazy(() => import('./partial-day'));
 const PackPhotos = lazy(() => import('./pack-photos'));
 const CookView = lazy(() => import('./cook-view'));
+const RecipeOrder = lazy(() => import('./cook-view').then(m => ({default: m.RecipeOrder})));
 const RecipeBook = lazy(() => import('./recipe-book'));
 const FitPlan = lazy(() => import('./fit-plan'));
 const DayPlans = lazy(() => import('./day-plans'));
@@ -57,6 +60,7 @@ export default function FoodPlus(props: FoodPlusProps) {
   if (props.part === 'pack-photos') return <PackPhotos data={props.data}/>;
   if (props.part === 'pack-thumbs') return <PackThumbs data={props.data}/>;
   if (props.part === 'recipe-cook') return <CookView data={props.data}/>;
+  if (props.part === 'recipe-order') return <RecipeOrder data={props.data} onOrder={props.onOrder}/>;
   if (props.part === 'recipe-book') return <RecipeBook data={props.data} perform={props.perform}/>;
   if (props.part === 'food-marks') return <FoodMarks data={props.data}/>;
   if (props.part === 'marks-settings') return <MarksSettings data={props.data}/>;

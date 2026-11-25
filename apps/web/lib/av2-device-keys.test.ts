@@ -40,7 +40,9 @@ describe('Session AV lane 2 device keys', () => {
       expect(DEVICE_RECORD_KEYS).toContain(key); expect(NON_PERSONAL_KEYS).not.toContain(key);
     }
     for (const r of RECORDS) { const {storage} = memory(); storage.setItem(r.key, JSON.stringify(r.sample)); expect(noExistingData(storage)).toBe(false); }
-    expect(AV2_DISPLAY_KEYS).toEqual([TASK_AREA_KEY_LITERAL, ZIGI_HELLO_DAY_KEY]);
+    // Session AW (#460, deliberate): the sleep goal's look-back joins them, a display key too (lib/aw-x6-keys.ts).
+    expect(AV2_DISPLAY_KEYS).toEqual([TASK_AREA_KEY_LITERAL, ZIGI_HELLO_DAY_KEY, 'zigoals:sleep-goal-period:v1']);
+    expect(NON_PERSONAL_KEYS).toContain('zigoals:sleep-goal-period:v1'); expect(DEVICE_RECORD_KEYS).not.toContain('zigoals:sleep-goal-period:v1');
     expect(NON_PERSONAL_KEYS).toContain(TASK_AREA_KEY_LITERAL); expect(DEVICE_RECORD_KEYS).not.toContain(TASK_AREA_KEY_LITERAL);
   });
   test('in Export everything under its own name, never a synced module key', () => {
@@ -53,7 +55,17 @@ describe('Session AV lane 2 device keys', () => {
   });
   test('the data catalog lists each once, on this device only; no encrypted sync section carries one', () => {
     expect(Object.keys(AV2_CATALOG_LABELS).sort()).toEqual(Object.keys(AV2_EXPORT_KEYS).sort());
+    // Session AW (review b1 M1, M2; TIER 3 sync; deliberate): two of AW's records travel in an extras section; each is
+    // checked as strictly the other way: listed once as synced (its home), in exactly one section, never as device only.
+    const TRAVEL: Record<string, 'sync' | 'sync-consent'> = {activityExtras: 'sync-consent', goalRepeat: 'sync'};
+    for (const [name, home] of Object.entries(TRAVEL)) {
+      const key = (AV2_EXPORT_KEYS as Record<string, string>)[name]!, [label, area] = (AV2_CATALOG_LABELS as Record<string, readonly [string, string]>)[name]!;
+      expect(SYNCED.filter(entry => entry.key === key)).toEqual([{key, label, home, area}]);
+      expect(DEVICE_ONLY.map(entry => entry.key)).not.toContain(key);
+      expect(EXTRAS_SECTIONS.filter(s => s.records.some(r => r.spec.key === key))).toHaveLength(1);
+    }
     for (const [name, [label, area]] of Object.entries(AV2_CATALOG_LABELS)) {
+      if (name in TRAVEL) continue;
       const key = (AV2_EXPORT_KEYS as Record<string, string>)[name]!;
       expect(DEVICE_ONLY.filter(entry => entry.key === key)).toEqual([{key, label, home: 'device', area}]);
       expect(SYNCED.map(entry => entry.key)).not.toContain(key);

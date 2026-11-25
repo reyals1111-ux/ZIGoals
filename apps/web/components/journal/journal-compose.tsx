@@ -161,9 +161,10 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
       {[1, 2, 3, 4, 5].map(n => <label key={n} className="journal-energy-dot" title={ENERGY_WORDS.en[n - 1]}><input type="radio" name={`${id}-energy`} checked={todayEnergy === n} onChange={() => rate(n)}/><span aria-hidden="true">{n}</span><span className="sr-only">{n} of 5, {ENERGY_WORDS.en[n - 1]}</span></label>)}
       <span className="fine journal-energy-word">{todayEnergy ? ENERGY_WORDS.en[todayEnergy - 1] : '1 drained · 5 full of energy'}</span>
     </fieldset>
-    {todayEnergy !== null && <MoodWordsFold day={today}/>}
-    {/* Session AV (1c, q4 #4, fresh-agent review; Day One, Finch): "Three good things" at the top of Write, one step (folded since fr-layout, FR-TJ-9). */}
-    {!compact && !pending && <Suspense fallback={null}><ThreeGoodThings/></Suspense>}
+    {/* Session AW (simplicity-b, Part 3): on the Journal page the feeling word and "Three good things" follow the entry's form
+        (Today's card keeps the feeling word here). Above it they put "Today's entry" at y 733 on a phone in the Showcase,
+        its box running under the tab bar; the energy scale stays, one row. */}
+    {compact && todayEnergy !== null && <MoodWordsFold day={today}/>}
     {!pending && <form onSubmit={e => void save(e)} aria-label="Write in your journal">
       {canGrid && <button type="button" className="quiet journal-grid-toggle" aria-pressed={asGrid} onClick={() => setGridOn(!asGrid)}>{asGrid ? 'Write as one text' : 'Write as a grid'}</button>}
       {asGrid ? <Suspense fallback={<p className="fine">Opening the grid…</p>}><ComposeGrid key={`${prompt!.id}-${prompt!.lang}`} template={promptTemplate!} lang={prompt!.lang} text={text} onChange={setText}/></Suspense>
@@ -218,6 +219,9 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
       <div className="journal-actions"><button type="submit" className="primary" disabled={!answer.trim()}>Save answer</button><button type="button" className="text-link" onClick={() => setAsked(null)}>Not now</button></div>
     </form>}
     <p className="journal-status" role="status" aria-live="polite">{status}</p>
+    {!compact && todayEnergy !== null && <MoodWordsFold day={today}/>}
+    {/* Session AV (1c, q4 #4, fresh-agent review; Day One, Finch): "Three good things", one step (folded since fr-layout, FR-TJ-9); after the entry since Session AW (simplicity-b). */}
+    {!compact && !pending && <Suspense fallback={null}><ThreeGoodThings/></Suspense>}
     {pattern && <p className="journal-pattern"><span className="eyebrow">A pattern</span> {pattern}</p>}
   </div>;
 }

@@ -42,6 +42,8 @@ export const EATING_STYLES = ['low-carb', 'high-protein', 'high-fibre'] as const
 const clock = z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/);
 const healthId = z.string().regex(/^health_[a-z0-9-]{8,80}$/);
 export const WEEKDAY_KEYS = ['0', '1', '2', '3', '4', '5', '6'] as const;
+/** Session AW (X5): at most 12 menus (LEDGER #454) and 400 "Made it" days a recipe (LEDGER #455). */
+export const MAX_MENUS = 12, MAX_MADE_DAYS = 400;
 const gramsTarget = z.number().int().min(0).max(5_000);
 const dayTargetSchema = z.looseObject({kcal: z.number().int().min(1).max(100_000).optional(), proteinG: gramsTarget.optional(), carbsG: gramsTarget.optional(), fatG: gramsTarget.optional()});
 export type DayTarget = z.infer<typeof dayTargetSchema>;
@@ -68,6 +70,13 @@ export const foodPlusSchema = z.looseObject({
   // Session AV lane 2, round 6 (r6-body, LEDGER #418, Lifesum; TIER 3 (stored format), additive and optional): the portion
   // counters. A counter or a day this build cannot read is dropped on its own (lib/food-plus/portions.ts readPortions).
   portions: z.looseObject({counters: z.array(z.unknown()).max(12).optional().catch(undefined), days: z.record(z.string().max(12), z.unknown()).optional().catch(undefined)}).optional().catch(undefined),
+  // Session AW (X5, LEDGER #455, Paprika; TIER 3 (stored format), additive and optional): the days a recipe was made (said
+  // in the cooking view) and the person's own stars, by recipe id. A part this build cannot read is dropped on its own.
+  made: z.record(healthId, z.array(day).max(MAX_MADE_DAYS)).optional().catch(undefined),
+  stars: z.record(healthId, z.number().int().min(1).max(5)).optional().catch(undefined),
+  // Session AW (X5, LEDGER #454, Paprika; TIER 3 (stored format), additive and optional): weeks of meals kept as menus. A
+  // menu this build cannot read is left out on its own (lib/food-plus/menus.ts menusOf), never the whole list.
+  menus: z.array(z.unknown()).max(MAX_MENUS).optional().catch(undefined),
 });
 export const MAX_RECIPE_STEPS = 60, MAX_STEP_CHARS = 600;
 export type FoodPlus = z.infer<typeof foodPlusSchema>;

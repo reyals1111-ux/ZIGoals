@@ -60,3 +60,10 @@
 .guided-day-body { display: grid; gap: 10px; padding: 0 14px 14px; min-width: 0; }
 .guided-day-body > p { margin: 0; }
 .guided-day .guided-steps { margin: 0; }
+/* Session AW (programmes; integration fix): the app's buttons and button links (.primary, .secondary, .quiet) never wrap,
+   so a long label ("Open Meditation (Move gently)", "Mark the whole day done") was wider than a narrow card at 320 px and
+   the page scrolled sideways by 27 px. Inside a programme card they wrap and stay within it; every fold and list item
+   may shrink below its content's widest word line. */
+.guided-journey, .guided-days, .guided-day, .guided-day > details, .guided-day > details > summary, .guided-day-body, .guided-day .guided-step { min-width: 0; max-width: 100%; }
+.guided-journey :is(.guided-step-actions, .read-aloud, .guided-end) > :is(a, button) { white-space: normal; max-width: 100%; text-align: center; overflow-wrap: anywhere; }
+.guided-day-head, .guided-day-title { overflow-wrap: anywhere; }

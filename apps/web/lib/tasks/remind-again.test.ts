@@ -1,6 +1,6 @@
 import {describe, expect, test} from 'vitest';
 import {againAt, againChoiceOf, againFor, againPatch, repeatInstants} from './remind-again';
-import {dueReminders, snoozeReminder} from './reminders';
+import {dueReminders, nextRing, snoozeReminder} from './reminders';
 import {instantAt} from '../zone-time';
 import {tasksSchema, type Tasks} from './schema';
 
@@ -62,6 +62,15 @@ describe('in the app (push off): the reminder rows', () => {
   test('a reminder of its own that says false rings once, whatever the default', () => {
     const r = record({before: 0, again: false});
     expect(dueReminders(r, start + 25 * min, ZONE, opts()).map(x => x.round)).toEqual([undefined]);
+  });
+  test('the rows wake at the next ring, a first ring or a repeat (quiet hours hold it)', () => {
+    const r = record({before: 0}), a = opts().again;
+    expect(nextRing(r, start - 5 * min, ZONE, a)).toBe(start);
+    expect(nextRing(r, start + 5 * min, ZONE, a)).toBe(start + 10 * min);
+    expect(nextRing(r, start + 61 * min, ZONE, a)).toBeNull();
+    expect(nextRing(r, start + 5 * min, ZONE, {fallback: null, quiet: QUIET})).toBeNull();
+    const late = record({before: 0}, {time: '21:55'});
+    expect(nextRing(late, at('2026-11-25', '21:56'), ZONE, a)).toBe(at('2026-11-26', '07:00'));
   });
   test('Done stops it; Snooze stops it until the snooze ends, then it reminds again from there', () => {
     expect(dueReminders(record({before: 0}, {doneAt: '2026-11-25T17:05:00.000Z'}), start + 25 * min, ZONE, opts())).toEqual([]);

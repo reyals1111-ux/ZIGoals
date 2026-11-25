@@ -6,6 +6,7 @@ import {planScenario, type Platform, type PrivateGoal} from '../positions';
 import {revisionInstallments} from '../plan-revisions';
 import {scheduledFundingCredits} from '../goal-intelligence';
 import {dueDatesBetween} from '../bills/cadence';
+import {billTo} from '../bills/ends';
 import type {BillsRecord} from '../bills/schema';
 import type {Workouts} from '../workouts/schema';
 import {PLAN_LABELS, type RemindersPlan} from '../reminders-plan/schema';
@@ -168,7 +169,7 @@ function billItems(bills: BillsRecord, from: string, to: string): AgendaItem[] {
   const out: AgendaItem[] = [];
   for (const b of bills.bills) {
     let dates: string[] = [];
-    try { dates = dueDatesBetween(b.nextDue, b.cadence, from, to); } catch { dates = []; }
+    try { dates = dueDatesBetween(b.nextDue, b.cadence, from, billTo(b, to)); /* Session AW X7 (#462): none after a bill's last payment */ } catch { dates = []; }
     for (const date of dates) out.push({id: `bill:${b.id}:${date}`, source: 'bill', pillar: 'wealth', date, time: null, minutes: 0, title: b.title, detail: `${CADENCE_WORD[b.cadence]} due`, href: '/app/wealth?view=bills', state: 'open'});
     if (b.cancelBy && b.cancelBy >= from && b.cancelBy <= to) out.push({id: `bill-note:${b.id}:${b.cancelBy}`, source: 'bill', pillar: 'wealth', date: b.cancelBy, time: null, minutes: 0, title: `Decide on ${b.title}`, detail: 'Your note to self', href: '/app/wealth?view=bills', state: 'open'});
   }

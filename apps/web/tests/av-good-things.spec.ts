@@ -15,12 +15,15 @@ for (const theme of THEMES) test(`${theme}: two good things saved as one entry a
   await page.goto('/app/journal'); await settle(page);
   const fold = page.locator('details.good-things-fold');
   await expect(fold.locator('summary')).toContainText('Three good things · None this month yet');
-  // Session AV (1c, q4 #4, deliberate): the fold is at the top of Write (it was below "Save entry").
+  // Session AV (1c, q4 #4, deliberate): the fold is at the top of Write (it was below "Save entry"); Session AW (simplicity-b,
+  // deliberate) puts it after the entry's form again, see below.
   // (fr-layout; deliberate) FR-TJ-9: it starts folded, one line, so "Today's entry" is on the first screen; one tap opens it.
   await expect(fold).not.toHaveAttribute('open');
   await fold.locator('summary').click();
   await expect(fold).toHaveAttribute('open', '');
-  expect(await page.evaluate(() => { const f = document.querySelector('details.good-things-fold'), w = document.querySelector('form[aria-label="Write in your journal"]'); return !!f && !!w && !!(f.compareDocumentPosition(w) & Node.DOCUMENT_POSITION_FOLLOWING); })).toBe(true);
+  // Session AW (simplicity-b, deliberate): the fold follows the entry's form now (Part 3: "Today's entry" whole on a phone's
+  // first screen in the Showcase), still inside Write: the same check, the other way round.
+  expect(await page.evaluate(() => { const f = document.querySelector('details.good-things-fold'), w = document.querySelector('form[aria-label="Write in your journal"]'); return !!f && !!w && !!(f.compareDocumentPosition(w) & Node.DOCUMENT_POSITION_PRECEDING) && !!f.closest('section[aria-labelledby="journal-write"]'); })).toBe(true);
   const form = page.getByRole('form', {name: 'Three good things'});
   await form.getByLabel('A good thing today').fill('Fictional coffee with Sam');
   await form.getByLabel('One more').fill('A walk in the fictional park');

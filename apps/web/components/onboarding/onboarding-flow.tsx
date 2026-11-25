@@ -309,7 +309,10 @@ export function OnboardingFlow() {
       const kept = cleanProfileName(name);
       if (kept) { try { updateDeviceRecord(getAppStorage(), PROFILE_NAME, () => ({version: 1 as const, name: kept, at})); } catch { /* a name is a nicety */ } }
       // Written only when the setup made something; choosing nothing anywhere leaves only the seen flag behind.
-      if (createdHabitIds.length || goal || createdWidgetIds.length) { try { updateDeviceRecord(getAppStorage(), ONBOARDING_SETUP, () => ({version: 1 as const, at, habitIds: createdHabitIds, ...(goal ? {goalId: goal.id} : {}), widgetIds: createdWidgetIds, focuses, ...(pageFlips.length ? {pages: pageFlips} : {})})); } catch { /* the undo is a convenience */ } }
+      // Session AW Part 3 (simplicity c; local spec run): the focuses are kept even when every suggestion was skipped, so
+      // "Your first five" still puts the person's daily step first; with nothing created there is nothing to undo
+      // (setupUndoable), so the landing's Undo stays away.
+      if (createdHabitIds.length || goal || createdWidgetIds.length || focuses.length) { try { updateDeviceRecord(getAppStorage(), ONBOARDING_SETUP, () => ({version: 1 as const, at, habitIds: createdHabitIds, ...(goal ? {goalId: goal.id} : {}), widgetIds: createdWidgetIds, focuses, ...(pageFlips.length ? {pages: pageFlips} : {})})); } catch { /* the undo is a convenience */ } }
       markOnboardingSeen(window.localStorage); writeWelcomeDraft(null);
       // Session AK P4 (FR-4): Today greets the finished setup with "You're set" and moves the focus to it, once (tab only).
       if (createdHabitIds.length || goal) { try { window.sessionStorage.setItem(LANDING_NOTE, at); } catch { /* the card still shows; only the focus waits */ } }

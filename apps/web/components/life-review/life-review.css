@@ -102,3 +102,8 @@
 
 /* Session AV follow-up 1 (F-FACTORS): the factor list. */
 .factor-effects .factor-outcome{color:var(--text-secondary, var(--muted))}
+/* Session AW (X4, LEDGER #446): "This year" and "All time" — layout only; the colours are the review's own. */
+:root .life-year { display: grid; gap: 20px; }
+:root .life-year-pick { display: grid; gap: 6px; max-width: 240px; margin: 0 0 16px; font-size: 15px; }
+:root .life-year-pick select { min-height: 48px; font-size: 16px; }
+:root .life-year-area .life-list + .life-list { margin-top: 10px; }

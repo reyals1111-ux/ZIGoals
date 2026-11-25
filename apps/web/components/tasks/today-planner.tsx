@@ -107,6 +107,9 @@ export default function TodayPlanner({record, today, clock, shown, change, doneD
     {waiting.length > 0 && <p className="fine tasks-waiting-line">{waiting.length === 1 ? 'Waiting' : `${formatNumber(waiting.length)} waiting`}: {waiting.slice(0, 5).map(({t, on}, i) => <span key={t.id}>{i ? '; ' : ''}“<span dir="auto">{t.title}</span>” after {on.map(b => `“${b.title}”`).join(', ')}</span>)}. Each joins today once those are done.</p>}
     {(pva.planned > 0 || pva.actual > 0) && <p className="fine">Today: planned {minutesWords(pva.planned)}, spent {minutesWords(pva.actual)}.</p>}
     {blocksOn(plan.data, today).length > 0 && <Suspense fallback={null}><TodayBlocks record={record} today={today} change={change} /></Suspense>}
+    {/* Session AW (X2 #435; CI run 2034, a10-life A10-11): Fit my day and Pick one for me share one row, so Pick one adds no
+       height above the list where both fit; an open one takes the whole row. */}
+    <div className="tasks-plan-folds">
     <details className="tasks-fit-day">
       <summary>Fit my day around the Agenda</summary>
       <p className="fine">Tasks without a time go into the free time inside your working hours ({hours.length ? hours.map(b => `${formatClock(b.from)}–${formatClock(b.to)}`).join(' and ') : 'today is a day off'}; set them in Tasks → This week), between your timed tasks and calendar events, each for its minutes (30 when it has none). An “after hours” task goes in the evening; a long task with pieces goes piece by piece. Background tasks take no slot. A task dropped into a time block goes inside it; the others stay outside your blocks; travel minutes before a time count as taken.</p>
@@ -126,6 +129,7 @@ export default function TodayPlanner({record, today, clock, shown, change, doneD
       {open.filter(t => t.time && !runningTimer(plan.data, t.id)).length > 0 && <p className="tasks-fit-timers">{open.filter(t => t.time && !runningTimer(plan.data, t.id)).slice(0, 8).map(t => <button key={t.id} type="button" className="quiet" aria-label={`Start a timer for “${t.title}”`} onClick={() => timer(t)}>⏱ {t.title}</button>)}</p>}
     </details>
     <Suspense fallback={null}><PickOne record={record} today={today} onOpen={onOpen} onFocus={onFocus} /></Suspense>
+    </div>
     <Suspense fallback={null}><PlanWeek record={record} today={today} clock={clock} change={change} /></Suspense>
   </section>;
 }

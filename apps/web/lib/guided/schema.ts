@@ -27,7 +27,8 @@ export const guidedJourneySchema = z.looseObject({
   startedOn: z.iso.date(),
   done: z.array(slug).max(MAX_DONE),
   endedOn: z.iso.date().optional(),
-  stepsDone: z.array(stepKey).max(MAX_STEPS_DONE).optional(),
+  // Session AW (review b1 m6): an unreadable list is left out, never the whole journeys record.
+  stepsDone: z.array(stepKey).max(MAX_STEPS_DONE).optional().catch(undefined),
   showcase: z.literal(true).optional(),
 });
 export const guidedJourneysSchema = z.looseObject({

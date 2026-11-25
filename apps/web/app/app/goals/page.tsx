@@ -31,6 +31,8 @@ const HealthGoalsSection = lazy(() => import("../../../components/health-goals/h
 const DebtPaydownCard = lazy(() => import("../../../components/goals/debt-paydown-card"));
 // Session AL sweep 4 (C-BN-23): the rating goals set on Chess, read-only, with the goals (its own chunk, imports goals.css).
 const ChessRatingGoals = lazy(() => import("../../../components/goals/chess-rating-goals"));
+// Session AW (X4, LEDGER #447): repeating goals start again at a new week, month or year (its own chunk; renders nothing).
+const GoalRepeatTurn = lazy(() => import("../../../components/goals/goal-repeat-turn"));
 export default function GoalsPage() {
   const collection = useUnifiedGoals();
   // Session Z-Cloud Part 4.3: plain words until Keplr is connected.
@@ -68,6 +70,7 @@ export default function GoalsPage() {
   const changePage=(next:number)=>{setPage(next);document.getElementById('goal-collection-controls')?.focus();};
   return <LayoutPage page="goals"><div className="goals-page dashboard platform-workspace">
     <PillarHero pillar="goals" titleId="goals-title" className="goals-heading page-heading" eyebrow="A destination worth building" title="Your Goals" lede="Small steps. A bigger future. Every plan starts with you." buttons={<Link className="primary" href="/app/goals/new">+ Create a goal</Link>} about="goals" art={<OrbitArt glyph={GoalsGlyph} tone="goals"/>}/><LayoutLockButton/>
+    <Suspense fallback={null}><GoalRepeatTurn /></Suspense>
     {keeperReady && <LazyExtrasKeeper liveKeys={[...collection.goals.map(g => g.key), ...healthGoals.data.goals.map(g => `health:${g.id}`)]} ready/>}
     {/* Session AB-Design (owner request 15): the filters on the left, the Cards / Vision board / Tree switch at the right end; the count lives in the Active filter's name; Positions stays reachable from the page's ⋯ menu (never removed). */}
     {!!total && <div className="goals-toolbar"><nav className="tab-row view-tabs goal-view-filters" aria-label="Goal views">{["Active", "Completed", "Closed", "All"].map(v => <button key={v} aria-pressed={filter === v} aria-description={filter === v ? `${count + shownAverages.length} ${count + shownAverages.length === 1 ? "destination" : "destinations"}` : undefined} onClick={() => chooseFilter(v)}>{v}</button>)}</nav><div className="goals-toolbar-end"><GoalsViewSwitch view={view} onChange={setView}/><CardOptions label="Goals">{/* Session AL (DV-022b, P-DV-61): the list menu says what Positions is and offers the other ways to start */}{browse&&<button type="button" onClick={openBrowse}>Search and sort goals</button>}<Link href="/app/goals/templates">Goal templates</Link><Link href="/app/goals/average/new">Keep an average…</Link><Link href="/app/staking#positions" aria-describedby="goals-positions-why">Positions →</Link><p className="fine" id="goals-positions-why" style={{margin:"2px 12px 6px"}}>Every holding that counts toward your goals, in one list.</p></CardOptions></div></div>}

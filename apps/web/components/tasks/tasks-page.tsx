@@ -12,7 +12,7 @@ import {TasksGlyph} from './tasks-glyph';
 import {TaskRow, TaskStatusLine} from './task-parts';
 import {PASTE_PARENT, SmartAdd} from './smart-add';
 import {ReminderRows} from './reminder-rows';
-import {useRemindAgain} from './use-remind-again';
+import {useRemindAgain, useWakeAt} from './use-remind-again';
 import {TasksNav, viewKey, readView, viewTitle} from './tasks-nav';
 import {useTaskList} from './use-task-list';
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -23,7 +23,7 @@ import {
   addProject, addSection, addTask, childrenOf, clearDone, completedInWindow, dropOrder, editMany, editProject, finishMany, moveStep, moveTasks, recentlyDone, removeFilter,
   removeProject, removeSection, renameSection, saveFilter, setOrder, skipOccurrence, taskCounts, taskState, viewTasks, withLabel, labelPlan, type TaskInput, type TaskView,
 } from '../../lib/tasks/engine';
-import {dueReminders} from '../../lib/tasks/reminders';
+import {dueReminders, nextRing} from '../../lib/tasks/reminders';
 import {salvageTasks, keepSalvaged} from '../../lib/tasks/device';
 import {checklistZone} from '../../lib/checklist/zone';
 import {addLocalDays} from '../../lib/local-date';
@@ -185,6 +185,9 @@ export function TasksPage() {
   const counts = useMemo(() => taskCounts(record, today, clock), [record, today, clock]); // RR-8: the list's own clock
   const again = useRemindAgain(); // Session AW (X1, LEDGER #438): a reminder repeats until done or snoozed
   const reminders = useMemo(() => tasks.loaded ? dueReminders(record, now, checklistZone(), {dismissed, again}) : [], [tasks.loaded, record, now, dismissed, again]);
+  // Session AW (X1, LEDGER #438): the rows wake at the next ring (a first ring or a repeat), on its minute.
+  const ringAt = useMemo(() => tasks.loaded ? nextRing(record, now, checklistZone(), again) : null, [tasks.loaded, record, now, again]);
+  useWakeAt(ringAt, setNow);
   const salvage = useMemo(() => tasks.unreadable ? salvageTasks() : null, [tasks.unreadable]);
   const visibleIds = useMemo(() => shown.map(t => t.id), [shown]);
   const selectMode = selecting || selected.size > 0;
@@ -471,10 +474,11 @@ export function TasksPage() {
           onAddProject={(name, colour) => list.quiet(r => addProject(r, {name, colour}), `Made the project “${name.trim()}”.`)} scope={v => viewFocus && FOCUS_KINDS.has(v.kind) ? focusedRecord(record, viewFocus) : record} toReview={toReview}
           dropOn={dropOnProject} onRemoveFilter={id => list.change(r => removeFilter(r, id), 'Removed the saved filter.')} />
         <section className="panel tasks-main" aria-labelledby="tasks-view-title">
+          {/* Session AW (simplicity-b, Part 3): "New task" opens the list, above its heading line, Select and Filter. Under
+              them it stood at y 949 on a phone in the Showcase, under the tab bar; the heading still names the list. */}
+          {view.kind !== 'completed' && view.kind !== 'filter' && !own && <SmartAdd record={record} today={today} onAdd={addFromLine} onAddMany={addManyFromLines} defaults={defaults} inputRef={addField} makeProject={makeProject} goals={goals.open} />}
           <header className="tasks-view-head">
             <h2 id="tasks-view-title">{title} <small>{view.kind === 'completed' || own ? '' : shown.length ? plural(shown.length, 'task') : 'none open'}{view.kind !== 'completed' && counts.overdue && view.kind !== 'overdue' ? ` · ${formatNumber(counts.overdue)} overdue in all` : ''}</small></h2>
-            {/* Session AW (X2, LEDGER #436): today's tasks done and where the day is, inside this heading line (no card of its own) */}
-            {view.kind === 'today' && !query && !tasks.unreadable && <LoadBoundary quiet><Suspense fallback={null}><DayProgressLine record={record} today={today} clock={clock} doneDay={list.doneDay} /></Suspense></LoadBoundary>}
             {!!record.areas?.length && view.kind !== 'project' && <label className="field tasks-area-pick"><span>Area</span><select value={areaId} onChange={e => chooseArea(e.target.value)}><option value="">All areas</option>{record.areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>}
             {project && <ProjectTools project={project} board={board} setup={setupFor === project.id} onSetup={() => setSetupFor(setupFor === project.id ? null : project.id)} onBoard={b => go(view, b)} onEdit={patch => list.change(r => editProject(r, project.id, patch), patch.archived ? `Archived “${project.name}”.` : `Saved “${patch.name ?? project.name}”.`)} onRemove={() => { list.change(r => removeProject(r, project.id), `Removed the project “${project.name}”; its tasks are in the Inbox.`, 'The project is back.'); go({kind: 'inbox'}); }} />}
             {/* Session AV lane 2 (r6-plan, LEDGER #394): Focus on chosen projects or areas, in the views it narrows */}
@@ -488,11 +492,14 @@ export function TasksPage() {
           {(focusOn || (focusing && FOCUS_KINDS.has(view.kind))) && <LoadBoundary quiet><Suspense fallback={null}><FocusBar record={record} focus={viewFocus} choosing={focusing} onChoosing={setFocusing} /></Suspense></LoadBoundary>}
           {project && <LoadBoundary quiet><Suspense fallback={null}><ProjectStates list={list} project={project} /></Suspense></LoadBoundary>}
           {project && setupFor === project.id && <LoadBoundary label="Rules and fields"><Suspense fallback={<ZgSkeleton label="Opening…" block lines={2} />}><ProjectSetup list={list} record={record} project={project} /></Suspense></LoadBoundary>}
-          {view.kind !== 'completed' && view.kind !== 'filter' && !own && <SmartAdd record={record} today={today} onAdd={addFromLine} onAddMany={addManyFromLines} defaults={defaults} inputRef={addField} makeProject={makeProject} goals={goals.open} />}
           {selected.size > 0 && <LoadBoundary quiet><Suspense fallback={null}><BulkBar count={selected.size} projects={projects} onDone={() => finishSelected()} onLevel={l => setLevel(l)} onDue={d => setDue(d === 'today' ? today : d === 'tomorrow' ? addLocalDays(today, 1) : d)} today={today} labels={labelsOf(record, selected)} onLabel={labelSelected} onMove={p => moveSelected(p)} onRemove={() => removeSelected()} onClear={() => { setSelected(new Set()); setSelecting(false); }} onAll={() => setSelected(new Set(visibleIds))} total={visibleIds.length} /></Suspense></LoadBoundary>}
           {selectMode && !selected.size && <p className="fine tasks-select-hint" role="status">Tick the tasks to act on together; Escape ends selecting.</p>}
           <TaskStatusLine error={list.error} />
           {!tasks.unreadable && body}
+          {/* Session AW (X2, LEDGER #436): today's tasks done and where the day is, one line under Today's list (no card of its
+              own). In the heading line it took a row of its own and pushed the Showcase's first task below the first screen at
+              768 (CI run 2034, a10-life A10-11). */}
+          {view.kind === 'today' && !query && !tasks.unreadable && <LoadBoundary quiet><Suspense fallback={null}><DayProgressLine record={record} today={today} clock={clock} doneDay={list.doneDay} /></Suspense></LoadBoundary>}
           {empty && <EmptyState title={query ? 'Nothing matches' : !record.tasks.length ? 'Your list starts here' : view.kind === 'today' ? 'Nothing due today' : 'Nothing here'} level={2} art="orbit">
             {query ? 'Try fewer words, or one operator such as p1, today or #project.' : counts.open ? 'Open another view on the left, or add one above.' : 'Type a few words above, like “Call the dentist tomorrow 10am”. Add a day, “every …”, p1–p4, #project or @label as you type.'}
           </EmptyState>}

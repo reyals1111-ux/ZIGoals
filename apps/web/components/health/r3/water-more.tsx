@@ -1,10 +1,10 @@
 'use client';
 import Link from 'next/link';
 import {useId, useState, type FormEvent} from 'react';
-import {newHealthId, type HealthData} from '../../../lib/health';
-import {addWater, dailyData, undoWaterLog, waterSummary} from '../../../lib/health-daily';
-import {DRINK_TYPES, drinkWord, healthExtrasSchema, OWN_DRINKS_MAX, setDrink, type HealthExtras, type OwnDrink} from '../../../lib/health-extras';
-import {drinkEnergyDay, moveOwnDrink, OWN_DRINK_COLOURS, OWN_DRINK_SYMBOL_NAMES, OWN_DRINK_SYMBOLS, ownDrinks, removeOwnDrink, saveOwnDrink, tapNote, type DrinkFormInput, type DrinkIssue} from '../../../lib/own-drinks';
+import type {HealthData} from '../../../lib/health';
+import {dailyData, waterSummary} from '../../../lib/health-daily';
+import {DRINK_TYPES, drinkWord, healthExtrasSchema, OWN_DRINKS_MAX, type HealthExtras, type OwnDrink} from '../../../lib/health-extras';
+import {drinkEnergyDay, moveOwnDrink, OWN_DRINK_COLOURS, OWN_DRINK_SYMBOL_NAMES, OWN_DRINK_SYMBOLS, ownDrinks, removeOwnDrink, saveOwnDrink, type DrinkFormInput, type DrinkIssue} from '../../../lib/own-drinks';
 import {waterTipOf} from '../../../lib/water-tips';
 import {DEFAULT_SPREAD, SPREAD_EVERY, spreadSlotsToday, withWaterSpread, type WaterSpread} from '../../../lib/water-spread';
 import {NOTIFY_PREFS, typeOn} from '../../../lib/notify/prefs';
@@ -15,38 +15,24 @@ import {formatClock, formatNumber} from '../../../lib/visual-format';
 import {plural} from '../../../lib/plural';
 import {deviceSettingFailureMessage} from '../../../lib/storage-error-copy';
 import {useDeviceRecord} from '../../ai/use-device-record';
-import {showUndo} from '../../ui/undo-toast';
-import {useOneTap} from '../one-tap';
-import {zigiSignals} from '../../zigi/bus';
-import {useHealth} from '../use-health';
 import {useHealthExtras} from '../meal-names';
 import './health-r3.css';
 
 type Perform = (updater: (latest: HealthData) => HealthData, message: string, after?: () => void) => Promise<void>;
-const now = () => new Date().toISOString();
 const BLANK: DrinkFormInput = {name: '', type: 'juice', sizeMl: '250', symbol: OWN_DRINK_SYMBOLS[4], colour: 'orange', caffeine: '', kcal: '', sugar: ''};
 const formOf = (d: OwnDrink): DrinkFormInput => ({name: d.name, type: d.type, sizeMl: String(d.sizeMl), symbol: d.symbol ?? OWN_DRINK_SYMBOLS[0], colour: d.colour ?? 'blue', caffeine: d.caffeineMg === undefined ? '' : String(d.caffeineMg), kcal: d.kcal === undefined ? '' : String(d.kcal), sugar: d.sugarG === undefined ? '' : String(d.sugarG)});
 /** A drink's facts; its calories in a span "Hide calories and weight" hides, as Health's other calorie figures (review B3B-4). */
 export const facts = (d: OwnDrink) => <>{[`${formatNumber(d.sizeMl)} mL`, d.caffeineMg !== undefined ? `${d.caffeineMg} mg caffeine` : null].filter(Boolean).join(' · ')}{d.kcal !== undefined && <> · <span data-body-figure="">{d.kcal} kcal</span></>}{d.sugarG !== undefined ? ` · ${formatNumber(d.sugarG, {maximumFractionDigits: 1})} g sugar` : ''}</>;
 
 /**
- * Session AV lane 2 (health r3; LEDGER #280–#283, Waterllama), under the Water card's one-tap row: your own drinks as
- * one-tap buttons (each a water entry with its drink), the energy and sugar of today's drinks as typed, a tip a day (off
+ * Session AV lane 2 (health r3; LEDGER #280–#283, Waterllama), under the Water card's one-tap row (and, since Session AW,
+ * under the card's own drinks: own-drink-taps.tsx): the energy and sugar of today's drinks as typed, a tip a day (off
  * unless chosen), "Your drinks" to make up to 30, and "Reminders through the day". Its own chunk.
  */
-export default function WaterMore({data, date, perform, only}: {data: HealthData; date: string; perform: Perform; only?: 'taps' | 'settings'}) {
-  const {extras, update, unreadable} = useHealthExtras(), store = useHealth(), [said, setSaid] = useState('');
-  const drinks = ownDrinks(extras), sameTap = useOneTap() /* FR-S-11 */, energy = drinkEnergyDay(extras, dailyData(data).water, date);
+export default function WaterMore({data, date, only}: {data: HealthData; date: string; /** Kept for the caller; the taps that used it are in own-drink-taps.tsx. */ perform: Perform; only?: 'taps' | 'settings'}) {
+  const {extras, update, unreadable} = useHealthExtras(), [said, setSaid] = useState('');
+  const drinks = ownDrinks(extras), energy = drinkEnergyDay(extras, dailyData(data).water, date);
   const [tipStep, setTipStep] = useState(0), [tipLang, setTipLang] = useState<'en' | 'nl'>('en'), tip = waterTipOf(date, tipStep);
-  function tap(d: OwnDrink, at: number) {
-    if (!sameTap.tap(at)) return;
-    const id = newHealthId(), note = tapNote(d);
-    void perform(latest => addWater(latest, {id, date, amountMilli: d.sizeMl * 1000, unit: 'ml'}, now()), `${d.name} recorded.`, () => {
-      try { update(r => setDrink(r, id, note.type, note.caffeineMg, note.more)); } catch { /* the entry is saved; only the drink note could not be kept */ }
-      zigiSignals.emitValidated('health_log_recorded');
-      sameTap.shown(showUndo({message: `${d.name} logged: ${formatNumber(d.sizeMl)} mL.`, undone: 'Water entry removed.', restore: () => store.update(undoWaterLog(id))}));
-    });
-  }
   const setTips = (on: boolean) => { try { update(r => healthExtrasSchema.parse({...r, waterTips: on || undefined})); setSaid(on ? 'A water tip shows here each day.' : 'Water tips are off.'); } catch (e) { setSaid(`Not kept on this device. ${deviceSettingFailureMessage(e)}`); } };
   // Session AV lane 2 (phone-length): on a phone the Water card shows the tip and the one-tap drinks where they were
   // (`only="taps"`) and keeps "Your drinks", "Reminders through the day" and the tip's switch in the row "Your drinks,
@@ -57,7 +43,7 @@ export default function WaterMore({data, date, perform, only}: {data: HealthData
       <p lang={tipLang} aria-live="polite">{tip[tipLang]}</p>
       <div className="actions"><button type="button" className="quiet" lang={tipLang} onClick={() => setTipStep(n => n + 1)}>{tipLang === 'en' ? 'Another tip' : 'Nog een tip'}</button><button type="button" className="quiet" lang={tipLang === 'en' ? 'nl' : 'en'} onClick={() => setTipLang(tipLang === 'en' ? 'nl' : 'en')}>{tipLang === 'en' ? 'In het Nederlands' : 'In English'}</button></div>
     </section>}
-    {drinks.length > 0 && <div className="actions r3-own-drinks" role="group" aria-label="Your drinks, one tap each">{drinks.map(d => <button type="button" className="secondary" key={d.id} data-drink-colour={d.colour ?? 'blue'} aria-label={`Log ${d.name}, ${formatNumber(d.sizeMl)} mL`} onClick={e => tap(d, e.timeStamp)}><span aria-hidden="true" className="r3-drink-symbol">{d.symbol ?? '💧'}</span> {d.name} <small>{formatNumber(d.sizeMl)} mL</small></button>)}</div>}
+    {/* Session AW (p5-fixes; D-CI2026): the one-tap drinks are drawn with the card now (own-drink-taps.tsx, in daily-tools.tsx) */}
     <DrinkDayEnergy energy={energy}/>
   </>;
   const settings = <>
@@ -68,7 +54,7 @@ export default function WaterMore({data, date, perform, only}: {data: HealthData
     <div className="r3-toggle"><button type="button" className="quiet" aria-pressed={!!extras?.waterTips} aria-describedby={`r3-tip-note-${date}`} disabled={!extras} onClick={() => setTips(!extras?.waterTips)}>Show a water tip each day</button><span className="fine" id={`r3-tip-note-${date}`}>Small habits that make a glass easier to reach for. Off unless you choose it.</span></div>
     <p className="fine" role="status" aria-live="polite">{said}</p>
   </>;
-  if (only === 'taps') return extras?.waterTips || drinks.length > 0 || energy.kcal !== null || energy.sugarG !== null ? <div className="r3-water r3-water-taps">{taps}</div> : null;
+  if (only === 'taps') return extras?.waterTips || energy.kcal !== null || energy.sugarG !== null ? <div className="r3-water r3-water-taps">{taps}</div> : null;
   if (only === 'settings') return <div className="r3-water r3-water-settings">{settings}</div>;
   return <div className="r3-water">{taps}{settings}</div>;
 }

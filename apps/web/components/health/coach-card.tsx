@@ -92,7 +92,7 @@ export function CoachSlotCard() {
   // asked for weights on Today.
   // Session AL (NB-244): with nothing logged at all, a shown Health page alone does not bring the coach.
   const records = health.data.weights.length + health.data.diary.length + health.data.activity.length + dailyData(health.data).water.length;
-  if (!coachSlotShown({healthShown: isShown(view, 'health'), weights: health.data.weights.length, records})) return null;
+  if (!coachSlotShown({healthShown: isShown(view, 'health'), weights: health.data.weights.length, records, weightGoal: health.data.targets.weightGrams !== null})) return null; // Session AW (p5-fixes; FR-S-14): a weigh-in or a goal weight brings it
   const perform: HealthPerform = async (updater, _message, after) => { await health.update(updater); after?.(); };
   return <CoachCard data={health.data} today={today} perform={perform} compact />;
 }

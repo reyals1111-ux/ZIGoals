@@ -8,6 +8,9 @@ import type {DeviceRecordSpec} from '../device-record';
  * - `pantry`: names the person said "I have this" to; they leave the list (every week) until put back.
  * - `added`: per week, items added by hand or from "often logged".
  * - `showFrequent`: whether often-logged foods are offered under the list (off by default).
+ * - `useBy` (Session AW X5, LEDGER #452, Paprika's pantry; TIER 3 (stored format), additive and optional): a use-by day
+ *   per pantry item, by the same folded name as `pantry` (whose values stay the moment "I have this" was said, as an
+ *   older build parses them). "Use soon" on the grocery list reads it (lib/grocery/use-soon.ts). No notification.
  * Health's own grocery corrections (`daily.groceryEdits`) stay as they are and are still read. Not synced.
  */
 export const GROCERY_KEY = 'zigoals:grocery:v1';
@@ -21,7 +24,9 @@ export const groceryRecordSchema = z.looseObject({
   pantry: z.record(z.string().min(1).max(120), stamp).optional(),
   added: z.record(week, z.array(groceryAddedSchema).max(MAX_ADDED)).optional(),
   showFrequent: z.boolean().optional(),
-}).refine(r => Object.keys(r.ticks ?? {}).length <= MAX_TICKS && Object.keys(r.pantry ?? {}).length <= MAX_PANTRY, 'Too many grocery choices remembered.');
+  // A day this build cannot read is dropped with the rest of the map, never the whole record.
+  useBy: z.record(z.string().min(1).max(120), z.iso.date()).optional().catch(undefined),
+}).refine(r => Object.keys(r.ticks ?? {}).length <= MAX_TICKS && Object.keys(r.pantry ?? {}).length <= MAX_PANTRY && Object.keys(r.useBy ?? {}).length <= MAX_PANTRY, 'Too many grocery choices remembered.');
 export type GroceryRecord = z.infer<typeof groceryRecordSchema>;
 export const emptyGroceryRecord = (): GroceryRecord => ({version: 1});
 export const GROCERY_RECORD: DeviceRecordSpec<GroceryRecord> = {key: GROCERY_KEY, schema: groceryRecordSchema, empty: emptyGroceryRecord};
@@ -42,7 +47,22 @@ export function setPantry(r: GroceryRecord, name: string, have: boolean, at: str
   const key = groceryName(name); if (!key) return r;
   const pantry = {...(r.pantry ?? {})};
   if (have) { if (!pantry[key] && Object.keys(pantry).length >= MAX_PANTRY) throw new Error(`At most ${MAX_PANTRY} pantry items; put one back on the list first.`); pantry[key] = at; } else delete pantry[key];
+  // Session AW (X5, LEDGER #452): an item put back on the list leaves its use-by day with it.
+  if (!have && r.useBy?.[key]) { const useBy = {...r.useBy}; delete useBy[key]; const {useBy: _u, ...rest} = r; void _u; return groceryRecordSchema.parse({...rest, pantry, ...(Object.keys(useBy).length ? {useBy} : {})}); }
   return groceryRecordSchema.parse({...r, pantry});
+}
+/**
+ * Session AW (X5, LEDGER #452): a use-by day on a pantry item (null takes it off). An item not yet at home is put in the
+ * pantry first ("I have this", at `at`), so a day is never kept for something on the list.
+ */
+export function setUseBy(r: GroceryRecord, name: string, day: string | null, at: string): GroceryRecord {
+  const key = groceryName(name); if (!key) throw new Error('Type the item’s name.');
+  if (day !== null && !/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new Error('Choose a use-by day.');
+  const base = day !== null && !r.pantry?.[key] ? setPantry(r, name, true, at) : r;
+  const useBy = {...(base.useBy ?? {})};
+  if (day === null) delete useBy[key]; else useBy[key] = day;
+  const {useBy: _u, ...rest} = base; void _u;
+  return groceryRecordSchema.parse(Object.keys(useBy).length ? {...rest, useBy} : rest);
 }
 export function addGroceryItem(r: GroceryRecord, weekStart: string, name: string, at: string): GroceryRecord {
   week.parse(weekStart);

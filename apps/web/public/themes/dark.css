@@ -8023,6 +8023,15 @@
         border-color: currentcolor
     }
 }
+/*  components/goals/goal-repeat.css  */
+@scope (:root[data-theme=dark]) {
+    .goal-repeat-rows li:not(#\-) {
+        border-color: var(--line)
+    }
+    .goal-repeat-rows li span:not(#\-) {
+        color: var(--text-secondary)
+    }
+}
 /*  components/goals/goal-tree.css  */
 @scope (:root[data-theme=dark]) {
     :scope .goal-tree-tools .quiet:not(#\-) {
@@ -10500,6 +10509,15 @@
     .food-plus-extra-meals:not(#\-) {
         border-top-color: var(--line, #6a9cc342)
     }
+    .food-plus-cook-method button[aria-current="step"]:not(#\-) {
+        outline-color: var(--pillar-health, #ff74be)
+    }
+    .food-plus-use-soon:not(#\-) {
+        border-color: var(--line, #6a9cc342)
+    }
+    .food-plus-file-list li:not(#\-) {
+        border-bottom-color: var(--line, #6a9cc342)
+    }
 }
 /*  components/health/health-aa.css  */
 @scope (:root[data-theme=dark]) {
@@ -12490,6 +12508,18 @@
         color: var(--text-secondary, var(--muted))
     }
 }
+/*  components/health/x6/body-x6.css  */
+@scope (:root[data-theme=dark]) {
+    .x6-list li:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .x6-low:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .x6-filter button[aria-pressed="true"]:not(#\-) {
+        box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f6)
+    }
+}
 /*  components/help/help-screenshots.css  */
 @scope (:root[data-theme=dark]) {
     .help-shot img:not(#\-) {
@@ -13027,6 +13057,11 @@
     }
     .journal-calendar-empty[data-today]:not(#\-) {
         outline-color: currentColor
+    }
+    @media (max-width: 389.98px) {
+        :scope main .panel .journal-calendar-grid:not(#\-) {
+            --journal-bleed: calc(16px + 1px + var(--phone-gutter,16px) - 4px)
+        }
     }
     .journal-books-row:not(#\-) {
         border-bottom-color: var(--line)
@@ -24095,6 +24130,12 @@
         outline-color: #a9e8ed;
         box-shadow: 0 0 0 8px #a9e8ed33
     }
+    .onboarding-quick:not(#\-) {
+        border-top-color: var(--line, #25334f)
+    }
+    .onboarding-quick > p:not(#\-) {
+        color: var(--text-meta, #c2d0e5)
+    }
 }
 /*  components/orbit-card/orbit-card.css  */
 @scope (:root[data-theme=dark]) {
@@ -27669,6 +27710,36 @@
     @media (forced-colors: active) {
         .settings-page .settings-fold-chevron:not(#\-) {
             color: CanvasText
+        }
+    }
+}
+/*  components/settings/settings-search.css  */
+@scope (:root[data-theme=dark]) {
+    .settings-search > label:not(#\-) {
+        color: var(--text)
+    }
+    .settings-search-status:not(#\-) {
+        color: var(--text-meta, #c2d0e5)
+    }
+    .settings-search-results:not(#\-) {
+        border-color: var(--line, #25334f)
+    }
+    .settings-search-results li + li:not(#\-) {
+        border-top-color: var(--line, #25334f)
+    }
+    .settings-search-results a:not(#\-) {
+        color: var(--text);
+        box-shadow: none
+    }
+    .settings-search-results a:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #45d8ef)
+    }
+    .settings-search-results small:not(#\-) {
+        color: var(--text-meta, #c2d0e5)
+    }
+    @media (forced-colors: active) {
+        .settings-search-results:not(#\-), .settings-search-results li + li:not(#\-) {
+            border-color: CanvasText
         }
     }
 }

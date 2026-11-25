@@ -82,6 +82,9 @@
   .tasks-layout > .tasks-nav .tasks-nav-item:not([aria-current=page]) { border-color: var(--line, rgba(128, 128, 160, .3)); }
   .tasks-layout > .tasks-nav h3 { margin: 6px 0 2px; }
   .tasks-layout > .tasks-nav .tasks-nav-area h4 { margin: 4px 0 2px; }
+  /* Session AW (simplicity-b, Part 3): This evening, Someday, Priority matrix and Completed (the fold's first row on a
+     phone) start 4 px under the chips above, the rows' own gap. */
+  .tasks-layout > .tasks-nav .tasks-nav-more > .tasks-nav-later { margin-top: 4px; }
 }
 /* Session AV lane 2 (fr-layout, FR-L-5, FR-MAX-2, FR-S-7, FR-TJ-8): on a phone, Plan and views, Projects, Labels, Priority
    and Saved filters fold behind the "More views" chip at the end of the first row, so "New task" is on the first screen
