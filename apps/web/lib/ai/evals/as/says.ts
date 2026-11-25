@@ -1,4 +1,5 @@
 import {monthIn, nlDate} from '../../local-answers/exact/period';
+import {SAYS_AW_P5} from './cases-aw-p5';
 
 /**
  * Session AS (ADR-042 Part 1, approval item 7): the facts every phrasing of a question must state, written by hand from
@@ -76,6 +77,7 @@ export const SAYS: Readonly<Record<string, readonly string[]>> = {
   'awx4-year': ['2026', '202', '217', 'Walk'], 'awx4-repeat-reached': ['Starts again'],
   'awx5-use-soon': ['Showcase yoghurt', 'Showcase spinach'], 'awx5-last-made': ['Showcase pea soup', '2', '4'], 'awx5-menu-next-week': ['Soup week (Showcase)', '5'],
   'awx6-weigh-on': ['71.8 kg', '73.6 kg'], 'awx6-weight-week': ['3', '2'], 'awx6-sleep-goal-period': ['8 h 00 min'], // its two phrasings read 14 and 30 days
+  ...SAYS_AW_P5, // Session AW Part 5 (p5-answers)
   'awx7-money-removed': ['Phone case', '19'], 'awx7-money-bill-ends': ['Music', '3', '24'], 'awx7-money-card-payment': ['Credit card'],
 };
 

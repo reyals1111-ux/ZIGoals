@@ -3736,27 +3736,27 @@
  },
  "spend-month": {
   "en": "You spent 435.59 EUR this month. Biggest: Groceries 187.10 EUR, Bills 120.00 EUR, Food & drink 49.10 EUR. Room to spend this week: 144.40 EUR of 200.00 EUR. From your own entries in Wealth → Spending, never converted.",
-  "nl": "Je gaf deze maand € 435,59 uit. Grootste: Groceries € 187,10, Bills € 120,00, Food & drink € 49,10. Ruimte deze week: € 144,40 van € 200,00. Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.",
+  "nl": "Je gaf deze maand € 435,59 uit. Grootste: Groceries € 187,10, Bills € 120,00, Food & drink € 49,10. Ruimte deze week: € 144,40 van € 200,00. Uit je eigen invoer in Wealth → Spending, nooit omgerekend.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is logged in Wealth → Spending yet.",
-  "freshNl": "Er is nog niets gelogd in Vermogen → Uitgaven."
+  "freshNl": "Er is nog niets gelogd in Wealth → Spending."
  },
  "spend-lastmonth": {
   "en": "You spent 190.39 EUR last month. Biggest: Groceries 80.90 EUR, Gifts 58.00 EUR, Food & drink 22.50 EUR. Room to spend this week: 144.40 EUR of 200.00 EUR. From your own entries in Wealth → Spending, never converted.",
-  "nl": "Je gaf vorige maand € 190,39 uit. Grootste: Groceries € 80,90, Gifts € 58,00, Food & drink € 22,50. Ruimte deze week: € 144,40 van € 200,00. Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.",
+  "nl": "Je gaf vorige maand € 190,39 uit. Grootste: Groceries € 80,90, Gifts € 58,00, Food & drink € 22,50. Ruimte deze week: € 144,40 van € 200,00. Uit je eigen invoer in Wealth → Spending, nooit omgerekend.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is logged in Wealth → Spending yet.",
-  "freshNl": "Er is nog niets gelogd in Vermogen → Uitgaven."
+  "freshNl": "Er is nog niets gelogd in Wealth → Spending."
  },
  "spend-week": {
   "en": "You spent 55.60 EUR this week. Biggest: Groceries 38.90 EUR, Food & drink 16.70 EUR. Room to spend this week: 144.40 EUR of 200.00 EUR. From your own entries in Wealth → Spending, never converted.",
-  "nl": "Je gaf deze week € 55,60 uit. Grootste: Groceries € 38,90, Food & drink € 16,70. Ruimte deze week: € 144,40 van € 200,00. Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.",
+  "nl": "Je gaf deze week € 55,60 uit. Grootste: Groceries € 38,90, Food & drink € 16,70. Ruimte deze week: € 144,40 van € 200,00. Uit je eigen invoer in Wealth → Spending, nooit omgerekend.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is logged in Wealth → Spending yet.",
-  "freshNl": "Er is nog niets gelogd in Vermogen → Uitgaven."
+  "freshNl": "Er is nog niets gelogd in Wealth → Spending."
  },
  "spend-yesterday": {
   "en": "€51.40 spent yesterday (Mon, Nov 16); most on Groceries (76%), in 2 entries.",
@@ -3892,7 +3892,7 @@
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is logged in Wealth → Spending yet.",
-  "freshNl": "Er is nog niets gelogd in Vermogen → Uitgaven."
+  "freshNl": "Er is nog niets gelogd in Wealth → Spending."
  },
  "spend-biggest-expense": {
   "en": "Your largest expense this month (Sun, Nov 1 to Tue, Nov 17): €120.00 on Sun, Nov 8 (Energy).",
@@ -4483,7 +4483,7 @@
  },
  "goals-status": {
   "en": "7 active goals, from your own records:\n• Emergency fund: 45% — $9,000 of $20,000, $11,000 to go; next planned Fri, Nov 20\n• First home deposit: 65% — $52,000 of $80,000, $28,000 to go; next planned Fri, Nov 20\n• Japan adventure: 41.66% — $2,500 of $6,000, $3,500 to go; next planned Fri, Nov 20\n• Launch my creative studio: 50% — 2 milestones of 4 milestones, 2 milestones to go\n• Reward income reserve: 50% — 10,000 ZIG of 20,000 ZIG, 10,000 ZIG to go; next planned Fri, Nov 20\n• Create 2 hours a day: 94.64% — 1.9 h a day of at least 2 h a day\n• Sleep 8 hours a night: 86.77% — 6.9 h a night of at least 8 h a night\n3 goals completed.\nAsk about one goal by its name for its plan and pace. Your own figures; not financial advice.",
-  "nl": "7 actieve doelen, uit je eigen gegevens:\n• Emergency fund: 45% — US$ 9.000 van US$ 20.000, nog US$ 11.000 te gaan; volgende geplande stap vr 20 nov\n• First home deposit: 65% — US$ 52.000 van US$ 80.000, nog US$ 28.000 te gaan; volgende geplande stap vr 20 nov\n• Japan adventure: 41,66% — US$ 2.500 van US$ 6.000, nog US$ 3.500 te gaan; volgende geplande stap vr 20 nov\n• Launch my creative studio: 50% — 2 milestones van 4 milestones, nog 2 milestones te gaan\n• Reward income reserve: 50% — 10.000 ZIG van 20.000 ZIG, nog 10.000 ZIG te gaan; volgende geplande stap vr 20 nov\n• Create 2 hours a day: 94,64% — 1,9 h a day van at least 2 h a day\n• Sleep 8 hours a night: 86,77% — 6,9 h a night van at least 8 h a night\n3 doelen afgerond.\nVraag naar één doel bij naam voor het plan en het tempo. Je eigen cijfers; geen financieel advies.",
+  "nl": "7 actieve doelen, uit je eigen gegevens:\n• Emergency fund: 45% — US$ 9.000 van US$ 20.000, nog US$ 11.000 te gaan; volgende geplande stap vr 20 nov\n• First home deposit: 65% — US$ 52.000 van US$ 80.000, nog US$ 28.000 te gaan; volgende geplande stap vr 20 nov\n• Japan adventure: 41,66% — US$ 2.500 van US$ 6.000, nog US$ 3.500 te gaan; volgende geplande stap vr 20 nov\n• Launch my creative studio: 50% — 2 mijlpalen van 4 mijlpalen, nog 2 mijlpalen te gaan\n• Reward income reserve: 50% — 10.000 ZIG van 20.000 ZIG, nog 10.000 ZIG te gaan; volgende geplande stap vr 20 nov\n• Create 2 hours a day: 94,64% — gemiddeld 1,9 uur per dag van minstens 2 uur per dag\n• Sleep 8 hours a night: 86,77% — gemiddeld 6 h 56 min per nacht van minstens 8 uur per nacht\n3 doelen afgerond.\nVraag naar één doel bij naam voor het plan en het tempo. Je eigen cijfers; geen financieel advies.",
   "facts": null,
   "widgets": [],
   "fresh": "You have no active goals yet. Open Goals to create one, or tell me the goal and I will draft it as a card.",
@@ -5004,11 +5004,11 @@
  },
  "au-r7-coin-price": {
   "en": "Wealth: no price for BTC on this device yet (the Wealth page shows the same).\nPortfolio “Fictional long-term coins”: 65,000 USD (Showcase example price).\nPrices as these pages show them; facts only, not advice.",
-  "nl": "Vermogen: nog geen prijs voor BTC op dit apparaat (de Vermogen-pagina toont hetzelfde).\nPortfolio “Fictional long-term coins”: 65.000 USD (Showcase example price).\nPrijzen zoals deze pagina’s ze tonen; alleen feiten, geen advies.",
+  "nl": "Wealth: nog geen prijs voor BTC op dit apparaat (de Wealth-pagina toont hetzelfde).\nPortfolio “Fictional long-term coins”: 65.000 USD (Showcase example price).\nPrijzen zoals deze pagina’s ze tonen; alleen feiten, geen advies.",
   "facts": null,
   "widgets": [],
   "fresh": "BTC is not tracked in Wealth or Portfolio and no BTC price has reached Markets on this device, so I give none: I read prices only where the app already has them. Markets shows the price with its source and time.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"markets\"}\n```",
-  "freshNl": "BTC staat niet in Vermogen of Portfolio en er is op dit apparaat geen BTC-prijs bij Markten binnengekomen, dus ik noem er geen: ik lees prijzen alleen waar de app ze al heeft. Markten toont de prijs met de bron en het tijdstip.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"markets\"}\n```"
+  "freshNl": "BTC staat niet in Wealth of Portfolio en er is op dit apparaat geen BTC-prijs bij Markets binnengekomen, dus ik noem er geen: ik lees prijzen alleen waar de app ze al heeft. Markets toont de prijs met de bron en het tijdstip.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"markets\"}\n```"
  },
  "au-r8-stake-earn": {
   "en": "NOVA has not read a measured rate from Earn in this visit, so I give no figure: open Earn for today’s rates.\n\nEarn shows each way to earn with its current rate, with its source and when it was read. Any figure is an estimate of what a stake earned lately, not a promise of what it will earn: rates change, a validator can be slashed, and ZIG’s price can move. Your ZIG stays in your own account while it is staked.\n\nExplained by ZIGoals · not advice\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"earn\"}\n```",
@@ -5074,7 +5074,7 @@
  },
  "av-debt-free": {
   "en": "From your own figures (Wealth → What you owe → Plan paying off your debts):\n• USD (2 debts, $100.00 extra a month): debt-free in Apr 2028 (in 1 year and 5 months, $316.87 interest) with avalanche; Apr 2028 (in 1 year and 5 months, $316.87 interest) with snowball; minimums only: Oct 2029 (in 2 years and 11 months, $672.30 interest). Both orders come out the same here: debt-free after 17 months, with the same interest.\nA model, not advice: it assumes the rates and payments stay the same and nothing new is borrowed. Nothing is paid or moved.",
-  "nl": "USD: schuldenvrij in april 2028 (over 1 jaar en 5 maanden, US$ 316,87 rente) met lawine, april 2028 (over 1 jaar en 5 maanden, US$ 316,87 rente) met sneeuwbal; alleen de minimumbedragen: oktober 2029 (over 2 jaar en 11 maanden, US$ 672,30 rente). Uit je eigen bedragen in Vermogen → Wat je schuldig bent → Plan je aflossing (Wealth → What you owe → Plan paying off your debts); een model, geen advies: er wordt niets betaald of verplaatst.",
+  "nl": "USD: schuldenvrij in april 2028 (over 1 jaar en 5 maanden, US$ 316,87 rente) met lawine, april 2028 (over 1 jaar en 5 maanden, US$ 316,87 rente) met sneeuwbal; alleen de minimumbedragen: oktober 2029 (over 2 jaar en 11 maanden, US$ 672,30 rente). Uit je eigen bedragen in Wealth → What you owe → Plan paying off your debts; een model, geen advies: er wordt niets betaald of verplaatst.",
   "facts": null,
   "widgets": [],
   "fresh": "No debt with a balance is recorded on this device, so there is no debt-free month to work out. A loan, mortgage or credit card goes under Wealth → Accounts, debts & net worth, with what you owe and your yearly rate.",
@@ -5568,7 +5568,7 @@
  },
  "agenda-today": {
   "en": "On your agenda today:\n• Contribute (done), Drink water, Example · Sketch the garden bed, 8:00 AM Exercise, 8:00 AM Read (done), 10:30 AM Example · Book the dentist, 2:00 PM Walk (done), 7:00 PM Late-night snacks (Showcase) (done), 7:00 PM Meditate\nNo amounts here; each item opens where it lives on the agenda.\n\n```zigoals-action\n{\"kind\":\"open-agenda\",\"view\":\"day\"}\n```",
-  "nl": "Vandaag (di 17 nov), uit je eigen gegevens:\n• Gewoontes nog open: Exercise (15 van 30 minuten), Meditate (5 van 10 minuten), Drink water (1 van 2 liters)\n• Taken voor vandaag: Example · Book the dentist om 10:30 AM (hoog, te laat)\n• Nog open van eerder: Example · Sketch the garden bed (sinds ma 16 nov)\nTitels, tijden en gewoontedoelen, geen geldbedragen; elk item opent waar het staat.",
+  "nl": "Vandaag (di 17 nov), uit je eigen gegevens:\n• Gewoontes nog open: Exercise (15 van 30 minuten), Meditate (5 van 10 minuten), Drink water (1 van 2 liters)\n• Taken voor vandaag: Example · Book the dentist om 10:30 (hoog, te laat)\n• Nog open van eerder: Example · Sketch the garden bed (sinds ma 16 nov)\nTitels, tijden en gewoontedoelen, geen geldbedragen; elk item opent waar het staat.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is planned today in your records. The agenda gathers habits, tasks, planned contributions, bills, meals and reviews.\n\n```zigoals-action\n{\"kind\":\"open-agenda\",\"view\":\"day\"}\n```",
@@ -5576,7 +5576,7 @@
  },
  "agenda-tomorrow": {
   "en": "On your agenda tomorrow:\n• Contribute, Drink water, 7:30 AM Example · Upper body session, 8:00 AM Exercise, 8:00 AM Read, 2:00 PM Walk, 7:00 PM Late-night snacks (Showcase), 7:00 PM Meditate\nNo amounts here; each item opens where it lives on the agenda.\n\n```zigoals-action\n{\"kind\":\"open-agenda\",\"view\":\"day\"}\n```",
-  "nl": "8 dingen op je agenda morgen, 8 nog open: 7:30 AM Upper body session, 8:00 AM Exercise, 8:00 AM Read, 2:00 PM Walk en 7:00 PM Late-night snacks (Showcase) en nog 3.",
+  "nl": "8 dingen op je agenda morgen, 8 nog open: 07:30 Upper body session, 08:00 Exercise, 08:00 Read, 14:00 Walk en 19:00 Late-night snacks (Showcase) en nog 3.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is planned tomorrow in your records. The agenda gathers habits, tasks, planned contributions, bills, meals and reviews.\n\n```zigoals-action\n{\"kind\":\"open-agenda\",\"view\":\"day\"}\n```",
@@ -5584,7 +5584,7 @@
  },
  "agenda-next": {
   "en": "Next on your agenda: 7:00 PM Meditate.",
-  "nl": "Het volgende op je agenda: 7:00 PM Meditate.",
+  "nl": "Het volgende op je agenda: 19:00 Meditate.",
   "facts": {
    "about": "agenda",
    "ask": "next",
@@ -6251,11 +6251,11 @@
  },
  "unknown-spending": {
   "en": "You spent 435.59 EUR this month. Biggest: Groceries 187.10 EUR, Bills 120.00 EUR, Food & drink 49.10 EUR. Room to spend this week: 144.40 EUR of 200.00 EUR. From your own entries in Wealth → Spending, never converted.",
-  "nl": "Je gaf deze maand € 435,59 uit. Grootste: Groceries € 187,10, Bills € 120,00, Food & drink € 49,10. Ruimte deze week: € 144,40 van € 200,00. Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.",
+  "nl": "Je gaf deze maand € 435,59 uit. Grootste: Groceries € 187,10, Bills € 120,00, Food & drink € 49,10. Ruimte deze week: € 144,40 van € 200,00. Uit je eigen invoer in Wealth → Spending, nooit omgerekend.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is logged in Wealth → Spending yet.",
-  "freshNl": "Er is nog niets gelogd in Vermogen → Uitgaven."
+  "freshNl": "Er is nog niets gelogd in Wealth → Spending."
  },
  "au-r4-date": {
   "en": "It's Tuesday, Nov 17.",
@@ -6363,7 +6363,7 @@
  },
  "av-debt-schedule": {
   "en": "Your payoff schedule, from your own figures:\n• USD (avalanche, $100.00 extra a month): paid off Credit card in Feb 2027 and Car loan in Apr 2028; debt-free in Apr 2028. Still owed after 3 months $5,402.81, after 6 months $4,201.61 and after 12 months $1,745.54.\nThe month-by-month table is in Wealth → What you owe → Plan paying off your debts. A model, not advice: it assumes the rates and payments stay the same and nothing new is borrowed. Nothing is paid or moved.",
-  "nl": "Je aflosschema, uit je eigen bedragen:\n• USD (lawine, US$ 100,00 extra per maand): afgelost Credit card in februari 2027 en Car loan in april 2028; schuldenvrij in april 2028. Nog te betalen na 3 maanden US$ 5.402,81, na 6 maanden US$ 4.201,61 en na 12 maanden US$ 1.745,54.\nDe tabel per maand staat in Vermogen → Wat je schuldig bent → Plan je aflossing (Wealth → What you owe → Plan paying off your debts). Een model, geen advies: het gaat ervan uit dat rentes en betalingen gelijk blijven en dat je niets bijleent. Er wordt niets betaald of verplaatst.",
+  "nl": "Je aflosschema, uit je eigen bedragen:\n• USD (lawine, US$ 100,00 extra per maand): afgelost Credit card in februari 2027 en Car loan in april 2028; schuldenvrij in april 2028. Nog te betalen na 3 maanden US$ 5.402,81, na 6 maanden US$ 4.201,61 en na 12 maanden US$ 1.745,54.\nDe tabel per maand staat in Wealth → What you owe → Plan paying off your debts. Een model, geen advies: het gaat ervan uit dat rentes en betalingen gelijk blijven en dat je niets bijleent. Er wordt niets betaald of verplaatst.",
   "facts": null,
   "widgets": [],
   "fresh": "No debt with a balance is recorded on this device, so there is no payoff schedule. A loan, mortgage or credit card goes under Wealth → Accounts, debts & net worth.",
@@ -6955,27 +6955,27 @@
  },
  "av2-money-left-out": {
   "en": "Nothing is left out: every entry counts in your totals and budgets. To leave one out (card interest, a refund you passed on), edit it in Wealth → Spending and tick “Not part of my spending”.",
-  "nl": "Er is niets weggelaten: elke post telt mee in je totalen en budgetten. Wil je er een weglaten (rente op je creditcard, een terugbetaling die je doorgaf), bewerk hem dan in Vermogen → Uitgaven en vink “Not part of my spending” aan.",
+  "nl": "Er is niets weggelaten: elke post telt mee in je totalen en budgetten. Wil je er een weglaten (rente op je creditcard, een terugbetaling die je doorgaf), bewerk hem dan in Wealth → Spending en vink “Not part of my spending” aan.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is left out: every entry counts in your totals and budgets. To leave one out (card interest, a refund you passed on), edit it in Wealth → Spending and tick “Not part of my spending”.",
-  "freshNl": "Er is niets weggelaten: elke post telt mee in je totalen en budgetten. Wil je er een weglaten (rente op je creditcard, een terugbetaling die je doorgaf), bewerk hem dan in Vermogen → Uitgaven en vink “Not part of my spending” aan."
+  "freshNl": "Er is niets weggelaten: elke post telt mee in je totalen en budgetten. Wil je er een weglaten (rente op je creditcard, een terugbetaling die je doorgaf), bewerk hem dan in Wealth → Spending en vink “Not part of my spending” aan."
  },
  "av2-money-tax": {
   "en": "Nothing is marked tax-deductible in 2026. Mark an entry when you edit it in Wealth → Spending; the search there finds them all (More filters → Only marked tax-deductible). This is your own mark, not tax advice.",
-  "nl": "Niets is als aftrekbaar gemarkeerd in 2026. Markeer een post als je hem bewerkt in Vermogen → Uitgaven; het zoeken daar vindt ze allemaal (More filters → Only marked tax-deductible). Dit is je eigen markering, geen belastingadvies.",
+  "nl": "Niets is als aftrekbaar gemarkeerd in 2026. Markeer een post als je hem bewerkt in Wealth → Spending; het zoeken daar vindt ze allemaal (More filters → Only marked tax-deductible). Dit is je eigen markering, geen belastingadvies.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is marked tax-deductible in 2026. Mark an entry when you edit it in Wealth → Spending; the search there finds them all (More filters → Only marked tax-deductible). This is your own mark, not tax advice.",
-  "freshNl": "Niets is als aftrekbaar gemarkeerd in 2026. Markeer een post als je hem bewerkt in Vermogen → Uitgaven; het zoeken daar vindt ze allemaal (More filters → Only marked tax-deductible). Dit is je eigen markering, geen belastingadvies."
+  "freshNl": "Niets is als aftrekbaar gemarkeerd in 2026. Markeer een post als je hem bewerkt in Wealth → Spending; het zoeken daar vindt ze allemaal (More filters → Only marked tax-deductible). Dit is je eigen markering, geen belastingadvies."
  },
  "av2-money-own-categories": {
   "en": "You have no categories of your own yet. In Wealth → Spending → Log spending → “Your own categories” you can add one; it is then offered in the forms, budgets and To review.",
-  "nl": "Je hebt nog geen eigen categorieën. In Vermogen → Uitgaven → Log spending → “Your own categories” voeg je er een toe; die wordt dan aangeboden in de formulieren, budgetten en To review.",
+  "nl": "Je hebt nog geen eigen categorieën. In Wealth → Spending → Log spending → “Your own categories” voeg je er een toe; die wordt dan aangeboden in de formulieren, budgetten en To review.",
   "facts": null,
   "widgets": [],
   "fresh": "You have no categories of your own yet. In Wealth → Spending → Log spending → “Your own categories” you can add one; it is then offered in the forms, budgets and To review.",
-  "freshNl": "Je hebt nog geen eigen categorieën. In Vermogen → Uitgaven → Log spending → “Your own categories” voeg je er een toe; die wordt dan aangeboden in de formulieren, budgetten en To review."
+  "freshNl": "Je hebt nog geen eigen categorieën. In Wealth → Spending → Log spending → “Your own categories” voeg je er een toe; die wordt dan aangeboden in de formulieren, budgetten en To review."
  },
  "av2-money-transfers": {
   "en": "No entry is marked as a transfer yet. Card payments are matched when you import the files of both accounts.",
@@ -6987,19 +6987,19 @@
  },
  "av2-money-payees": {
   "en": "You are not watching a payee yet. Wealth → Budgets by category → “Watching payees” follows one shop or service this month against last.",
-  "nl": "Je volgt nog geen winkel of dienst. Vermogen → Budgets by category → “Watching payees” volgt er een deze maand tegen vorige maand.",
+  "nl": "Je volgt nog geen winkel of dienst. Wealth → Budgets by category → “Watching payees” volgt er een deze maand tegen vorige maand.",
   "facts": null,
   "widgets": [],
   "fresh": "You are not watching a payee yet. Wealth → Budgets by category → “Watching payees” follows one shop or service this month against last.",
-  "freshNl": "Je volgt nog geen winkel of dienst. Vermogen → Budgets by category → “Watching payees” volgt er een deze maand tegen vorige maand."
+  "freshNl": "Je volgt nog geen winkel of dienst. Wealth → Budgets by category → “Watching payees” volgt er een deze maand tegen vorige maand."
  },
  "av2-money-challenges": {
   "en": "No spending challenge is running. Wealth → Budgets by category → Challenges starts one: spend less on a category than last month.",
-  "nl": "Er loopt geen uitgavenuitdaging. Vermogen → Budgets by category → Challenges start er een: geef minder uit aan een categorie dan vorige maand.",
+  "nl": "Er loopt geen uitgavenuitdaging. Wealth → Budgets by category → Challenges start er een: geef minder uit aan een categorie dan vorige maand.",
   "facts": null,
   "widgets": [],
   "fresh": "No spending challenge is running. Wealth → Budgets by category → Challenges starts one: spend less on a category than last month.",
-  "freshNl": "Er loopt geen uitgavenuitdaging. Vermogen → Budgets by category → Challenges start er een: geef minder uit aan een categorie dan vorige maand."
+  "freshNl": "Er loopt geen uitgavenuitdaging. Wealth → Budgets by category → Challenges start er een: geef minder uit aan een categorie dan vorige maand."
  },
  "av2-money-until-payday": {
   "en": "Your money log shows no regular monthly income yet, so there is no payday to count to.",
@@ -7011,11 +7011,11 @@
  },
  "av2-money-low-line": {
   "en": "You have not set a low-balance line. Wealth → Spending → Money tools → Next 60 days → “Low-balance line” sets one; Today then names the day the forecast crosses it.",
-  "nl": "Je hebt nog geen ondergrens ingesteld. Vermogen → Uitgaven → Money tools → Next 60 days → “Low-balance line” stelt er een in; Vandaag noemt dan de dag dat de prognose eronder komt.",
+  "nl": "Je hebt nog geen ondergrens ingesteld. Wealth → Spending → Money tools → Next 60 days → “Low-balance line” stelt er een in; Vandaag noemt dan de dag dat de prognose eronder komt.",
   "facts": null,
   "widgets": [],
   "fresh": "You have not set a low-balance line. Wealth → Spending → Money tools → Next 60 days → “Low-balance line” sets one; Today then names the day the forecast crosses it.",
-  "freshNl": "Je hebt nog geen ondergrens ingesteld. Vermogen → Uitgaven → Money tools → Next 60 days → “Low-balance line” stelt er een in; Vandaag noemt dan de dag dat de prognose eronder komt."
+  "freshNl": "Je hebt nog geen ondergrens ingesteld. Wealth → Spending → Money tools → Next 60 days → “Low-balance line” stelt er een in; Vandaag noemt dan de dag dat de prognose eronder komt."
  },
  "av2-money-year": {
   "en": "2026 so far in EUR: €666.95 spent, €2,550.00 came in; most on Groceries €268.00, Bills €120.00 and Food & drink €71.60; the largest expense Energy €120.00.",
@@ -7087,7 +7087,7 @@
   "facts": null,
   "widgets": [],
   "fresh": "You have no debts with a balance in Wealth → What you owe.",
-  "freshNl": "Je hebt geen schulden met een saldo in Vermogen → Wat je schuldig bent."
+  "freshNl": "Je hebt geen schulden met een saldo in Wealth → What you owe."
  },
  "av2-money-kept-plan": {
   "en": "No plan is kept yet. In the debt planner, “Track this plan” keeps one to compare with what you record.",
@@ -7103,23 +7103,23 @@
   "facts": null,
   "widgets": [],
   "fresh": "The debt planner needs each debt’s rate and minimum first (Wealth → What you owe → Plan paying off your debts).",
-  "freshNl": "De aflosplanner heeft eerst per schuld de rente en het minimum nodig (Vermogen → Wat je schuldig bent → Plan je aflossing)."
+  "freshNl": "De aflosplanner heeft eerst per schuld de rente en het minimum nodig (Wealth → What you owe → Plan paying off your debts)."
  },
  "av2-money-equity": {
   "en": "No mortgage is linked to a property yet. In Wealth → Accounts, debts & net worth → each account’s “Sheet” of the mortgage, “Secured on” links it; the property then shows its equity.",
-  "nl": "Er is nog geen hypotheek aan een woning gekoppeld. In Vermogen → Accounts, debts & net worth → bij elke rekening “Sheet” van de hypotheek koppelt “Secured on” hem; de woning toont dan de overwaarde.",
+  "nl": "Er is nog geen hypotheek aan een woning gekoppeld. In Wealth → Accounts, debts & net worth → bij elke rekening “Sheet” van de hypotheek koppelt “Secured on” hem; de woning toont dan de overwaarde.",
   "facts": null,
   "widgets": [],
   "fresh": "No mortgage is linked to a property yet. In Wealth → Accounts, debts & net worth → each account’s “Sheet” of the mortgage, “Secured on” links it; the property then shows its equity.",
-  "freshNl": "Er is nog geen hypotheek aan een woning gekoppeld. In Vermogen → Accounts, debts & net worth → bij elke rekening “Sheet” van de hypotheek koppelt “Secured on” hem; de woning toont dan de overwaarde."
+  "freshNl": "Er is nog geen hypotheek aan een woning gekoppeld. In Wealth → Accounts, debts & net worth → bij elke rekening “Sheet” van de hypotheek koppelt “Secured on” hem; de woning toont dan de overwaarde."
  },
  "av2-money-stale": {
   "en": "Nothing is due for an update by your own reminders. Set “Remind me to update it” in Wealth → Accounts, debts & net worth → each account’s “Sheet”.",
-  "nl": "Niets hoeft bijgewerkt te worden volgens je eigen herinneringen. Zet “Remind me to update it” in Vermogen → Accounts, debts & net worth → bij elke rekening “Sheet”.",
+  "nl": "Niets hoeft bijgewerkt te worden volgens je eigen herinneringen. Zet “Remind me to update it” in Wealth → Accounts, debts & net worth → bij elke rekening “Sheet”.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is due for an update by your own reminders. Set “Remind me to update it” in Wealth → Accounts, debts & net worth → each account’s “Sheet”.",
-  "freshNl": "Niets hoeft bijgewerkt te worden volgens je eigen herinneringen. Zet “Remind me to update it” in Vermogen → Accounts, debts & net worth → bij elke rekening “Sheet”."
+  "freshNl": "Niets hoeft bijgewerkt te worden volgens je eigen herinneringen. Zet “Remind me to update it” in Wealth → Accounts, debts & net worth → bij elke rekening “Sheet”."
  },
  "av2-money-one-total": {
   "en": "One total in USD: $29,229.00.",
@@ -7127,15 +7127,15 @@
   "facts": null,
   "widgets": [],
   "fresh": "You have no accounts yet (Wealth → Accounts, debts & net worth).",
-  "freshNl": "Je hebt nog geen rekeningen (Vermogen → Accounts, debts & net worth)."
+  "freshNl": "Je hebt nog geen rekeningen (Wealth → Accounts, debts & net worth)."
  },
  "av2-money-irr": {
   "en": "No account has money in and out recorded yet. In Wealth → Accounts, debts & net worth → each account’s “Sheet” → “Money in and out”, add what you put in with the days; with today’s balance it gives the annual return.",
-  "nl": "Nog geen rekening heeft geld erin en eruit vastgelegd. In Vermogen → Accounts, debts & net worth → bij elke rekening “Sheet” → “Money in and out” voeg je toe wat je erin stopte, met de dagen; met het saldo van vandaag geeft dat het jaarrendement.",
+  "nl": "Nog geen rekening heeft geld erin en eruit vastgelegd. In Wealth → Accounts, debts & net worth → bij elke rekening “Sheet” → “Money in and out” voeg je toe wat je erin stopte, met de dagen; met het saldo van vandaag geeft dat het jaarrendement.",
   "facts": null,
   "widgets": [],
   "fresh": "No account has money in and out recorded yet. In Wealth → Accounts, debts & net worth → each account’s “Sheet” → “Money in and out”, add what you put in with the days; with today’s balance it gives the annual return.",
-  "freshNl": "Nog geen rekening heeft geld erin en eruit vastgelegd. In Vermogen → Accounts, debts & net worth → bij elke rekening “Sheet” → “Money in and out” voeg je toe wat je erin stopte, met de dagen; met het saldo van vandaag geeft dat het jaarrendement."
+  "freshNl": "Nog geen rekening heeft geld erin en eruit vastgelegd. In Wealth → Accounts, debts & net worth → bij elke rekening “Sheet” → “Money in and out” voeg je toe wat je erin stopte, met de dagen; met het saldo van vandaag geeft dat het jaarrendement."
  },
  "av2-food-when-eaten": {
   "en": "What you ate today, in order (4 without a time):\n• no time: Berry overnight oats (Breakfast)\n• no time: Chicken and quinoa bowl (Lunch)\n• no time: Salmon, rice and greens (Dinner)\n• no time: Yogurt and almonds (Snacks)\nEach time is when the entry was logged, or the time you set in Health → Diary (tap the time on an entry).",
@@ -7515,27 +7515,27 @@
  },
  "av2r2-money-saved": {
   "en": "You have no saved entries yet. In Wealth → Spending → Log spending, fill in one you log often and choose “Keep as a saved entry”; it is then one tap beside Log spending.",
-  "nl": "Je hebt nog geen opgeslagen posten. In Vermogen → Uitgaven → Log spending vul je er een in die je vaak logt en kies je “Keep as a saved entry”; dan is hij één tik naast Log spending.",
+  "nl": "Je hebt nog geen opgeslagen posten. In Wealth → Spending → Log spending vul je er een in die je vaak logt en kies je “Keep as a saved entry”; dan is hij één tik naast Log spending.",
   "facts": null,
   "widgets": [],
   "fresh": "You have no saved entries yet. In Wealth → Spending → Log spending, fill in one you log often and choose “Keep as a saved entry”; it is then one tap beside Log spending.",
-  "freshNl": "Je hebt nog geen opgeslagen posten. In Vermogen → Uitgaven → Log spending vul je er een in die je vaak logt en kies je “Keep as a saved entry”; dan is hij één tik naast Log spending."
+  "freshNl": "Je hebt nog geen opgeslagen posten. In Wealth → Spending → Log spending vul je er een in die je vaak logt en kies je “Keep as a saved entry”; dan is hij één tik naast Log spending."
  },
  "av2r2-money-paid-with": {
   "en": "No entry this month says how it was paid. When you log or edit one in Wealth → Spending, choose “Paid with” (cash, debit card, credit card, transfer); This month then shows the totals by method.",
-  "nl": "Geen post deze maand zegt hoe hij betaald is. Kies bij loggen of bewerken in Vermogen → Uitgaven “Paid with” (contant, pinpas, creditcard, overboeking); Deze maand toont dan de totalen per betaalwijze.",
+  "nl": "Geen post deze maand zegt hoe hij betaald is. Kies bij loggen of bewerken in Wealth → Spending “Paid with” (contant, pinpas, creditcard, overboeking); Deze maand toont dan de totalen per betaalwijze.",
   "facts": null,
   "widgets": [],
   "fresh": "No entry this month says how it was paid. When you log or edit one in Wealth → Spending, choose “Paid with” (cash, debit card, credit card, transfer); This month then shows the totals by method.",
-  "freshNl": "Geen post deze maand zegt hoe hij betaald is. Kies bij loggen of bewerken in Vermogen → Uitgaven “Paid with” (contant, pinpas, creditcard, overboeking); Deze maand toont dan de totalen per betaalwijze."
+  "freshNl": "Geen post deze maand zegt hoe hij betaald is. Kies bij loggen of bewerken in Wealth → Spending “Paid with” (contant, pinpas, creditcard, overboeking); Deze maand toont dan de totalen per betaalwijze."
  },
  "av2r2-money-subcategories": {
   "en": "No spending this month carries a subcategory. In Wealth → Spending → Log spending, open “Add a subcategory” under a category (Food & drink › Coffee); totals and budgets keep counting it in the main category.",
-  "nl": "Geen uitgave deze maand heeft een subcategorie. In Vermogen → Uitgaven → Log spending open je “Add a subcategory” onder een categorie (Food & drink › Coffee); totalen en budgetten tellen hem gewoon in de hoofdcategorie.",
+  "nl": "Geen uitgave deze maand heeft een subcategorie. In Wealth → Spending → Log spending open je “Add a subcategory” onder een categorie (Food & drink › Coffee); totalen en budgetten tellen hem gewoon in de hoofdcategorie.",
   "facts": null,
   "widgets": [],
   "fresh": "No spending this month carries a subcategory. In Wealth → Spending → Log spending, open “Add a subcategory” under a category (Food & drink › Coffee); totals and budgets keep counting it in the main category.",
-  "freshNl": "Geen uitgave deze maand heeft een subcategorie. In Vermogen → Uitgaven → Log spending open je “Add a subcategory” onder een categorie (Food & drink › Coffee); totalen en budgetten tellen hem gewoon in de hoofdcategorie."
+  "freshNl": "Geen uitgave deze maand heeft een subcategorie. In Wealth → Spending → Log spending open je “Add a subcategory” onder een categorie (Food & drink › Coffee); totalen en budgetten tellen hem gewoon in de hoofdcategorie."
  },
  "av2r2-money-day-left": {
   "en": "About this much a day is left for the 14 days to go: Groceries €4.49, Food & drink €5.06 and Fun €2.57. What is left divided by the days; a fact, not advice.",
@@ -7543,23 +7543,23 @@
   "facts": null,
   "widgets": [],
   "fresh": "You have no budgets yet. Set one in Wealth → Budgets; each row then says about how much a day is left.",
-  "freshNl": "Je hebt nog geen budgetten. Stel er een in bij Vermogen → Budgetten; elke rij zegt dan ongeveer hoeveel er per dag over is."
+  "freshNl": "Je hebt nog geen budgetten. Stel er een in bij Wealth → Budgets; elke rij zegt dan ongeveer hoeveel er per dag over is."
  },
  "av2r2-money-own-budgets": {
   "en": "You have none of your own budgets yet. In Wealth → Budgets → Your own budgets, add one on a tag (a trip) or on chosen categories, each month or once between two days.",
-  "nl": "Je hebt nog geen eigen budgetten. In Vermogen → Budgetten → Your own budgets voeg je er een toe op een tag (een reis) of op gekozen categorieën, elke maand of eenmalig tussen twee dagen.",
+  "nl": "Je hebt nog geen eigen budgetten. In Wealth → Budgets → Your own budgets voeg je er een toe op een tag (een reis) of op gekozen categorieën, elke maand of eenmalig tussen twee dagen.",
   "facts": null,
   "widgets": [],
   "fresh": "You have none of your own budgets yet. In Wealth → Budgets → Your own budgets, add one on a tag (a trip) or on chosen categories, each month or once between two days.",
-  "freshNl": "Je hebt nog geen eigen budgetten. In Vermogen → Budgetten → Your own budgets voeg je er een toe op een tag (een reis) of op gekozen categorieën, elke maand of eenmalig tussen twee dagen."
+  "freshNl": "Je hebt nog geen eigen budgetten. In Wealth → Budgets → Your own budgets voeg je er een toe op een tag (een reis) of op gekozen categorieën, elke maand of eenmalig tussen twee dagen."
  },
  "av2r2-money-payee-budgets": {
   "en": "No payee has a budget yet. In Wealth → Budgets → Watching payees, watch a shop and choose “Set an amount a month”.",
-  "nl": "Nog geen winkel heeft een budget. In Vermogen → Budgetten → Watching payees volg je een winkel en kies je “Set an amount a month”.",
+  "nl": "Nog geen winkel heeft een budget. In Wealth → Budgets → Watching payees volg je een winkel en kies je “Set an amount a month”.",
   "facts": null,
   "widgets": [],
   "fresh": "No payee has a budget yet. In Wealth → Budgets → Watching payees, watch a shop and choose “Set an amount a month”.",
-  "freshNl": "Nog geen winkel heeft een budget. In Vermogen → Budgetten → Watching payees volg je een winkel en kies je “Set an amount a month”."
+  "freshNl": "Nog geen winkel heeft een budget. In Wealth → Budgets → Watching payees volg je een winkel en kies je “Set an amount a month”."
  },
  "av2r2-money-unusual": {
   "en": "Nothing in the last two weeks is well above its usual (more than twice the middle of its last ten, at the same payee or in the same category).",
@@ -7571,11 +7571,11 @@
  },
  "av2r2-money-balance-lines": {
   "en": "No account has a balance line yet. On Wealth, open an account’s Sheet and fill in “Tell me when it is below” (or above).",
-  "nl": "Nog geen rekening heeft een saldogrens. Open op Vermogen de Sheet van een rekening en vul “Tell me when it is below” (of above) in.",
+  "nl": "Nog geen rekening heeft een saldogrens. Open op Wealth de Sheet van een rekening en vul “Tell me when it is below” (of above) in.",
   "facts": null,
   "widgets": [],
   "fresh": "No account has a balance line yet. On Wealth, open an account’s Sheet and fill in “Tell me when it is below” (or above).",
-  "freshNl": "Nog geen rekening heeft een saldogrens. Open op Vermogen de Sheet van een rekening en vul “Tell me when it is below” (of above) in."
+  "freshNl": "Nog geen rekening heeft een saldogrens. Open op Wealth de Sheet van een rekening en vul “Tell me when it is below” (of above) in."
  },
  "av2r2-money-to-record": {
   "en": "No bill due in the last three days is missing from your money log. When one is, Upcoming bills offers “Record it”: one tap, never by itself.",
@@ -7587,35 +7587,35 @@
  },
  "av2r2-money-who-owes": {
   "en": "Nobody owes you anything here. Share a cost by editing it in Wealth → Spending → Shared with others, or add money lent under Between you and others.",
-  "nl": "Niemand is je hier iets schuldig. Deel een uitgave door hem te bewerken in Vermogen → Uitgaven → Shared with others, of voeg uitgeleend geld toe onder Between you and others.",
+  "nl": "Niemand is je hier iets schuldig. Deel een uitgave door hem te bewerken in Wealth → Spending → Shared with others, of voeg uitgeleend geld toe onder Between you and others.",
   "facts": null,
   "widgets": [],
   "fresh": "Nobody owes you anything here. Share a cost by editing it in Wealth → Spending → Shared with others, or add money lent under Between you and others.",
-  "freshNl": "Niemand is je hier iets schuldig. Deel een uitgave door hem te bewerken in Vermogen → Uitgaven → Shared with others, of voeg uitgeleend geld toe onder Between you and others."
+  "freshNl": "Niemand is je hier iets schuldig. Deel een uitgave door hem te bewerken in Wealth → Spending → Shared with others, of voeg uitgeleend geld toe onder Between you and others."
  },
  "av2r2-money-lent-borrowed": {
   "en": "Nothing lent or borrowed is open. Add one under Wealth → Spending → Between you and others: a name, an amount, and a due day with a reminder if you want one.",
-  "nl": "Er staat niets uitgeleend of geleend open. Voeg het toe onder Vermogen → Uitgaven → Between you and others: een naam, een bedrag, en een terugbetaaldag met herinnering als je wilt.",
+  "nl": "Er staat niets uitgeleend of geleend open. Voeg het toe onder Wealth → Spending → Between you and others: een naam, een bedrag, en een terugbetaaldag met herinnering als je wilt.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing lent or borrowed is open. Add one under Wealth → Spending → Between you and others: a name, an amount, and a due day with a reminder if you want one.",
-  "freshNl": "Er staat niets uitgeleend of geleend open. Voeg het toe onder Vermogen → Uitgaven → Between you and others: een naam, een bedrag, en een terugbetaaldag met herinnering als je wilt."
+  "freshNl": "Er staat niets uitgeleend of geleend open. Voeg het toe onder Wealth → Spending → Between you and others: een naam, een bedrag, en een terugbetaaldag met herinnering als je wilt."
  },
  "av2r2-money-store-cards": {
   "en": "You have no store cards here yet. In Wealth → Spending → Store and club cards, add one: type its number or read it from a photo; “Show” puts the barcode on the whole screen for the till.",
-  "nl": "Je hebt hier nog geen klantenkaarten. In Vermogen → Uitgaven → Store and club cards voeg je er een toe: typ het nummer of lees het van een foto; “Show” zet de streepjescode schermvullend klaar voor de kassa.",
+  "nl": "Je hebt hier nog geen klantenkaarten. In Wealth → Spending → Store and club cards voeg je er een toe: typ het nummer of lees het van een foto; “Show” zet de streepjescode schermvullend klaar voor de kassa.",
   "facts": null,
   "widgets": [],
   "fresh": "You have no store cards here yet. In Wealth → Spending → Store and club cards, add one: type its number or read it from a photo; “Show” puts the barcode on the whole screen for the till.",
-  "freshNl": "Je hebt hier nog geen klantenkaarten. In Vermogen → Uitgaven → Store and club cards voeg je er een toe: typ het nummer of lees het van een foto; “Show” zet de streepjescode schermvullend klaar voor de kassa."
+  "freshNl": "Je hebt hier nog geen klantenkaarten. In Wealth → Spending → Store and club cards voeg je er een toe: typ het nummer of lees het van een foto; “Show” zet de streepjescode schermvullend klaar voor de kassa."
  },
  "av2r2-money-business": {
   "en": "You have no business space yet. At the foot of Wealth → Spending, “add a business space” keeps its entries, budgets and totals apart from your personal money.",
-  "nl": "Je hebt nog geen zakelijke ruimte. Onderaan Vermogen → Uitgaven houdt “add a business space” de posten, budgetten en totalen apart van je persoonlijke geld.",
+  "nl": "Je hebt nog geen zakelijke ruimte. Onderaan Wealth → Spending houdt “add a business space” de posten, budgetten en totalen apart van je persoonlijke geld.",
   "facts": null,
   "widgets": [],
   "fresh": "Business's figures are in Wealth → Spending: choose Business under Space at the top. Its entries and budgets are kept apart from your personal money.",
-  "freshNl": "De cijfers van Zakelijk staan in Vermogen → Uitgaven: kies Zakelijk bij Space bovenaan. De posten en budgetten staan apart van je persoonlijke geld."
+  "freshNl": "De cijfers van Zakelijk staan in Wealth → Spending: kies Zakelijk bij Space bovenaan. De posten en budgetten staan apart van je persoonlijke geld."
  },
  "av2r2-my-day": {
   "en": "Nothing is in My Day today. Add a task to My Day from its editor or from Plan my day in Tasks → Today; its own day stays.",
@@ -7643,11 +7643,11 @@
  },
  "av2r2-template-gallery": {
   "en": "In the template gallery (Tasks → Areas and templates), in English and Dutch:\n• Home: Cleaning week, A party, A packing list and Spring clean\nChoose one, a name and a start day, and Make the project: its sections and days come with it.",
-  "nl": "Je hebt nog geen opgeslagen posten. In Vermogen → Uitgaven → Log spending vul je er een in die je vaak logt en kies je “Keep as a saved entry”; dan is hij één tik naast Log spending.",
+  "nl": "Je hebt nog geen opgeslagen posten. In Wealth → Spending → Log spending vul je er een in die je vaak logt en kies je “Keep as a saved entry”; dan is hij één tik naast Log spending.",
   "facts": null,
   "widgets": [],
   "fresh": "In the template gallery (Tasks → Areas and templates), in English and Dutch:\n• Home: Cleaning week, A party, A packing list and Spring clean\nChoose one, a name and a start day, and Make the project: its sections and days come with it.",
-  "freshNl": "Je hebt nog geen opgeslagen posten. In Vermogen → Uitgaven → Log spending vul je er een in die je vaak logt en kies je “Keep as a saved entry”; dan is hij één tik naast Log spending."
+  "freshNl": "Je hebt nog geen opgeslagen posten. In Wealth → Spending → Log spending vul je er een in die je vaak logt en kies je “Keep as a saved entry”; dan is hij één tik naast Log spending."
  },
  "av2r2-import-boards": {
   "en": "Yes. In Trello: the board’s menu → Print, export and share → Export as JSON. Then Tasks → Import / export and choose the file: the board becomes a project, its lists sections, cards tasks and checklist items subtasks. You see a preview first, and Undo takes it back. Archived cards and members are left out.",
@@ -7699,11 +7699,11 @@
  },
  "av2r2-challenge": {
   "en": "No spending challenge is running. Wealth → Budgets by category → Challenges starts one: spend less on a category than last month.",
-  "nl": "Er loopt geen uitgavenuitdaging. Vermogen → Budgets by category → Challenges start er een: geef minder uit aan een categorie dan vorige maand.",
+  "nl": "Er loopt geen uitgavenuitdaging. Wealth → Budgets by category → Challenges start er een: geef minder uit aan een categorie dan vorige maand.",
   "facts": null,
   "widgets": [],
   "fresh": "No spending challenge is running. Wealth → Budgets by category → Challenges starts one: spend less on a category than last month.",
-  "freshNl": "Er loopt geen uitgavenuitdaging. Vermogen → Budgets by category → Challenges start er een: geef minder uit aan een categorie dan vorige maand."
+  "freshNl": "Er loopt geen uitgavenuitdaging. Wealth → Budgets by category → Challenges start er een: geef minder uit aan een categorie dan vorige maand."
  },
  "av2r2-vent": {
   "en": "In Journal → Write, open “Write it out”: a page that is never saved — no draft, nothing on this device, nothing sent. “Let it go” clears it with a calm line; “Keep as an entry” is the only way it is kept.",
@@ -7823,15 +7823,15 @@
   "facts": null,
   "widgets": [],
   "fresh": "Nothing to work out for this month yet. Log your income and spending in Wealth → Spending; Wealth → Budgets → Left this month then says what is left after your budgets, bills, Goal plans and planned costs.",
-  "freshNl": "Er is deze maand nog niets uit te rekenen. Log je inkomsten en uitgaven in Vermogen → Uitgaven; Vermogen → Budgetten → Left this month zegt dan wat er over is na je budgetten, rekeningen, doelplannen en geplande kosten."
+  "freshNl": "Er is deze maand nog niets uit te rekenen. Log je inkomsten en uitgaven in Wealth → Spending; Wealth → Budgets → Left this month zegt dan wat er over is na je budgetten, rekeningen, doelplannen en geplande kosten."
  },
  "av2r3-money-planned": {
   "en": "You have no planned one-off costs. Add one (a name, an amount and a day) under Wealth → Budgets → Left this month → Planned one-off costs, or in the cash forecast; it counts until your money log shows it or you clear it.",
-  "nl": "Je hebt geen geplande eenmalige kosten. Voeg er een toe (een naam, een bedrag en een dag) onder Vermogen → Budgetten → Left this month → Planned one-off costs, of in de kasprognose; hij telt mee tot je geldlog hem toont of je hem wist.",
+  "nl": "Je hebt geen geplande eenmalige kosten. Voeg er een toe (een naam, een bedrag en een dag) onder Wealth → Budgets → Left this month → Planned one-off costs, of in de kasprognose; hij telt mee tot je geldlog hem toont of je hem wist.",
   "facts": null,
   "widgets": [],
   "fresh": "You have no planned one-off costs. Add one (a name, an amount and a day) under Wealth → Budgets → Left this month → Planned one-off costs, or in the cash forecast; it counts until your money log shows it or you clear it.",
-  "freshNl": "Je hebt geen geplande eenmalige kosten. Voeg er een toe (een naam, een bedrag en een dag) onder Vermogen → Budgetten → Left this month → Planned one-off costs, of in de kasprognose; hij telt mee tot je geldlog hem toont of je hem wist."
+  "freshNl": "Je hebt geen geplande eenmalige kosten. Voeg er een toe (een naam, een bedrag en een dag) onder Wealth → Budgets → Left this month → Planned one-off costs, of in de kasprognose; hij telt mee tot je geldlog hem toont of je hem wist."
  },
  "av2r3-money-forecast-months": {
   "en": "USD, the next 6 months: lowest about -$5,120 around Tue, Apr 20, 2027. Each month's lowest: Nov 2026 $9,880, Dec 2026 $6,880, Jan 2027 $3,880, Feb 2027 $880, Mar 2027 -$2,120, Apr 2027 -$5,120 and May 2027 -$5,120. An estimate from your own records, not a promise.",
@@ -7839,7 +7839,7 @@
   "facts": null,
   "widgets": [],
   "fresh": "The forecast needs a cash or savings account with its balance (What you have → Accounts). Then Wealth → Spending → Money tools → the cash forecast runs 60 days, 6 or 12 months ahead.",
-  "freshNl": "De prognose heeft een betaal- of spaarrekening met saldo nodig (What you have → Accounts). Dan rekent Vermogen → Uitgaven → Money tools → de kasprognose 60 dagen, 6 of 12 maanden vooruit."
+  "freshNl": "De prognose heeft een betaal- of spaarrekening met saldo nodig (What you have → Accounts). Dan rekent Wealth → Spending → Money tools → de kasprognose 60 dagen, 6 of 12 maanden vooruit."
  },
  "av2r3-money-credit-card": {
   "en": "Credit card: no limit kept yet (its Sheet keeps one); statement Sat, Dec 5; due Wed, Nov 25. From the numbers you typed.",
@@ -7851,11 +7851,11 @@
  },
  "av2r3-money-needs-wants": {
   "en": "No category is marked as a need, a want or saving yet. In Wealth → Spending → Your money over time → Needs, wants and saving, mark your categories; the month then shows what went to each, as a share of your income.",
-  "nl": "Nog geen categorie is gemarkeerd als nodig, wens of sparen. In Vermogen → Uitgaven → Your money over time → Needs, wants and saving markeer je je categorieën; de maand toont dan wat er naar elk ging, als deel van je inkomen.",
+  "nl": "Nog geen categorie is gemarkeerd als nodig, wens of sparen. In Wealth → Spending → Your money over time → Needs, wants and saving markeer je je categorieën; de maand toont dan wat er naar elk ging, als deel van je inkomen.",
   "facts": null,
   "widgets": [],
   "fresh": "No category is marked as a need, a want or saving yet. In Wealth → Spending → Your money over time → Needs, wants and saving, mark your categories; the month then shows what went to each, as a share of your income.",
-  "freshNl": "Nog geen categorie is gemarkeerd als nodig, wens of sparen. In Vermogen → Uitgaven → Your money over time → Needs, wants and saving markeer je je categorieën; de maand toont dan wat er naar elk ging, als deel van je inkomen."
+  "freshNl": "Nog geen categorie is gemarkeerd als nodig, wens of sparen. In Wealth → Spending → Your money over time → Needs, wants and saving markeer je je categorieën; de maand toont dan wat er naar elk ging, als deel van je inkomen."
  },
  "av2r3-money-waterfall": {
   "en": "In EUR: €0.00 last month to Sat, Oct 17, €435.59 this month so far (+€435.59); most moved by Groceries +€187.10, Bills +€120.00, Food & drink +€49.10, Shopping +€35.00 and Fun +€24.00 and 2 more. From your own entries; a comparison, not a forecast.",
@@ -7863,7 +7863,7 @@
   "facts": null,
   "widgets": [],
   "fresh": "There is nothing to compare yet: last month has no spending in your money log. Once it has, Wealth → Spending → Your money over time → What changed shows how the total moved, category by category.",
-  "freshNl": "Er is nog niets te vergelijken: vorige maand staat er geen uitgave in je geldlog. Daarna toont Vermogen → Uitgaven → Your money over time → What changed hoe het totaal bewoog, per categorie."
+  "freshNl": "Er is nog niets te vergelijken: vorige maand staat er geen uitgave in je geldlog. Daarna toont Wealth → Spending → Your money over time → What changed hoe het totaal bewoog, per categorie."
  },
  "av2r3-money-beside-habits": {
   "en": "No finding yet. For “Late-night snacks (Showcase)”: 10 days with, 4 without; a comparison shows once each side has 14 days and the two differ clearly. What happened together, never a cause.",
@@ -7871,7 +7871,7 @@
   "facts": null,
   "widgets": [],
   "fresh": "This needs habits you tick and a few weeks of spending in your money log. Then Wealth → Spending → Your money over time → Beside your habits sets the days you did a habit beside what you spent.",
-  "freshNl": "Hiervoor zijn gewoontes die je afvinkt en een paar weken uitgaven in je geldlog nodig. Daarna zet Vermogen → Uitgaven → Your money over time → Beside your habits de dagen dat je een gewoonte deed naast wat je uitgaf."
+  "freshNl": "Hiervoor zijn gewoontes die je afvinkt en een paar weken uitgaven in je geldlog nodig. Daarna zet Wealth → Spending → Your money over time → Beside your habits de dagen dat je een gewoonte deed naast wat je uitgaf."
  },
  "av2r3-money-networth-movers": {
   "en": "In USD, +$2,261.00 since the end of last month; most by Workplace pension +$1,000.00, Everyday account +$470.00, Car loan +$271.00, Credit card +$270.00 and Rainy-day savings +$250.00. From your own balances; never converted, not a return.",
@@ -7879,7 +7879,7 @@
   "facts": null,
   "widgets": [],
   "fresh": "Nothing to compare yet: no account has a balance from both before this month and this month. Enter each balance once a month; Wealth → Net worth by source then lists what moved it most.",
-  "freshNl": "Nog niets te vergelijken: geen rekening heeft een saldo van voor deze maand én van deze maand. Vul elk saldo eens per maand in; Vermogen → Net worth by source toont dan wat het meest bewoog."
+  "freshNl": "Nog niets te vergelijken: geen rekening heeft een saldo van voor deze maand én van deze maand. Vul elk saldo eens per maand in; Wealth → Net worth by source toont dan wat het meest bewoog."
  },
  "av2r3-open-ticks": {
   "en": "No open tick box in your notes. A line that starts with - [ ] is one; Notes → Notes → Open tick boxes gathers them.",
@@ -8251,59 +8251,59 @@
  },
  "av2r4-money-calendar": {
   "en": "This month in EUR: €435.59 spent on 13 days, €2,550.00 received; the largest days: Sun, Nov 8 €120.00, Thu, Nov 12 €61.30 and Mon, Nov 16 €51.40. Each day is on Wealth → Spending → Your money over time → A calendar of the month; a cost spread over months counts its share each month, as your budgets do.",
-  "nl": "Deze maand in EUR: € 435,59 uitgegeven op 13 dagen, € 2.550,00 ontvangen; de grootste dagen: zo 8 nov € 120,00, do 12 nov € 61,30 en ma 16 nov € 51,40. Elke dag staat op Vermogen → Uitgaven → Your money over time → A calendar of the month; een kost verspreid over maanden telt elke maand zijn deel, zoals je budgetten.",
+  "nl": "Deze maand in EUR: € 435,59 uitgegeven op 13 dagen, € 2.550,00 ontvangen; de grootste dagen: zo 8 nov € 120,00, do 12 nov € 61,30 en ma 16 nov € 51,40. Elke dag staat op Wealth → Spending → Your money over time → A calendar of the month; een kost verspreid over maanden telt elke maand zijn deel, zoals je budgetten.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing logged this month yet. Each day you log spending or income shows on Wealth → Spending → Your money over time → A calendar of the month.",
-  "freshNl": "Deze maand is nog niets gelogd. Elke dag dat je uitgaven of inkomsten logt, staat op Vermogen → Uitgaven → Your money over time → A calendar of the month."
+  "freshNl": "Deze maand is nog niets gelogd. Elke dag dat je uitgaven of inkomsten logt, staat op Wealth → Spending → Your money over time → A calendar of the month."
  },
  "av2r4-money-archived": {
   "en": "No category is archived. In Wealth → Spending → Log spending → Your own categories, \"Archive a category\" takes one out of the pickers; its entries keep it.",
-  "nl": "Er is geen categorie gearchiveerd. In Vermogen → Uitgaven → Log spending → Your own categories haalt \"Archive a category\" er een uit de keuzelijsten; je invoer houdt hem.",
+  "nl": "Er is geen categorie gearchiveerd. In Wealth → Spending → Log spending → Your own categories haalt \"Archive a category\" er een uit de keuzelijsten; je invoer houdt hem.",
   "facts": null,
   "widgets": [],
   "fresh": "No category is archived. In Wealth → Spending → Log spending → Your own categories, \"Archive a category\" takes one out of the pickers; its entries keep it.",
-  "freshNl": "Er is geen categorie gearchiveerd. In Vermogen → Uitgaven → Log spending → Your own categories haalt \"Archive a category\" er een uit de keuzelijsten; je invoer houdt hem."
+  "freshNl": "Er is geen categorie gearchiveerd. In Wealth → Spending → Log spending → Your own categories haalt \"Archive a category\" er een uit de keuzelijsten; je invoer houdt hem."
  },
  "av2r4-money-starter-sets": {
   "en": "Four written starter sets: a student (study costs, a room and a side job), a household (a home, children and pets, the bills that come each month), a freelancer (work costs kept apart from your own, and income by client) and a traveller (trips as their own categories: getting there, staying and doing). In Wealth → Spending → Log spending → Your own categories → Start from a set, see what each adds (in English or Dutch), then add it in one tap; nothing already there is changed.",
-  "nl": "Vier geschreven startsets: een student (studiekosten, een kamer en een bijbaan), een huishouden (een huis, kinderen en huisdieren, de vaste lasten van elke maand), een zzp’er (werkkosten apart van je eigen uitgaven, en inkomsten per opdracht) en een reiziger (reizen als eigen categorieën: erheen, verblijven en doen). In Vermogen → Uitgaven → Log spending → Your own categories → Start from a set zie je wat elke set toevoegt (in het Engels of Nederlands) en voeg je hem in één tik toe; wat er al is, blijft zoals het is.",
+  "nl": "Vier geschreven startsets: een student (studiekosten, een kamer en een bijbaan), een huishouden (een huis, kinderen en huisdieren, de vaste lasten van elke maand), een zzp’er (werkkosten apart van je eigen uitgaven, en inkomsten per opdracht) en een reiziger (reizen als eigen categorieën: erheen, verblijven en doen). In Wealth → Spending → Log spending → Your own categories → Start from a set zie je wat elke set toevoegt (in het Engels of Nederlands) en voeg je hem in één tik toe; wat er al is, blijft zoals het is.",
   "facts": null,
   "widgets": [],
   "fresh": "Four written starter sets: a student (study costs, a room and a side job), a household (a home, children and pets, the bills that come each month), a freelancer (work costs kept apart from your own, and income by client) and a traveller (trips as their own categories: getting there, staying and doing). In Wealth → Spending → Log spending → Your own categories → Start from a set, see what each adds (in English or Dutch), then add it in one tap; nothing already there is changed.",
-  "freshNl": "Vier geschreven startsets: een student (studiekosten, een kamer en een bijbaan), een huishouden (een huis, kinderen en huisdieren, de vaste lasten van elke maand), een zzp’er (werkkosten apart van je eigen uitgaven, en inkomsten per opdracht) en een reiziger (reizen als eigen categorieën: erheen, verblijven en doen). In Vermogen → Uitgaven → Log spending → Your own categories → Start from a set zie je wat elke set toevoegt (in het Engels of Nederlands) en voeg je hem in één tik toe; wat er al is, blijft zoals het is."
+  "freshNl": "Vier geschreven startsets: een student (studiekosten, een kamer en een bijbaan), een huishouden (een huis, kinderen en huisdieren, de vaste lasten van elke maand), een zzp’er (werkkosten apart van je eigen uitgaven, en inkomsten per opdracht) en een reiziger (reizen als eigen categorieën: erheen, verblijven en doen). In Wealth → Spending → Log spending → Your own categories → Start from a set zie je wat elke set toevoegt (in het Engels of Nederlands) en voeg je hem in één tik toe; wat er al is, blijft zoals het is."
  },
  "av2r4-money-groups": {
   "en": "You have no groups yet. In Wealth → Spending → Search all your entries, Select two or more entries and \"Group\" them under a name; they show as one line, and each still counts on its own.",
-  "nl": "Je hebt nog geen groepen. In Vermogen → Uitgaven → Search all your entries kies je met Select twee of meer invoeren en zet je ze met \"Group\" onder een naam; ze staan dan als één regel, en elke telt nog apart mee.",
+  "nl": "Je hebt nog geen groepen. In Wealth → Spending → Search all your entries kies je met Select twee of meer invoeren en zet je ze met \"Group\" onder een naam; ze staan dan als één regel, en elke telt nog apart mee.",
   "facts": null,
   "widgets": [],
   "fresh": "You have no groups yet. In Wealth → Spending → Search all your entries, Select two or more entries and \"Group\" them under a name; they show as one line, and each still counts on its own.",
-  "freshNl": "Je hebt nog geen groepen. In Vermogen → Uitgaven → Search all your entries kies je met Select twee of meer invoeren en zet je ze met \"Group\" onder een naam; ze staan dan als één regel, en elke telt nog apart mee."
+  "freshNl": "Je hebt nog geen groepen. In Wealth → Spending → Search all your entries kies je met Select twee of meer invoeren en zet je ze met \"Group\" onder een naam; ze staan dan als één regel, en elke telt nog apart mee."
  },
  "av2r4-money-places": {
   "en": "You have no places yet. In Wealth → Spending → Log spending → \"Where are you?\", add the places you often pay at (Work, The market); choosing one later lists the payees you logged there first. Typed names only: ZIGoals never reads where you are.",
-  "nl": "Je hebt nog geen plekken. In Vermogen → Uitgaven → Log spending → \"Where are you?\" voeg je de plekken toe waar je vaak betaalt (werk, de markt); kies je er later een, dan komen de ontvangers die je daar logde eerst. Alleen namen die je typt: ZIGoals leest nooit waar je bent.",
+  "nl": "Je hebt nog geen plekken. In Wealth → Spending → Log spending → \"Where are you?\" voeg je de plekken toe waar je vaak betaalt (werk, de markt); kies je er later een, dan komen de ontvangers die je daar logde eerst. Alleen namen die je typt: ZIGoals leest nooit waar je bent.",
   "facts": null,
   "widgets": [],
   "fresh": "You have no places yet. In Wealth → Spending → Log spending → \"Where are you?\", add the places you often pay at (Work, The market); choosing one later lists the payees you logged there first. Typed names only: ZIGoals never reads where you are.",
-  "freshNl": "Je hebt nog geen plekken. In Vermogen → Uitgaven → Log spending → \"Where are you?\" voeg je de plekken toe waar je vaak betaalt (werk, de markt); kies je er later een, dan komen de ontvangers die je daar logde eerst. Alleen namen die je typt: ZIGoals leest nooit waar je bent."
+  "freshNl": "Je hebt nog geen plekken. In Wealth → Spending → Log spending → \"Where are you?\" voeg je de plekken toe waar je vaak betaalt (werk, de markt); kies je er later een, dan komen de ontvangers die je daar logde eerst. Alleen namen die je typt: ZIGoals leest nooit waar je bent."
  },
  "av2r4-money-reconcile": {
   "en": "Nothing is checked against your bank yet. In Wealth → Accounts, \"Check against my bank\" on an account takes your statement's balances; tick the entries it shows until the difference is zero, then mark them checked.",
-  "nl": "Er is nog niets met je bank gecontroleerd. In Vermogen → Rekeningen neemt \"Check against my bank\" bij een rekening de saldi van je afschrift; vink de invoer aan die erop staat tot het verschil nul is, en markeer ze als gecontroleerd.",
+  "nl": "Er is nog niets met je bank gecontroleerd. In Wealth → Accounts neemt \"Check against my bank\" bij een rekening de saldi van je afschrift; vink de invoer aan die erop staat tot het verschil nul is, en markeer ze als gecontroleerd.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is checked against your bank yet. In Wealth → Accounts, \"Check against my bank\" on an account takes your statement's balances; tick the entries it shows until the difference is zero, then mark them checked.",
-  "freshNl": "Er is nog niets met je bank gecontroleerd. In Vermogen → Rekeningen neemt \"Check against my bank\" bij een rekening de saldi van je afschrift; vink de invoer aan die erop staat tot het verschil nul is, en markeer ze als gecontroleerd."
+  "freshNl": "Er is nog niets met je bank gecontroleerd. In Wealth → Accounts neemt \"Check against my bank\" bij een rekening de saldi van je afschrift; vink de invoer aan die erop staat tot het verschil nul is, en markeer ze als gecontroleerd."
  },
  "av2r4-money-saved-searches": {
   "en": "You have no saved searches yet. In Wealth → Spending → Search all your entries, set your filters and tap \"Save this search\"; Wealth → Spending → Your money over time → Saved searches then draws it as a chart, with its total and monthly average.",
-  "nl": "Je hebt nog geen opgeslagen zoekopdrachten. In Vermogen → Uitgaven → Search all your entries kies je je filters en tik je op \"Save this search\"; Vermogen → Uitgaven → Your money over time → Saved searches tekent hem dan als grafiek, met het totaal en het maandgemiddelde.",
+  "nl": "Je hebt nog geen opgeslagen zoekopdrachten. In Wealth → Spending → Search all your entries kies je je filters en tik je op \"Save this search\"; Wealth → Spending → Your money over time → Saved searches tekent hem dan als grafiek, met het totaal en het maandgemiddelde.",
   "facts": null,
   "widgets": [],
   "fresh": "You have no saved searches yet. In Wealth → Spending → Search all your entries, set your filters and tap \"Save this search\"; Wealth → Spending → Your money over time → Saved searches then draws it as a chart, with its total and monthly average.",
-  "freshNl": "Je hebt nog geen opgeslagen zoekopdrachten. In Vermogen → Uitgaven → Search all your entries kies je je filters en tik je op \"Save this search\"; Vermogen → Uitgaven → Your money over time → Saved searches tekent hem dan als grafiek, met het totaal en het maandgemiddelde."
+  "freshNl": "Je hebt nog geen opgeslagen zoekopdrachten. In Wealth → Spending → Search all your entries kies je je filters en tik je op \"Save this search\"; Wealth → Spending → Your money over time → Saved searches tekent hem dan als grafiek, met het totaal en het maandgemiddelde."
  },
  "av2r4-money-average": {
   "en": "In EUR, Nov 2026 so far: €435.59, €377.75 above your 6-month average of €57.84 (over the 4 months with records). A figure from your own entries, not a target.",
@@ -8311,15 +8311,15 @@
   "facts": null,
   "widgets": [],
   "fresh": "No 6-month average yet: the months before this one have no spending logged. Wealth → Spending → Your money over time → Categories over a year shows the average once they do.",
-  "freshNl": "Nog geen gemiddelde over 6 maanden: de maanden hiervoor hebben geen gelogde uitgaven. Vermogen → Uitgaven → Your money over time → Categories over a year toont het gemiddelde zodra dat zo is."
+  "freshNl": "Nog geen gemiddelde over 6 maanden: de maanden hiervoor hebben geen gelogde uitgaven. Wealth → Spending → Your money over time → Categories over a year toont het gemiddelde zodra dat zo is."
  },
  "av2r4-money-invest-cover": {
   "en": "No income category is marked as investment income yet. In Wealth → Spending → Your money over time → Month by month → Investment income beside spending, mark the categories that are (interest, dividends, staking rewards); each month is then set beside your spending.",
-  "nl": "Nog geen inkomstencategorie is gemarkeerd als beleggingsinkomen. In Vermogen → Uitgaven → Your money over time → Month by month → Investment income beside spending markeer je welke dat zijn (rente, dividend, stakingbeloningen); elke maand staat dan naast je uitgaven.",
+  "nl": "Nog geen inkomstencategorie is gemarkeerd als beleggingsinkomen. In Wealth → Spending → Your money over time → Month by month → Investment income beside spending markeer je welke dat zijn (rente, dividend, stakingbeloningen); elke maand staat dan naast je uitgaven.",
   "facts": null,
   "widgets": [],
   "fresh": "No income category is marked as investment income yet. In Wealth → Spending → Your money over time → Month by month → Investment income beside spending, mark the categories that are (interest, dividends, staking rewards); each month is then set beside your spending.",
-  "freshNl": "Nog geen inkomstencategorie is gemarkeerd als beleggingsinkomen. In Vermogen → Uitgaven → Your money over time → Month by month → Investment income beside spending markeer je welke dat zijn (rente, dividend, stakingbeloningen); elke maand staat dan naast je uitgaven."
+  "freshNl": "Nog geen inkomstencategorie is gemarkeerd als beleggingsinkomen. In Wealth → Spending → Your money over time → Month by month → Investment income beside spending markeer je welke dat zijn (rente, dividend, stakingbeloningen); elke maand staat dan naast je uitgaven."
  },
  "av2r4-tags": {
   "en": "Notes per tag: #reading 1 and #travel 1; 6 notes have no tag. Notes → Chart draws them.",
@@ -8643,59 +8643,59 @@
  },
  "av2r5-money-yesterday": {
   "en": "Mon, Nov 16: 2 entries, spent €51.40. Cash and savings: Everyday account $2,430.00 and Rainy-day savings $10,450.00. Counted as Spending counts it. Wealth → Spending → Yesterday’s money can send it each morning, or show it on Today.",
-  "nl": "ma 16 nov: 2 invoeren, € 51,40 uitgegeven. Contant en spaargeld: Everyday account US$ 2.430,00 en Rainy-day savings US$ 10.450,00. Geteld zoals Uitgaven telt. Vermogen → Uitgaven → Yesterday’s money kan het elke ochtend sturen, of op Vandaag tonen.",
+  "nl": "ma 16 nov: 2 invoeren, € 51,40 uitgegeven. Contant en spaargeld: Everyday account US$ 2.430,00 en Rainy-day savings US$ 10.450,00. Geteld zoals Spending telt. Wealth → Spending → Yesterday’s money kan het elke ochtend sturen, of op Vandaag tonen.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing was logged for Mon, Nov 16. Wealth → Spending → Yesterday’s money can send it each morning, or show it on Today.",
-  "freshNl": "Voor ma 16 nov is niets gelogd. Vermogen → Uitgaven → Yesterday’s money kan het elke ochtend sturen, of op Vandaag tonen."
+  "freshNl": "Voor ma 16 nov is niets gelogd. Wealth → Spending → Yesterday’s money kan het elke ochtend sturen, of op Vandaag tonen."
  },
  "av2r5-money-year-budgets": {
   "en": "2026 so far: €260.20 spent against €430.00 budgeted, €169.80 under so far. By budget: Fun €36.00 under, Groceries €62.90 under and Food & drink €70.90 under. Each month's budget beside what was spent, counted as your budgets count it; it is in Wealth → Budgets → \"2026 so far against your budgets\".",
-  "nl": "2026 tot nu toe: € 260,20 uitgegeven tegenover € 430,00 gebudgetteerd, tot nu toe € 169,80 onder budget. Per budget: Fun € 36,00 onder budget, Groceries € 62,90 onder budget en Food & drink € 70,90 onder budget. Het budget van elke maand naast wat je uitgaf, geteld zoals je budgetten tellen; het staat in Vermogen → Budgetten → \"2026 so far against your budgets\".",
+  "nl": "2026 tot nu toe: € 260,20 uitgegeven tegenover € 430,00 gebudgetteerd, tot nu toe € 169,80 onder budget. Per budget: Fun € 36,00 onder budget, Groceries € 62,90 onder budget en Food & drink € 70,90 onder budget. Het budget van elke maand naast wat je uitgaf, geteld zoals je budgetten tellen; het staat in Wealth → Budgets → \"2026 so far against your budgets\".",
   "facts": null,
   "widgets": [],
   "fresh": "No budgets yet. Once you set one in Wealth → Budgets, each month of 2026 adds up beside what you spent, under \"2026 so far against your budgets\".",
-  "freshNl": "Nog geen budgetten. Zodra je er een instelt in Vermogen → Budgetten, telt elke maand van 2026 op naast wat je uitgaf, onder \"2026 so far against your budgets\"."
+  "freshNl": "Nog geen budgetten. Zodra je er een instelt in Wealth → Budgets, telt elke maand van 2026 op naast wat je uitgaf, onder \"2026 so far against your budgets\"."
  },
  "av2r5-money-paid-early": {
   "en": "No bill this month was paid more than 4 days early, as your money log shows it. 1 date has passed without a payment in your money log: \"Paid early?\" beside it in Wealth → Upcoming bills → Bill tracker lists the expenses of the days before.",
-  "nl": "Deze maand is geen rekening meer dan 4 dagen te vroeg betaald, volgens je uitgavenlog. 1 datum is voorbij zonder betaling in je uitgavenlog: \"Paid early?\" ernaast in Vermogen → Komende rekeningen → Bill tracker toont de uitgaven van de dagen ervoor.",
+  "nl": "Deze maand is geen rekening meer dan 4 dagen te vroeg betaald, volgens je uitgavenlog. 1 datum is voorbij zonder betaling in je uitgavenlog: \"Paid early?\" ernaast in Wealth → Upcoming bills → Bill tracker toont de uitgaven van de dagen ervoor.",
   "facts": null,
   "widgets": [],
   "fresh": "No bills are tracked yet. Add one in Wealth → Upcoming bills; a date that passes without its payment then offers \"Paid early?\".",
-  "freshNl": "Er worden nog geen rekeningen bijgehouden. Voeg er een toe in Vermogen → Komende rekeningen; een datum die voorbijgaat zonder betaling biedt dan \"Paid early?\"."
+  "freshNl": "Er worden nog geen rekeningen bijgehouden. Voeg er een toe in Wealth → Upcoming bills; een datum die voorbijgaat zonder betaling biedt dan \"Paid early?\"."
  },
  "av2r5-money-merge-accounts": {
   "en": "These could be merged: Everyday account and Rainy-day savings (USD), Everyday account and Workplace pension (USD), Rainy-day savings and Workplace pension (USD) and Car loan and Credit card (USD). In Wealth → Accounts, tap \"Merge two\" beside What you own or What you owe, choose the account to merge and the one it goes into, see what moves, then merge: its balances, a debt's payments, its note and its money-log entries go to the other, exact doubles are offered for removal, and the one merged is archived with its own history. Undo puts it all back.",
-  "nl": "Deze kun je samenvoegen: Everyday account en Rainy-day savings (USD), Everyday account en Workplace pension (USD), Rainy-day savings en Workplace pension (USD) en Car loan en Credit card (USD). In Vermogen → Rekeningen tik je op \"Merge two\" bij What you own of What you owe, kies je de rekening om samen te voegen en die waar hij in gaat, zie je wat er verhuist en voeg je samen: saldi, betalingen op een schuld, de notitie en de invoer in je uitgavenlog gaan naar de andere, exacte dubbelen kun je weghalen, en de samengevoegde wordt gearchiveerd met zijn eigen geschiedenis. Ongedaan maken zet alles terug.",
+  "nl": "Deze kun je samenvoegen: Everyday account en Rainy-day savings (USD), Everyday account en Workplace pension (USD), Rainy-day savings en Workplace pension (USD) en Car loan en Credit card (USD). In Wealth → Accounts tik je op \"Merge two\" bij What you own of What you owe, kies je de rekening om samen te voegen en die waar hij in gaat, zie je wat er verhuist en voeg je samen: saldi, betalingen op een schuld, de notitie en de invoer in je uitgavenlog gaan naar de andere, exacte dubbelen kun je weghalen, en de samengevoegde wordt gearchiveerd met zijn eigen geschiedenis. Ongedaan maken zet alles terug.",
   "facts": null,
   "widgets": [],
   "fresh": "No two of your accounts can be merged now: they need the same currency and both be owned or both owed. In Wealth → Accounts, tap \"Merge two\" beside What you own or What you owe, choose the account to merge and the one it goes into, see what moves, then merge: its balances, a debt's payments, its note and its money-log entries go to the other, exact doubles are offered for removal, and the one merged is archived with its own history. Undo puts it all back.",
-  "freshNl": "Er zijn nu geen twee rekeningen die je kunt samenvoegen: ze moeten dezelfde munt hebben en allebei bezit of allebei schuld zijn. In Vermogen → Rekeningen tik je op \"Merge two\" bij What you own of What you owe, kies je de rekening om samen te voegen en die waar hij in gaat, zie je wat er verhuist en voeg je samen: saldi, betalingen op een schuld, de notitie en de invoer in je uitgavenlog gaan naar de andere, exacte dubbelen kun je weghalen, en de samengevoegde wordt gearchiveerd met zijn eigen geschiedenis. Ongedaan maken zet alles terug."
+  "freshNl": "Er zijn nu geen twee rekeningen die je kunt samenvoegen: ze moeten dezelfde munt hebben en allebei bezit of allebei schuld zijn. In Wealth → Accounts tik je op \"Merge two\" bij What you own of What you owe, kies je de rekening om samen te voegen en die waar hij in gaat, zie je wat er verhuist en voeg je samen: saldi, betalingen op een schuld, de notitie en de invoer in je uitgavenlog gaan naar de andere, exacte dubbelen kun je weghalen, en de samengevoegde wordt gearchiveerd met zijn eigen geschiedenis. Ongedaan maken zet alles terug."
  },
  "av2r5-money-what-if": {
   "en": "No changes are kept. Under Wealth → Spending → Money tools → Next 60 days → \"Try a change — a model\", try up to three made-up changes (a higher rent, a trip, more pay each month) beside your forecast; they are never written as entries or bills, and you can keep them by name.",
-  "nl": "Er zijn geen wijzigingen bewaard. Onder Vermogen → Uitgaven → Money tools → Next 60 days → \"Try a change — a model\" probeer je tot drie verzonnen wijzigingen (een hogere huur, een reis, meer loon per maand) naast je prognose; ze worden nooit als invoer of rekening opgeslagen, en je kunt ze bewaren onder een naam.",
+  "nl": "Er zijn geen wijzigingen bewaard. Onder Wealth → Spending → Money tools → Next 60 days → \"Try a change — a model\" probeer je tot drie verzonnen wijzigingen (een hogere huur, een reis, meer loon per maand) naast je prognose; ze worden nooit als invoer of rekening opgeslagen, en je kunt ze bewaren onder een naam.",
   "facts": null,
   "widgets": [],
   "fresh": "No changes are kept. Under Wealth → Spending → Money tools → Next 60 days → \"Try a change — a model\", try up to three made-up changes (a higher rent, a trip, more pay each month) beside your forecast; they are never written as entries or bills, and you can keep them by name.",
-  "freshNl": "Er zijn geen wijzigingen bewaard. Onder Vermogen → Uitgaven → Money tools → Next 60 days → \"Try a change — a model\" probeer je tot drie verzonnen wijzigingen (een hogere huur, een reis, meer loon per maand) naast je prognose; ze worden nooit als invoer of rekening opgeslagen, en je kunt ze bewaren onder een naam."
+  "freshNl": "Er zijn geen wijzigingen bewaard. Onder Wealth → Spending → Money tools → Next 60 days → \"Try a change — a model\" probeer je tot drie verzonnen wijzigingen (een hogere huur, een reis, meer loon per maand) naast je prognose; ze worden nooit als invoer of rekening opgeslagen, en je kunt ze bewaren onder een naam."
  },
  "av2r5-money-sheet": {
   "en": "This year so far: 25 entries, €666.95 spent as your figures count it. Wealth → Spending → \"Your money as a spreadsheet\" shows your entries as a table you can sort, each category month by month, and makes a CSV or one .xlsx workbook for Excel, Numbers or Google Sheets — Entries, Categories, Accounts and Month by month with formulas — on this device, never sent.",
-  "nl": "Dit jaar tot nu toe: 25 invoeren, € 666,95 uitgegeven zoals je cijfers het tellen. Vermogen → Uitgaven → \"Your money as a spreadsheet\" toont je invoer als tabel die je kunt sorteren, elke categorie per maand, en maakt een CSV of één .xlsx-werkmap voor Excel, Numbers of Google Spreadsheets — Entries, Categories, Accounts en Month by month met formules — op dit apparaat, nooit verstuurd.",
+  "nl": "Dit jaar tot nu toe: 25 invoeren, € 666,95 uitgegeven zoals je cijfers het tellen. Wealth → Spending → \"Your money as a spreadsheet\" toont je invoer als tabel die je kunt sorteren, elke categorie per maand, en maakt een CSV of één .xlsx-werkmap voor Excel, Numbers of Google Spreadsheets — Entries, Categories, Accounts en Month by month met formules — op dit apparaat, nooit verstuurd.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is logged this year yet. Wealth → Spending → \"Your money as a spreadsheet\" shows your entries as a table you can sort, each category month by month, and makes a CSV or one .xlsx workbook for Excel, Numbers or Google Sheets — Entries, Categories, Accounts and Month by month with formulas — on this device, never sent.",
-  "freshNl": "Dit jaar is nog niets gelogd. Vermogen → Uitgaven → \"Your money as a spreadsheet\" toont je invoer als tabel die je kunt sorteren, elke categorie per maand, en maakt een CSV of één .xlsx-werkmap voor Excel, Numbers of Google Spreadsheets — Entries, Categories, Accounts en Month by month met formules — op dit apparaat, nooit verstuurd."
+  "freshNl": "Dit jaar is nog niets gelogd. Wealth → Spending → \"Your money as a spreadsheet\" toont je invoer als tabel die je kunt sorteren, elke categorie per maand, en maakt een CSV of één .xlsx-werkmap voor Excel, Numbers of Google Spreadsheets — Entries, Categories, Accounts en Month by month met formules — op dit apparaat, nooit verstuurd."
  },
  "av2r5-money-category-file": {
   "en": "Your file would hold 0 categories of your own, 0 subcategories and your rules — never an entry or an amount. In Wealth → Spending → Log spending → Your own categories, \"Save categories and rules\" makes it; \"Read categories and rules from a file\" reads one from another device or a friend, shows what is new, and adds only that, with Undo. Nothing you have is removed or changed.",
-  "nl": "Je bestand zou 0 eigen categorieën, 0 subcategorieën en je regels bevatten — nooit invoer of bedragen. In Vermogen → Uitgaven → Log spending → Your own categories maakt \"Save categories and rules\" het; \"Read categories and rules from a file\" leest er een van een ander apparaat of een vriend, toont wat nieuw is en voegt alleen dat toe, met ongedaan maken. Niets wat je hebt wordt weggehaald of veranderd.",
+  "nl": "Je bestand zou 0 eigen categorieën, 0 subcategorieën en je regels bevatten — nooit invoer of bedragen. In Wealth → Spending → Log spending → Your own categories maakt \"Save categories and rules\" het; \"Read categories and rules from a file\" leest er een van een ander apparaat of een vriend, toont wat nieuw is en voegt alleen dat toe, met ongedaan maken. Niets wat je hebt wordt weggehaald of veranderd.",
   "facts": null,
   "widgets": [],
   "fresh": "Your file would hold 0 categories of your own, 0 subcategories and your rules — never an entry or an amount. In Wealth → Spending → Log spending → Your own categories, \"Save categories and rules\" makes it; \"Read categories and rules from a file\" reads one from another device or a friend, shows what is new, and adds only that, with Undo. Nothing you have is removed or changed.",
-  "freshNl": "Je bestand zou 0 eigen categorieën, 0 subcategorieën en je regels bevatten — nooit invoer of bedragen. In Vermogen → Uitgaven → Log spending → Your own categories maakt \"Save categories and rules\" het; \"Read categories and rules from a file\" leest er een van een ander apparaat of een vriend, toont wat nieuw is en voegt alleen dat toe, met ongedaan maken. Niets wat je hebt wordt weggehaald of veranderd."
+  "freshNl": "Je bestand zou 0 eigen categorieën, 0 subcategorieën en je regels bevatten — nooit invoer of bedragen. In Wealth → Spending → Log spending → Your own categories maakt \"Save categories and rules\" het; \"Read categories and rules from a file\" leest er een van een ander apparaat of een vriend, toont wat nieuw is en voegt alleen dat toe, met ongedaan maken. Niets wat je hebt wordt weggehaald of veranderd."
  },
  "av2r5-status": {
   "en": "No status is set. When you are ill, injured, on a break or travelling, set one in Health → Workouts → Your status: planned workouts wait and your week streak is kept.",
@@ -8915,59 +8915,59 @@
  },
  "av2r6-money-refunds": {
   "en": "No refunds logged in Nov 2026. A refund lowers its category’s spending and its budget; it is never counted as money received. Log one in Wealth → Spending → Log spending → Money back.",
-  "nl": "Geen terugbetalingen gelogd in november 2026. Een terugbetaling verlaagt de uitgaven en het budget van zijn categorie; hij telt nooit als inkomsten. Log er een via Vermogen → Uitgaven → Log spending → Money back.",
+  "nl": "Geen terugbetalingen gelogd in november 2026. Een terugbetaling verlaagt de uitgaven en het budget van zijn categorie; hij telt nooit als inkomsten. Log er een via Wealth → Spending → Log spending → Money back.",
   "facts": null,
   "widgets": [],
   "fresh": "No refunds logged in Nov 2026. A refund lowers its category’s spending and its budget; it is never counted as money received. Log one in Wealth → Spending → Log spending → Money back.",
-  "freshNl": "Geen terugbetalingen gelogd in november 2026. Een terugbetaling verlaagt de uitgaven en het budget van zijn categorie; hij telt nooit als inkomsten. Log er een via Vermogen → Uitgaven → Log spending → Money back."
+  "freshNl": "Geen terugbetalingen gelogd in november 2026. Een terugbetaling verlaagt de uitgaven en het budget van zijn categorie; hij telt nooit als inkomsten. Log er een via Wealth → Spending → Log spending → Money back."
  },
  "av2r6-money-paychecks": {
   "en": "No paychecks are set up yet. In Wealth → Budgets → Paychecks and next month, add each paycheck with what it brings in, then set each budget and bill against the one that pays it.",
-  "nl": "Er zijn nog geen salarissen ingesteld. Voeg in Vermogen → Budgetten → Paychecks and next month elk salaris toe met wat het oplevert en zet elk budget en elke rekening tegenover het salaris dat het betaalt.",
+  "nl": "Er zijn nog geen salarissen ingesteld. Voeg in Wealth → Budgets → Paychecks and next month elk salaris toe met wat het oplevert en zet elk budget en elke rekening tegenover het salaris dat het betaalt.",
   "facts": null,
   "widgets": [],
   "fresh": "No paychecks are set up yet. In Wealth → Budgets → Paychecks and next month, add each paycheck with what it brings in, then set each budget and bill against the one that pays it.",
-  "freshNl": "Er zijn nog geen salarissen ingesteld. Voeg in Vermogen → Budgetten → Paychecks and next month elk salaris toe met wat het oplevert en zet elk budget en elke rekening tegenover het salaris dat het betaalt."
+  "freshNl": "Er zijn nog geen salarissen ingesteld. Voeg in Wealth → Budgets → Paychecks and next month elk salaris toe met wat het oplevert en zet elk budget en elke rekening tegenover het salaris dat het betaalt."
  },
  "av2r6-money-streak": {
   "en": "The money streak is off. Turn it on in Wealth → Spending → Yesterday’s money: it counts the days in a row you logged an entry, read a bank file or said you looked at your money; never an amount, and a day off is fine.",
-  "nl": "Je reeks voor je geld staat uit. Zet hem aan in Vermogen → Uitgaven → Yesterday’s money: hij telt de dagen op rij dat je iets logde, een bankbestand inlas of zei dat je naar je geld keek; nooit een bedrag, en een dag overslaan mag.",
+  "nl": "Je reeks voor je geld staat uit. Zet hem aan in Wealth → Spending → Yesterday’s money: hij telt de dagen op rij dat je iets logde, een bankbestand inlas of zei dat je naar je geld keek; nooit een bedrag, en een dag overslaan mag.",
   "facts": null,
   "widgets": [],
   "fresh": "The money streak is off. Turn it on in Wealth → Spending → Yesterday’s money: it counts the days in a row you logged an entry, read a bank file or said you looked at your money; never an amount, and a day off is fine.",
-  "freshNl": "Je reeks voor je geld staat uit. Zet hem aan in Vermogen → Uitgaven → Yesterday’s money: hij telt de dagen op rij dat je iets logde, een bankbestand inlas of zei dat je naar je geld keek; nooit een bedrag, en een dag overslaan mag."
+  "freshNl": "Je reeks voor je geld staat uit. Zet hem aan in Wealth → Spending → Yesterday’s money: hij telt de dagen op rij dat je iets logde, een bankbestand inlas of zei dat je naar je geld keek; nooit een bedrag, en een dag overslaan mag."
  },
  "av2r6-money-set-aside": {
   "en": "Nothing is set aside for Dec 2026 yet. In Wealth → Budgets → Paychecks and next month, give part of this month’s ready money to next month’s budgets.",
-  "nl": "Er staat nog niets opzij voor december 2026. Geef in Vermogen → Budgetten → Paychecks and next month een deel van het geld van deze maand aan de budgetten van volgende maand.",
+  "nl": "Er staat nog niets opzij voor december 2026. Geef in Wealth → Budgets → Paychecks and next month een deel van het geld van deze maand aan de budgetten van volgende maand.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing is set aside for Dec 2026 yet. In Wealth → Budgets → Paychecks and next month, give part of this month’s ready money to next month’s budgets.",
-  "freshNl": "Er staat nog niets opzij voor december 2026. Geef in Vermogen → Budgetten → Paychecks and next month een deel van het geld van deze maand aan de budgetten van volgende maand."
+  "freshNl": "Er staat nog niets opzij voor december 2026. Geef in Wealth → Budgets → Paychecks and next month een deel van het geld van deze maand aan de budgetten van volgende maand."
  },
  "av2r6-money-order": {
   "en": "Now in the usual order (the most spent first in each month). Open Wealth → Budgets → Reorder budgets and move each one up or down (or drag it with a mouse); Undo puts the order back.",
-  "nl": "Nu in de gewone volgorde (per maand het meest uitgegeven eerst). Open Vermogen → Budgetten → Reorder budgets en zet elk budget hoger of lager (of sleep het met een muis); Ongedaan maken zet de volgorde terug.",
+  "nl": "Nu in de gewone volgorde (per maand het meest uitgegeven eerst). Open Wealth → Budgets → Reorder budgets en zet elk budget hoger of lager (of sleep het met een muis); Ongedaan maken zet de volgorde terug.",
   "facts": null,
   "widgets": [],
   "fresh": "You have no budgets yet. Once you have two or more: Open Wealth → Budgets → Reorder budgets and move each one up or down (or drag it with a mouse); Undo puts the order back.",
-  "freshNl": "Je hebt nog geen budgetten. Vanaf twee: Open Vermogen → Budgetten → Reorder budgets en zet elk budget hoger of lager (of sleep het met een muis); Ongedaan maken zet de volgorde terug."
+  "freshNl": "Je hebt nog geen budgetten. Vanaf twee: Open Wealth → Budgets → Reorder budgets en zet elk budget hoger of lager (of sleep het met een muis); Ongedaan maken zet de volgorde terug."
  },
  "av2r6-money-check": {
   "en": "Nothing looks wrong in your money records (25 entries read). Wealth → Spending → Check and tidy your money records lists anything that does, with repairs you choose.",
-  "nl": "Er lijkt niets mis in je geldgegevens (25 boekingen gelezen). Vermogen → Uitgaven → Check and tidy your money records toont wat wel mis is, met reparaties die jij kiest.",
+  "nl": "Er lijkt niets mis in je geldgegevens (25 boekingen gelezen). Wealth → Spending → Check and tidy your money records toont wat wel mis is, met reparaties die jij kiest.",
   "facts": null,
   "widgets": [],
   "fresh": "Your money log is empty, so there is nothing to check yet. Wealth → Spending → Check and tidy your money records checks it once you log entries.",
-  "freshNl": "Je geldlog is leeg, dus er is nog niets te controleren. Vermogen → Uitgaven → Check and tidy your money records controleert hem zodra je iets logt."
+  "freshNl": "Je geldlog is leeg, dus er is nog niets te controleren. Wealth → Spending → Check and tidy your money records controleert hem zodra je iets logt."
  },
  "av2r6-money-put-away": {
   "en": "In Wealth → Spending → Check and tidy your money records → Put old entries away, a past year’s entries leave your lists and figures and are kept as they were; nothing is deleted. Only years before 2026 can be put away; there are none yet.",
-  "nl": "In Vermogen → Uitgaven → Check and tidy your money records → Put old entries away verdwijnen de boekingen van een voorbij jaar uit je lijsten en cijfers en blijven ze bewaard zoals ze waren; er wordt niets verwijderd. Alleen jaren vóór 2026 kunnen worden opgeborgen; die zijn er nog niet.",
+  "nl": "In Wealth → Spending → Check and tidy your money records → Put old entries away verdwijnen de boekingen van een voorbij jaar uit je lijsten en cijfers en blijven ze bewaard zoals ze waren; er wordt niets verwijderd. Alleen jaren vóór 2026 kunnen worden opgeborgen; die zijn er nog niet.",
   "facts": null,
   "widgets": [],
   "fresh": "In Wealth → Spending → Check and tidy your money records → Put old entries away, a past year’s entries leave your lists and figures and are kept as they were; nothing is deleted. Only years before 2026 can be put away; there are none yet.",
-  "freshNl": "In Vermogen → Uitgaven → Check and tidy your money records → Put old entries away verdwijnen de boekingen van een voorbij jaar uit je lijsten en cijfers en blijven ze bewaard zoals ze waren; er wordt niets verwijderd. Alleen jaren vóór 2026 kunnen worden opgeborgen; die zijn er nog niet."
+  "freshNl": "In Wealth → Spending → Check and tidy your money records → Put old entries away verdwijnen de boekingen van een voorbij jaar uit je lijsten en cijfers en blijven ze bewaard zoals ze waren; er wordt niets verwijderd. Alleen jaren vóór 2026 kunnen worden opgeborgen; die zijn er nog niet."
  },
  "av2r6-med-day": {
   "en": "Your day ends at midnight (Settings → My day ends at), so a session counts on the calendar day it began. With a later end, such as 3:00, a 1:00 session counts on the evening before, as your habits do.",
@@ -9320,5 +9320,278 @@
   "widgets": [],
   "fresh": "No credit card is kept in Wealth → Accounts yet. Add one with its statement and due days to see its next payment worked out from your own entries.",
   "freshNl": "Er staat nog geen creditcard in Vermogen → Rekeningen. Voeg er een toe met de afschrift- en betaaldag om de volgende betaling te zien, berekend uit je eigen boekingen."
+ },
+ "awp5-skip-most": {
+  "en": "You skipped 7 of 7 habits in the last 30 days (Mon, Oct 19 to Tue, Nov 17): Late-night snacks (4 days), Read (4 days), Contribute (3 days), Drink water (3 days), Exercise (3 days), Meditate (3 days) and Walk (3 days). Missed most (not done, not a planned skip): Late-night snacks (4 days). Still open today: Exercise, Meditate and Drink water.",
+  "nl": "Je hebt 7 van je 7 gewoontes overgeslagen in de afgelopen 30 dagen (ma 19 okt t/m di 17 nov): Late-night snacks (4 dagen), Read (4 dagen), Contribute (3 dagen), Drink water (3 dagen), Exercise (3 dagen), Meditate (3 dagen) en Walk (3 dagen). Het vaakst gemist (niet gedaan, geen geplande overslag): Late-night snacks (4 dagen). Vandaag nog open: Exercise, Meditate en Drink water.",
+  "facts": {
+   "about": "habits",
+   "ask": "skipped",
+   "period": {
+    "token": "last-30-days",
+    "from": "2026-10-19",
+    "to": "2026-11-17"
+   },
+   "count": 7,
+   "habits": [
+    {
+     "habit": "Late-night snacks",
+     "id": "92000000-0000-4000-8000-000000000007",
+     "days": 4,
+     "missed": 4,
+     "skipped": 4,
+     "missedDays": [
+      "2026-10-22",
+      "2026-10-31",
+      "2026-11-08",
+      "2026-11-13"
+     ],
+     "skippedDays": [
+      "2026-10-24",
+      "2026-11-02",
+      "2026-11-09",
+      "2026-11-14"
+     ]
+    },
+    {
+     "habit": "Read",
+     "id": "92000000-0000-4000-8000-000000000001",
+     "days": 4,
+     "missed": 0,
+     "skipped": 4,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-10-19",
+      "2026-10-28",
+      "2026-11-06",
+      "2026-11-15"
+     ]
+    },
+    {
+     "habit": "Contribute",
+     "id": "92000000-0000-4000-8000-000000000005",
+     "days": 3,
+     "missed": 0,
+     "skipped": 3,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-10-24",
+      "2026-11-02",
+      "2026-11-11"
+     ]
+    },
+    {
+     "habit": "Drink water",
+     "id": "92000000-0000-4000-8000-000000000006",
+     "days": 3,
+     "missed": 0,
+     "skipped": 3,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-10-23",
+      "2026-11-01",
+      "2026-11-10"
+     ]
+    },
+    {
+     "habit": "Exercise",
+     "id": "92000000-0000-4000-8000-000000000002",
+     "days": 3,
+     "missed": 0,
+     "skipped": 3,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-10-27",
+      "2026-11-05",
+      "2026-11-14"
+     ]
+    },
+    {
+     "habit": "Meditate",
+     "id": "92000000-0000-4000-8000-000000000004",
+     "days": 3,
+     "missed": 0,
+     "skipped": 3,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-10-25",
+      "2026-11-03",
+      "2026-11-12"
+     ]
+    },
+    {
+     "habit": "Walk",
+     "id": "92000000-0000-4000-8000-000000000003",
+     "days": 3,
+     "missed": 0,
+     "skipped": 3,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-10-26",
+      "2026-11-04",
+      "2026-11-13"
+     ]
+    }
+   ],
+   "totals": {
+    "due": 210,
+    "done": 180,
+    "missed": 4,
+    "skipped": 23,
+    "open": 3
+   },
+   "perHabit": [
+    {
+     "habit": "Read",
+     "id": "92000000-0000-4000-8000-000000000001",
+     "due": 30,
+     "done": 26,
+     "missed": 0,
+     "skipped": 4,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-10-19",
+      "2026-10-28",
+      "2026-11-06",
+      "2026-11-15"
+     ]
+    },
+    {
+     "habit": "Exercise",
+     "id": "92000000-0000-4000-8000-000000000002",
+     "due": 30,
+     "done": 26,
+     "missed": 0,
+     "skipped": 3,
+     "open": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-10-27",
+      "2026-11-05",
+      "2026-11-14"
+     ]
+    },
+    {
+     "habit": "Walk",
+     "id": "92000000-0000-4000-8000-000000000003",
+     "due": 30,
+     "done": 27,
+     "missed": 0,
+     "skipped": 3,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-10-26",
+      "2026-11-04",
+      "2026-11-13"
+     ]
+    },
+    {
+     "habit": "Meditate",
+     "id": "92000000-0000-4000-8000-000000000004",
+     "due": 30,
+     "done": 26,
+     "missed": 0,
+     "skipped": 3,
+     "open": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-10-25",
+      "2026-11-03",
+      "2026-11-12"
+     ]
+    },
+    {
+     "habit": "Contribute",
+     "id": "92000000-0000-4000-8000-000000000005",
+     "due": 30,
+     "done": 27,
+     "missed": 0,
+     "skipped": 3,
+     "open": 0,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-10-24",
+      "2026-11-02",
+      "2026-11-11"
+     ]
+    },
+    {
+     "habit": "Drink water",
+     "id": "92000000-0000-4000-8000-000000000006",
+     "due": 30,
+     "done": 26,
+     "missed": 0,
+     "skipped": 3,
+     "open": 1,
+     "missedDays": [],
+     "skippedDays": [
+      "2026-10-23",
+      "2026-11-01",
+      "2026-11-10"
+     ]
+    },
+    {
+     "habit": "Late-night snacks",
+     "id": "92000000-0000-4000-8000-000000000007",
+     "due": 30,
+     "done": 22,
+     "missed": 4,
+     "skipped": 4,
+     "open": 0,
+     "missedDays": [
+      "2026-10-22",
+      "2026-10-31",
+      "2026-11-08",
+      "2026-11-13"
+     ],
+     "skippedDays": [
+      "2026-10-24",
+      "2026-11-02",
+      "2026-11-09",
+      "2026-11-14"
+     ]
+    }
+   ]
+  },
+  "widgets": [
+   "habit-misses",
+   "habits-month"
+  ],
+  "fresh": "You have no habits yet.",
+  "freshNl": "Je hebt nog geen gewoontes."
+ },
+ "awp5-goals-dutch": {
+  "en": "7 active goals, from your own records:\n• Emergency fund: 45% — $9,000 of $20,000, $11,000 to go; next planned Fri, Nov 20\n• First home deposit: 65% — $52,000 of $80,000, $28,000 to go; next planned Fri, Nov 20\n• Japan adventure: 41.66% — $2,500 of $6,000, $3,500 to go; next planned Fri, Nov 20\n• Launch my creative studio: 50% — 2 milestones of 4 milestones, 2 milestones to go\n• Reward income reserve: 50% — 10,000 ZIG of 20,000 ZIG, 10,000 ZIG to go; next planned Fri, Nov 20\n• Create 2 hours a day: 94.64% — 1.9 h a day of at least 2 h a day\n• Sleep 8 hours a night: 86.77% — 6.9 h a night of at least 8 h a night\n3 goals completed.\nAsk about one goal by its name for its plan and pace. Your own figures; not financial advice.",
+  "nl": "7 actieve doelen, uit je eigen gegevens:\n• Emergency fund: 45% — US$ 9.000 van US$ 20.000, nog US$ 11.000 te gaan; volgende geplande stap vr 20 nov\n• First home deposit: 65% — US$ 52.000 van US$ 80.000, nog US$ 28.000 te gaan; volgende geplande stap vr 20 nov\n• Japan adventure: 41,66% — US$ 2.500 van US$ 6.000, nog US$ 3.500 te gaan; volgende geplande stap vr 20 nov\n• Launch my creative studio: 50% — 2 mijlpalen van 4 mijlpalen, nog 2 mijlpalen te gaan\n• Reward income reserve: 50% — 10.000 ZIG van 20.000 ZIG, nog 10.000 ZIG te gaan; volgende geplande stap vr 20 nov\n• Create 2 hours a day: 94,64% — gemiddeld 1,9 uur per dag van minstens 2 uur per dag\n• Sleep 8 hours a night: 86,77% — gemiddeld 6 h 56 min per nacht van minstens 8 uur per nacht\n3 doelen afgerond.\nVraag naar één doel bij naam voor het plan en het tempo. Je eigen cijfers; geen financieel advies.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "You have no active goals yet. Open Goals to create one, or tell me the goal and I will draft it as a card.",
+  "freshNl": "Je hebt nog geen actieve doelen. Open Goals om er een te maken, of vertel me het doel en ik maak er een kaart van."
+ },
+ "awp5-wealth-places": {
+  "en": "From your own figures (Wealth → What you owe → Plan paying off your debts):\n• USD (2 debts, $100.00 extra a month): debt-free in Apr 2028 (in 1 year and 5 months, $316.87 interest) with avalanche; Apr 2028 (in 1 year and 5 months, $316.87 interest) with snowball; minimums only: Oct 2029 (in 2 years and 11 months, $672.30 interest). Both orders come out the same here: debt-free after 17 months, with the same interest.\nA model, not advice: it assumes the rates and payments stay the same and nothing new is borrowed. Nothing is paid or moved.",
+  "nl": "USD: schuldenvrij in april 2028 (over 1 jaar en 5 maanden, US$ 316,87 rente) met lawine, april 2028 (over 1 jaar en 5 maanden, US$ 316,87 rente) met sneeuwbal; alleen de minimumbedragen: oktober 2029 (over 2 jaar en 11 maanden, US$ 672,30 rente). Uit je eigen bedragen in Wealth → What you owe → Plan paying off your debts; een model, geen advies: er wordt niets betaald of verplaatst.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No debt with a balance is recorded on this device, so there is no debt-free month to work out. A loan, mortgage or credit card goes under Wealth → Accounts, debts & net worth, with what you owe and your yearly rate.",
+  "freshNl": "Er staat op dit apparaat geen schuld met een saldo, dus er is geen maand om schuldenvrij te zijn uit te rekenen."
+ },
+ "awp5-agenda-clock": {
+  "en": "On your agenda tomorrow:\n• Contribute, Drink water, 7:30 AM Example · Upper body session, 8:00 AM Exercise, 8:00 AM Read, 2:00 PM Walk, 7:00 PM Late-night snacks (Showcase), 7:00 PM Meditate\nNo amounts here; each item opens where it lives on the agenda.\n\n```zigoals-action\n{\"kind\":\"open-agenda\",\"view\":\"day\"}\n```",
+  "nl": "8 dingen op je agenda morgen, 8 nog open: 07:30 Upper body session, 08:00 Exercise, 08:00 Read, 14:00 Walk en 19:00 Late-night snacks (Showcase) en nog 3.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is planned tomorrow in your records. The agenda gathers habits, tasks, planned contributions, bills, meals and reviews.\n\n```zigoals-action\n{\"kind\":\"open-agenda\",\"view\":\"day\"}\n```",
+  "freshNl": "Er staat niets op je agenda morgen."
+ },
+ "awp5-gym-streak": {
+  "en": "3 weeks in a row with at least one workout, this week included; your longest run is 3 weeks. Health → Workouts → Calendar shows the month and the year.",
+  "nl": "3 weken op rij met minstens één workout, deze week meegeteld; je langste reeks is 3 weken. Health → Workouts → Calendar toont de maand en het jaar.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No week in a row yet: a workout this week starts one.",
+  "freshNl": "Nog geen week op rij: een workout deze week begint er een."
  }
 }
