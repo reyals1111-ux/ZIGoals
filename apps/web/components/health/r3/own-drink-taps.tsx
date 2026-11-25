@@ -2,7 +2,8 @@
 import {newHealthId, type HealthData} from '../../../lib/health';
 import {addWater, undoWaterLog} from '../../../lib/health-daily';
 import {setDrink} from '../../../lib/health-extras';
-import {ownDrinks, tapNote, type OwnDrink} from '../../../lib/own-drinks';
+import {ownDrinks, tapNote} from '../../../lib/own-drinks';
+import type {OwnDrink} from '../../../lib/health-extras';
 import {formatNumber} from '../../../lib/visual-format';
 import {showUndo} from '../../ui/undo-toast';
 import {useOneTap} from '../one-tap';
