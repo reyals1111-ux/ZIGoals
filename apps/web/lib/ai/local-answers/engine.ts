@@ -27,6 +27,7 @@ import {unitFor} from '../../plural';
 import {displayLocale, withNumberLocale} from '../../visual-format';
 import {fold} from './exact/text';
 import {languageOf} from './av-words';
+import {awKcalAnswer} from './aw-kcal';
 import {averageKey} from '../../average-goals/store';
 import {joinReplies, messageLines, onePhrase, pastPeriodAsk} from './al-fifth';
 import {healthGoalAsk} from './al-final';
@@ -271,6 +272,10 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   // Session AU (dress rehearsal R-4, R-7, R-8, R-10): today's date by the person's day end, a coin's price (not the holdings),
   // what staking would earn and whether it is safe (au-answers.ts): before the exact layer reads them as a records lookup.
   if (!subject) { const found = rehearsalAnswer(normalizeSpoken(question), env), own = found && 'text' in found ? {...found, text: groupUnits(found.text)} : found; if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
+  // Session AW (kcal; owner decision 1a and amendment 4): "how many calories did I burn" is answered from what the person
+  // typed on an activity or a file brought in, with its source, or honestly says ZIGoals does not work it out — before the
+  // food answers, which read it as the calories eaten (aw-kcal.ts).
+  if (!subject) { const own = awKcalAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV (owner follow-up 2, item 1c; the fresh reviewers' check 5): the AV features' own questions (task reminders,
   // countdowns, bills a year, payday, budget targets, running bests, the sleep score, the journal's tags…), from each
   // feature's own pure function, before the exact layer reads their words as another part of life (av-answers.ts).
@@ -1056,7 +1061,7 @@ function vitalsAnswer(env: ToolEnv, found: DayRange[]): LocalReply {
   const days = dataOf(r.result).days as {date: string; source: string; restingHeartRateBpm?: number; activeKcal?: number}[], when = span(range, env.healthDay);
   if (!days.length) return {kind: 'answer', text: `No vitals are recorded ${when}; they arrive with an import or a linked device.`, calls: [r.record]};
   const resting = days.filter(x => x.restingHeartRateBpm !== undefined).at(-1), active = days.filter(x => x.activeKcal !== undefined).at(-1);
-  return {kind: 'answer', text: lines(`${capital(plural(days.length, 'day'))} of vitals ${when}.`, [resting && `Resting heart rate on ${dayText(resting.date, env.healthDay.slice(0, 4))}: ${resting.restingHeartRateBpm} bpm (${resting.source})`, active && `Active energy on ${dayText(active.date, env.healthDay.slice(0, 4))}: ${active.activeKcal} kcal (${active.source})`]), calls: [r.record]};
+  return {kind: 'answer', text: lines(`${capital(plural(days.length, 'day'))} of vitals ${when}.`, [resting && `Resting heart rate on ${dayText(resting.date, env.healthDay.slice(0, 4))}: ${resting.restingHeartRateBpm} bpm (${resting.source})`, active && `Active energy on ${dayText(active.date, env.healthDay.slice(0, 4))}: ${active.activeKcal} kcal (${active.source}${/ export$/.test(active.source) ? ', from your file' : ''})` /* Session AW (kcal; owner decision 1a): imported, and said so */]), calls: [r.record]};
 }
 function devicesAnswer(env: ToolEnv): LocalReply {
   const r = call(env, 'devices', {}), refused = refusalOf([r]); if (refused) return refused;
