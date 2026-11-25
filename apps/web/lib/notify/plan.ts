@@ -64,7 +64,13 @@ export type PlanInput = {
    * (lib/journal/reminder.ts reminderPlanInput): its time and weekdays, the days of the window already written, and the
    * streak a new entry keeps. Never a word of the journal.
    */
-  journal?: {time: string; weekdays: number; written: readonly string[]; streak: number};
+  journal?: {time: string; weekdays: number; written: readonly string[]; streak: number; /** Session AW (x3; LEDGER #444): the evening page's reminder while "Morning and evening" is on. */ part?: 'evening'};
+  /**
+   * Session AW (x3; LEDGER #444, The Five Minute Journal): the morning page's own reminder (lib/journal/day-pages.ts
+   * morningPlanInput) — a second journal wake a day, off until chosen: its time and weekdays and the days of the window
+   * whose morning page is written already. Never a word of the journal; under the journal switch.
+   */
+  journalMorning?: {time: string; weekdays: number; written: readonly string[]};
   /**
    * Session AV lane 2 (r3-notes; LEDGER #279, Stoic's letter to open later; TIER 3 (PWA)): the days letters open
    * (lib/journal/letters.ts letterWakes) — an id and a day only, never a word of the letter; under the journal switch.
@@ -168,7 +174,9 @@ export function buildPlan(input: PlanInput): Plan {
   if (typeOn(prefs, 'review') && input.review) daily('review', 'review', input.review.time, weekdayBit(input.review.weekday), () => ({href: '/app/review', actionable: false}), () => false);
   // Session AV lane 2 (journal; LEDGER #40): the reminder to write, on its weekdays, unless that day already has an entry;
   // its line keeps the streak ("keeps your 4-day streak"), a count only, never a word of the journal.
-  if (typeOn(prefs, 'journal') && input.journal) { const j = input.journal; daily('journal', 'journal', j.time, j.weekdays & EVERY, () => ({...(j.streak > 0 ? {detail: `keeps your ${j.streak}-day streak`} : {}), href: '/app/journal', actionable: false}), date => j.written.includes(date)); }
+  if (typeOn(prefs, 'journal') && input.journal) { const j = input.journal, page = j.part === 'evening' ? 'your evening page' : '', streakLine = j.streak > 0 ? `keeps your ${j.streak}-day streak` : '', detail = [page, streakLine].filter(Boolean).join(' · '); daily('journal', 'journal', j.time, j.weekdays & EVERY, () => ({...(detail ? {detail} : {}), href: '/app/journal', actionable: false}), date => j.written.includes(date)); }
+  // Session AW (x3; LEDGER #444): the morning page's reminder, a wake of its own, quiet once that day's morning page is written.
+  if (typeOn(prefs, 'journal') && input.journalMorning) { const j = input.journalMorning; daily('journal', 'journal-morning', j.time, j.weekdays & EVERY, () => ({detail: 'your morning page', href: '/app/journal#day-pages', actionable: false}), date => j.written.includes(date)); }
   // Session AV lane 2 (r3-plan, LEDGER #256): "Plan your day" at its own time, opening Plan my day; the overdue count rides on
   // it, or on the morning orbit when there is no plan-your-day reminder (one line, never one notification per task).
   const overdueLine = (date: string): {detail?: string} => { const n = input.overdue?.find(o => o.date === date)?.count ?? 0; return n > 0 ? {detail: n === 1 ? '1 task overdue' : `${n} tasks overdue`} : {}; };

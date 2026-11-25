@@ -40,6 +40,10 @@ export const PERIOD = /^\d{4}(?:-W(?:0[1-9]|[1-4]\d|5[0-3])|-(?:0[1-9]|1[0-2]))?
 const mediaId = z.string().regex(MEDIA_ID);
 /** Keeps the items `item` reads; null when the value is no list (the field then reads as absent). */
 const readable = <T extends z.ZodType>(item: T, max: number) => z.preprocess(v => Array.isArray(v) ? v.filter(x => item.safeParse(x).success).slice(-max) : undefined, z.array(item).max(max).optional());
+/** Session AW (x3; LEDGER #444): a day page's questions (at most five a part), each with its answer. */
+export const MAX_DAY_QUESTIONS = 5, DAY_QUESTION_MAX = 120, DAY_ANSWER_MAX = 900;
+export const dayAnswerSchema = z.looseObject({q: z.string().trim().min(1).max(DAY_QUESTION_MAX), a: z.string().trim().max(DAY_ANSWER_MAX)});
+const dayAnswers = z.preprocess(v => Array.isArray(v) ? v.filter(x => dayAnswerSchema.safeParse(x).success).slice(0, MAX_DAY_QUESTIONS) : undefined, z.array(dayAnswerSchema).max(MAX_DAY_QUESTIONS).optional());
 export const journalEntrySchema = z.looseObject({
   id, date: day, text: z.string().trim().min(1).max(MAX_TEXT), createdAt: z.iso.datetime({offset: true}), updatedAt: z.iso.datetime({offset: true}).optional(),
   /** Short tags the person chose (gratitude, work, family …). */
@@ -90,6 +94,21 @@ export const journalEntrySchema = z.looseObject({
    * untouched (the entry is loose) and never show it.
    */
   people: z.preprocess(v => Array.isArray(v) ? [...new Set(v.filter((x): x is string => typeof x === 'string').map(x => x.trim().replace(/\s+/g, ' ')).filter(x => x && x.length <= PERSON_MAX))].slice(0, MAX_PEOPLE) : undefined, z.array(z.string().min(1).max(PERSON_MAX)).max(MAX_PEOPLE).optional()),
+  /**
+   * Session AW (x3; LEDGER #444, The Five Minute Journal's morning and evening; TIER 3 (stored format), additive and
+   * optional): a day written as a morning page and an evening page — each part's questions and answers, kept beside the
+   * entry's `text`, which always holds both parts in words (so an older build, Search and the exports read the whole day).
+   * A part or an answer this build cannot read is dropped on read (the rest kept); older builds keep it untouched (the
+   * entry is loose) and show the text.
+   */
+  parts: z.looseObject({morning: dayAnswers, evening: dayAnswers}).optional().catch(undefined),
+  /**
+   * Session AW (x3; LEDGER #445, The Five Minute Journal's photo of the day; TIER 3 (stored format), additive and
+   * optional): this entry's photo (one of its own photo ids) is the photo of its day; one entry of a day carries it at a
+   * time, and absent everywhere the day's first photo stands for it. A value this build cannot read is dropped on read;
+   * older builds keep it untouched (the entry is loose) and show the photos as before.
+   */
+  dayPhoto: mediaId.optional().catch(undefined),
 });
 /**
  * Session AV (owner follow-up 1, F-OWN-TEMPLATES; Day One's own templates; TIER 3 (stored format), additive and optional):
@@ -177,6 +196,16 @@ export const journalSchema = z.looseObject({
    * older builds keep it untouched and show nothing.
    */
   wordGoal: z.number().int().min(WORD_GOAL_MIN).max(WORD_GOAL_MAX).optional().catch(undefined),
+  /**
+   * Session AW (x3; LEDGER #444, The Five Minute Journal; TIER 3 (stored format), additive and optional; a value this
+   * build cannot read is dropped on read; older builds keep both untouched, the record being loose, and show one entry):
+   * - `dayPages`: the person writes each day as a morning page and an evening page (off unless switched on), with their own
+   *   morning questions (absent: "I am grateful for…" and "What would make today great?");
+   * - `morningReminder`: the morning page's own reminder, as `reminder` (which is then the evening page's), off until
+   *   chosen; read by the notification plan as a second journal wake (lib/notify/plan.ts). It rings on this device only.
+   */
+  dayPages: z.looseObject({on: z.boolean(), questions: z.array(z.string().trim().min(1).max(DAY_QUESTION_MAX)).min(1).max(MAX_DAY_QUESTIONS).optional().catch(undefined)}).optional().catch(undefined),
+  morningReminder: journalReminderSchema.optional().catch(undefined),
 });
 export type JournalEntry = z.infer<typeof journalEntrySchema>;
 export type Journal = z.infer<typeof journalSchema>;

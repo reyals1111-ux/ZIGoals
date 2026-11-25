@@ -439,3 +439,21 @@ button.note-tag:focus-visible, .note-tag-pick:focus-visible { outline: 3px solid
 .notes-table tfoot th, .notes-table tfoot td { border-top: 2px solid color-mix(in srgb, currentColor 30%, transparent); border-bottom: 0; font-variant-numeric: tabular-nums; }
 .note-read-back-list li { display: grid; gap: 2px; }
 .note-this-day-read { margin: 0 0 6px; }
+/* Session AW (x3; LEDGER #441): saved searches in the Notes search — open in one tap, narrow, keep, rename or remove. */
+.note-saved-searches { display: grid; gap: 6px; }
+.note-saved-list { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.note-saved-list button { min-height: 44px; max-width: 100%; overflow-wrap: anywhere; }
+.note-saved-list button[aria-pressed="true"] { border-color: var(--brand-cyan); }
+.note-narrow { display: grid; gap: 8px; }
+.note-narrow select { min-height: 44px; font-size: 16px; max-width: 100%; }
+.note-narrow > button { justify-self: start; min-height: 44px; }
+.note-keep-search { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
+.note-keep-search .field { flex: 1 1 14rem; min-width: 0; }
+.note-keep-search input { min-height: 44px; font-size: 16px; }
+.note-keep-search button { min-height: 44px; }
+.note-keep-search .field-error { flex-basis: 100%; margin: 0; }
+.note-saved-manage-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.note-saved-manage-list li { display: grid; gap: 4px; border-bottom: 1px solid var(--line); padding-bottom: 8px; overflow-wrap: anywhere; }
+.note-saved-manage-list input { min-height: 44px; font-size: 16px; }
+.note-saved-manage-list p { margin: 0; }
+.note-saved-line { margin: 0; }

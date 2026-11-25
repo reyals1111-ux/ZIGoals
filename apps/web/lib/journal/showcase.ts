@@ -1,5 +1,6 @@
 import {addLocalDays} from '../local-date';
 import {journalSchema, type Journal} from './schema';
+import {DAY_PAGE_TEMPLATE} from './day-pages';
 
 /** Session AI: the Showcase's fictional journal for the last two weeks, with energy ratings and ZIGi's questions answered. */
 export function showcaseJournal(day: string): Journal {
@@ -24,7 +25,11 @@ export function showcaseJournal(day: string): Journal {
     // Session AV lane 2 (journal; LEDGER #43): the two run entries sit in a second journal, labelled as an example.
     .map(e => e.id === 'showcase-journal-8' || e.id === 'showcase-journal-3' ? {...e, journal: 'j-showcaseruns'} : e)
     // Session AV lane 2 (journal; LEDGER #33): one entry was changed after it was written, so it has an earlier version.
-    .map(e => e.id === 'showcase-journal-2' ? {...e, updatedAt: `${addLocalDays(day, -2)}T21:30:00.000Z`} : e);
+    .map(e => e.id === 'showcase-journal-2' ? {...e, updatedAt: `${addLocalDays(day, -2)}T21:30:00.000Z`} : e)
+    // Session AW (x3; LEDGER #444, The Five Minute Journal): today's entry carries a morning page, so "Morning and evening"
+    // (off in the Showcase until switched on) shows "This morning you wrote …" above the evening page. Its words stay as
+    // they were, so every count and pattern of the Showcase stays the same.
+    .map(e => e.id === 'showcase-journal-0' ? {...e, template: DAY_PAGE_TEMPLATE, parts: {morning: [{q: 'I am grateful for…', a: 'The sunshine, and a long walk before work. (SHOWCASE DATA)'}, {q: 'What would make today great?', a: 'An hour without meetings. (SHOWCASE DATA)'}]}} : e);
   const versions = [{id: 'v-showcase0001', entryId: 'showcase-journal-2', text: 'Good progress on the Japan fund. (SHOWCASE DATA)', savedAt: `${addLocalDays(day, -2)}T21:00:00.000Z`}];
   // Session AV (F-OWN-TEMPLATES): one template of the Showcase's own, labelled as an example.
   return journalSchema.parse({version: 1, entries: tagged, shareWithAi: false, followUps: true, templates: [{id: 'own-showcase01', title: 'Example · Run diary', headings: ['How the run went:', 'What I noticed on the way:']}],

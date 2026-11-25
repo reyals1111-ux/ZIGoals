@@ -5,8 +5,11 @@ import {JOURNAL, journalSchema, type JournalEntry} from '../../lib/journal/schem
 import {getJournalMedia} from '../../lib/journal/media';
 import {clipLength} from '../../lib/journal/keep-media';
 import {photoScope} from '../../lib/health-aa/photos';
-import {showUndo} from '../ui/undo-toast';
+import {showStatus, showUndo} from '../ui/undo-toast';
 import {entryPhotos, withPhotos, withoutPhoto} from '../../lib/journal/more-photos';
+// Session AW (x3; LEDGER #442, #445): the journal's own voice player, and the photo of the day.
+import VoicePlayer from './voice-player';
+import {setDayPhoto} from '../../lib/journal/day-photo';
 
 /**
  * Session AV lane 2 (journal; LEDGER #35 photos, #42 audio): an entry's photos and its voice note, read from this
@@ -37,15 +40,21 @@ export default function EntryMedia({entry, day}: {entry: JournalEntry; day: stri
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
   const remove = (id: string, kind: 'photo' | 'audio') => {
-    const before = {photos: entryPhotos(entry), audio: entry.audio};
+    const before = {photos: entryPhotos(entry), audio: entry.audio, dayPhoto: entry.dayPhoto};
     const change = (e: JournalEntry): JournalEntry => {
       const next = {...withoutPhoto(e, id), audio: (e.audio ?? []).filter(x => x.id !== id)};
       if (!next.audio.length) delete (next as Partial<JournalEntry>).audio;
+      if (next.dayPhoto === id) delete (next as Partial<JournalEntry>).dayPhoto; // Session AW (x3; LEDGER #445)
       return next;
     };
     try { journal.update(c => journalSchema.parse({...c, entries: c.entries.map(e => e.id === entry.id ? change(e) : e)})); } catch { return; }
     showUndo({message: kind === 'photo' ? `Photo taken off the entry of ${day}.` : `Voice note taken off the entry of ${day}.`, undone: 'It is back with the entry.',
-      restore: () => journal.update(c => journalSchema.parse({...c, entries: c.entries.map(e => e.id === entry.id ? {...withPhotos(e, before.photos), ...(before.audio ? {audio: before.audio} : {})} : e)}))});
+      restore: () => journal.update(c => journalSchema.parse({...c, entries: c.entries.map(e => e.id === entry.id ? {...withPhotos(e, before.photos), ...(before.audio ? {audio: before.audio} : {}), ...(before.dayPhoto ? {dayPhoto: before.dayPhoto} : {})} : e)}))});
+  };
+  // Session AW (x3; LEDGER #445): one photo a day stands for it; marking this one takes the mark off the day's others.
+  const markDay = (id: string, on: boolean) => {
+    try { journal.update(c => setDayPhoto(c, entry.id, on ? id : null)); showStatus(on ? `Photo of the day for ${day}. Journal → Photos and voice notes → A photo a day shows it.` : `Not the photo of the day any more; the day's first photo stands for ${day}.`); }
+    catch { showStatus('This could not be kept on this device.', {tone: 'error'}); }
   };
   const photos = shown.filter(s => s.kind === 'photo'), audio = shown.filter(s => s.kind === 'audio');
   if (!shown.length) return null;
@@ -55,10 +64,14 @@ export default function EntryMedia({entry, day}: {entry: JournalEntry; day: stri
         // eslint-disable-next-line @next/next/no-img-element -- a local blob of the person's own photo: next/image has nothing to optimise
         ? <img src={p.url} alt={`Your photo with the entry of ${day}${photos.length > 1 ? ` (${i + 1} of ${photos.length})` : ''}`} loading="lazy"/>
         : <p className="fine">This photo is not in this browser (it stays on the device where it was added).</p>}
-      <button type="button" className="quiet" aria-label={`Take photo ${i + 1} off the entry of ${day}`} onClick={() => remove(p.id, 'photo')}>Remove</button>
+      <div className="journal-entry-photo-actions">
+        {/* Session AW (x3; LEDGER #445, The Five Minute Journal): this photo stands for its day in "A photo a day". */}
+        <button type="button" className="quiet journal-day-photo-mark" aria-pressed={entry.dayPhoto === p.id} aria-label={`Photo of the day: photo ${i + 1} of the entry of ${day}`} onClick={() => markDay(p.id, entry.dayPhoto !== p.id)}><span aria-hidden="true">{entry.dayPhoto === p.id ? '★' : '☆'}</span> Photo of the day</button>
+        <button type="button" className="quiet" aria-label={`Take photo ${i + 1} off the entry of ${day}`} onClick={() => remove(p.id, 'photo')}>Remove</button>
+      </div>
     </li>)}</ul>}
     {audio.map(a => <div key={a.id} className="journal-entry-audio">
-      {a.url ? <audio controls preload="metadata" src={a.url} aria-label={`Voice note of ${day}, ${clipLength(a.seconds ?? 0)}`}/> : <p className="fine">This voice note is not in this browser (it stays on the device where it was recorded).</p>}
+      {a.url ? <VoicePlayer src={a.url} seconds={a.seconds} label={`Voice note of ${day}, ${clipLength(a.seconds ?? 0)}`}/> : <p className="fine">This voice note is not in this browser (it stays on the device where it was recorded).</p>}
       <span className="fine">Voice note · {clipLength(a.seconds ?? 0)}</span>
       <button type="button" className="quiet" aria-label={`Take the voice note off the entry of ${day}`} onClick={() => remove(a.id, 'audio')}>Remove</button>
     </div>)}

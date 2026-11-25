@@ -57,6 +57,7 @@ import {av2R5PlanAnswer} from './av2-r5-plan';
 import {av2R6BodyAnswer} from './av2-r6-body';
 import {av2R6MoneyAnswer} from './av2-r6-money';
 import {av2R6NotesAnswer} from './av2-r6-notes';
+import {awX3Answer} from './aw-x3';
 import {av2R6PlanAnswer} from './av2-r6-plan';
 import {av2R4HealthAnswer} from './av2-r4-health';
 import {av2R4PlanAnswer} from './av2-r4-plan';
@@ -286,6 +287,9 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   // Session AV lane 2 (fr-answers; FR-S-2, FR-TJ-3): a meal logged in words is never answered as "nothing logged"
   // (fr-meal-words.ts reads this device's `zigoals:meal-words:v1` under Health's gate; without one, the diary's answers stand).
   if (!subject) { const own = mealWordsAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
+  // Session AW (x3; LEDGER #441, #442, #444, #445): this morning's page, a photo a day, saved searches, faster voice notes —
+  // before Money's, so a search saved in Notes is never read as a money search (Money keeps "my saved searches").
+  if (!subject) { const own = awX3Answer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, batch 2 (Money; Food, reading its device records; Body after AV's, as its builder asked).
   if (!subject) { const food = (() => { try { return typeof window === 'undefined' ? {} : readFoodSources(getAppStorage()); } catch { return {}; } })(); const own = av2R6MoneyAnswer(question, env) ?? av2R5MoneyAnswer(question, env) ?? av2R4MoneyAnswer(question, env) ?? av2R3MoneyAnswer(question, env) ?? av2MoneyR2Answer(question, env) ?? av2MoneyAnswer(question, env) ?? av2FoodAnswer(question, env, food); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2 (Journal and notes; task attachments, ZIGi's hello, chess): their own answers, before AV's.
