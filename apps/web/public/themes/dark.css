@@ -10509,6 +10509,15 @@
     .food-plus-extra-meals:not(#\-) {
         border-top-color: var(--line, #6a9cc342)
     }
+    .food-plus-cook-method button[aria-current="step"]:not(#\-) {
+        outline-color: var(--pillar-health, #ff74be)
+    }
+    .food-plus-use-soon:not(#\-) {
+        border-color: var(--line, #6a9cc342)
+    }
+    .food-plus-file-list li:not(#\-) {
+        border-bottom-color: var(--line, #6a9cc342)
+    }
 }
 /*  components/health/health-aa.css  */
 @scope (:root[data-theme=dark]) {

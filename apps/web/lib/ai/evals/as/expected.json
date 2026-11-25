@@ -9248,5 +9248,29 @@
   "widgets": [],
   "fresh": "None of your goals starts again each week yet, so there are no periods to count. On a count goal of your own unit (books, pages) or a project, its page → Starts again chooses each week, month or year; each period’s result is then kept as a row.",
   "freshNl": "Nog geen van je doelen begint opnieuw elke week, dus er zijn geen periodes om te tellen. Op een telling in je eigen eenheid (boeken, pagina’s) of een project kies je op de pagina van het doel → Starts again: elke week, maand of jaar; het resultaat van elke periode blijft dan als rij bewaard."
+ },
+ "awx5-use-soon": {
+  "en": "From what is at home, use these first (within three days, then past their day):\n• Showcase yoghurt: use by tomorrow\n• Showcase spinach: past its use-by day, yesterday\nFrom the use-by days you set in Health → Planner → Grocery list; the food itself is yours to check too.",
+  "nl": "Van wat je in huis hebt, maak deze eerst op (binnen drie dagen, dan over de datum):\n• Showcase yoghurt: uiterlijk morgen\n• Showcase spinach: over de datum, sinds gisteren\nUit de uiterste datums die je zette in Health → Planner → Grocery list; kijk zelf ook naar het eten.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is marked as at home yet (“I have this” on the grocery list). Set a use-by day in Health → Planner → Grocery list → Already at home.",
+  "freshNl": "Er staat nog niets als “in huis” (“I have this” op de boodschappenlijst). Zet een uiterste datum in Health → Planner → Grocery list → Already at home."
+ },
+ "awx5-last-made": {
+  "en": "You last made Showcase pea soup on Thu, Nov 12: 2 times in all, from your food diary and “Made it” in the cooking view. Your stars: 4 of 5.",
+  "nl": "Je maakte Showcase pea soup voor het laatst op do 12 nov: 2 keer in totaal, uit je eetdagboek en “Made it” in de kookweergave. Jouw sterren: 4 van de 5.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No recipe called “pea soup” is in your recipes, so I can’t say when you made it. Save it in Health → Foods & recipes; then the days you log it or tap “Made it” while cooking are counted.",
+  "freshNl": "Er staat geen recept “voor het laatst pea soup” in je recepten, dus ik weet niet wanneer je het maakte. Bewaar het in Health → Foods & recipes; dan tellen de dagen dat je het logt of tijdens het koken op “Made it” tikt."
+ },
+ "awx5-menu-next-week": {
+  "en": "Nothing is planned for next week yet (Mon, Nov 23 – Sun, Nov 29). Menus you kept: Soup week (Showcase) (5 meals on 5 days). Place one on a week in Health → Planner → Menus.",
+  "nl": "Er is nog niets gepland voor volgende week (ma 23 nov – zo 29 nov). Menu’s die je bewaarde: Soup week (Showcase) (5 maaltijden op 5 dagen). Zet er een op een week in Health → Planner → Menus.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing is planned for next week yet (Mon, Nov 23 – Sun, Nov 29). No menu is kept yet: plan a week you like, then keep it by name in Health → Planner → Menus.",
+  "freshNl": "Er is nog niets gepland voor volgende week (ma 23 nov – zo 29 nov). Er is nog geen menu bewaard: plan een week die je bevalt en bewaar die met een naam in Health → Planner → Menus."
  }
 }

@@ -111,6 +111,7 @@ import {HEALTH_NUMBERS_KEY} from './health-numbers/store';
 import {showcaseHealthNumbers} from './health-numbers/showcase';
 import {withR3HealthShowcase} from './r3-health-showcase';
 import {withR4HealthShowcase} from './r4-health-showcase';
+import {withAwX5Showcase} from './food-plus/aw-x5-showcase';
 import {SCALES_KEY} from './scales/store';
 import {showcaseScales} from './scales/showcase';
 import {CYCLE_KEY} from './cycle/store';
@@ -290,6 +291,7 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  withAwKcalShowcase(records); // Session AW (kcal): today's Showcase walk with its distance, an easy effort and 180 kcal you entered.
  // Session AW (programmes): one written programme in progress, labelled "(Showcase)" on Guided journeys (lib/guided/showcase.ts).
  records[SHOWCASE_GUIDED_KEY]=JSON.stringify(showcaseGuidedJourneys(day));
+ if(options.aa!==false)withAwX5Showcase(records,day); // Session AW (X5, Paprika): the pea soup's method, made twice with stars, a kept menu, three things at home with use-by days, labelled.
  records[MUSCLE_RECOVERY_KEY]=JSON.stringify(showcaseMuscleRecovery());
  // Session AJ (item 15, D9): a waiting price alert and one that fired and was seen (lib/price-alerts/showcase.ts).
  records[PRICE_ALERTS_KEY]=JSON.stringify(showcasePriceAlerts(day));

@@ -1547,6 +1547,20 @@
 :where(:root[data-text=large]) .food-plus-mark:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .food-plus-extra-meals h3:not(#\-) { font-size: calc(17px * 1.125); }
 :where(:root[data-text=large]) .food-plus-extra-meals .fine:not(#\-), :where(:root[data-text=large]) .food-plus-extra-meals .notice:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .food-plus-cook-side h4:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .food-plus-cook-ingredients li:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .food-plus-cook-method button:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .food-plus-cook-gather summary:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .food-plus-cook-timers li:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .food-plus-stars select:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .food-plus-stars-shown:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .food-plus-made-line:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .food-plus-recipe-sort select:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .food-plus-menus .fine:not(#\-), :where(:root[data-text=large]) .food-plus-pantry .fine:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .food-plus-pantry input[type="date"]:not(#\-), :where(:root[data-text=large]) .food-plus-menus input[type="text"]:not(#\-), :where(:root[data-text=large]) .food-plus-pantry input[type="text"]:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .food-plus-use-soon h3:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .food-plus-use-soon li:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .food-plus-file-list li:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/health/health-aa.css  */
 :where(:root[data-text=large]) .health-aa-card h2:not(#\-), :where(:root[data-text=large]) .health-aa-card h3:not(#\-) { font-size: calc(22px * 1.125); }
 :where(:root[data-text=large]) .health-estimate-tag:not(#\-) { font-size: calc(14px * 1.125); }

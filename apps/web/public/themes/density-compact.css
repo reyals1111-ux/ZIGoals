@@ -3042,6 +3042,22 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .food-plus-extra-meals h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .food-plus-extra-meals .fine:not(#\-), :where(:root[data-density=compact]) .food-plus-extra-meals .notice:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .food-plus-extra-row .actions:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .food-plus-cook-layout:not(#\-) { row-gap: 16px; }
+:where(:root[data-density=compact]) .food-plus-cook-main:not(#\-), :where(:root[data-density=compact]) .food-plus-cook-side:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .food-plus-cook-side h4:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .food-plus-cook-ingredients:not(#\-), :where(:root[data-density=compact]) .food-plus-cook-method:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .food-plus-cook-method button:not(#\-) { padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .food-plus-recipe-tools:not(#\-) { margin-top: 4px; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .food-plus-stars:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .food-plus-made-line:not(#\-) { margin-top: 2px; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .food-plus-recipe-sort:not(#\-) { margin-top: 0; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .food-plus-menus:not(#\-), :where(:root[data-density=compact]) .food-plus-pantry:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .food-plus-menus .fine:not(#\-), :where(:root[data-density=compact]) .food-plus-pantry .fine:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .food-plus-use-soon:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 12px; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .food-plus-use-soon h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .food-plus-use-soon ul:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 3px; }
+:where(:root[data-density=compact]) .food-plus-file-list:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .food-plus-file-list li:not(#\-) { row-gap: 4.5px; padding-top: 6px; padding-bottom: 6px; }
 /*  components/health/health-aa.css  */
 :where(:root[data-density=compact]) .health-aa-highlights:not(#\-) { row-gap: 18px; margin-top: 18px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .health-aa-card:not(#\-) { row-gap: 7.5px; padding-top: 16.5px; padding-bottom: 16.5px; }

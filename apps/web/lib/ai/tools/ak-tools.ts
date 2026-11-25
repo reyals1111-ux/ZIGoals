@@ -34,7 +34,9 @@ export type AkToolSources = {autoRules?: AutoRules | null; bills?: BillsRecord |
   /** Session AW (programmes): the Guided journeys record (lib/guided/schema.ts), for "which programme am I on" (aw-programmes.ts). */
   guidedJourneys?: unknown;
   /** Session AW (X1): the named timers record (lib/timers/store.ts). */
-  timers?: unknown} & F9ToolSources;
+  timers?: unknown;
+  /** Session AW (X5): the food-plus and grocery records. */
+  foodPlus?: unknown; grocery?: unknown} & F9ToolSources;
 const where = (env: ToolEnv, journal: string, subject: string | null = null) => provenance(env, journal, subject, null, null);
 
 export const autoRulesTool: ToolDefinition<Record<string, never>> = {

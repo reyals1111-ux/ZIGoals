@@ -74,6 +74,7 @@ export const SAYS: Readonly<Record<string, readonly string[]>> = {
   'awx3-voice-faster': ['2×', '15'], 'awx3-day-pages': ['Morning and evening'],
   'awx1-timers': ['Tasks → More views → Timers'], 'awx1-timer-end': ['Tasks → More views → Timers'], 'awx1-again': ['Remind again', '30'], 'awx1-snooze': ['15 min', 'Tomorrow (09:00)'],
   'awx4-year': ['2026', '202', '217', 'Walk'], 'awx4-repeat-reached': ['Starts again'],
+  'awx5-use-soon': ['Showcase yoghurt', 'Showcase spinach'], 'awx5-last-made': ['Showcase pea soup', '2', '4'], 'awx5-menu-next-week': ['Soup week (Showcase)', '5'],
 };
 
 // Session AV lane 2 (Dutch dates, deliberate): a Dutch answer now writes its dates the Dutch way (exact/period.ts nlDay,

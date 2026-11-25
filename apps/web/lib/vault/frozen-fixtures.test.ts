@@ -297,7 +297,7 @@ export function frozenFixture() {
   checks.push({key: FOOD_SCANS_KEY, module: './food-scans/schema', spec: 'FOOD_SCANS', expect: {'scans.0.count': 2}});
   records[NUTRIENT_EXTRAS_KEY] = JSON.stringify({version: 1, foods: {'health_fixture-muesli': {magnesiumMg: 90000, zincMg: 2500}}});
   checks.push({key: NUTRIENT_EXTRAS_KEY, module: './health-vitamins/extras', spec: 'NUTRIENT_EXTRAS_RECORD', expect: {'foods.health_fixture-muesli.zincMg': 2500}});
-  records[GROCERY_KEY] = JSON.stringify({version: 1, ticks: {'2026-10-26|oats|g': {on: true, at: '2026-10-27T10:00:00.000Z'}}, pantry: {Salt: '2026-10-27T10:00:00.000Z'}, showFrequent: true});
+  records[GROCERY_KEY] = JSON.stringify({version: 1, ticks: {'2026-10-26|oats|g': {on: true, at: '2026-10-27T10:00:00.000Z'}}, pantry: {Salt: '2026-10-27T10:00:00.000Z'}, showFrequent: true, /* Session AW (#452): a use-by day, an unknown field to older builds */ useBy: {Salt: '2027-10-27'}});
   checks.push({key: GROCERY_KEY, module: './grocery/schema', spec: 'GROCERY_RECORD', expect: {showFrequent: true}});
   records[CALORIE_WEEK_KEY] = JSON.stringify({version: 1, shifts: [-100, -100, -100, -100, 0, 200, 200], rollover: {on: true, maxKcal: 300}});
   checks.push({key: CALORIE_WEEK_KEY, module: './health-aa/calorie-week', spec: 'CALORIE_WEEK', expect: {'rollover.maxKcal': 300}});

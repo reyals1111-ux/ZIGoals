@@ -1,3 +1,5 @@
+import {FOOD_PLUS} from '../../food-plus/schema';
+import {GROCERY_RECORD} from '../../grocery/schema';
 import {TIMERS} from '../../timers/store';
 import {BRING_UP} from '../../clinician-report/bring-up';
 import {ACTIVITY_EXTRAS} from '../../aw-kcal/activity-extras';
@@ -60,5 +62,7 @@ export function readAkToolSources(storage: Read): AkToolSources {
     // Session AW (programmes): which journey or programme is going, and today's day (aw-programmes.ts; device only, never sent).
     guidedJourneys: one(GUIDED_JOURNEYS),
     // Session AW (X1, #440): the named timers (aw-x1-due.ts), as this device keeps them.
-    timers: one(TIMERS)};
+    timers: one(TIMERS),
+    // Session AW (X5): the kitchen's records for 'use soon', 'last made' and 'my menu' (aw-x5-paprika.ts; Health gate there).
+    foodPlus: one(FOOD_PLUS), grocery: one(GROCERY_RECORD)};
 }
