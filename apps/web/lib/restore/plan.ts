@@ -58,6 +58,7 @@ import {BUDGET_PERIODS} from '../budgets/periods';
 import {CHESS_COMPUTER} from '../chess/computer-record';
 import {EVENING_PLAN} from '../evening-plan/schema';
 import {BODY_EXTRAS} from '../body-extras/schema';
+import {ACTIVITY_EXTRAS} from '../aw-kcal/activity-extras';
 import {WORKOUT_PLACES} from '../workouts/places-schema';
 import {PLANNED_WORKOUTS} from '../workouts/planned';
 import {RACES} from '../workouts/races';
@@ -288,6 +289,8 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   // Session AV lane 2, batch 2 (Health records restore with Health and its consent, as the other Health device records).
   dev('eveningPlan', 'Sleep: the evening plan', 'Health', EVENING_PLAN, true),
   dev('bodyExtras', 'Height and weight milestones', 'Health', BODY_EXTRAS, true),
+  // Session AW (1a, TIER 3 stored formats): what a person typed beside an activity; restored with Health.
+  dev('activityExtras', 'Activity distance, effort and calories you entered', 'Health', ACTIVITY_EXTRAS, true),
   dev('workoutPlaces', 'Workouts: places and equipment', 'Health', WORKOUT_PLACES, true),
   dev('healthGoalsMore', 'Health goals on any number', 'Health', MORE_GOALS, true),
   dev('workoutCircuits', 'Workouts: timed circuits', 'Health', CIRCUITS, true),
