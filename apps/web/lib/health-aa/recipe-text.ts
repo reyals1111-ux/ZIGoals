@@ -65,3 +65,13 @@ export function fromSchemaRecipe(r: {name: string; ingredients: string[]; servin
   const stepLines = (r.instructions ?? []).filter(s => typeof s === 'string' && s.trim()).slice(0, 60).map(s => s.slice(0, 600));
   return {title: r.name.slice(0, 100), servings: r.servings, ingredients: r.ingredients.map(parseIngredientLine).filter((x): x is ParsedIngredient => !!x).slice(0, 100), steps: stepLines.length, ...(stepLines.length ? {stepLines} : {})};
 }
+/**
+ * Session AW (X5, LEDGER #453): a recipe already in parts (a recipe file's name, servings, ingredient lines and method
+ * lines, as Paprika keeps them) into the same confirmable list. A line ending in a colon ("For the sauce:") is a heading,
+ * never an ingredient; a method line's own number ("1.") is taken off.
+ */
+export function fromRecipeParts(r: {title: string; servings: number | null; ingredientLines: readonly string[]; methodLines: readonly string[]}): ParsedRecipe {
+  const ingredients = r.ingredientLines.map(l => l.trim()).filter(l => l && !/:\s*$/.test(l) && !HEADING.test(l)).map(parseIngredientLine).filter((x): x is ParsedIngredient => !!x).slice(0, 100);
+  const stepLines = r.methodLines.map(l => l.replace(/^\s*(?:(?:step\s*)?\d{1,2}[.):]|[-•*·])\s*/i, '').replace(/\s+/g, ' ').trim()).filter(l => l && !HEADING.test(l)).slice(0, 60).map(s => s.slice(0, 600));
+  return {title: r.title.trim().slice(0, 100) || 'Imported recipe', servings: r.servings !== null && r.servings > 0 && r.servings <= 100 ? r.servings : null, ingredients, steps: stepLines.length, ...(stepLines.length ? {stepLines} : {})};
+}
