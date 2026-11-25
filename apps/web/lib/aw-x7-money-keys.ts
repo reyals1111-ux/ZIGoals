@@ -9,8 +9,9 @@
  *   versioned. Device only and never synced. Deliberately NOT in Export everything and never restored from a backup:
  *   the person removed these entries, and an export or a restore must not bring back what they took out (ledger #461:
  *   "left out of every figure, the search and Export everything, and erased with the money"). Erased by Erase
- *   everything (prefix), by the account erase and with the money (Wealth) area's erase. In the data catalogue, so the
- *   person can see it is kept.
+ *   everything (prefix) and by the account erase. "Erase one area" replaces the area's records through a restore, and
+ *   this record is never restored, so that erase leaves it (its entries can still be put back or emptied; integrator,
+ *   Session AW). In the data catalogue, so the person can see it is kept.
  * Round 7's other stored change is an optional field on a record that is registered already: a bill's `ends`
  * (`zigoals:bills:v1`, LEDGER #462). #463 (copy an entry) and #464 (a card's next payment) store nothing new.
  */
@@ -29,5 +30,5 @@ export const AW_X7_CATALOG_LABELS = {
 } as const;
 /** The restore plan (`NEVER_RESTORED`): never restored from a backup. */
 export const AW_X7_NEVER_RESTORED: readonly string[] = [MONEY_REMOVED_KEY_LITERAL];
-/** The account erase (`lib/aa-device-forget.ts`) and the money area's erase (`lib/erase-areas.ts`, Wealth): every key above. */
+/** The account erase (`lib/aa-device-forget.ts`, through AW_PERSONAL_KEYS): every key above. */
 export const AW_X7_ERASE_KEYS: readonly string[] = [...AW_X7_PERSONAL_KEYS];

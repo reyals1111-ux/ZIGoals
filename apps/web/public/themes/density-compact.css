@@ -8477,6 +8477,10 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .autopilot-row:not(#\-) { row-gap: 6px; padding-top: 9px; padding-bottom: 9px; }
 :where(:root[data-density=compact]) .autopilot-row p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .last-synced:not(#\-) { row-gap: 4px; margin-top: 4px; margin-bottom: 4px; }
+/*  components/wealth/bills/aw-x7-bills.css  */
+:where(:root[data-density=compact]) .bills-ends:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 8px; }
+:where(:root[data-density=compact]) .bills-ends > legend:not(#\-) { padding-top: 0; padding-bottom: 0; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .bills-ends > p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/wealth/bills/bills.css  */
 :where(:root[data-density=compact]) .bills-body:not(#\-) { row-gap: 16px; }
 :where(:root[data-density=compact]) .bills-head:not(#\-) { row-gap: 12px; }
@@ -8706,6 +8710,15 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 /*  components/wealth/plausible-check.css  */
 :where(:root[data-density=compact]) .plausible-check:not(#\-) { row-gap: 8px; margin-top: 6px; margin-bottom: 0; padding-top: 10px; padding-bottom: 10px; }
 :where(:root[data-density=compact]) .plausible-check p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+/*  components/wealth/spending/aw-x7.css  */
+:where(:root[data-density=compact]) .money-removed:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .money-removed-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .money-removed-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .money-removed-list li:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .money-removed-what:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .money-removed-actions:not(#\-), :where(:root[data-density=compact]) .money-removed-confirm:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 8px; }
+:where(:root[data-density=compact]) .money-copy-form:not(#\-) { row-gap: 8px; padding-top: 4px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .money-copy-form > p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/wealth/spending/insights/insights.css  */
 :where(:root[data-density=compact]) .money-insights:not(#\-) { row-gap: 10px; }
 :where(:root[data-density=compact]) .money-insights h3:not(#\-) { margin-top: 0; margin-bottom: 0; }

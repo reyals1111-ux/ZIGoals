@@ -17,4 +17,19 @@ describe('round 7 X7 money device key', () => {
     expect(Object.keys(AW_X7_NOT_RECORDS)).toEqual([MONEY_REMOVED_KEY]);
     expect(AW_X7_CATALOG_LABELS.moneyRemoved[1]).toBe('Goals and Wealth');
   });
+  test('wired by the integrator: the welcome check, the account erase and the catalogue, never Export everything', async () => {
+    const {DEVICE_RECORD_KEYS} = await import('./onboarding');
+    const {forgetAaDeviceRecords} = await import('./aa-device-forget');
+    const {DEVICE_ONLY, KEPT_NOT_EXPORTED} = await import('./data-health/catalog');
+    const {EVERYTHING_KEYS} = await import('./export/everything');
+    const {NEVER_RESTORED} = await import('./restore/plan');
+    expect(DEVICE_RECORD_KEYS).toContain(MONEY_REMOVED_KEY);
+    const removed: string[] = [];
+    forgetAaDeviceRecords({removeItem: (key: string) => { removed.push(key); }});
+    expect(removed).toContain(MONEY_REMOVED_KEY);
+    expect(DEVICE_ONLY.find(e => e.key === MONEY_REMOVED_KEY)).toEqual({key: MONEY_REMOVED_KEY, label: AW_X7_CATALOG_LABELS.moneyRemoved[0], home: 'device', area: 'Goals and Wealth'});
+    expect(KEPT_NOT_EXPORTED).toContain(MONEY_REMOVED_KEY);
+    expect(EVERYTHING_KEYS).not.toContain(MONEY_REMOVED_KEY);
+    expect(NEVER_RESTORED).toContain('money entries you removed (Removed recently)');
+  });
 });

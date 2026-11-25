@@ -7842,8 +7842,8 @@
   "freshNl": "De prognose heeft een betaal- of spaarrekening met saldo nodig (What you have → Accounts). Dan rekent Vermogen → Uitgaven → Money tools → de kasprognose 60 dagen, 6 of 12 maanden vooruit."
  },
  "av2r3-money-credit-card": {
-  "en": "Credit card: no limit kept yet (its Sheet keeps one). From the numbers you typed.",
-  "nl": "Credit card: nog geen limiet bewaard (het Sheet bewaart er een). Uit de getallen die je invulde.",
+  "en": "Credit card: no limit kept yet (its Sheet keeps one); statement Sat, Dec 5; due Wed, Nov 25. From the numbers you typed.",
+  "nl": "Credit card: nog geen limiet bewaard (het Sheet bewaart er een); afschrift za 5 dec; te betalen wo 25 nov. Uit de getallen die je invulde.",
   "facts": null,
   "widgets": [],
   "fresh": "You have no credit card in What you owe. Add one as a credit card account, then its Sheet keeps its limit, statement day and due day.",
@@ -9296,5 +9296,29 @@
   "widgets": [],
   "fresh": "You have no sleep goal yet: set one in Health → Sleep → Your sleep goal, and I answer from it and your logged nights over the last 14 days.",
   "freshNl": "Je hebt nog geen slaapdoel: stel er een in bij Health → Sleep → Your sleep goal, dan antwoord ik uit dat doel en je gelogde nachten van de afgelopen 14 dagen."
+ },
+ "awx7-money-removed": {
+  "en": "2 entries removed in the last 30 days: Phone case €19.90 (Sat, Nov 14) and Bakery (logged twice) €6.40 (Sat, Nov 7). Put any of them back in Wealth → Spending → Removed recently; each is kept 30 days and counts in no figure meanwhile.",
+  "nl": "2 boekingen verwijderd in de laatste 30 dagen: Phone case € 19,90 (za 14 nov) en Bakery (logged twice) € 6,40 (za 7 nov). Zet ze terug via Vermogen → Uitgaven → Removed recently; elke boeking blijft 30 dagen en telt intussen nergens mee.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing removed in the last 30 days. An entry you remove in Wealth → Spending stays in Wealth → Spending → Removed recently for 30 days, so you can put it back.",
+  "freshNl": "Niets verwijderd in de laatste 30 dagen. Een boeking die je verwijdert in Vermogen → Uitgaven blijft 30 dagen in Vermogen → Uitgaven → Removed recently, zodat je hem kunt terugzetten."
+ },
+ "awx7-money-bill-ends": {
+  "en": "Bills with an end: Music: 3 of 24 payments left, the last on Sun, Feb 14, 2027 (€9.99 each).",
+  "nl": "Rekeningen met een einde: Music: nog 3 van 24 betalingen, de laatste op zo 14 feb 2027 (€ 9,99 per keer).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No bills are kept yet. Set when a bill ends in Wealth → Upcoming bills → Bill tracker → Edit: after a number of payments or on a date; after its last payment it leaves Upcoming, the calendar and the reminders.",
+  "freshNl": "Er zijn nog geen rekeningen. Stel in wanneer een rekening stopt via Vermogen → Komende rekeningen → Bill tracker → Edit: na een aantal betalingen of op een datum; na de laatste betaling verdwijnt hij uit Upcoming, de kalender en de herinneringen."
+ },
+ "awx7-money-card-payment": {
+  "en": "Credit card: not known yet — no entry in your money log is on this card (entries from its bank file, or marked “Paid with: credit card” while it is your only card in USD, count). Worked out from your own entries on the card, less the payments you recorded; a fact, not advice.",
+  "nl": "Credit card: nog niet bekend — geen boeking in je geldlog staat op deze kaart (boekingen uit het bankbestand, of met “Paid with: credit card” zolang het je enige kaart in USD is, tellen mee). Berekend uit je eigen boekingen op de kaart, min de betalingen die je noteerde; een feit, geen advies.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No credit card is kept in Wealth → Accounts yet. Add one with its statement and due days to see its next payment worked out from your own entries.",
+  "freshNl": "Er staat nog geen creditcard in Vermogen → Rekeningen. Voeg er een toe met de afschrift- en betaaldag om de volgende betaling te zien, berekend uit je eigen boekingen."
  }
 }

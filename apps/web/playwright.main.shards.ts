@@ -170,6 +170,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'persona-z.spec.ts', 'phone-form-sheets.spec.ts', 'private-read-delay.spec.ts', 'revb1-delete-versions.spec.ts',
     'revb1-note-reminders.spec.ts', 'run11-goal-history.spec.ts', 'run11-large-goal-collection.spec.ts',
     'run9-1.spec.ts', 'wiring-habits.spec.ts', 'zigi-checklist-af.spec.ts', 'zigi-day-in-the-life.spec.ts',
+    'aw-x7-money.spec.ts', // Session AW: new spec, counted 1 worker-min until measured
   ],
   // Shard 8, 61.9 worker-min.
   [
@@ -432,7 +433,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
 ];
 
 /** Measured worker-minutes per list (the comments above); a new spec goes to the smallest. */
-export const MAIN_SHARD_MINUTES: readonly number[] = [63.0, 63.0, 63.0, 62.9, 63.0, 63.0, 62.0, 62.9, 62.0, 62.0, 62.0, 62.0, 62.0, 62.9, 62.9, 62.9, 62.9, 62.0, 62.0, 62.0];
+export const MAIN_SHARD_MINUTES: readonly number[] = [63.0, 63.0, 63.0, 62.9, 63.0, 63.0, 63.0, 62.9, 62.0, 62.0, 62.0, 62.0, 62.0, 62.9, 62.9, 62.9, 62.9, 62.0, 62.0, 62.0];
 
 /** Every spec under `testsDir` that the main suite selects (all but the accessibility sweep), relative, sorted. */
 export function mainSpecFiles(testsDir: string): string[] {
