@@ -43,6 +43,10 @@ export function refuse(tool: string, label: string, reason: ToolRefusal['reason'
 // Session AL second pass (Moscow MO-052, P-MO-12): both switches named where they are, and the Today condition in plain words.
 // Session AL final pass (N-LA-08): ZIGi says that NOVA → Permissions (the place NOVA's own answer names, R2-2) shows these
 // very two switches, so the two answers read as one setting, never as two different places for the same data.
-export const HEALTH_CLOSED = 'Health isn’t shared with ZIGi — turn it on in Settings → ZIGi · your companion → Privacy & data: “Health page data” and “Include Health” (Health has to be one of Today’s sections). They are the same two switches NOVA → Permissions shows.';
+// Session AW (p5-answers, FR-S-16; TIER 3, AI tools): one sentence and one action, as NOVA's own reply (FR-TJ-1): Allow
+// Health in NOVA → Permissions opens Health to ZIGi and NOVA in one tap (it turns on NOVA's Health choice, "Health page data"
+// and "Include Health" together; components/nova/panels/permissions-panel.tsx), never the switches to find one by one.
+// Each stays a switch to close it again. The words still open "Health isn’t shared with ZIGi" (nova-env.ts HEALTH_REFUSAL).
+export const HEALTH_CLOSED = 'Health isn’t shared with ZIGi here, so nothing from Health is read. Tap Allow Health in NOVA → Permissions: one tap opens Health to ZIGi and NOVA (the button is there once Health is on your Today page).';
 /** Session AU (D-ALLOW-HEALTH): the same sentence for a Dutch question on the device (ZIGi's own reply; tools and models keep the English one). */
-export const HEALTH_CLOSED_NL = 'Health wordt niet met ZIGi gedeeld — zet het aan in Settings → ZIGi · your companion → Privacy & data: “Health page data” en “Include Health” (Health moet een van de onderdelen van Today zijn). Het zijn dezelfde twee schakelaars die NOVA → Permissions toont.';
+export const HEALTH_CLOSED_NL = 'Health wordt hier niet met ZIGi gedeeld, dus er wordt niets uit Health gelezen. Tik op Allow Health in NOVA → Permissions: één tik opent Health voor ZIGi en NOVA (de knop staat er zodra Health op je Today-pagina staat).';

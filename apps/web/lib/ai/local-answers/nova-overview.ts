@@ -14,6 +14,7 @@ import type {LocalReply, ToolCallRecord} from './engine';
 import {f9LocalAnswer} from './f9';
 import {novaLocalAnswer} from './nova';
 import {novaAreaClosed, novaHealthClosed, type NovaEnvInfo} from './nova-env';
+import {averageFiguresNl, averageGoalOf, nlCountUnit} from './aw-p5-goal-line';
 import {dayText, goalMoney, localQty, nlDayText, nlUnits, plural} from './words';
 
 /**
@@ -88,8 +89,11 @@ function goalsAnswer(env: ToolEnv, lang: Lang): LocalReply {
   // DV-078: up to twelve in the answer; any more are named as a count with where to see them all (a chat cannot unfold).
   const shown = active.slice(0, 12), year = env.habitDay.slice(0, 4);
   const line = (g: Data) => {
-    const figures = g.now && g.target && g.now !== 'unknown' && g.target !== 'unknown' ? say(lang, ` — ${money(g.now)} of ${money(g.target)}`, ` — ${money(g.now)} van ${money(g.target)}`) : '';
-    const left = g.remaining && !/^0(?:\.0+)? /.test(String(g.remaining)) && g.remaining !== 'unknown' ? say(lang, `, ${money(g.remaining)} to go`, `, nog ${money(g.remaining)} te gaan`) : '';
+    // Session AW (p5-answers, FR-S-13): a Dutch answer says a goal's figures in Dutch ("gemiddeld 6 h 56 min per nacht van
+    // minstens 8 uur per nacht", "2 van 4 mijlpalen"), never the tool's English words inside a Dutch sentence.
+    const average = lang === 'nl' ? averageGoalOf(env, g) : null;
+    const figures = average ? ` — ${averageFiguresNl(average, env)}` : g.now && g.target && g.now !== 'unknown' && g.target !== 'unknown' ? say(lang, ` — ${money(g.now)} of ${money(g.target)}`, ` — ${nlCountUnit(money(g.now))} van ${nlCountUnit(money(g.target))}`) : '';
+    const left = g.remaining && !/^0(?:\.0+)? /.test(String(g.remaining)) && g.remaining !== 'unknown' ? say(lang, `, ${money(g.remaining)} to go`, `, nog ${nlCountUnit(money(g.remaining))} te gaan`) : '';
     const next = /^\d{4}-\d{2}-\d{2}$/.test(String(g.nextPlannedDate ?? '')) ? say(lang, `; next planned ${dayText(g.nextPlannedDate, year)}`, `; volgende geplande stap ${nlDayText(g.nextPlannedDate, year)}`) : '';
     return `• ${clean(String(g.name), 60)}: ${g.progress && g.progress !== 'unknown' ? g.progress : say(lang, 'progress unknown', 'voortgang onbekend')}${figures}${left}${next}`;
   };
@@ -133,7 +137,7 @@ function dueTodayAnswer(env: ToolEnv, lang: Lang, todayOpen: boolean): LocalRepl
       // today's tasks, said to be late; "from earlier" is for days before today.
       const dueNow = rows.filter(r => r.state === 'today' || (r.state === 'overdue' && r.due === today)), late = rows.filter(r => r.state === 'overdue' && r.due !== today);
       const tags = (r: Data) => [...(r.priority === 'high' ? [say(lang, 'high', 'hoog')] : []), ...(r.state === 'overdue' ? [say(lang, 'late', 'te laat')] : [])];
-      const name = (r: Data) => `${clean(String(r.task), 80)}${r.time ? say(lang, ` at ${formatClock(r.time)}`, ` om ${formatClock(r.time)}`) : ''}${tags(r).length ? ` (${tags(r).join(', ')})` : ''}`;
+      const name = (r: Data) => `${clean(String(r.task), 80)}${r.time ? say(lang, ` at ${formatClock(r.time)}`, ` om ${r.time}`) /* Session AW (p5-answers, S-10): 24 hours in Dutch */ : ''}${tags(r).length ? ` (${tags(r).join(', ')})` : ''}`;
       if (dueNow.length) { anything = true; lines.push(say(lang, `Tasks due today: ${dueNow.map(name).join(', ')}`, `Taken voor vandaag: ${dueNow.map(name).join(', ')}`)); }
       if (late.length) { anything = true; lines.push(say(lang, `Still open from earlier: ${late.map(r => `${clean(String(r.task), 80)} (since ${dayText(String(r.due), today.slice(0, 4))})`).join(', ')}`, `Nog open van eerder: ${late.map(r => `${clean(String(r.task), 80)} (sinds ${nlDayText(String(r.due), today.slice(0, 4))})`).join(', ')}`)); }
       for (const r of [...dueNow, ...late]) said.add(taskKey(r.task));
@@ -145,7 +149,7 @@ function dueTodayAnswer(env: ToolEnv, lang: Lang, todayOpen: boolean): LocalRepl
   if (a.result.ok && todayOpen) {
     calls.push(a.record);
     const items = ((dataOf(a.result).items ?? []) as Data[]).filter(i => i.kind !== 'habit' && i.state !== 'done' && i.state !== 'skipped' && !(String(i.kind).startsWith('task') && said.has(taskKey(i.what))));
-    if (items.length) { anything = true; lines.push(say(lang, `Also planned today: ${items.slice(0, 12).map(i => `${i.time ? `${formatClock(i.time)} ` : ''}${clean(String(i.what), 80)} (${i.kind})`).join(', ')}`, `Ook gepland vandaag: ${items.slice(0, 12).map(i => `${i.time ? `${formatClock(i.time)} ` : ''}${clean(String(i.what), 80)} (${AGENDA_KIND_NL[i.kind] ?? i.kind})`).join(', ')}`)); }
+    if (items.length) { anything = true; lines.push(say(lang, `Also planned today: ${items.slice(0, 12).map(i => `${i.time ? `${formatClock(i.time)} ` : ''}${clean(String(i.what), 80)} (${i.kind})`).join(', ')}`, `Ook gepland vandaag: ${items.slice(0, 12).map(i => `${i.time ? `${i.time} ` : ''}${clean(String(i.what), 80)} (${AGENDA_KIND_NL[i.kind] ?? i.kind})`).join(', ')}`)); }
   }
   const head = say(lang, `Today (${dayText(today)}), from your own records:`, `Vandaag (${nlDayText(today)}), uit je eigen gegevens:`);
   // Session AL fourth pass (L7-4b; Denver N-025): a habit's own target is shown ("0 of 2 liters"), so the line names what stays out: money.
@@ -165,7 +169,9 @@ function sleepAnswer(env: ToolEnv, info: NovaEnvInfo, lang: Lang, lastNight: boo
   if (!r.result.ok) return {kind: 'refusal', text: r.result.refusal, calls: [r.record]};
   const d = dataOf(r.result), week = d.last7Days as Data | string | undefined;
   if (!week || typeof week === 'string' || !week.nightsLogged) return {kind: 'answer', text: say(lang, 'No night is logged in the last 7 days, so your sleep there is unknown (not zero).', 'Er is de afgelopen 7 dagen geen nacht gelogd, dus je slaap is daar onbekend (niet nul).'), calls: [r.record]};
-  const goal = d.yourGoal && d.yourGoal !== 'none set' ? say(lang, `\nYour goal: ${d.yourGoal}.`, `\nJe doel: ${d.yourGoal}.`) : '';
+  // Session AW (p5-answers, S-10): the goal's words in Dutch too ("8 h 00 min per nacht, bedtijd tussen 22:30 en 23:30").
+  const goalNl = String(d.yourGoal ?? '').replace(/ a night\b/, ' per nacht').replace(/, bedtime between (\S+) and (\S+)$/, ', bedtijd tussen $1 en $2');
+  const goal = d.yourGoal && d.yourGoal !== 'none set' ? say(lang, `\nYour goal: ${d.yourGoal}.`, `\nJe doel: ${goalNl}.`) : '';
   return {kind: 'answer', text: say(lang,
     `Over the last 7 days: ${plural(week.nightsLogged, 'night')} logged, ${week.averageAsleep} asleep on average, usually from ${week.usualBedtime} to ${week.usualWake}.${goal}\nFigures from your logged nights; not medical advice.`,
     `De afgelopen 7 dagen: ${week.nightsLogged} ${week.nightsLogged === 1 ? 'nacht' : 'nachten'} gelogd, gemiddeld ${String(week.averageAsleep).replace(' (some nights estimated)', ' (sommige nachten geschat)')} geslapen, meestal van ${week.usualBedtime} tot ${week.usualWake}.${goal}\nCijfers uit je gelogde nachten; geen medisch advies.`), calls: [r.record]};

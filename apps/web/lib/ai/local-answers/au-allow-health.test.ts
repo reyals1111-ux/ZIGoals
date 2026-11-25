@@ -21,7 +21,8 @@ import type {LocalReply} from './engine';
 
 /**
  * Session AU (D-ALLOW-HEALTH): a reply that says Health is not shared carries exactly one button to where the person allows
- * it — the existing open-page card to Settings → ZIGi (there is no NOVA → Permissions view in PAGE_VIEWS) — and nothing
+ * it — Session AW (p5-answers, FR-S-16, deliberate): the open-page card to NOVA → Permissions, where Allow Health opens
+ * Health to ZIGi and NOVA in one tap (it was Settings → ZIGi and its two switches; as strictly: one card, its target) — and nothing
  * is written: the card is navigation only, never applied by itself, and the person turns the switch on there. The privacy
  * gate (lib/ai/gates.ts healthGate) is unchanged: no Health record is read while it is closed.
  */
@@ -35,16 +36,17 @@ const stores = (): Stores => ({
 const planEnv = (s: Stores): Env => ({stores: s, handles: [], now: new Date(`${DAY}T19:00:00Z`), habitDay: DAY, healthDay: DAY, timeZone: 'UTC'});
 const shut = (): ToolEnv => zigiEnv(showcaseAll(), false);
 const textOf = (reply: LocalReply | null) => reply && 'text' in reply ? reply.text : '';
-/** The reply's cards: exactly one, the open-page card to Settings → ZIGi; planned, it navigates and writes nothing. */
+/** The reply's cards: exactly one, the open-page card to NOVA → Permissions; planned, it navigates and writes nothing. */
 function allowsHealthOnce(reply: LocalReply | null) {
   const parsed = parseReply(textOf(reply));
   expect(parsed.rejected).toEqual([]);
-  expect(parsed.proposals).toEqual([{kind: 'open-page', page: 'settings', view: 'zigi'}]);
+  expect(parsed.proposals).toEqual([{kind: 'open-page', page: 'nova', view: 'permissions'}]);
   expect(AUTO_ACCEPT_NEVER).toContain('open-page');
   const s = stores(), before = JSON.stringify(s), planned = planAction(parsed.proposals[0]!, planEnv(s));
   expect(planned.ok).toBe(true);
   if (!planned.ok) return;
-  expect(planned.plan.navigate?.href).toBe('/app/settings#your-ai');
+  expect(planned.plan.navigate?.href).toBe('/app/nova#nova-permissions');
+  expect(planned.plan.card.title).toBe('Open NOVA → Permissions');
   expect(planned.plan.write(s)).toEqual({});
   expect(planned.plan.undo).toBeNull();
   expect(JSON.stringify(s)).toBe(before);
@@ -53,8 +55,8 @@ function allowsHealthOnce(reply: LocalReply | null) {
 test('the gate is closed in these environments: Health is not read', () => {
   expect(shut().health).toBeNull();
 });
-test('"Can you see my health?" with Health not shared: says so, and one button to Settings → ZIGi (EN and NL)', () => {
-  for (const [q, lang, says] of [['can you see my health', 'en', 'Health is not shared with me now'], ['do you have access to my health data', 'en', 'Settings → ZIGi → Include Health'], ['can you see my health', 'nl', 'Health is nu niet met mij gedeeld']] as const) {
+test('"Can you see my health?" with Health not shared: says so, and one button to NOVA → Permissions (EN and NL)', () => {
+  for (const [q, lang, says] of [['can you see my health', 'en', 'Health is not shared with me now'], ['do you have access to my health data', 'en', 'tap Allow Health in NOVA → Permissions'], ['can you see my health', 'nl', 'Health is nu niet met mij gedeeld']] as const) {
     const reply = alMoreAnswer(q, shut(), lang);
     expect(textOf(reply), q).toContain(says);
     allowsHealthOnce(reply);
@@ -65,7 +67,7 @@ test('"Can you see my health?" with Health not shared: says so, and one button t
 test('the week, with Health not shared: its Health line says so, with the Life review card and one button to allow Health', () => {
   const reply = ask('how was my week', shut()).reply, parsed = parseReply(textOf(reply));
   expect(textOf(reply)).toContain('Health: not shared with ZIGi here');
-  expect(parsed.proposals.filter(a => a.kind === 'open-page')).toEqual([{kind: 'open-page', page: 'settings', view: 'zigi'}]);
+  expect(parsed.proposals.filter(a => a.kind === 'open-page')).toEqual([{kind: 'open-page', page: 'nova', view: 'permissions'}]);
   expect(parsed.proposals.map(a => a.kind).sort()).toEqual(['open-page', 'open-review']);
   // Health shared: no such button.
   expect(parseReply(ask('how was my week', zigiEnv(showcaseAll())).text).proposals.map(a => a.kind)).toEqual(['open-review']);
@@ -89,7 +91,7 @@ test('the Checklist with Health dots not shared: says so, and one button to allo
 });
 
 const NOVA_NO_HEALTH = () => novaEnv(showcaseAll(), {...DEFAULT_NOVA_SCOPES, health: false, journal: true, notes: true});
-test('ZIGi’s Health-closed reply follows the question’s language, with one button to Settings → ZIGi (both switches are there)', () => {
+test('ZIGi’s Health-closed reply follows the question’s language, with one button to NOVA → Permissions (Allow Health is there)', () => {
   for (const q of ['How much water did I drink yesterday?', 'how did I sleep last night']) {
     const a = ask(q, shut());
     expect(a.kind, q).toBe('refusal');
@@ -110,7 +112,10 @@ test('ZIGi’s Health-closed reply follows the question’s language, with one b
   // Session AV lane 2 (Dutch dates, deliberate): the Dutch answer writes its days the Dutch way (was "(Sun, Nov 1 t/m Tue, Nov 17) … Sun, Nov 1 en Tue, Nov 10").
   expect(habit.text).toBe('Drink water: geen gemiste dag deze maand (zo 1 nov t/m di 17 nov). Overgeslagen (telt niet als gemist): zo 1 nov en di 10 nov. Vandaag staat nog open.');
   expect(habit.text).not.toMatch(/\bml\b|\bmL\b|Health/);
-  expect(HEALTH_CLOSED_NL).toContain('Settings → ZIGi · your companion → Privacy & data: “Health page data” en “Include Health”');
+  // Session AW (p5-answers, FR-S-16, deliberate): one sentence and the one action, as NOVA's reply (FR-TJ-1), never the switches.
+  expect(HEALTH_CLOSED_NL).toBe('Health wordt hier niet met ZIGi gedeeld, dus er wordt niets uit Health gelezen. Tik op Allow Health in NOVA → Permissions: één tik opent Health voor ZIGi en NOVA (de knop staat er zodra Health op je Today-pagina staat).');
+  expect(HEALTH_CLOSED).toBe('Health isn’t shared with ZIGi here, so nothing from Health is read. Tap Allow Health in NOVA → Permissions: one tap opens Health to ZIGi and NOVA (the button is there once Health is on your Today page).');
+  for (const t of [HEALTH_CLOSED, HEALTH_CLOSED_NL]) expect(t).not.toMatch(/Health page data|Include Health|Privacy & data/);
 });
 test('NOVA: the same replies name NOVA → Permissions (its chat makes that the one button) and carry no card of their own', () => {
   // Session AU (R-12, deliberate): the water log's own target ("mijn waterdoel") for the habit's own word, as above.

@@ -76,11 +76,12 @@ export function novaWording(reply: LocalReply, info: NovaEnvInfo, lang: Lang = '
 
 /**
  * Session AU (D-ALLOW-HEALTH): the one button to where Health is allowed, for a reply that says Health is not shared. On
- * ZIGi's panel: the existing open-page card to Settings → ZIGi (its Privacy & data holds both switches; nothing is
- * written, the person turns them on there). On NOVA: the words name NOVA → Permissions, which holds the same switches and
+ * ZIGi's panel: the open-page card to NOVA → Permissions (Session AW p5-answers, FR-S-16: its Allow Health turns on both
+ * switches in one tap; nothing is written by the card, the person taps it there). On NOVA: the words name NOVA → Permissions, which holds the same switches and
  * which NOVA's chat turns into its one button (components/nova/chat/nova-turns.tsx), so no second card is added.
  */
-export const ALLOW_HEALTH_CARD = `\n\n\`\`\`zigoals-action\n${JSON.stringify({kind: 'open-page', page: 'settings', view: 'zigi'})}\n\`\`\``;
+// Session AW (p5-answers, FR-S-16; TIER 3, AI tools): the one button goes to NOVA → Permissions, where Allow Health is.
+export const ALLOW_HEALTH_CARD = `\n\n\`\`\`zigoals-action\n${JSON.stringify({kind: 'open-page', page: 'nova', view: 'permissions'})}\n\`\`\``;
 export function allowHealth(env: ToolEnv | null | undefined, lang: Lang = 'en'): string {
   if (!novaEnvInfo(env)) return ALLOW_HEALTH_CARD;
   return lang === 'nl' ? `\n\nHealth sta je toe in ${NOVA_PERMISSIONS_NL}.` : `\n\nHealth is allowed in ${NOVA_PERMISSIONS}.`;

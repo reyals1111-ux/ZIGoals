@@ -54,18 +54,21 @@ test.describe('RR-13', () => {
     await showcase(page);
     await openZigi(page);
     const water = await askZigi(page, 'How much water did I drink today?');
-    await expect(water.locator('.ai-local-answer')).toContainText('Include Health');
+    // Session AW (p5-answers, FR-S-16, deliberate): the one action, Allow Health in NOVA → Permissions, as strictly.
+    await expect(water.locator('.ai-local-answer')).toContainText('Tap Allow Health in NOVA → Permissions');
     const missed = await askZigi(page, 'Which habits did I miss yesterday?');
     // Session AS (RR-13, deliberate, as strict; ADR-042 A1): the exact answer of what was missed, the whole sentence (the unit test RR-13 pins the same).
     await expect(missed.locator('.ai-local-answer')).toContainText(/^You missed no habit yesterday \(Sat, Nov 7\): 7 of 7 due check-ins done\./);
     await expect(missed.locator('.ai-local-answer')).not.toContainText('isn’t something I can answer');
     const sleep = await askZigi(page, 'How did I sleep this week?');
-    const open = sleep.getByRole('button', {name: 'Open Settings → ZIGi → Privacy & data'});
+    // Session AW (p5-answers, FR-S-16, deliberate): the reply's one button opens NOVA → Permissions, where Allow Health
+    // turns on both switches in one tap (no second button to Settings → ZIGi); as strictly, it lands on that button.
+    await expect(sleep.getByRole('button', {name: 'Open Settings → ZIGi → Privacy & data'})).toHaveCount(0);
+    const open = sleep.getByRole('button', {name: 'Open NOVA → Permissions'});
     await expect(open).toBeVisible();
     await open.click();
-    await expect(page).toHaveURL(/\/app\/settings#zigi-page-share-title$/);
-    await expect(page.getByRole('switch', {name: 'Health page data'}).first()).toBeInViewport({timeout: 10_000});
-    await expect(page.getByRole('switch', {name: 'Include Health'}).first()).toBeInViewport({timeout: 10_000});
+    await expect(page).toHaveURL(/\/app\/nova#nova-permissions$/);
+    await expect(page.getByRole('button', {name: 'Allow Health'}).first()).toBeVisible({timeout: 10_000});
   });
 });
 

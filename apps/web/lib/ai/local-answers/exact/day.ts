@@ -16,6 +16,7 @@ import {listWords, t} from './text';
 import {periodFor, trackAnswer, type Track} from './track';
 import type {Ask, Exact, ExactWidget, Lang, Query} from './types';
 import {isFinished} from '../../../tasks/finished';
+import {averageFiguresNl, averageGoalOf, nlCountUnit} from '../aw-p5-goal-line';
 
 /**
  * Session AS (ADR-042, Part 1): the day's own records, exactly — tasks, the journal, focus, notes, the agenda, the
@@ -118,13 +119,14 @@ export function notesAnswer(q: Query, env: ToolEnv): Exact | null {
   return out(t(lang, `${n.total} ${n.total === 1 ? 'note' : 'notes'} in all; ${n.inbox} ${n.inbox === 1 ? 'waits' : 'wait'} in your inbox. The newest is from ${when}.`, `${n.total} ${n.total === 1 ? 'notitie' : 'notities'} in totaal; ${n.inbox} ${n.inbox === 1 ? 'wacht' : 'wachten'} in je inbox. De nieuwste is van ${when}.`), {notes: n.total, inbox: n.inbox, newest: last ? calendarDay(last.at, env.habitZone) : null}, [{id: 'notes-constellation', fallback: 'notes'}]);
 }
 
+// Session AW (p5-answers, S-10): a Dutch answer writes its times on the 24-hour clock ("19:00"), as it writes its dates; English as before.
 export function agendaAnswer(q: Query, env: ToolEnv): Exact | null {
   const lang = q.lang, today = env.habitDay, out = answer(q, ['Your agenda', 'Je agenda']), r = runTool('agenda', {}, env);
   if (!r.ok) return null;
   const items = (r.data.items as {day: string; time?: string; what: string; kind: string; state: string}[] | undefined) ?? [];
   const tomorrow = /\b(?:tomorrow|morgen)\b/.test(q.read), week = /\b(?:week)\b/.test(q.read) || q.period === 'this-week', from = tomorrow ? addLocalDays(today, 1) : today, to = week ? addLocalDays(today, 6) : from;
   const hit = items.filter(i => i.day >= from && i.day <= to), label = tomorrow ? t(lang, 'tomorrow', 'morgen') : week ? t(lang, 'the next 7 days', 'de komende 7 dagen') : t(lang, 'today', 'vandaag');
-  const name = (i: typeof items[number]) => `${i.time ? `${formatClock(i.time)} ` : ''}${plain(i.what)}`, facts = {from, to, items: hit.length, open: hit.filter(i => i.state === 'open').length, timed: hit.filter(i => i.time).length};
+  const name = (i: typeof items[number]) => `${i.time ? `${lang === 'nl' ? i.time : formatClock(i.time)} ` : ''}${plain(i.what)}`, facts = {from, to, items: hit.length, open: hit.filter(i => i.state === 'open').length, timed: hit.filter(i => i.time).length};
   const widgets: ExactWidget[] = [{id: 'day-timeline', fallback: 'hour-grid'}, {id: 'agenda-clock'}];
   if (!hit.length) return out(t(lang, `Nothing is on your agenda ${label}.`, `Er staat niets op je agenda ${label}.`), facts, widgets);
   if (q.ask === 'next') {
@@ -204,7 +206,13 @@ export function goalsAnswer(q: Query, env: ToolEnv): Exact | null {
   if (one && GOAL_ETA.test(q.read)) return goalEta(q, env, one, out);
   if (one) {
     const date = one.targetDate && one.targetDate !== 'none' ? t(lang, `; target date ${dayWords(one.targetDate, today)}`, `; streefdatum ${nlDay(one.targetDate, today)}`) : '';
-    return out(t(lang, `${one.name}: ${amountOf(one.now)} of ${amountOf(one.target)} (${pct(one)})${one.funding ? `, ${pace(one)}` : ''}; ${amountOf(one.remaining)} to go${date}.`, `${one.name}: ${amountOf(one.now)} van ${amountOf(one.target)} (${pct(one)})${one.funding ? `, ${pace(one)}` : ''}; nog ${amountOf(one.remaining)} te gaan${date}.`), {...facts, goal: one.name, percent: Math.round(progressNumber(one.progress)), funding: one.funding ?? null}, [{id: 'goal-gauge', ref: q.subject!.id, fallback: 'goal-focus'}]);
+    // Session AW (p5-answers, FR-S-13): a goal that keeps an average has no amount "to go" (it read "7.9 h a night van at
+    // least 8 h a night (99%); nog  te gaan."): its average against its target, over its window; in Dutch words and figures.
+    const average = one.type === 'Keep an average' ? averageGoalOf(env, one) : null;
+    const averageText = average ? t(lang, `${one.name}: ${one.now && one.now !== 'unknown' ? `${one.now} on average, against a target of ${one.target}${one.progress && one.progress !== 'unknown' ? ` (${pct(one)})` : ''}` : `a target of ${one.target}; its average is unknown here (never 0)`}, over the last ${average.windowDays} days.`,
+      `${one.name}: ${averageFiguresNl(average, env)}${one.now && one.now !== 'unknown' && one.progress && one.progress !== 'unknown' ? ` (${pct(one)})` : ''}, over de afgelopen ${average.windowDays} dagen.`) : null;
+    const count = (text: string | undefined) => nlCountUnit(amountOf(text));
+    return out(averageText ?? t(lang, `${one.name}: ${amountOf(one.now)} of ${amountOf(one.target)} (${pct(one)})${one.funding ? `, ${pace(one)}` : ''}; ${amountOf(one.remaining)} to go${date}.`, `${one.name}: ${count(one.now)} van ${count(one.target)} (${pct(one)})${one.funding ? `, ${pace(one)}` : ''}; nog ${count(one.remaining)} te gaan${date}.`), {...facts, goal: one.name, percent: Math.round(progressNumber(one.progress)), funding: one.funding ?? null}, [{id: 'goal-gauge', ref: q.subject!.id, fallback: 'goal-focus'}]);
   }
   if (q.ask === 'late' || q.ask === 'missed' || q.ask === 'worst' && /\b(?:behind|achter)\b/.test(q.read)) {
     const behind = active.filter(g => g.funding === 'behind');

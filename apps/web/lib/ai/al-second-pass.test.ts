@@ -28,9 +28,11 @@ describe('words', () => {
     expect(steps[0]).toBe('Choose another model in NOVA → Models.');
     expect(errorSteps(new AiError('stalled', 'x'), {providerName: 'Ollama', hostedPage: false, keysUrl: null, local: {server: 'ollama', baseUrl: 'http://127.0.0.1:11434'}})[0]).toContain('A Retry is usually quicker');
   });
-  test('MO-052/P-MO-12: the Health refusal names both switches and no longer says "with Health on Today"', () => {
-    expect(HEALTH_CLOSED).toMatch(/^Health isn’t shared with ZIGi — turn it on in Settings/);
-    expect(HEALTH_CLOSED).toContain('“Health page data” and “Include Health”');
+  // Session AW (p5-answers, FR-S-16, deliberate): the refusal names the one action that turns both switches on (Allow Health
+  // in NOVA → Permissions), as NOVA's reply does; as strictly: where, and the Today condition in plain words.
+  test('MO-052/P-MO-12: the Health refusal names the one place to allow Health and no longer says "with Health on Today"', () => {
+    expect(HEALTH_CLOSED).toMatch(/^Health isn’t shared with ZIGi here, so nothing from Health is read\. Tap Allow Health in NOVA → Permissions/);
+    expect(HEALTH_CLOSED).toContain('(the button is there once Health is on your Today page)');
     expect(HEALTH_CLOSED).not.toContain('with Health on Today');
   });
   test('LA-015/P-LA-27: no microphone says what to do next', () => expect(recognitionErrorText('audio-capture')).toBe('No microphone was found: type instead.'));
