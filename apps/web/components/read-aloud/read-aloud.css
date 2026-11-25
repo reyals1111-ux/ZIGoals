@@ -1,5 +1,5 @@
 /* Session AW (programmes): Read aloud. Tokens only, no colours of its own; every control a 44 px target; no animation
    (the "Reading aloud" line is still text), so Motion Off and reduced motion need nothing here. */
 .read-aloud { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
-.read-aloud > button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
+.read-aloud > button { white-space: normal; max-width: 100%; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
 .read-aloud-state { color: var(--text-secondary); font-size: 15px; }
