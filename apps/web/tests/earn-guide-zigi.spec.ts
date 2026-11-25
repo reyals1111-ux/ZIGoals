@@ -51,13 +51,23 @@ test('Ask ZIGi about this opens ZIGi on the guide’s option; nothing reaches an
   await expect(page.locator('iframe')).toHaveCount(0);
 });
 
-test('every guide asks about its own way to earn; with the ZIGi launcher hidden the control is not offered', async ({page, context, baseURL}) => {
+// Session AW (earn-guide-zigi:54, deliberate): one test became two, every step and assertion kept. With tracing on (CI's
+// `retain-on-failure` records every action) the one test ran three guides, a reload and every phone fold twice, and passed
+// the 45 s test timeout on a loaded runner (runs 1937, 2028, 2031; 3 of 4 locally with tracing, 0 of 4 without): the
+// "Open Valdora" click was only the step in flight at 45 s. The launcher-hidden half now starts from its own page load,
+// with the same setup, so each half has the whole timeout.
+async function openEarn(page: import('@playwright/test').Page, context: import('@playwright/test').BrowserContext, baseURL: string | undefined) {
   const origin = new URL(baseURL!).origin;
   await context.route(url => url.origin !== origin && !url.href.startsWith(BASE), route => route.fulfill({status: 200, contentType: 'text/html', body: '<!doctype html><title>stub</title>'}));
   const bodies = await server(page);
   await seed(page, {time: MORNING});
   await earnRoutes(page);
   await page.goto('/app/earn');
+  return bodies;
+}
+
+test('every guide asks about its own way to earn', async ({page, context, baseURL}) => {
+  const bodies = await openEarn(page, context, baseURL);
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.zigiLauncher ?? '')).toBe('shown');
   // Session AO (N-BN-05, deliberate): on a phone the ways to earn below Start here are folded rows; they open first.
   await openEarnFolds(page);
@@ -80,6 +90,11 @@ test('every guide asks about its own way to earn; with the ZIGi launcher hidden 
     await guide.getByRole('button', {name: 'Close the guide'}).click();
   }
   expect(bodies).toEqual([]);
+});
+
+test('with the ZIGi launcher hidden the control is not offered', async ({page, context, baseURL}) => {
+  const bodies = await openEarn(page, context, baseURL);
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.zigiLauncher ?? '')).toBe('shown');
   // ZIGi's launcher hidden: the guide offers no "Ask ZIGi".
   await page.evaluate(key => { const s = JSON.parse(localStorage.getItem(key)!); localStorage.setItem(key, JSON.stringify({...s, launcherHidden: true})); }, AI_SETTINGS_KEY);
   await page.reload();
@@ -95,4 +110,5 @@ test('every guide asks about its own way to earn; with the ZIGi launcher hidden 
   // button and does not apply (ZIGi opens from "Apps & extras"), so the guide keeps its "Ask ZIGi"; on a computer, as before.
   const compact = page.viewportSize()!.width < 901;
   await expect(guide.getByRole('button', {name: 'Ask ZIGi about this'})).toHaveCount(compact ? 1 : 0);
+  expect(bodies).toEqual([]);
 });
