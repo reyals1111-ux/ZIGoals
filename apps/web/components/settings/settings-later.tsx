@@ -15,8 +15,6 @@ export {GuideSettings} from '../coach/guide-settings';
 export {InstallCard} from '../install/install-card';
 export {NotificationsCard} from '../notify/notifications-card';
 export {PushRemindersPanel} from '../push/push-reminders-panel';
-export {VaultSyncControls} from '../vault-sync-panel';
-export {DeviceLockSettings} from '../device-lock';
 export {StorageInternals} from './storage-internals';
 export {ConnectionDiagnostics} from '../connection-diagnostics';
 export {SendFeedback} from '../help/send-feedback';

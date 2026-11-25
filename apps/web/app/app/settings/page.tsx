@@ -32,6 +32,8 @@ import {ShowcaseDoor, ShowcaseSlot} from "../../../components/settings/showcase-
 import { Slot } from "../../../components/progress/slot";
 import { AiSettingsSection } from "../../../components/ai/ai-settings-section";
 import { NovaSettingsLinks } from "../../../components/settings/nova-settings-links";
+import {VaultSyncControls} from "../../../components/vault-sync-panel";
+import {DeviceLockSettings} from "../../../components/device-lock";
 import {LoadBoundary} from '../../../components/load-boundary';
 import { deployment } from "../../../lib/deployment-config";
 import { Suspense, lazy, useEffect, useState, type ComponentType, type ReactNode } from "react";
@@ -54,7 +56,8 @@ import { HideFiguresToggle } from "../../../components/hide-figures";
 import type { SettingsGroupId } from "../../../lib/settings-folds";
 // Session AW Part 2 (speed; weights, never a raised budget): the parts of the lower groups load as their own chunk, still
 // rendered by the server (the first paint is unchanged), so a phone runs about half of Settings' scripts less before the
-// page answers. Their styles stay with the page (imported below), so no part ever paints unstyled while its chunk arrives.
+// page answers. The account sign-in and the device lock stay with the page (auth and sync keep their timing: run 2032's
+// sign-in-codes-browser:40 waited for the account check behind the chunk). Their styles stay with the page (imported below), so no part ever paints unstyled while its chunk arrives.
 const later = <K extends keyof typeof import("../../../components/settings/settings-later")>(name: K) => lazy(() => import("../../../components/settings/settings-later").then(m => ({default: m[name] as unknown as ComponentType<Record<string, unknown>>})));
 const WeeklyReviewDay = later("WeeklyReviewDay");
 const PlanSettingsRow = later("PlanSettingsRow");
@@ -71,8 +74,6 @@ const GuideSettings = later("GuideSettings");
 const InstallCard = later("InstallCard");
 const NotificationsCard = later("NotificationsCard");
 const PushRemindersPanel = later("PushRemindersPanel");
-const VaultSyncControls = later("VaultSyncControls");
-const DeviceLockSettings = later("DeviceLockSettings");
 const StorageInternals = later("StorageInternals");
 const ConnectionDiagnostics = later("ConnectionDiagnostics");
 const SendFeedback = later("SendFeedback");
@@ -295,8 +296,8 @@ export default function Settings() {
         <section className="panel settings-market-data" id="market-data"><p className="eyebrow">MARKET DATA</p><h2>Know where each value comes from.</h2><p>Supported automatic market prices come from CoinGecko. Public asset identifiers and your quote currency are used to request market data; private holdings, quantities, Goals and Health records are not sent.</p><div className="settings-data-types"><div><strong>Automatic references</strong><p>Supported assets show price source and freshness. Missing or stale quotes remain labelled.</p></div><div><strong>Your manual values</strong><p>Cash, property, custom assets and unsupported markets use values you enter. Manual values are never presented as live quotes.</p></div></div>{chain && <Link className="text-link" href="/app/markets">Explore market references →</Link>}</section>
       </SettingsGroup>
       <SettingsGroup id="settings-account" title="Account & devices">
-        <Later><VaultSyncControls/></Later>
-        <Later><DeviceLockSettings/></Later>
+        <VaultSyncControls/>
+        <DeviceLockSettings/>
         {/* Session AK X1 (RELEASE_REVIEW R4): the wallet, network and contract panels as one advanced group, once the chain is chosen. */}
         {chain && <section className="settings-wallet-network" id="wallet-network" aria-labelledby="wallet-network-title">
         <h2 className="settings-group-title" id="wallet-network-title">Wallet &amp; network (advanced)</h2>
