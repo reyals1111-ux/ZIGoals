@@ -1,0 +1,121 @@
+[
+ {
+  "id": "at-screens",
+  "verdict": "imprecise",
+  "current": "Where: Today, Goals, Habits, Health and Wealth are in the menu; Tasks, Notes, the Journal and Music are under Apps &amp; extras.",
+  "fixed": "Where: Today, Goals, Habits, Health and Wealth are in the menu; Tasks, Notes and the Journal are in its Apps group (on a phone or tablet: Apps &amp; extras, with Music).",
+  "evidence": "apps/web/lib/ui-prefs/apps.ts:4-14 (sidebar group is \"Apps\"; the \"Apps & extras\" sheet is below 901 px only, components/shell/apps-extras.tsx:3-9); Music floats on a computer"
+ },
+ {
+  "id": "your-ai-honest",
+  "verdict": "imprecise",
+  "current": "Where: ZIGi, from its button on every page; its settings in Settings &rarr; Your assistant.",
+  "fixed": "Where: ZIGi, from its button on every page (on a phone: Apps &amp; extras &rarr; ZIGi); its settings in Settings &rarr; Your assistant.",
+  "evidence": "apps/web/components/ai/ai-launcher.tsx:113 (below 901 px there is no ZIGi button; it opens from Apps & extras)"
+ },
+ {
+  "id": "abd-dock",
+  "verdict": "imprecise",
+  "current": "Where: The right edge of every page: the small arrows beside ZIGi and the music button.",
+  "fixed": "Where: The right edge of every page on a computer: the small arrows beside ZIGi and the music button.",
+  "evidence": "apps/web/components/shell/apps-extras.tsx:3-9 (nothing floats below 901 px); components/music/music-launcher.tsx:76"
+ },
+ {
+  "id": "av2-money-can-i-group-my-accounts",
+  "verdict": "imprecise",
+  "current": "Where: Wealth &rarr; What you have &rarr; an account&rsquo;s Sheet &rarr; Group.",
+  "fixed": "Where: Wealth &rarr; What you have &rarr; an account&rsquo;s Sheet &rarr; Your group.",
+  "evidence": "apps/web/components/wealth/account-sheet.tsx:50 (field \"Your group — optional\")"
+ },
+ {
+  "id": "av2-money-can-i-see-everything-in-one-currency",
+  "verdict": "imprecise",
+  "current": "Where: Wealth &rarr; What you have &rarr; Your sheet &rarr; your own rate.",
+  "fixed": "Where: Wealth &rarr; What you have &rarr; Your sheet &rarr; Total in, then your rate &rarr; Keep my rate.",
+  "evidence": "apps/web/components/wealth/wealth-sheet.tsx:41-47 (fields Total in / 1 of / is / On, button Keep my rate; shown with two or more currencies)"
+ },
+ {
+  "id": "av2-body-what-is-your-usual-in-sleep",
+  "verdict": "imprecise",
+  "current": "Where: Health &rarr; Sleep &rarr; Your usual.",
+  "fixed": "Where: Health &rarr; Sleep &rarr; Your week beside your usual.",
+  "evidence": "apps/web/components/health/sleep/sleep-usual.tsx:28"
+ },
+ {
+  "id": "av2-body-what-are-weight-milestones",
+  "verdict": "imprecise",
+  "current": "Where: Health &rarr; Weight &rarr; Your weight goal &rarr; Milestones.",
+  "fixed": "Where: Health &rarr; Weight &rarr; BMI and milestones &rarr; Milestones on the way to your goal.",
+  "evidence": "apps/web/components/health/body-figures.tsx:30,44 (mounted in the Weight view, health-app.tsx WeightView); \"Your weight goal\" is only a figure in the overview"
+ },
+ {
+  "id": "av2-rest-which-nutrients-does-zigoals-count",
+  "verdict": "wrong",
+  "current": "Where: Health &rarr; Diary &rarr; Micronutrients &rarr; Nutrient report.",
+  "fixed": "Where: Health &rarr; Targets &rarr; Micronutrients &rarr; Open the nutrient report.",
+  "evidence": "apps/web/components/health/health-app.tsx:48-49 (MicroPanel is only in TargetPanels, rendered in the Targets view); micro-panel.tsx:36,46"
+ },
+ {
+  "id": "aa-health",
+  "verdict": "wrong",
+  "current": "Where: Health &rarr; Weight (trend, energy estimate, coach), Diary &rarr; Micronutrients, Meals &amp; planning &rarr; Planner, Import.",
+  "fixed": "Where: Health &rarr; Weight (trend, energy estimate, coach), Targets &rarr; Micronutrients, Planner, Import.",
+  "evidence": "apps/web/components/health/health-app.tsx:172 (Planner is its own tab, not inside Meals & planning) and :48-49 (Micronutrients is in Targets, not the Diary)"
+ },
+ {
+  "id": "ak-nutrition",
+  "verdict": "wrong",
+  "current": "Where: Health &rarr; Diary &rarr; Micronutrients &rarr; Nutrient report; Health &rarr; Targets for diet templates and the weekly calorie budget; Meals &amp; planning &rarr; Pantry.",
+  "fixed": "Where: Health &rarr; Targets &rarr; Micronutrients &rarr; Open the nutrient report, and Weekly calorie budget; Health &rarr; Planner &rarr; Start from a template, and the Grocery list&rsquo;s I have this.",
+  "evidence": "apps/web/components/health/planner-view.tsx:81 (diet templates: \"Start from a template\"), :84,95 (Grocery list, pantry \"Already at home\"); health-app.tsx Targets view (\"Weekly calorie budget (optional)\", TargetPanels)"
+ },
+ {
+  "id": "av2-paused-repeat",
+  "verdict": "imprecise",
+  "current": "Where: Tasks &rarr; the repeating task&rsquo;s row &rarr; Resume from &hellip;.",
+  "fixed": "Where: Tasks &rarr; the repeating task&rsquo;s editor &rarr; Resume from &hellip;.",
+  "evidence": "apps/web/components/tasks/task-editor.tsx:143 (the button is in the editor; the row only says paused)"
+ },
+ {
+  "id": "av2-r3-plan-can-i-plan-tomorrow-on-the-timeline",
+  "verdict": "wrong",
+  "current": "Where: Day timeline (Apps &amp; extras, or Search &ldquo;timeline&rdquo;) &rarr; Tomorrow.",
+  "fixed": "Where: Day timeline (Agenda &rarr; Today as a timeline, or Search &ldquo;timeline&rdquo;) &rarr; Tomorrow.",
+  "evidence": "apps/web/lib/ui-prefs/apps.ts:21-31 (the Apps & extras sheet has no Timeline); components/agenda/agenda-page.tsx:128; timeline-day-picker.tsx:14"
+ },
+ {
+  "id": "af-stories",
+  "verdict": "wrong",
+  "current": "Where: Stories (Apps &amp; extras, or Search &ldquo;stories&rdquo;).",
+  "fixed": "Where: Stories (Today &rarr; the Stories card &rarr; Open your stories, or Search &ldquo;stories&rdquo;).",
+  "evidence": "apps/web/lib/ui-prefs/apps.ts:21-31 (no Stories in Apps & extras); components/stories/today-stories-card.tsx:27-32; for-you/today-for-you.tsx:140"
+ },
+ {
+  "id": "ab-photos",
+  "verdict": "wrong",
+  "current": "Where: Goals &rarr; the vision board and progress photos (this device only).",
+  "fixed": "Where: Goals &rarr; Vision board; Health &rarr; Measurements &rarr; Progress photos (this device only).",
+  "evidence": "apps/web/components/health/measurements-aa.tsx:109 (Progress photos live in Health, not Goals); components/goals/goals-view-switch.tsx:10"
+ },
+ {
+  "id": "ag2-progress",
+  "verdict": "wrong",
+  "current": "Where: Checklist &rarr; the bar at the top.",
+  "fixed": "Where: Checklist &rarr; your path. The bar at the top was taken out; the count (&ldquo;3 of 5 planets today&rdquo;) is read out to screen readers only.",
+  "evidence": "apps/web/components/checklist/checklist-page.tsx:234-237 (comment: \"no progress bar\"; the count line is sr-only). The whole answer describes a removed bar"
+ },
+ {
+  "id": "ak-wallets",
+  "verdict": "imprecise",
+  "current": "Where: The wallet menu (top bar) &rarr; WalletConnect.",
+  "fixed": "Where: On a phone, More &rarr; Status &amp; wallet &rarr; Connect by WalletConnect.",
+  "evidence": "apps/web/components/wallet/wallet-menu.tsx:142,158 (WalletConnect only in the sheet variant), phone/phone-chrome.tsx:265 (Status & wallet), wallet/phone-wallet-paths.ts (label \"Connect by WalletConnect\"); the computer wallet menu has no WalletConnect entry, so the answer's computer QR code could not be found"
+ },
+ {
+  "id": "ak-progress-toast",
+  "verdict": "imprecise",
+  "current": "Where: Goals &rarr; a goal &rarr; Add a contribution.",
+  "fixed": "Where: Goals &rarr; a goal &rarr; Fund Goal (or Record contribution).",
+  "evidence": "apps/web/components/platform/goal-intelligence.tsx (buttons \"Fund Goal\" and \"Record contribution\", both open ContributionFlow, contribution-flow.tsx:6,55 movedMessage); no \"Add a contribution\" label exists"
+ }
+]

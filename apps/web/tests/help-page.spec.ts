@@ -552,7 +552,8 @@ test('Session AF: the wealth-unlocked answers open from a hash, and nothing is w
     // (Session AG Polish 2, ADR-031: its four answers join this section and open from their hashes the same way.)
     ['ag2-quick-add', 'once it has changed, Undo only takes it off your orbit and the habit stays on Habits'],
     ['ag2-planets', 'each next planet lights once everything in the orbit before it is done'],
-    ['ag2-progress', 'A segment lights the moment you tick its item, even out of order'],
+    // Session AW (Help where-check, deliberate): the bar was taken out in AG Polish 3; the answer now says so, and what is there instead.
+    ['ag2-progress', 'reaching each orbit’s planet is the tracker now'],
     ['ag2-celebration', 'you see its last frame at once'],
     ['af-checklist-timers', 'the whole night lands on Health'],
     ['af-checklist-launcher', 'Your path stays on this device: it is not synced yet'],

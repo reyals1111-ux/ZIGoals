@@ -770,7 +770,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["ag-polish", "What’s new in the Checklist?"],
   ["ag2-quick-add", "How do I add something to my Checklist quickly?"],
   ["ag2-planets", "When does an orbit’s planet light up?"],
-  ["ag2-progress", "What does the bar at the top of the Checklist show?"],
+  ["ag2-progress", "Is there still a progress bar on the Checklist?"],
   ["ag2-celebration", "What happens when I finish my day?"],
   ["af-checklist-timers", "What are the timers in the corner of the Checklist?"],
   ["af-checklist-launcher", "Where is the Checklist button, and can I hide it?"],
