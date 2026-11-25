@@ -91,3 +91,20 @@ export function trendNote(readings: number, rate: string | null): string {
   if (readings <= 1) return 'First reading. Two or three a week draw the line.';
   return `smoothed over ${readings} readings · an estimate`;
 }
+/**
+ * Session AW (X6; LEDGER #458, Happy Scale's "this week against the week before"): the mean of the weigh-ins in the last 7
+ * days (ending `today`) against the mean of the 7 days before, said only when each week has at least `WEEK_MIN_WEIGH_INS`
+ * of them; otherwise the counts, so the view says "not enough weigh-ins yet" and never shows an unknown as 0. Grams in,
+ * grams out (`diff` is this week less the week before); the view shows the unit. Derived; nothing stored.
+ */
+export const WEEK_MIN_WEIGH_INS = 3;
+export type WeekCompare =
+  | {ready: true; thisMean: number; prevMean: number; diff: number; thisCount: number; prevCount: number}
+  | {ready: false; thisCount: number; prevCount: number};
+export function weekCompare(weights: Pick<HealthData, 'weights'>['weights'], today: string): WeekCompare {
+  const from = addLocalDays(today, -6), prevFrom = addLocalDays(today, -13), prevTo = addLocalDays(today, -7);
+  const now = weights.filter(w => w.date >= from && w.date <= today).map(w => w.grams), before = weights.filter(w => w.date >= prevFrom && w.date <= prevTo).map(w => w.grams);
+  if (now.length < WEEK_MIN_WEIGH_INS || before.length < WEEK_MIN_WEIGH_INS) return {ready: false, thisCount: now.length, prevCount: before.length};
+  const mean = (v: number[]) => Math.round(v.reduce((a, b) => a + b, 0) / v.length), thisMean = mean(now), prevMean = mean(before);
+  return {ready: true, thisMean, prevMean, diff: thisMean - prevMean, thisCount: now.length, prevCount: before.length};
+}
