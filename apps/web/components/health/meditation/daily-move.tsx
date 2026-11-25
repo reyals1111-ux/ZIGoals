@@ -9,6 +9,7 @@ import {plainErrorMessage} from '../../../lib/plain-error';
 import {useHealth} from '../use-health';
 import {useWakeLock} from './meditation-session';
 import type {MeditationStore} from './use-meditation';
+import {ReadAloud} from '../../read-aloud/read-aloud';
 import './calm.css';
 
 /**
@@ -78,6 +79,8 @@ export default function DailyMove({store, today}: {store: MeditationStore; today
       <p className="eyebrow">{T(seq.en, seq.nl)} · {T('step', 'stap')} {run.step + 1} / {seq.steps.length}{paused ? ` · ${T('paused', 'gepauzeerd')}` : ''}</p>
       <h3 id="move-step-title" tabIndex={-1} ref={heading}>{step[lang].name}</h3>
       <p className="move-cue">{step[lang].cue}</p>
+      {/* Session AW (programmes; amendment 3): this step's name and cue in this device's own voice, when it has one. */}
+      <ReadAloud key={`${seq.id}-${run.step}-${lang}`} lang={lang} what={step[lang].name} text={`${step[lang].name}. ${step[lang].cue}`}/>
       <p className="move-left" role="timer" aria-label={T(`${left} seconds left of this step`, `nog ${left} seconden van deze stap`)}><strong aria-hidden="true">{left}</strong><span aria-hidden="true"> s</span></p>
       <div className="move-bar" aria-hidden="true"><span style={{width: `${Math.round(((step.seconds - left) / step.seconds) * 100)}%`}}/></div>
       <ol className="move-steps" aria-label={T('The steps', 'De stappen')}>{seq.steps.map((x, i) => <li key={x.en.name} aria-current={i === run.step ? 'step' : undefined} data-done={i < run.step ? 'yes' : undefined}>{x[lang].name}</li>)}</ol>
@@ -96,6 +99,7 @@ export default function DailyMove({store, today}: {store: MeditationStore; today
       {STRETCHES.map(q => <label key={q.id} className="calm-choice"><input type="radio" name="move-sequence" checked={chosen === q.id} onChange={() => setChosen(q.id)}/><span><strong>{q[lang]}</strong><small>{stretchMinutes(q)} min · {q.steps.length} {T('stretches', 'oefeningen')}</small></span></label>)}
     </fieldset>
     <ol className="meditation-today-steps">{seq.steps.map(x => <li key={x.en.name}><strong>{x[lang].name}</strong> · {x[lang].cue} <small>({x.seconds} s)</small></li>)}</ol>
+    <ReadAloud key={`${seq.id}-${lang}`} lang={lang} what={seq[lang]} text={`${seq[lang]}. ${seq.steps.map(x => `${x[lang].name}: ${x[lang].cue}`).join(' ')}`}/>
     <p className="meditation-today-actions" lang="en">
       <button ref={begin} type="button" className="primary" onClick={start}>Begin · {stretchMinutes(seq)} min</button>
       <button type="button" className="quiet" lang={lang === 'en' ? 'nl' : 'en'} onClick={() => setLang(l => l === 'en' ? 'nl' : 'en')}>{lang === 'en' ? 'In het Nederlands' : 'In English'}</button>
