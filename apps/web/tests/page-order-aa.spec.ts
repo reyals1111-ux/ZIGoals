@@ -70,7 +70,10 @@ test('Today: a person’s own arrangement shows as saved, without group headings
   await showcase(page);
   // Session AC: arranging also lists the built-ins hidden by default (as "… is hidden from Today."); the order compared is
   // the shown modules', as before.
-  const modules = () => page.locator('.dashboard-layout-grid > .placed-module[data-module]:not([data-hidden="true"])').evaluateAll(list => list.map(e => e.getAttribute('data-module')));
+  // Session AW (simplicity-a, deliberate; owner brief Part 3): the shown modules are read in Today's reading order, the day's
+  // habits card included where it stands (right after the Checklist, outside the grid, when it is the first card), so the
+  // list is the same before and while arranging. As strict: every shown module, in order, and the same moves asserted.
+  const modules = () => page.locator('.today-primary > .placed-module[data-module]:not([data-hidden="true"]), .dashboard-layout-grid > .placed-module[data-module]:not([data-hidden="true"])').evaluateAll(list => list.map(e => e.getAttribute('data-module')));
   await expect(page.locator('.today-group-heading').first()).toBeVisible();
   const before = await modules();
   expect(before.length).toBeGreaterThan(2);

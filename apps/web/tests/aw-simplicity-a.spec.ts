@@ -197,7 +197,7 @@ for (const theme of THEMES) {
     await start(page, {theme, width, showcase: false});
     await go(page, '/app/wealth');
     await onFirstScreen(page, page.locator('.wealth-heading').getByRole('button', {name: '+ Add asset', exact: true}), '+ Add asset');
-    await onFirstScreen(page, page.getByRole('button', {name: 'Log spending', exact: true}), 'Log spending');
+    await onFirstScreen(page, page.locator('.wealth-hero-total').getByRole('button', {name: 'Log spending', exact: true}), 'Log spending (the total’s own button)');
     const have = page.getByRole('region', {name: 'What you have', exact: true});
     await have.scrollIntoViewIfNeeded();
     // All 0 · Accounts 0 · Debts 0 · Assets 0 · Needs attention 0 waited for nothing: the empty state is the one line that teaches.
@@ -210,7 +210,7 @@ for (const theme of THEMES) {
     await loadShowcase(page);
     await go(page, '/app/wealth');
     await onFirstScreen(page, page.locator('.wealth-heading').getByRole('button', {name: '+ Add asset', exact: true}), '+ Add asset');
-    await onFirstScreen(page, page.getByRole('button', {name: 'Log spending', exact: true}), 'Log spending');
+    await onFirstScreen(page, page.locator('.wealth-hero-total').getByRole('button', {name: 'Log spending', exact: true}), 'Log spending (the total’s own button)');
     const chips = have.getByRole('group', {name: 'Show', exact: true});
     await expect(chips.getByRole('button').first()).toHaveText(/^All [1-9]\d*$/, {timeout: 15_000});
     await expect(chips.getByRole('button').last()).toHaveText(/^Needs attention \d+$/);
