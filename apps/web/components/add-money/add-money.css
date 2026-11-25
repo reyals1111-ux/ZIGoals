@@ -13,7 +13,7 @@
 .add-money-options button small { color: var(--text-meta, #c2d0e5); overflow-wrap: anywhere; }
 .add-money-tile details summary { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; cursor: pointer; color: var(--brand-cyan, #23eaff); }
 .add-money-tile details p { margin: 0 4px 6px; color: var(--text-secondary, #dde7f7); }
-.add-money-badge { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--brand-cyan, #23eaff); font-size: 12px; font-weight: 700; color: var(--brand-cyan, #23eaff); }
+.add-money-badge { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--brand-cyan, #23eaff); font-size: 14px; font-weight: 700; color: var(--brand-cyan, #23eaff); }
 .add-money-warning { margin: 0; padding: 12px 14px; border-radius: 12px; border: 2px solid var(--warning, #ffcf5a); background: var(--warning-surface, #3a2c0a); color: var(--text-strong, #fff7e0); font-size: 1rem; }
 .add-money-link-first p { margin: 0; }
 .add-money-address { display: grid; gap: 4px; margin: 0; }
