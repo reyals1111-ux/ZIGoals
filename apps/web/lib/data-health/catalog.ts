@@ -147,6 +147,7 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   activityExtras: [AV2_CATALOG_LABELS.activityExtras[0], AV2_CATALOG_LABELS.activityExtras[1]],
   noteSearches: [AV2_CATALOG_LABELS.noteSearches[0], AV2_CATALOG_LABELS.noteSearches[1]],
   timers: [AV2_CATALOG_LABELS.timers[0], AV2_CATALOG_LABELS.timers[1]],
+  goalRepeat: [AV2_CATALOG_LABELS.goalRepeat[0], AV2_CATALOG_LABELS.goalRepeat[1]],
 };
 /** Session AM (ADR-038 D18): the one record of which only a part travels, in the words the Data health page shows. */
 export const NOVA_PARTLY_SYNCED_LABEL = 'NOVA: layout and pinned widgets (quick access, persona, names, instructions and side bars stay on this device)';

@@ -9232,5 +9232,21 @@
   "widgets": [],
   "fresh": "A reminder offers the usual three: 15 min, 1 h and Tomorrow (09:00); a notification says “Snooze 1 h”. Add up to six of your own — a length, this evening at a time, tomorrow at a time, or a weekday — in Tasks → This week → Reminders; the first one goes on the notification.",
   "freshNl": "Een herinnering biedt de gewone drie: 15 min, 1 uur en Tomorrow (09:00); een melding zegt “Snooze 1 h”. Voeg er tot zes van jezelf toe — een duur, vanavond om een tijd, morgen om een tijd, of een weekdag — in Tasks → This week → Reminders; de eerste staat op de melding."
+ },
+ "awx4-year": {
+  "en": "Your 2026 so far (1 January to today), from your own records:\n• Habits: 202 of 217 check-ins done.\n• Longest runs: “Walk” 27 days, “Contribute” 27 days and “Read” 26 days.\n• Goals, start → now of their target: “Emergency fund” new this year → 45%, “First home deposit” new this year → 65%, “Japan adventure” new this year → 41% and “My first 0.1 BTC” new this year → 100%, and 2 more.\nCounts only, never a grade. Life review → This year shows it by life area.",
+  "nl": "Je 2026 tot nu toe (1 januari tot vandaag), uit je eigen gegevens:\n• Gewoontes: 202 van 217 check-ins gedaan.\n• Langste reeksen: “Walk” 27 dagen, “Contribute” 27 dagen en “Read” 26 dagen.\n• Doelen, begin → nu van hun doel: “Emergency fund” nieuw dit jaar → 45%, “First home deposit” nieuw dit jaar → 65%, “Japan adventure” nieuw dit jaar → 41% en “My first 0.1 BTC” nieuw dit jaar → 100%, en nog 2.\nAlleen tellingen, nooit een cijfer. Life review → This year toont het per levensgebied.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Nothing to count for 2026 yet. Check in a habit or follow a goal; Life review → This year then counts each one by life area.",
+  "freshNl": "Nog niets te tellen voor 2026. Vink een gewoonte af of volg een doel; Life review → This year telt dan elk ervan per levensgebied."
+ },
+ "awx4-repeat-reached": {
+  "en": "None of your goals starts again each week yet, so there are no periods to count. On a count goal of your own unit (books, pages) or a project, its page → Starts again chooses each week, month or year; each period’s result is then kept as a row.",
+  "nl": "Nog geen van je doelen begint opnieuw elke week, dus er zijn geen periodes om te tellen. Op een telling in je eigen eenheid (boeken, pagina’s) of een project kies je op de pagina van het doel → Starts again: elke week, maand of jaar; het resultaat van elke periode blijft dan als rij bewaard.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "None of your goals starts again each week yet, so there are no periods to count. On a count goal of your own unit (books, pages) or a project, its page → Starts again chooses each week, month or year; each period’s result is then kept as a row.",
+  "freshNl": "Nog geen van je doelen begint opnieuw elke week, dus er zijn geen periodes om te tellen. Op een telling in je eigen eenheid (boeken, pagina’s) of een project kies je op de pagina van het doel → Starts again: elke week, maand of jaar; het resultaat van elke periode blijft dan als rij bewaard."
  }
 }

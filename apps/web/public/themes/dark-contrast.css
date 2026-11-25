@@ -7695,6 +7695,14 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .goal-repeat-rows li:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .goal-repeat-rows li span:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-secondary) 25%, #fff)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
     :scope .goal-tree-tools .quiet:not(#\-):not(#\-) {
         border-color: #8fb6ff;
         background-image: none;

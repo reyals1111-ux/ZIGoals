@@ -1169,6 +1169,9 @@
 :where(:root[data-text=large]) .goal-art-head .quiet:not(#\-) { font-size: calc(24px * 1.125); }
 :where(:root[data-text=large]) .goal-art-option:not(#\-) { font-size: calc(14px * 1.125); }
 @media (max-width: 540px) { :where(:root[data-text=large]) .goal-art-option:not(#\-) { font-size: calc(13px * 1.125); } }
+/*  components/goals/goal-repeat.css  */
+:where(:root[data-text=large]) .goal-repeat-now:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .goal-repeat-rows li:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/goals/goal-tree.css  */
 :root:where([data-text=large]) .goal-tree-text strong:not(#\-) { font-size: calc(17px * 1.125); }
 :root:where([data-text=large]) .goal-tree-text small:not(#\-) { font-size: calc(14px * 1.125); }
@@ -2167,6 +2170,8 @@
 :root:where([data-text=large]) .life-chapter:not(#\-)::before { font-size: calc(64px * 1.125); }
 :root:where([data-text=large]) .life-wins .life-list li:not(#\-) { font-size: calc(16px * 1.125); }
 :root:where([data-text=large]) .cross-label:not(#\-) { font-size: calc(13px * 1.125); }
+:root:where([data-text=large]) .life-year-pick:not(#\-) { font-size: calc(15px * 1.125); }
+:root:where([data-text=large]) .life-year-pick select:not(#\-) { font-size: calc(16px * 1.125); }
 /*  components/links/links.css  */
 :where(:root[data-text=large]) .link-monogram:not(#\-)::before { font-size: calc(10px * 1.125); }
 :where(:root[data-text=large]) .links-item small:not(#\-) { font-size: calc(14px * 1.125); }

@@ -61,6 +61,7 @@ import {BODY_EXTRAS} from '../body-extras/schema';
 import {ACTIVITY_EXTRAS} from '../aw-kcal/activity-extras';
 import {NOTE_SEARCHES} from '../notes/saved-searches';
 import {TIMERS} from '../timers/store';
+import {GOAL_REPEAT} from '../goals/repeat';
 import {WORKOUT_PLACES} from '../workouts/places-schema';
 import {PLANNED_WORKOUTS} from '../workouts/planned';
 import {RACES} from '../workouts/races';
@@ -304,6 +305,8 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('noteSearches', 'Saved searches of notes', 'Today and Life', NOTE_SEARCHES),
   // Session AW (#440, TIER 3 stored formats): your named timers, kept to start again.
   dev('timers', 'Timers: your named timers', 'Today and Life', TIMERS),
+  // Session AW (#447, TIER 3 stored formats): which goals start again, and a project's earlier results.
+  dev('goalRepeat', 'Goals that start again', 'Goals and Wealth', GOAL_REPEAT),
   dev('lowDay', 'On a low day', 'Health', LOW_DAY, true),
   dev('bringUp', 'To bring up at a visit', 'Health', BRING_UP, true),
   dev('foodPlus', 'Food diary extras (times, weekday macros, check-in)', 'Health', FOOD_PLUS, true),

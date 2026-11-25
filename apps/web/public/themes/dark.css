@@ -8023,6 +8023,15 @@
         border-color: currentcolor
     }
 }
+/*  components/goals/goal-repeat.css  */
+@scope (:root[data-theme=dark]) {
+    .goal-repeat-rows li:not(#\-) {
+        border-color: var(--line)
+    }
+    .goal-repeat-rows li span:not(#\-) {
+        color: var(--text-secondary)
+    }
+}
 /*  components/goals/goal-tree.css  */
 @scope (:root[data-theme=dark]) {
     :scope .goal-tree-tools .quiet:not(#\-) {

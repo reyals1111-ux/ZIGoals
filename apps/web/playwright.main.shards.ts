@@ -54,6 +54,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
     'landing-v5-layout.spec.ts', 'motion-arrival.spec.ts', 'nova-stage-am2.spec.ts', 'owner-polish.spec.ts',
     'path-engine.spec.ts', 'phone-folds.spec.ts', 'run11-food-unknown.spec.ts', 'today-v2.spec.ts',
     'trader-tools-aj.spec.ts', 'universe-guided-aj.spec.ts', 'zigi-question-context.spec.ts',
+    'aw-x4-strides.spec.ts', // Session AW: new spec, counted 1 worker-min until measured
   ],
   // Shard 2, 62.0 worker-min.
   [
@@ -427,7 +428,7 @@ export const MAIN_SHARDS: readonly (readonly string[])[] = [
 ];
 
 /** Measured worker-minutes per list (the comments above); a new spec goes to the smallest. */
-export const MAIN_SHARD_MINUTES: readonly number[] = [62.0, 62.0, 62.0, 62.9, 62.0, 62.0, 62.0, 62.9, 62.0, 62.0, 62.0, 62.0, 62.0, 62.9, 62.9, 62.9, 62.9, 62.0, 62.0, 62.0];
+export const MAIN_SHARD_MINUTES: readonly number[] = [63.0, 62.0, 62.0, 62.9, 62.0, 62.0, 62.0, 62.9, 62.0, 62.0, 62.0, 62.0, 62.0, 62.9, 62.9, 62.9, 62.9, 62.0, 62.0, 62.0];
 
 /** Every spec under `testsDir` that the main suite selects (all but the accessibility sweep), relative, sorted. */
 export function mainSpecFiles(testsDir: string): string[] {
