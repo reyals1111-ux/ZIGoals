@@ -70,7 +70,7 @@ function useSoonAnswer(a: Ask): LocalReply | null {
   }
   const lines = [...soon, ...past].slice(0, 20).map(i => soonLine(a, i));
   const head = say(a.lang, `From what is at home, use these first (within three days, then past their day):`, `Van wat je in huis hebt, maak deze eerst op (binnen drie dagen, dan over de datum):`);
-  const note = say(a.lang, 'From the use-by days you set in Health → Planner → Grocery list; a date is yours to check, not a food-safety rule.', 'Uit de uiterste datums die je zette in Health → Planner → Grocery list; een datum controleer je zelf, het is geen voedselveiligheidsregel.');
+  const note = say(a.lang, 'From the use-by days you set in Health → Planner → Grocery list; the food itself is yours to check too.', 'Uit de uiterste datums die je zette in Health → Planner → Grocery list; kijk zelf ook naar het eten.');
   return answer([head, ...lines, note].join('\n'), PLANNER);
 }
 

@@ -3,6 +3,7 @@ import {AW_X5} from '../evals/as/cases-aw-x5';
 import {DAY, freshAll, novaEnv, showcaseAll, zigiEnv} from '../evals/as/harness';
 import type {ToolSources} from '../tools/env';
 import {buildShowcase} from '../../showcase-data';
+import {healthSchema, HEALTH_STORAGE_KEY} from '../../health';
 import {FOOD_PLUS_KEY, foodPlusSchema} from '../../food-plus/schema';
 import {GROCERY_KEY, groceryRecordSchema} from '../../grocery/schema';
 import {awX5Answer, type AwX5Extra} from './aw-x5-paprika';
@@ -61,8 +62,9 @@ describe('#454 the menu for next week', () => {
     expect(en).toMatch(/^Nothing is planned for next week yet \(Mon, Nov 23 – Sun, Nov 29\)\. Menus you kept: Soup week \(Showcase\) \(5 meals on 5 days\)/);
     expect(text(zigi('wat is mijn menu voor volgende week'))).toContain('Menu’s die je bewaarde: Soup week (Showcase) (5 maaltijden op 5 dagen)');
   });
-  test('this week: the soup dinners, day by day', () => {
-    const en = text(zigi('what is on my menu this week'));
+  test('this week: the soup dinners, day by day (the Showcase’s own plans, which the tools’ fixture leaves out)', () => {
+    const health = healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!));
+    const en = text(zigi('what is on my menu this week', {...showcaseAll(), health}));
     expect(en).toContain('Your menu for this week (Mon, Nov 16 – Sun, Nov 22), from your meal plans:');
     expect(en).toContain('• Tue, Nov 17, dinner: Showcase pea soup');
   });
