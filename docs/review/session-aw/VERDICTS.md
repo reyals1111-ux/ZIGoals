@@ -481,6 +481,24 @@ Each row the draft listed under "Rows without an allowed cause" now has one:
 | A45-1 (the sync engine's weight) | **already have** `components/vault-sync-lazy.tsx:11` (lazy since AV) |
 | UNFINISHED CI rows (CI-1, CI-4, CI-6, CI-8–CI-12, CI-14), `zigi-browser-agents:126`, D34, `sign-in-codes-browser` | each in the STATUS entry's CI table with its run evidence: fixed at the cause in this session, green in the AW runs ("already have: green in CI run N"), or Carried: 2 failed attempts |
 
+### The CI rows, with run evidence (the integrator, 26 Nov)
+The evidence is CI runs 2031–2038, eight full runs of Session AW, each read failure by failure from its job logs.
+"Green" means the test passed on its first attempt in every run where its job finished.
+
+| Row | Verdict |
+|---|---|
+| CI-1 WebKit class A (a navigation after cancelled loads) | **already have: green in runs 2031–2038**. No WebKit test failed this way; WebKit ran in six shards from `48eb8149` on. The helper is not built: there is no failure for it to fix. |
+| CI-4 `hosted-verifier-order:18` | **already have: green in runs 2031–2038**. It was only ever red in the sandbox. |
+| CI-6 sandbox-only reds | **already have: green in runs 2031–2038** (they pass in CI, as recorded). |
+| CI-8 `landing-v5-perf:79` | **already have: green in runs 2031–2038** |
+| CI-9 `zigi-states:75` | **already have: green in runs 2031–2038** |
+| CI-10 `hud-perf:23` | **already have: green in runs 2031–2038** |
+| CI-11 the rest (`for-you:8`, `progress-glass:60`, `zigi-voice-z:316`, `j06-data-safety:140`, `j05-notifications:159`) | **already have: green in runs 2031–2038**. `j06`'s Notifications wait was fixed at its cause (Settings' late targets, `whenOnPage`). |
+| CI-12 `zigi-face-z:313`, `zigi-memory-af:15`, `o3-apps-extras:80` | **already have: green in runs 2031–2038**. `zigi-face-z:197` timed out once on WebKit in 2037, a different test; it is watched. |
+| CI-14 `install-chrome.test.mjs:94` | **already have: green in every unit run of 2031–2038** (latent, never seen) |
+| `zigi-states:200` (WebKit, red in 2033 and 2035) | attempt 1 `3998d8a9` (ADR-046 D-ZIGI200); the verdict comes from the next runs |
+| `nova-dashboard:210` (D36) | the registered intermittent (docs/STATUS.md, Known CI intermittents): red on both attempts once, in 2037; green in the other seven runs. It stays registered. |
+
 Found while building, outside the ledger (each fixed at its cause):
 - The policy had no `media-src`, so a journal voice note never played in a production build (TIER 3 CSP `305431f5`).
 - ZIGi and NOVA could read a reply in an online voice outside Strict (TIER 3 AI tools `4509a812`).
