@@ -1,4 +1,5 @@
 import {owedAfterPayments} from '../../accounts/net-worth';
+import {localDate} from '../../local-date';
 import {isDebtKind, type Account} from '../../accounts/schema';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, closed, count, dayIn, isQuestion, list, MIXED, moneyIn, say, type Asked} from './av-words';
@@ -85,7 +86,7 @@ function owedNl(a: Asked): LocalReply | null {
   const calls = [{tool: 'accounts', args: {}, label: 'Accounts and debts'}];
   const debts = (a.env.accounts?.items ?? []).filter(x => isDebtKind(x.kind) && !x.archivedAt);
   if (!debts.length) return answer(`Er staat geen schuld in ${PLACE} op dit apparaat.`, calls);
-  const rows = debts.map(account => ({account, owed: owedAfterPayments(account, a.today)}));
+  const day = localDate(a.env.now), rows = debts.map(account => ({account, owed: owedAfterPayments(account, day)})); // Review fix: Wealth's row's day
   const known = rows.filter(r => r.owed), unknown = rows.length - known.length;
   if (!known.length) return answer(`Geen van je schulden heeft al een saldo; voeg het toe in ${PLACE}.`, calls);
   const minor = (m: {value: bigint; decimals: number}) => m.decimals === 2 ? m.value : m.decimals < 2 ? m.value * 10n ** BigInt(2 - m.decimals) : m.value / 10n ** BigInt(m.decimals - 2);

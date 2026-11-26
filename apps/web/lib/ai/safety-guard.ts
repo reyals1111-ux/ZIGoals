@@ -181,13 +181,28 @@ export const LOAN_ADVICE: readonly RegExp[] = [
   /\b(?:should|shall) i (?:borrow|refinance|consolidate|remortgage)\b/,
   /\b(?:should|shall) i (?:\w+ ){0,2}(?:pay (?:off|down)|repay|clear)\b[^.?!]{0,40}\b(?:or|first|early|before|instead)\b/,
   /\bwhich (?:debts?|loans?|cards?|credit cards?) should i\b/,
-  new RegExp(String.raw`\bis it (?:a |an )?(?:good|bad|smart|wise|sensible|clever|dumb|stupid|better) (?:idea |move |choice )?(?:to|if i)\b[^.?!]{0,60}\b${MONEY_OBJECTS}\b`),
+  // Review fix (fr-money): "is it bad/better/smart to …" only with a choice in it ("take a loan", "borrow", "first", "or",
+  // "instead"): "Is it bad if I missed a loan payment?" is a worry about a record, not an ask for advice.
+  new RegExp(String.raw`\bis it (?:a |an )?(?:good|bad|smart|wise|sensible|clever|dumb|stupid|better) (?:idea |move |choice )?(?:to|if i)\b(?=[^.?!]{0,80}\b(?:instead|or|first|take|taking|borrow(?:ing)?|refinanc(?:e|ing)|consolidat(?:e|ing))\b)[^.?!]{0,60}\b${MONEY_OBJECTS}\b`),
   /(?:^|[,;] )(?:moet|zal) ik\b[^.?!]{0,40}\b(?:lening|krediet|hypotheek|geld)\b[^.?!]{0,30}\b(?:nemen|afsluiten|aangaan|aanvragen|lenen)\b/,
   /(?:^|[,;] )(?:moet|zal) ik (?:\w+ ){0,3}(?:aflossen|afbetalen|lenen|oversluiten)\b/, // "hoeveel moet ik nog aflossen" stays a lookup
   /\bkan ik (?:beter|het beste)\b[^.?!]{0,40}\b(?:aflossen|afbetalen|lenen|sparen|beleggen|investeren|oversluiten)\b/,
   /\bwelke (?:schuld|schulden|lening|leningen|kaart|creditcard)\b[^.?!]{0,15}\b(?:moet|zal) ik\b/,
-  /\bis het (?:een )?(?:slim|slimme|verstandig|goed|goede|beter|handig)e? (?:idee |zet |keuze )?om\b[^.?!]{0,60}\b(?:lening|lenen|krediet|hypotheek|beleggen|investeren|aflossen|af te lossen|af te betalen|staken|kopen|verkopen|spaargeld|over te sluiten|creditcard|schuld|schulden)\b/,
+  /\bis het (?:een )?(?:slim|slimme|verstandig|goed|goede|beter|handig)e? (?:idee |zet |keuze )?om\b(?=[^.?!]{0,80}\b(?:of|eerst|in plaats van|nemen|lenen|afsluiten|oversluiten|over te sluiten|aflossen|af te lossen)\b)[^.?!]{0,60}\b(?:lening|lenen|krediet|hypotheek|beleggen|investeren|aflossen|af te lossen|af te betalen|staken|kopen|verkopen|spaargeld|over te sluiten|creditcard|schuld|schulden)\b/,
 ];
+/**
+ * Review fix (fr-money): a question about the records or keeping them is never read as an ask for advice: "nog" ("Moet ik
+ * deze maand nog aflossen?", "ZIGi, moet ik nog lenen?"), and keeping track ("Is het slim om mijn schulden bij te houden?",
+ * "Is it better to log my debts weekly?"), or a payment missed ("Is it bad if I missed a loan payment?").
+ */
+const RECORD_ASK = /\b(?:nog|bijhouden|bij te houden|bijhoudt|bijhoud|noteren|vastleggen|log|logs|logging|logged|record|recording|recorded|track|tracking|tracked|missed|gemist|vergeten|forgot|forgotten)\b/;
+/** A borrowing or paying-off advice question (EN + NL), the records' own questions left out. */
+export const isLoanAdvice = (text: string): boolean => !RECORD_ASK.test(text) && LOAN_ADVICE.some(p => p.test(text));
+/** Review fix (fr-money): the no-advice line for borrowing and paying off debts, with a debt example (still no advice). */
+export const DEBT_ADVICE_REPLY: Record<GuardLanguage, string> = {
+  en: 'I can’t advise on borrowing or on which debt to pay off first: that choice is yours. I can show the facts from your records here, for example “What do I owe?” or “How much have I paid off this month?”.',
+  nl: 'Ik kan geen advies geven over lenen of over welke schuld je eerst aflost: die keuze is aan jou. Ik kan de feiten uit je gegevens laten zien, bijvoorbeeld “Hoeveel schuld heb ik?” of “Hoeveel heb ik deze maand afgelost?”.',
+};
 
 // ---- advice (fifth pass, L7-5a; #031, DVR:D-061, N-030, C-DVG-100): "should I put my savings into ZIG?", "Moet ik al mijn
 // spaargeld in ZIG steken?", "Should I stop my diet?". Not a guard topic: with an AI connected the question still goes to it
@@ -210,7 +225,6 @@ const MONEY_ADVICE: RegExp[] = [
   /\b(?:moet|zal) ik (?:\w+ )?(?:beleggen|investeren|staken|unstaken)\b/, /\b(?:raad|adviseer) je (?:me |mij )?(?:aan )?(?:om )?(?:te )?(?:kopen|verkopen|beleggen|investeren|staken)\b/,
   /\bis (?:het|nu) (?:een )?(?:goed|slim|juist|het juiste|goede|slimme)e? (?:moment|tijd|idee)\b[^.?!]{0,15}\bom\b[^.?!]{0,30}\b(?:te )?(?:kopen|verkopen|beleggen|investeren|staken|in te stappen|uit te stappen)\b/,
   /\bwelke (?:munt|munten|coin|coins|crypto|token|tokens|aandeel|aandelen|etf|validator|fonds)\b[^.?!]{0,15}\b(?:moet|zal) ik\b/, /\bwaar(?:in)? (?:moet|zal) ik (?:mijn (?:geld|spaargeld) )?(?:in )?(?:beleggen|investeren)\b/,
-  ...LOAN_ADVICE,
 ];
 const HEALTH_ADVICE: RegExp[] = [
   new RegExp(String.raw`\b(?:should|shall|must) i (?:\w+ )?(?:stop|start|quit|skip|take|keep taking|come off|go off|change|double|halve|increase|reduce|lower|cut)\b[^.?!]{0,30}\b${HEALTH_THINGS}\b`),
@@ -235,7 +249,7 @@ export const ADVICE_REPLIES: Record<AdviceTopic, Record<GuardLanguage, string>> 
 export function adviceTopic(raw: string): AdviceTopic | null {
   const text = norm(raw);
   if (!text) return null;
-  if (MONEY_ADVICE.some(p => p.test(text))) return 'money';
+  if (MONEY_ADVICE.some(p => p.test(text)) || isLoanAdvice(text)) return 'money';
   if (HEALTH_ADVICE.some(p => p.test(text))) return 'health';
   return null;
 }
@@ -414,7 +428,8 @@ export function safetyFirst(raw: string): SafetyHit | null {
   const advice = adviceTopic(raw);
   if (!advice) return null;
   const lang = guardLanguage(raw);
-  return {kind: 'advice', topic: advice, lang, text: ADVICE_REPLIES[advice][lang]};
+  // Review fix (fr-money): a borrowing or paying-off question gets the debt line; every other money ask keeps its own.
+  return {kind: 'advice', topic: advice, lang, text: advice === 'money' && isLoanAdvice(norm(raw)) ? DEBT_ADVICE_REPLY[lang] : ADVICE_REPLIES[advice][lang]};
 }
 /** Words that read as an instruction or a fake system voice inside a record's name, a note or a file (never obeyed). */
 export function looksLikeInjection(raw: string | null | undefined): boolean {
