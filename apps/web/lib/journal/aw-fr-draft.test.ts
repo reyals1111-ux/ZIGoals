@@ -1,7 +1,7 @@
 import {describe, expect, test} from 'vitest';
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
-import {DRAFT_DELAY_MS, JOURNAL_DRAFT_KEY, draftBackLine, draftOf, draftWorthKeeping, journalDraftSchema, keepJournalDraft, readJournalDraft} from './draft';
+import {DRAFT_DELAY_MS, JOURNAL_DRAFT_KEY, draftBackLine, draftOf, draftWorthKeeping, journalDraftSchema, keepJournalDraft, readJournalDraft, savedAlready} from './draft';
 import {MAX_TEXT} from './schema';
 import {ALL_TEMPLATES, onlyHeadings, templateText} from '../journal-prompts/templates';
 
@@ -61,6 +61,34 @@ describe('the journal draft record', () => {
   });
 });
 
+describe('review fixes: the entry\'s choices, secrets, and two tabs', () => {
+  test('what the entry is about, a letter, its journal and a dream night are kept with the words and read back', () => {
+    const s = store();
+    const d = draftOf({day: '2026-11-30', text: 'Dear future me, a fictional letter.', tags: '', template: null, now: NOW, worth: true, choices: {period: '2026-11', opens: 'day', opensDay: '2027-11-30', book: 'j-abcd1', dream: '2026-11-29'}})!;
+    expect(d).toEqual({day: '2026-11-30', text: 'Dear future me, a fictional letter.', at: NOW.toISOString(), period: '2026-11', opens: 'day', opensDay: '2027-11-30', book: 'j-abcd1', dream: '2026-11-29'});
+    keepJournalDraft(s, d);
+    expect(readJournalDraft(s)).toEqual(d);
+    // The main Journal chosen on purpose is kept as null; a day to open is kept only for "On a day I choose".
+    expect(draftOf({day: '2026-11-30', text: 'Fictional.', tags: '', template: null, now: NOW, worth: true, choices: {book: null, opens: 'year', opensDay: '2027-01-01'}})).toEqual({day: '2026-11-30', text: 'Fictional.', at: NOW.toISOString(), book: null, opens: 'year'});
+    expect(draftOf({day: '2026-11-30', text: 'Fictional.', tags: '', template: null, now: NOW, worth: true, choices: {period: undefined, opens: undefined, book: undefined, dream: null}})).toEqual({day: '2026-11-30', text: 'Fictional.', at: NOW.toISOString()});
+  });
+  test('an unreadable choice drops alone; the words still come back', () => {
+    const raw = {version: 1, draft: {day: '2026-11-30', text: 'Fictional.', at: NOW.toISOString(), period: '2026-13', opens: 'decade', opensDay: 'soon', book: 'Travel', dream: 7}};
+    expect(readJournalDraft(store({[JOURNAL_DRAFT_KEY]: JSON.stringify(raw)}))).toEqual({day: '2026-11-30', text: 'Fictional.', at: NOW.toISOString()});
+  });
+  test('text the secret guard flags is never a draft', () => {
+    expect(draftOf({day: '2026-11-30', text: 'Fictional words.', tags: 'a', template: null, now: NOW, worth: true, secret: true})).toBeNull();
+  });
+  test('words already saved on the draft\'s day or today (another tab) count as saved', () => {
+    const entries = [{date: '2026-11-30', text: 'A fictional walk.'}, {date: '2026-11-28', text: 'Older words.'}];
+    expect(savedAlready(entries, {day: '2026-11-30', text: '  A fictional walk.\n'}, '2026-11-30')).toBe(true);
+    expect(savedAlready(entries, {day: '2026-11-29', text: 'A fictional walk.'}, '2026-11-30')).toBe(true);
+    expect(savedAlready(entries, {day: '2026-11-30', text: 'Older words.'}, '2026-11-30')).toBe(false);
+    expect(savedAlready(entries, {day: '2026-11-30', text: 'A fictional walk, and more.'}, '2026-11-30')).toBe(false);
+    expect(savedAlready(entries, {day: '2026-11-30', text: '  '}, '2026-11-30')).toBe(false);
+  });
+});
+
 describe('only the person\'s own words are kept', () => {
   test('empty, a template\'s headings or the words a template put in are not a draft', () => {
     expect(draftWorthKeeping('', [], onlyHeadings)).toBe(false);
@@ -102,6 +130,14 @@ describe('the Journal page (source)', () => {
     expect(src).toContain('>Discard draft</button>');
     expect(src).toMatch(/if \(!compact\) forgetDraft\(\);/);
     expect(src).toMatch(/addEventListener\('pagehide'/);
+  });
+  test('the guard reads the box before a draft is written; a draft that came back skips ?dream= and ?quote=', () => {
+    const block = src.slice(src.indexOf('const [guard, setGuard]'), src.indexOf("if (!journal.loaded || !energy.loaded) return"));
+    expect(block).toMatch(/if \(long && !guard\) return;/);
+    expect(block).toMatch(/guard\.looksSecret\(text\)/);
+    expect(block).toMatch(/draftOf\(\{[^}]*secret,/);
+    expect(src).toMatch(/if \(compact \|\| fromDraft\.current\) return; try \{ const d = new URLSearchParams\(window\.location\.search\)\.get\('dream'\)/);
+    expect(src).toMatch(/if \(compact \|\| !journal\.loaded \|\| fromDraft\.current\) return;[^\n]*\n\s*let id: string \| null = null;\n\s*try \{ id = new URLSearchParams\(window\.location\.search\)\.get\('quote'\)/);
   });
   test('the words are never sent or logged', () => {
     for (const s of [draft]) expect(s).not.toMatch(/\bfetch\(|console\.|sendBeacon|XMLHttpRequest/);
