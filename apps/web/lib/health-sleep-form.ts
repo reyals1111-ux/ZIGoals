@@ -51,6 +51,22 @@ export function nightTimeIssues(times: NightTimes, kind: 'night' | 'nap', nowMs:
   return out;
 }
 
+/**
+ * Session AW (FR-AW-8): a bed time typed after midnight with the form's default bed date (the evening before) and before
+ * the wake time, as 00:30 → 07:00, is a night of more than 24 hours that nobody meant: it is read as bed on the wake day.
+ * Only when the typed dates are one day apart, the night as typed is longer than 24 hours and the moved one is not
+ * (so a real 24-hour span, and every other mistake, still reaches nightTimeIssues unchanged). `bedMoved` says it moved.
+ */
+export function readNightDates(times: NightTimes, zone: string): {times: NightTimes; bedMoved: boolean} {
+  const {bedDate, bedTime, wakeDate, wakeTime} = times;
+  if (!bedDate || !bedTime || !wakeDate || !wakeTime || bedDate < JOURNAL_MIN_DAY || bedDate !== addDays(wakeDate, -1) || bedTime >= wakeTime) return {times, bedMoved: false};
+  const end = instantAt(wakeDate, wakeTime, zone);
+  if ((end - instantAt(bedDate, bedTime, zone)) / MINUTE <= MAX_MINUTES) return {times, bedMoved: false};
+  const moved = instantAt(wakeDate, bedTime, zone);
+  if (end <= moved || (end - moved) / MINUTE > MAX_MINUTES) return {times, bedMoved: false};
+  return {times: {...times, bedDate: wakeDate}, bedMoved: true};
+}
+
 /** A whole number typed in an optional field, or undefined when blank; `issue` says what is wrong, for its own field. */
 export function optionalWhole(raw: string, max: number, what: 'minutes' | 'count'): {value?: number; issue?: string} {
   const text = raw.trim();
