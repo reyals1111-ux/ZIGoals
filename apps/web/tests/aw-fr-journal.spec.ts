@@ -41,6 +41,8 @@ for (const p of PROFILES) test(`${p.theme}${p.showcase ? ' (Showcase)' : ''}: a 
   const write = page.getByRole('region', {name: 'Write'}), form = page.getByRole('form', {name: 'Write in your journal'});
   const entry = form.getByLabel('Today’s entry'), save = form.getByRole('button', {name: 'Save entry', exact: true});
   await entry.fill(WORDS);
+  // Kept once the secret guard has read it (its code loads as the Journal opens); leaving at once is checked below.
+  await expect.poll(() => storedDraft(page), 'the draft is kept on this device').toBe(WORDS);
 
   // Save entry within one screen of the box (above the phone's tab bar), and before every optional extra.
   await entry.scrollIntoViewIfNeeded();
@@ -81,6 +83,14 @@ for (const p of PROFILES) test(`${p.theme}${p.showcase ? ' (Showcase)' : ''}: a 
   // Save entry keeps the entry and removes the draft; a reload then shows an empty box and no line.
   await save.click();
   await expect(write.locator('.journal-status')).toHaveText('Saved in your journal, on this device.');
+  // Session AW (fr-journal, integrated run): after a save ZIGi's one follow-up question takes the form's place (existing
+  // behaviour, drawn in the same step as the status line); a person leaves it with "Not now" and is back at the box.
+  const followUp = write.getByRole('form', {name: 'ZIGi\'s question'});
+  if (await followUp.count()) {
+    await expect(followUp.getByLabel('Your answer — optional')).toBeVisible();
+    await followUp.getByRole('button', {name: 'Not now'}).click();
+    await expect(followUp).toHaveCount(0);
+  }
   await expect(entry).toHaveValue('');
   await expect.poll(() => storedDraft(page)).toBeNull();
   await page.reload(); await hydrated(page);
@@ -103,8 +113,9 @@ test('an empty box, a template\'s headings alone, or a cleared box keep no draft
   await page.reload(); await hydrated(page);
   await expect(entry).toHaveValue('');
   await expect(form.locator('.journal-draft-line')).toHaveCount(0);
-  // Leaving within a moment of typing still keeps it (written as the page goes, not only after the pause).
-  await entry.fill('Fictional words, left at once.');
+  // Leaving within a moment of typing still keeps it (written as the page goes, not only after the pause). Short words
+  // (under the secret guard's 16 characters) need no guard to have loaded first.
+  await entry.fill('Left at once.');
   await page.reload(); await hydrated(page);
-  await expect(entry).toHaveValue('Fictional words, left at once.');
+  await expect(entry).toHaveValue('Left at once.');
 });
