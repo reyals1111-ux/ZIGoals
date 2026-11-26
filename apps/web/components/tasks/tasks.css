@@ -305,7 +305,9 @@
 /* Session AV lane 2 (tasks-r2, LEDGER #225): "Print this list" under the list. */
 .tasks-print-line { margin: 8px 0 0; }
 .tasks-print-line button { min-height: 44px; font-size: 16px; }
-/* Session AW (CI run 2034 and the local re-run, a10-life A10-11): the line's syntax hint ("A day, a time, …") shows once the
-   field is focused (typing, or a control of the form), so "New task" and the first task fit the first screen at 768; it stays
-   the field's description for a screen reader either way. Layout only. */
-.tasks-smart-add:not(:focus-within) > .tasks-smart-help { display: none; }
+/* Session AW (CI run 2034 and the local re-run, a10-life A10-11): the line's syntax hint ("A day, a time, …") shows while
+   the line has words in it, so "New task" and the first task fit the first screen at 768; it stays the field's description
+   for a screen reader either way. Layout only. CI run 2038: it followed the focus before, so pressing a row's Edit (or any
+   control below) after adding a task hid it mid-press, the rows moved up under the pointer and the release missed the
+   button; it now changes only as the line is typed or cleared, never on a press elsewhere. */
+.tasks-smart-add:has(.tasks-smart-row input:placeholder-shown) > .tasks-smart-help { display: none; }
