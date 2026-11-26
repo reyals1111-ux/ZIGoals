@@ -186,13 +186,11 @@ const NEVER_RESTORED_PERSONAL: Record<string, string> = {
   'zigoals:staking-journal:v1': 'the staking journal', 'zigoals:validator-alerts:v1': 'validator health alerts',
   'zigoals:wallet-balances:v1': 'linked wallet balances', 'zigoals:goal-vaults:v1': 'Goal Vault links', 'zigoals:zigi-plans:v1': 'ZIGi\'s plans',
   'zigoals:universe:v1': 'My universe milestones', 'zigoals:day-timeline:v1': 'Day timeline times',
-  // GAP (Session AW Part 6; lib/restore/plan.ts:409 NEVER_RESTORED): these personal records are in Export everything and
-  // a restore never writes them, and NEVER_RESTORED does not say so. Each fails below until the integrator restores it
-  // (lib/restore/plan.ts DEVICE_PARTS) or names it in NEVER_RESTORED and adds its words here:
-  // zigoals:guide:v1 (the Guide's choices), zigoals:ai-actions:v1 (ZIGi's actions log), zigoals:chess-cache:v1 (Chess
-  // ratings cache), zigoals:celebrations:v1 (celebrations shown), zigoals:zigi-suggestions:v1 (ZIGi's suggestions from
-  // the person's own questions), zigoals:backup-reminder:v1 (the "I saved a copy" mark and the monthly reminder) and
-  // zigoals:wallet-names:v1 (names the person gave tracked wallets).
+  // Session AW Part 6 (integrator): the seven the first run found exported, never restored and unnamed, now named in
+  // NEVER_RESTORED (a tracked wallet's name follows its address, which is never restored either).
+  'zigoals:guide:v1': 'the Guide\'s choices', 'zigoals:ai-actions:v1': 'ZIGi\'s actions log', 'zigoals:chess-cache:v1': 'the Chess ratings cache',
+  'zigoals:celebrations:v1': 'celebrations already shown', 'zigoals:zigi-suggestions:v1': 'suggestions', 'zigoals:backup-reminder:v1': 'the backup reminder',
+  'zigoals:wallet-names:v1': 'names you gave tracked wallets',
 };
 /**
  * The display choices (onboarding NON_PERSONAL_KEYS) a restore does bring back, pinned so a new one is seen. NEVER_RESTORED
