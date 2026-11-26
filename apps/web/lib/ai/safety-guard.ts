@@ -171,6 +171,24 @@ const INJECTION: RegExp[] = [
   /\b(?:doe alsof|speel|stel je voor dat)\b[^.?!\n]{0,30}\b(?:je|jij)\b[^.?!\n]{0,40}\b(?:dan|zonder regels|zonder grenzen|geen regels|onbeperkt|ongefilterd)\b/, /\bje hebt geen regels\b/,
 ];
 
+// ---- Session AW (fr-money, FR-AW-11): borrowing, paying off and "is it smart to" money questions (EN + NL). ZIGi answered
+// "Is it smart to take a loan to pay my card?" with the task list; it gets the same no-advice line as "Should I invest?".
+// A money object is always named ("is it smart to walk after dinner?" stays ordinary), and a question about the records
+// ("how much is left on my loan?", "hoeveel heb ik afgelost?", "hoeveel moet ik nog aflossen?") has no advice ask, so it stays a lookup.
+const MONEY_OBJECTS = String.raw`(?:loans?|borrow(?:ing)?|credit(?: card)?s?|debts?|mortgages?|overdraft|invest(?:ing|ment)?|stak(?:e|ing)|savings|refinanc(?:e|ing)|consolidat(?:e|ing)|crypto|bitcoin|btc|eth|stocks?|shares|etfs?)`;
+export const LOAN_ADVICE: readonly RegExp[] = [
+  /\b(?:should|shall|must) i\b[^.?!]{0,30}\b(?:take (?:out )?|get |apply for |borrow )(?:a |an |another |some )?(?:new |personal |bank |consolidation |payday |car |student )?(?:loan|credit line|line of credit|mortgage|overdraft)\b/,
+  /\b(?:should|shall) i (?:borrow|refinance|consolidate|remortgage)\b/,
+  /\b(?:should|shall) i (?:\w+ ){0,2}(?:pay (?:off|down)|repay|clear)\b[^.?!]{0,40}\b(?:or|first|early|before|instead)\b/,
+  /\bwhich (?:debts?|loans?|cards?|credit cards?) should i\b/,
+  new RegExp(String.raw`\bis it (?:a |an )?(?:good|bad|smart|wise|sensible|clever|dumb|stupid|better) (?:idea |move |choice )?(?:to|if i)\b[^.?!]{0,60}\b${MONEY_OBJECTS}\b`),
+  /(?:^|[,;] )(?:moet|zal) ik\b[^.?!]{0,40}\b(?:lening|krediet|hypotheek|geld)\b[^.?!]{0,30}\b(?:nemen|afsluiten|aangaan|aanvragen|lenen)\b/,
+  /(?:^|[,;] )(?:moet|zal) ik (?:\w+ ){0,3}(?:aflossen|afbetalen|lenen|oversluiten)\b/, // "hoeveel moet ik nog aflossen" stays a lookup
+  /\bkan ik (?:beter|het beste)\b[^.?!]{0,40}\b(?:aflossen|afbetalen|lenen|sparen|beleggen|investeren|oversluiten)\b/,
+  /\bwelke (?:schuld|schulden|lening|leningen|kaart|creditcard)\b[^.?!]{0,15}\b(?:moet|zal) ik\b/,
+  /\bis het (?:een )?(?:slim|slimme|verstandig|goed|goede|beter|handig)e? (?:idee |zet |keuze )?om\b[^.?!]{0,60}\b(?:lening|lenen|krediet|hypotheek|beleggen|investeren|aflossen|af te lossen|af te betalen|staken|kopen|verkopen|spaargeld|over te sluiten|creditcard|schuld|schulden)\b/,
+];
+
 // ---- advice (fifth pass, L7-5a; #031, DVR:D-061, N-030, C-DVG-100): "should I put my savings into ZIG?", "Moet ik al mijn
 // spaargeld in ZIG steken?", "Should I stop my diet?". Not a guard topic: with an AI connected the question still goes to it
 // (its own prompt says it can't advise, lib/ai/context/specialists.ts); on the device it is answered FIRST with the app's
@@ -192,6 +210,7 @@ const MONEY_ADVICE: RegExp[] = [
   /\b(?:moet|zal) ik (?:\w+ )?(?:beleggen|investeren|staken|unstaken)\b/, /\b(?:raad|adviseer) je (?:me |mij )?(?:aan )?(?:om )?(?:te )?(?:kopen|verkopen|beleggen|investeren|staken)\b/,
   /\bis (?:het|nu) (?:een )?(?:goed|slim|juist|het juiste|goede|slimme)e? (?:moment|tijd|idee)\b[^.?!]{0,15}\bom\b[^.?!]{0,30}\b(?:te )?(?:kopen|verkopen|beleggen|investeren|staken|in te stappen|uit te stappen)\b/,
   /\bwelke (?:munt|munten|coin|coins|crypto|token|tokens|aandeel|aandelen|etf|validator|fonds)\b[^.?!]{0,15}\b(?:moet|zal) ik\b/, /\bwaar(?:in)? (?:moet|zal) ik (?:mijn (?:geld|spaargeld) )?(?:in )?(?:beleggen|investeren)\b/,
+  ...LOAN_ADVICE,
 ];
 const HEALTH_ADVICE: RegExp[] = [
   new RegExp(String.raw`\b(?:should|shall|must) i (?:\w+ )?(?:stop|start|quit|skip|take|keep taking|come off|go off|change|double|halve|increase|reduce|lower|cut)\b[^.?!]{0,30}\b${HEALTH_THINGS}\b`),
