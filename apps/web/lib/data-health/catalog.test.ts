@@ -8,7 +8,8 @@ describe('Data health catalog (Session AA-Cloud Part 6)', () => {
     expect(new Set(keys).size).toBe(keys.length);
     // Session AW (X7, #461, deliberate): the catalogue also names Removed recently, which Export everything leaves out on
     // purpose; exactly that one key, never an exported one, so every exported key is still labelled once.
-    expect(KEPT_NOT_EXPORTED).toEqual(['zigoals:money-removed:v1']);
+    // Session AW (FR-AW-1, deliberate): the Journal's unsaved draft joins Removed recently (was: Removed recently alone).
+    expect(KEPT_NOT_EXPORTED).toEqual(['zigoals:money-removed:v1', 'zigoals:journal-draft:v1']);
     for (const key of KEPT_NOT_EXPORTED) expect(EVERYTHING_KEYS).not.toContain(key);
     expect([...keys].sort()).toEqual([...EVERYTHING_KEYS, ...KEPT_NOT_EXPORTED].sort());
     for (const e of [...SYNCED, ...DEVICE_ONLY]) expect(e.label.length).toBeGreaterThan(3);

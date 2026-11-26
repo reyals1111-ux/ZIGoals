@@ -41,6 +41,7 @@ import {AV_DISPLAY_KEYS, AV_PERSONAL_KEYS} from './av-device-keys';
 import {AV2_R6_NOTES_DISPLAY_KEYS} from './av2-r6-notes-keys';
 import {AV2_DISPLAY_KEYS, AV2_PERSONAL_KEYS} from './av2-device-keys';
 import {AW_X7_PERSONAL_KEYS} from './aw-x7-money-keys';
+import {AW_FR_JOURNAL_PERSONAL_KEYS} from './aw-fr-journal-keys';
 // AA-Cloud's six device keys as literals (ADR-022 B53): importing their store modules here would carry every schema into
 // each page that asks "is this device new?"; lib/onboarding.test.ts keeps the literals equal to the stores' constants.
 const GOAL_EXTRAS_KEY = 'zigoals:goal-extras:v1', AVERAGE_GOALS_KEY = 'zigoals:average-goals:v1', CALCULATOR_KEY = 'zigoals:calculator:v1', SEARCH_RECENT_KEY = 'zigoals:search-recent:v1', LIFE_REVIEW_KEY = 'zigoals:life-review:v1', TODAY_CARDS_KEY = 'zigoals:today-cards:v1';
@@ -97,7 +98,9 @@ export const DEVICE_RECORD_KEYS: readonly string[] = [HABIT_HEALTH_LINKS_KEY, HE
   // Session AV lane 2 (lib/av2-device-keys.ts).
   ...AV2_PERSONAL_KEYS,
   // Session AW X7 (lib/aw-x7-money-keys.ts, #461): Removed recently, personal and never exported, so outside AV2's lists.
-  ...AW_X7_PERSONAL_KEYS];
+  ...AW_X7_PERSONAL_KEYS,
+  // Session AW (FR-AW-1, lib/aw-fr-journal-keys.ts): the Journal's unsaved draft, personal and never exported.
+  ...AW_FR_JOURNAL_PERSONAL_KEYS];
 /**
  * Device keys that hold no personal records: display preferences, public caches and this flag. The sync offer's "Not now"
  * (lib/sync-offer/offer.ts, written as text here so this module stays free of its schema) joined in Session X Part 10, as

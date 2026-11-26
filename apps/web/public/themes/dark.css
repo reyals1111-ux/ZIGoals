@@ -13205,6 +13205,9 @@
     .day-pages-morning:not(#\-) {
         border-color: var(--line)
     }
+    .journal-compose-extras:not(#\-) {
+        border-top-color: var(--line)
+    }
 }
 /*  components/journal/on-this-day.css  */
 @scope (:root[data-theme=dark]) {

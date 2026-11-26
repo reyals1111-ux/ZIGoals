@@ -12607,6 +12607,9 @@
     .day-pages-morning:not(#\-):not(#\-) {
         border-color: color-mix(in srgb, var(--line) 40%, #fff)
     }
+    .journal-compose-extras:not(#\-):not(#\-) {
+        border-top-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .on-this-day-list li:not(#\-):not(#\-) {

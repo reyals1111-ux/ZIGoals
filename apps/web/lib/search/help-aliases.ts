@@ -7,6 +7,9 @@
  * lib/search/static.ts merges these into each Help item's keywords (the integrator's one-line wiring).
  */
 export const HELP_ALIASES: Readonly<Record<string, readonly string[]>> = {
+  // Session AW (persona walks, FR-AW-1 and FR-AW-8)
+  'aw-journal-draft': ['draft', 'unsaved', 'autosave', 'auto-save', 'lost entry', 'lost my journal', 'keep writing', 'concept', 'niet opgeslagen', 'day one draft', 'journey draft'],
+  'aw-sleep-after-midnight': ['after midnight', 'bedtime after midnight', 'night date', 'went to bed late', 'na middernacht'],
   // Tasks and planning (Todoist, TickTick, Things, Sunsama, Motion, Akiflow, OmniFocus, Microsoft To Do, Any.do, Structured)
   'av-task-notify': ['task reminder', 'push reminder', 'todoist reminders', 'ticktick reminders', 'notification'],
   'av-nl-tasks': ['natural language', 'quick add', 'nederlands', 'dutch', 'todoist quick add'],

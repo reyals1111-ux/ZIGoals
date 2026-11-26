@@ -4167,6 +4167,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .day-pages-morning dl:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4.5px; }
 :where(:root[data-density=compact]) .day-pages-morning dd:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .day-pages-settings form:not(#\-), :where(:root[data-density=compact]) .day-pages-reminder:not(#\-) { row-gap: 8px; margin-top: 8px; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .journal-draft-line:not(#\-) { row-gap: 4px; margin-top: 6px; margin-bottom: 6px; }
+:where(:root[data-density=compact]) .journal-compose-extras:not(#\-) { margin-top: 14px; padding-top: 6px; }
 /*  components/journal/on-this-day.css  */
 :where(:root[data-density=compact]) .on-this-day > summary:not(#\-) { row-gap: 4.5px; }
 :where(:root[data-density=compact]) .on-this-day-list:not(#\-) { margin-top: 6px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 9px; }

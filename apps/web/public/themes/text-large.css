@@ -2120,6 +2120,7 @@
 :where(:root[data-text=large]) .day-pages-morning dt:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .day-pages-morning dd:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .day-pages-time input:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .journal-draft-line:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/journal/on-this-day.css  */
 :where(:root[data-text=large]) .on-this-day-title:not(#\-) { font-size: calc(18px * 1.125); }
 :where(:root[data-text=large]) .today-journal-lines:not(#\-) { font-size: calc(15px * 1.125); }

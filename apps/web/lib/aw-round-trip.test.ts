@@ -23,6 +23,7 @@ import {indexedDbChatStore, newChat} from './ai/chats';
 import {AV2_R6_NOTES_NOT_RECORDS} from './av2-r6-notes-keys';
 import {AW_X6_NOT_RECORDS} from './aw-x6-keys';
 import {AW_X7_NOT_RECORDS} from './aw-x7-money-keys';
+import {AW_FR_JOURNAL_NOT_RECORDS} from './aw-fr-journal-keys';
 import {buildShowcase, showcaseChoices} from './showcase-data';
 import {showcasePortfolios} from './portfolio/showcase';
 import {defaultAiSettings} from './ai/settings';
@@ -146,7 +147,7 @@ function notRecords(): Record<string, string> {
   const out: Record<string, string> = {};
   for (const m of block.matchAll(/'(zigoals:[a-z0-9-]+:v\d+)':\s*'((?:[^'\\]|\\.)*)'/g)) out[m[1]!] = m[2]!;
   if (block.includes("'zigoals:goal-extras:' + 'v2'")) out['zigoals:goal-extras:' + 'v2'] = 'a reserved next version of the goal extras';
-  return {...out, ...AV2_R6_NOTES_NOT_RECORDS, ...AW_X6_NOT_RECORDS, ...AW_X7_NOT_RECORDS};
+  return {...out, ...AV2_R6_NOTES_NOT_RECORDS, ...AW_X6_NOT_RECORDS, ...AW_X7_NOT_RECORDS, ...AW_FR_JOURNAL_NOT_RECORDS};
 }
 const NOT_RECORDS = notRecords();
 const inSession = (reason: string) => reason.startsWith('sessionStorage');
@@ -344,7 +345,8 @@ describe('what is never restored stays away', () => {
     localStorage.clear();
   });
   test('Removed recently is catalogued, never exported, erased and never restored', () => {
-    expect(KEPT_NOT_EXPORTED).toEqual(['zigoals:money-removed:v1']);
+    // Session AW (FR-AW-1, deliberate): the Journal's unsaved draft joins Removed recently (was: Removed recently alone).
+    expect(KEPT_NOT_EXPORTED).toEqual(['zigoals:money-removed:v1', 'zigoals:journal-draft:v1']);
     expect(EVERYTHING_KEYS).not.toContain('zigoals:money-removed:v1');
     expect(JSON.stringify(opened.json)).not.toContain('rt-removed');
     expect(after['zigoals:money-removed:v1'] ?? null).toBeNull();
