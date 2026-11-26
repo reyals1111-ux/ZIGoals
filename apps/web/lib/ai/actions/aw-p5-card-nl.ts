@@ -3,7 +3,8 @@
  * the Life review: this week", "Opens /app/review on that period"), while the answer above it is Dutch. A card made on
  * this device for a Dutch question says its title and lines in Dutch; the screen it opens keeps the app's own English
  * name (Life review → This week), as the Dutch answers name screens, and the card's buttons stay the interface's own.
- * Only the Life review's cards (open-review, and open-page on the review's week or month) are said in Dutch here; nothing
+ * Only the Life review's cards (open-review, and open-page on the review's week or month) and the card to NOVA → Permissions
+ * (Session AW fr-answers, FR-AW-9) are said in Dutch here; nothing
  * of what the card does changes (the same navigation, the same device choice). Pure: a planned result in, the same out.
  */
 type Planned = {ok: true; plan: {card: {kind: string; title: string; lines: string[]}}};
@@ -14,12 +15,15 @@ const NL: readonly [RegExp, string][] = [
   [/^Opens \/app\/review on this week$/, 'Opent /app/review op deze week'],
   [/^Opens \/app\/review on this month$/, 'Opent /app/review op deze maand'],
   [/^The period is a choice kept on this device$/, 'De periode is een keuze die op dit apparaat blijft'],
+  // Session AW (fr-answers, FR-AW-9): the card to NOVA → Permissions under a Dutch Health-closed reply.
+  [/^Opens NOVA → Permissions, where Allow Health is$/, 'Opent NOVA → Permissions, waar Allow Health staat'],
+  [/^Nothing is written$/, 'Er wordt niets opgeslagen'],
 ];
 const say = (line: string) => { for (const [re, nl] of NL) if (re.test(line)) return nl; return line; };
 export function cardInLanguage<T extends {ok: boolean}>(result: T, lang: 'en' | 'nl' | undefined): T {
   if (lang !== 'nl' || !result.ok) return result;
   const r = result as unknown as Planned, kind = r.plan.card.kind;
-  if (kind !== 'open-review' && !(kind === 'open-page' && /^Open Life review → This (?:week|month)$/.test(r.plan.card.title))) return result;
+  if (kind !== 'open-review' && !(kind === 'open-page' && /^Open (?:Life review → This (?:week|month)|NOVA → Permissions)$/.test(r.plan.card.title))) return result;
   const card = {...r.plan.card, title: say(r.plan.card.title), lines: r.plan.card.lines.map(say)};
   return {...result, plan: {...r.plan, card}} as unknown as T;
 }

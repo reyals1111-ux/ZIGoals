@@ -32,7 +32,10 @@ describe('words', () => {
   // in NOVA → Permissions), as NOVA's reply does; as strictly: where, and the Today condition in plain words.
   test('MO-052/P-MO-12: the Health refusal names the one place to allow Health and no longer says "with Health on Today"', () => {
     expect(HEALTH_CLOSED).toMatch(/^Health isn’t shared with ZIGi here, so nothing from Health is read\. Tap Allow Health in NOVA → Permissions/);
-    expect(HEALTH_CLOSED).toContain('(the button is there once Health is on your Today page)');
+    // Session AW (fr-answers, FR-AW-9, deliberate): the bracket made friends doubt a button that was there; it is gone, and
+    // NOVA → Permissions says the one layout case the button cannot show (permissions-panel.tsx). As strictly: the whole end.
+    expect(HEALTH_CLOSED).toMatch(/Tap Allow Health in NOVA → Permissions: one tap opens Health to ZIGi and NOVA\.$/);
+    expect(HEALTH_CLOSED).not.toMatch(/\(|once Health is on your Today page/);
     expect(HEALTH_CLOSED).not.toContain('with Health on Today');
   });
   test('LA-015/P-LA-27: no microphone says what to do next', () => expect(recognitionErrorText('audio-capture')).toBe('No microphone was found: type instead.'));

@@ -143,6 +143,8 @@ describe('FR-S-16: ZIGi\'s Health-closed reply names the one action, Allow Healt
     if (!r.ok) return;
     expect(r.plan.navigate).toEqual({href: '/app/nova#nova-permissions', label: 'NOVA → Permissions'});
     expect(r.plan.card.title).toBe('Open NOVA → Permissions');
+    // Session AW (fr-answers, FR-AW-9): the place's name, never its path ("Opens /app/nova#nova-permissions" showed on the card).
+    expect(r.plan.card.lines).toEqual(['Opens NOVA → Permissions, where Allow Health is', 'Nothing is written']);
     expect(r.plan.undo).toBeNull();
     expect(planAction({kind: 'open-page', page: 'health', view: 'permissions'}, env).ok).toBe(false);
   });

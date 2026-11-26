@@ -47,6 +47,9 @@ export function refuse(tool: string, label: string, reason: ToolRefusal['reason'
 // Health in NOVA → Permissions opens Health to ZIGi and NOVA in one tap (it turns on NOVA's Health choice, "Health page data"
 // and "Include Health" together; components/nova/panels/permissions-panel.tsx), never the switches to find one by one.
 // Each stays a switch to close it again. The words still open "Health isn’t shared with ZIGi" (nova-env.ts HEALTH_REFUSAL).
-export const HEALTH_CLOSED = 'Health isn’t shared with ZIGi here, so nothing from Health is read. Tap Allow Health in NOVA → Permissions: one tap opens Health to ZIGi and NOVA (the button is there once Health is on your Today page).';
+// Session AW (fr-answers, FR-AW-9): without "(the button is there once Health is on your Today page)": the button was there
+// anyway and the bracket made friends doubt it. The one case it is not (Health off the Today layout), NOVA → Permissions
+// says so itself where the button would be (components/nova/panels/permissions-panel.tsx).
+export const HEALTH_CLOSED = 'Health isn’t shared with ZIGi here, so nothing from Health is read. Tap Allow Health in NOVA → Permissions: one tap opens Health to ZIGi and NOVA.';
 /** Session AU (D-ALLOW-HEALTH): the same sentence for a Dutch question on the device (ZIGi's own reply; tools and models keep the English one). */
-export const HEALTH_CLOSED_NL = 'Health wordt hier niet met ZIGi gedeeld, dus er wordt niets uit Health gelezen. Tik op Allow Health in NOVA → Permissions: één tik opent Health voor ZIGi en NOVA (de knop staat er zodra Health op je Today-pagina staat).';
+export const HEALTH_CLOSED_NL = 'Health wordt hier niet met ZIGi gedeeld, dus er wordt niets uit Health gelezen. Tik op Allow Health in NOVA → Permissions: één tik opent Health voor ZIGi en NOVA.';
