@@ -4,9 +4,9 @@ Read this first after a pause, a limit or a model switch; continue from "Next" w
 `feature/session-aw-finish-line` from `main` `8fa8aa1d` (Alpha #59), Draft PR "Session AW — Finish line". Rules:
 CLAUDE.md, the owner's brief, the plan and the approval, all verbatim in `docs/architecture/ADR-046-session-aw.md`.
 
-**Safe to merge now: set by run 2044** (on `54de2c88`, the same code as `c1eb7a1d`). Run 2043 on `c1eb7a1d` was green in
-every job: 0 failed, and 1 test green only on its retry (`aw-x2-marvin:51`, first sighting). The STATUS final entry
-records 2044's result.
+**Safe to merge now: yes (CI runs 2043 and 2044)**: every job green in both, 0 failed, no job re-run. The tests green
+only on their retry are named in CI_INTERMITTENTS.md. The run on the final docs-only head confirms it. If that run is red:
+fix at the cause (at most 2 attempts), record it in ADR-046 and STATUS, push again.
 
 ## Done
 - Part 0; ADR-046 with the plan and the owner's 12 amendments verbatim.
@@ -21,12 +21,10 @@ records 2044's result.
 - Part 7: OWNER_STEPS.md as one ordered checklist. Part 8 started: FRIENDS_GUIDE section "Session AW".
 
 ## In progress
-- Part 8: the ADR-046 closing table is committed (`ec7b2665`). The STATUS final entry comes once run 2044 finishes; it is
-  the final commit.
+- Nothing. Session AW is complete: the STATUS entry is the final commit.
 
 ## Next
-- When run 2044 ends: the STATUS final entry (last commit), push, the PR description, the ≤ 12-line report. If 2044 is
-  red: fix at the cause (at most 2 attempts), then push again.
+- The owner: merge PR #110, then OWNER_STEPS.md in order.
 
 ## Team
 - Builders as above; review/research: review b2 and the privacy audit. Hand-backs: scratchpad registry-<group>.md.
