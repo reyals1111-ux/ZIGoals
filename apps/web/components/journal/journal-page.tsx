@@ -6,7 +6,7 @@ import {formatDate, formatNumber, formatWeekday} from '../../lib/visual-format';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {addLocalDays} from '../../lib/local-date';
 import {journalDay} from '../../lib/journal/journal-day';
-import {DAY_PAGE_TEMPLATE, dayPagesOn, partWritten} from '../../lib/journal/day-pages';
+import {DAY_PAGE_TEMPLATE, dayPagesOn, partWritten} from '../../lib/journal/day-pages-lite';
 import {ENERGY, ENERGY_WORDS} from '../../lib/energy/schema';
 import {JOURNAL, restoreJournalEntry, type EntryVersion, type JournalEntry} from '../../lib/journal/schema';
 import {putBackVersions, removeWithVersions} from '../../lib/journal/versions';

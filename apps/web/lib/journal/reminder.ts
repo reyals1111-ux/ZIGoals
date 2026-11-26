@@ -1,7 +1,7 @@
 import {addLocalDays} from '../local-date';
 import {journalReminderSchema, journalSchema, type Journal, type JournalReminder} from './schema';
 import {writingStreak} from './stats';
-import {dayPagesOn, partWritten} from './day-pages';
+import {dayPagesOn, partWritten} from './day-pages-lite';
 
 /**
  * Session AV lane 2 (journal; LEDGER #40, Day One's journaling reminders and streaks): a reminder to write, at a time and
