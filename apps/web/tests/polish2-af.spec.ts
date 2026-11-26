@@ -27,6 +27,9 @@ async function openEarn(page: Page) {
   await page.goto('/app/earn');
   await expect(page.locator('[data-live-figure="native-apr"]')).toHaveAttribute('data-state', 'ok');
   await expect.poll(() => page.locator('[data-live-figure][data-state="loading"]').count()).toBe(0);
+  // Session AW (D-CI2038, deliberate): the wider sections (governance, goal-linked stake, stablecoins) are their own chunk;
+  // the page is read once each has replaced its place-holder (was: read at once, so MsgVote could still be on its way).
+  await expect(page.locator('.earn-option-loading')).toHaveCount(0);
   // Session AL (D-088, deliberate): on a phone the wider sections are folded rows; they are opened first, as a person would.
   await openEarnFolds(page);
 }

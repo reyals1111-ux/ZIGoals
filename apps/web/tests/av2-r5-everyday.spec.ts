@@ -14,6 +14,9 @@ for (const theme of THEMES) test(`${theme}: everyday movement counts minutes, wi
   if (!isMobile) await page.setViewportSize({width: 1440, height: 900});
   await openHealth(page, healthRecord(health({weights: [{id: 'health_weight-r5-0001', date: TODAY, grams: 80_000, createdAt: AT, updatedAt: AT}]})), '/app/health?view=activity');
   const form = page.getByRole('form', {name: 'Manual activity'});
+  // Session AW (D-CI2038, deliberate): the Activity view is its own chunk since speed attempt 2, so the list is read once
+  // the form is on the page (was: read at once); every name is still required.
+  await expect(form.locator('datalist#health-activity-types option').first()).toBeAttached();
   const options = await page.locator('datalist#health-activity-types option').evaluateAll(list => list.map(o => (o as HTMLOptionElement).value));
   for (const name of ['Walk', 'Gardening', 'Tuinieren', 'Housework', 'Walking the dog', 'De hond uitlaten', 'Wheelchair push', 'Carrying a child', 'Commuting by bike']) expect(options).toContain(name);
   await expect(form).toContainText('Everyday movement (gardening, housework, walking the dog, a wheelchair push, carrying a child, commuting by bike) counts its minutes, with no energy figure.');
