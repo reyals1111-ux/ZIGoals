@@ -199,3 +199,92 @@ Habits 5.1 / 13.5; Goals 5.0 / 12.9; Today 6.2 / 10.6 (15.1 at 1440); Wealth 5.7
 - **Settings:** on a phone 23 screens. Behind their own groups already, but long: Wallet & network (advanced),
   Advanced diagnostics, Point & tell, Chess, Music, My links, Market data, Encrypted account sync, Your own AI page by
   page, Reminders when closed ("Not available here"), Delete cloud records.
+
+## After (build of `0a301f33`)
+
+The same walk (`simplicity-walk.cjs`, the same clock, profiles and views) on a production build of the integrated branch
+after Part 3 (simplicity a, b and c) and the batches that touched first screens. Per page: the main action's document y
+(and screens = y ÷ viewport height), the taps it needs, and the first-screen cards and zero-state cards counted the same way.
+
+**Totals:** first-screen cards 51 → 49; zero-state cards on a first screen 19 → 18; every main action at 0 taps, as before.
+**Main actions higher:** Agenda (phone, empty) 1.13 → 0.86 screens, Journal 0.71 → 0.64, Tasks 0.83 → 0.73. **Lower:**
+Settings, by about 100 px in every view, because the new Settings search (simplicity c) now stands above the first group
+and is itself the way to any setting. Every other main action is where it was.
+
+### Today and Habits: the Checklist and the first Complete
+
+| View | Action | before y (screens) | after y (screens) |
+|---|---|---|---|
+| /app phone · empty | Quick add | 405 (0.48) | 405 (0.48) |
+| /app phone · empty | Checklist card | 1367 (1.62) | 1159 (1.37) |
+| /app phone · empty | First habit "Complete" | not on the page | not on the page |
+| /app/habits phone · empty | First "Complete" | not on the page | not on the page |
+| /app/habits phone · empty | "+ New habit" / "Create a habit" | 375 (0.44) | 375 (0.44) |
+| /app desktop · empty | Quick add | 431 (0.48) | 431 (0.48) |
+| /app desktop · empty | Checklist card | 1248 (1.39) | 1026 (1.14) |
+| /app desktop · empty | First habit "Complete" | not on the page | not on the page |
+| /app/habits desktop · empty | First "Complete" | not on the page | not on the page |
+| /app/habits desktop · empty | "+ New habit" / "Create a habit" | 265 (0.29) | 264 (0.29) |
+| /app phone · showcase | Quick add | 406 (0.48) | 406 (0.48) |
+| /app phone · showcase | Checklist card | 1607 (1.9) | 692 (0.82) |
+| /app phone · showcase | First habit "Complete" | 3403 (4.03) | 1417 (1.68) |
+| /app/habits phone · showcase | First "Complete" | 2004 (2.37) | 1389 (1.65) |
+| /app/habits phone · showcase | "+ New habit" / "Create a habit" | 376 (0.45) | 376 (0.45) |
+| /app desktop · showcase | Quick add | 456 (0.51) | 456 (0.51) |
+| /app desktop · showcase | Checklist card | 1531 (1.7) | 704 (0.78) |
+| /app desktop · showcase | First habit "Complete" | 3047 (3.39) | 1323 (1.47) |
+| /app/habits desktop · showcase | First "Complete" | 2461 (2.73) | 789 (0.88) |
+| /app/habits desktop · showcase | "+ New habit" / "Create a habit" | 288 (0.32) | 288 (0.32) |
+
+The Showcase's Today has the Checklist on the first screen in both views now (0.82 and 0.78 screens; it was 1.9 and 1.7),
+and the first habit's Complete within two screens (1.68 and 1.47; it was 4.03 and 3.39). On the Habits page the first
+Complete moves from 2.37 to 1.65 screens on a phone and from 2.73 to 0.88 on a computer.
+
+### Every page, before → after
+
+| Page | View | Main action | y before → after (screens) | taps | first-screen cards before → after | zero-state on first screen before → after |
+|---|---|---|---|---|---|---|
+| /app | phone · empty | Quick add | 405 (0.48) → 405 (0.48) | 0 | 1 → 1 | 1 → 1 |
+| /app/agenda | phone · empty | Add on the agenda (as loaded: "Add a task" link or an add button) | 953 (1.13) → 730 (0.86) | 0 | 0 → 1 | 0 → 1 |
+| /app/goals | phone · empty | "+ Create a goal" | 361 (0.43) → 361 (0.43) | 0 | 0 → 0 | 0 → 0 |
+| /app/habits | phone · empty | "+ New habit" / "Create a habit" | 375 (0.44) → 375 (0.44) | 0 | 1 → 1 | 1 → 0 |
+| /app/health | phone · empty | "Log food" | 357 (0.42) → 357 (0.42) | 0 | 1 → 1 | 1 → 1 |
+| /app/journal | phone · empty | Today's entry textarea (Write) | 598 (0.71) → 544 (0.64) | 0 | 1 → 1 | 1 → 1 |
+| /app/notes | phone · empty | Capture box (Save to inbox) | 494 (0.59) → 494 (0.59) | 0 | 2 → 2 | 1 → 1 |
+| /app/nova | phone · empty | "Message NOVA" field | 780 (0.92) → 780 (0.92) | 0 | 0 → 0 | 0 → 0 |
+| /app/settings | phone · empty | First Settings group (sections list / first group) | 424 (0.5) → 524 (0.62) | 0 | 2 → 2 | 0 → 0 |
+| /app/tasks | phone · empty | "New task" field | 697 (0.83) → 614 (0.73) | 0 | 1 → 1 | 0 → 0 |
+| /app/wealth | phone · empty | "Log spending" | 627 (0.74) → 627 (0.74) | 0 | 1 → 1 | 0 → 0 |
+| /app | desktop · empty | Quick add | 431 (0.48) → 431 (0.48) | 0 | 2 → 2 | 2 → 2 |
+| /app/agenda | desktop · empty | Add on the agenda (as loaded: "Add a task" link or an add button) | 708 (0.79) → 736 (0.82) | 0 | 1 → 1 | 1 → 1 |
+| /app/goals | desktop · empty | "+ Create a goal" | 309 (0.34) → 308 (0.34) | 0 | 0 → 0 | 0 → 0 |
+| /app/habits | desktop · empty | "+ New habit" / "Create a habit" | 265 (0.29) → 264 (0.29) | 0 | 2 → 2 | 1 → 0 |
+| /app/health | desktop · empty | "Log food" | 258 (0.29) → 257 (0.29) | 0 | 2 → 1 | 2 → 1 |
+| /app/journal | desktop · empty | Today's entry textarea (Write) | 596 (0.66) → 541 (0.6) | 0 | 1 → 1 | 1 → 1 |
+| /app/notes | desktop · empty | Capture box (Save to inbox) | 471 (0.52) → 470 (0.52) | 0 | 2 → 2 | 1 → 1 |
+| /app/nova | desktop · empty | "Message NOVA" field | 811 (0.9) → 811 (0.9) | 0 | 0 → 0 | 0 → 0 |
+| /app/settings | desktop · empty | First Settings group (sections list / first group) | 381 (0.42) → 480 (0.53) | 0 | 1 → 1 | 0 → 0 |
+| /app/tasks | desktop · empty | "New task" field | 597 (0.66) → 560 (0.62) | 0 | 1 → 1 | 0 → 0 |
+| /app/wealth | desktop · empty | "Log spending" | 573 (0.64) → 572 (0.64) | 0 | 2 → 2 | 1 → 1 |
+| /app | phone · showcase | Quick add | 406 (0.48) → 406 (0.48) | 0 | 1 → 1 | 0 → 0 |
+| /app/agenda | phone · showcase | Add on the agenda (as loaded: "Add a task" link or an add button) | 2214 (2.62) → 838 (0.99) | 0 | 1 → 1 | 0 → 0 |
+| /app/goals | phone · showcase | "+ Create a goal" | 362 (0.43) → 362 (0.43) | 0 | 2 → 1 | 0 → 0 |
+| /app/habits | phone · showcase | First "Complete" | 2004 (2.37) → 1389 (1.65) | 0 | 1 → 1 | 0 → 0 |
+| /app/health | phone · showcase | "Log food" | 358 (0.42) → 358 (0.42) | 0 | 1 → 1 | 1 → 1 |
+| /app/journal | phone · showcase | Today's entry textarea (Write) | 733 (0.87) → 597 (0.71) | 0 | 1 → 1 | 0 → 0 |
+| /app/notes | phone · showcase | Capture box (Save to inbox) | 597 (0.71) → 597 (0.71) | 0 | 1 → 1 | 0 → 0 |
+| /app/nova | phone · showcase | "Message NOVA" field | 780 (0.92) → 780 (0.92) | 0 | 0 → 0 | 0 → 0 |
+| /app/settings | phone · showcase | First Settings group (sections list / first group) | 469 (0.56) → 569 (0.67) | 0 | 2 → 2 | 0 → 0 |
+| /app/tasks | phone · showcase | "New task" field | 949 (1.12) → 714 (0.85) | 0 | 1 → 1 | 0 → 1 |
+| /app/wealth | phone · showcase | "Log spending" | 661 (0.78) → 661 (0.78) | 0 | 1 → 1 | 0 → 0 |
+| /app | desktop · showcase | Quick add | 456 (0.51) → 456 (0.51) | 0 | 2 → 2 | 0 → 0 |
+| /app/agenda | desktop · showcase | Add on the agenda (as loaded: "Add a task" link or an add button) | 2023 (2.25) → 798 (0.89) | 0 | 1 → 1 | 0 → 0 |
+| /app/goals | desktop · showcase | "+ Create a goal" | 332 (0.37) → 332 (0.37) | 0 | 2 → 2 | 0 → 0 |
+| /app/habits | desktop · showcase | First "Complete" | 2461 (2.73) → 789 (0.88) | 0 | 2 → 1 | 1 → 0 |
+| /app/health | desktop · showcase | "Log food" | 281 (0.31) → 280 (0.31) | 0 | 2 → 2 | 2 → 2 |
+| /app/journal | desktop · showcase | Today's entry textarea (Write) | 734 (0.82) → 621 (0.69) | 0 | 1 → 1 | 0 → 0 |
+| /app/notes | desktop · showcase | Capture box (Save to inbox) | 551 (0.61) → 551 (0.61) | 0 | 2 → 2 | 1 → 1 |
+| /app/nova | desktop · showcase | "Message NOVA" field | 811 (0.9) → 811 (0.9) | 0 | 0 → 0 | 0 → 0 |
+| /app/settings | desktop · showcase | First Settings group (sections list / first group) | 404 (0.45) → 503 (0.56) | 0 | 1 → 1 | 0 → 0 |
+| /app/tasks | desktop · showcase | "New task" field | 708 (0.79) → 622 (0.69) | 0 | 1 → 1 | 0 → 1 |
+| /app/wealth | desktop · showcase | "Log spending" | 689 (0.77) → 688 (0.76) | 0 | 1 → 1 | 0 → 0 |
