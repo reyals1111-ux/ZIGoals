@@ -12,7 +12,7 @@ import {TasksGlyph} from './tasks-glyph';
 import {TaskRow, TaskStatusLine} from './task-parts';
 import {PASTE_PARENT, SmartAdd} from './smart-add';
 import {ReminderRows} from './reminder-rows';
-import {useRemindAgain, useWakeAt} from './use-remind-again';
+import {remindersDue, ringAhead, useRemindAgain, useWakeAt} from './use-remind-again';
 import {TasksNav, viewKey, readView, viewTitle} from './tasks-nav';
 import {useTaskList} from './use-task-list';
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -23,7 +23,6 @@ import {
   addProject, addSection, addTask, childrenOf, clearDone, completedInWindow, dropOrder, editMany, editProject, finishMany, moveStep, moveTasks, recentlyDone, removeFilter,
   removeProject, removeSection, renameSection, saveFilter, setOrder, skipOccurrence, taskCounts, taskState, viewTasks, withLabel, labelPlan, type TaskInput, type TaskView,
 } from '../../lib/tasks/engine';
-import {dueReminders, nextRing} from '../../lib/tasks/reminders';
 import {salvageTasks, keepSalvaged} from '../../lib/tasks/device';
 import {checklistZone} from '../../lib/checklist/zone';
 import {addLocalDays} from '../../lib/local-date';
@@ -184,9 +183,9 @@ export function TasksPage() {
   const ready = tasks.loaded && (view.kind !== 'filter' || !!matchTasks);
   const counts = useMemo(() => taskCounts(record, today, clock), [record, today, clock]); // RR-8: the list's own clock
   const again = useRemindAgain(); // Session AW (X1, LEDGER #438): a reminder repeats until done or snoozed
-  const reminders = useMemo(() => tasks.loaded ? dueReminders(record, now, checklistZone(), {dismissed, again}) : [], [tasks.loaded, record, now, dismissed, again]);
+  const reminders = useMemo(() => tasks.loaded ? remindersDue(again, record, now, checklistZone(), dismissed) : [], [tasks.loaded, record, now, dismissed, again]);
   // Session AW (X1, LEDGER #438): the rows wake at the next ring (a first ring or a repeat), on its minute.
-  const ringAt = useMemo(() => tasks.loaded ? nextRing(record, now, checklistZone(), again) : null, [tasks.loaded, record, now, again]);
+  const ringAt = useMemo(() => tasks.loaded ? ringAhead(again, record, now, checklistZone()) : null, [tasks.loaded, record, now, again]);
   useWakeAt(ringAt, setNow);
   const salvage = useMemo(() => tasks.unreadable ? salvageTasks() : null, [tasks.unreadable]);
   const visibleIds = useMemo(() => shown.map(t => t.id), [shown]);

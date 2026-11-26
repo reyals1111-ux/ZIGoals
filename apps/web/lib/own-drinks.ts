@@ -2,6 +2,9 @@ import {CAFFEINE_MAX_MG, DRINK_KCAL_MAX, DRINK_SUGAR_MAX_G, DRINK_TYPES, OWN_DRI
 import type {WaterEntry} from './health';
 import {ML_PER_US_FL_OZ} from './health-units';
 import {isInvisibleName} from './visible-text';
+import {ownDrinks} from './own-drink-taps';
+// Session AW Part 2 (speed): the two a tap needs live in lib/own-drink-taps.ts (the Water card's first scripts); still read from here.
+export {ownDrinks, tapNote} from './own-drink-taps';
 
 /**
  * Session AV lane 2 (health r3; LEDGER #281, #282, Waterllama's drink creator and calories from drinks): your own drinks
@@ -14,7 +17,6 @@ export const OWN_DRINK_SYMBOLS = ['💧', '☕', '🍵', '🥛', '🧃', '🥤',
 /** What each symbol shows, for screen readers (the symbol itself is decoration). */
 export const OWN_DRINK_SYMBOL_NAMES: Record<(typeof OWN_DRINK_SYMBOLS)[number], string> = {'💧': 'Drop', '☕': 'Hot cup', '🍵': 'Tea bowl', '🥛': 'Glass of milk', '🧃': 'Juice box', '🥤': 'Cup with a straw', '🍋': 'Lemon', '🫖': 'Teapot', '🧉': 'Gourd', '🥥': 'Coconut', '🍫': 'Chocolate', '⭐': 'Star'};
 export const OWN_DRINK_COLOURS = ['blue', 'teal', 'green', 'yellow', 'orange', 'red', 'pink', 'violet', 'grey'] as const;
-export const ownDrinks = (extras: HealthExtras | null | undefined): readonly OwnDrink[] => extras?.ownDrinks ?? [];
 export const ownDrinkOf = (extras: HealthExtras | null | undefined, id: string | undefined): OwnDrink | null => id ? ownDrinks(extras).find(d => d.id === id) ?? null : null;
 
 export type DrinkFormInput = {name: string; type: string; sizeMl: string; symbol: string; colour: string; caffeine: string; kcal: string; sugar: string};
@@ -75,8 +77,6 @@ export function moveOwnDrink(extras: HealthExtras, id: string, by: -1 | 1): Heal
   [list[i], list[j]] = [list[j]!, list[i]!];
   return healthExtrasSchema.parse({...extras, ownDrinks: list});
 }
-/** What one tap of a drink notes on its water entry: its type, caffeine, energy and sugar, copied from the drink. */
-export const tapNote = (d: OwnDrink) => ({type: d.type, caffeineMg: d.caffeineMg, more: {own: d.id, ...(d.kcal !== undefined ? {kcal: d.kcal} : {}), ...(d.sugarG !== undefined ? {sugarG: d.sugarG} : {})}});
 
 export type DrinkEnergyDay = {kcal: number | null; sugarG: number | null; withKcal: number; withSugar: number; drinks: number;
   /** Review B3B-6: the drinks with an energy or a sugar typed, and those (not water) with neither. */

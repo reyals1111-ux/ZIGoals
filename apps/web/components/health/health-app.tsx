@@ -5,7 +5,7 @@ import { showStatus, showUndo } from "../ui/undo-toast";
 import { ProgressSlot } from "../progress/slot";
 import { HealthTrends } from "../bottom-health-trends";
 import { useHealthToday } from "./use-health-today";
-import { INVISIBLE_NAME, visibleName } from "../../lib/visible-text";
+import { INVISIBLE_NAME } from "../../lib/visible-text";
 import { foodIssue, validateValue, within } from "../../lib/limits/plausibility";
 import { ExerciseCounters } from "./exercise-counters";
 import { NebulaFlow } from "../nebula-flow";
@@ -62,12 +62,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, lazy, useState, useEffect, useId, useRef, type FormEvent, type ReactNode } from "react";
 import { useFollowAddressView } from "./follow-address-view";
 import { tabKeys } from "../ui/tab-keys";
-import { Checked, FeedbackSlot, HealthFieldProvider, useHealthFieldChecks } from "./health-field";
+import { Checked, HealthFieldProvider, useHealthFieldChecks } from "./health-field";
 import type { HealthCheck } from "../../lib/health-field-rules";
 import {
   foodSnapshot,recipeSnapshot,formatServingMeasure,formatNutrient,nutritionSummaryText, dailyHealthSummary, editDiaryEntry, formatHealthGrams,
   logHealthItem, newHealthId, parseHealthNumber, quickLogFood, recipeNutrition,
-  removeHealthItem, saveActivity, saveFood, saveRecipe, saveWeight, scaleNutrition,
+  removeHealthItem, saveFood, saveRecipe, saveWeight, scaleNutrition,
   searchFoods, setHealthTargets, weightTrend, healthSchema, type HealthData, type HealthDiaryEntry,
   type HealthFood, type HealthRecipe, type HealthTargets, type Nutrition, type RecipeDraft,
 } from "../../lib/health";
@@ -83,11 +83,9 @@ const NutritionImportPanel = lazy(() => import("../import/nutrition-import").the
 import { MealNamesEditor, useHealthExtras } from "./meal-names";
 import { MoodChip } from "./mood-chip";
 import { SERVING_UNITS, conversionNote, servingUnit, toBaseAmount } from "../../lib/health-serving-units";
-import { ACTIVITY_TYPES } from "../../lib/health-activity-types";
-// Session AW (kcal; owner decision 1a): an activity's distance, effort and typed calories, in their own record.
-import { ACTIVITY_EXTRAS, EFFORTS, EFFORT_WORDS, distancePrefill, distanceUnitFor, extraOf, extraParts, readDistance, readEffort, readEnteredKcal, withActivityExtra, withoutActivityExtra, type ActivityExtra } from "../../lib/aw-kcal/activity-extras";
-// Session AV lane 2, round 5 (LEDGER #376): everyday movement beside the twelve types; no energy figure for them.
-import { EVERYDAY_MOVE_NAMES } from "../../lib/health-everyday-moves";
+// Session AW Part 2 (speed, attempt 2): the form pieces the page and its Activity view share, and that view as its own chunk.
+import { FormBox, formString, healthName, type Perform } from "./health-form-parts";
+const ActivityView = lazy(() => import("./activity-view"));
 import { mealHeading, mealKcalTarget, mealLabel, mealTime } from "../../lib/health-extras";
 import type { ImportRecord } from "../../lib/import/undo-schema";
 import {AdditionalNutrition} from "./additional-nutrition";
@@ -164,12 +162,8 @@ const HealthR3 = lazy(() => import("./r3/health-r3")); // Session AV lane 2 (hea
 const HealthR4 = lazy(() => import("./r4/health-r4")); // Session AV lane 2, round 4 (health; Noom, LEDGER #328, #329): the free day and the note for a harder week
 // Session AU (ADR-044 F-MEAL): a meal logged in words alone (its form, a meal's list and its "+ N in words"), in HealthPlus's lazy chunk.
 const Words = (words: MealWordsProps) => <LoadBoundary quiet><Suspense fallback={null}><HealthPlus part="words" words={words} /></Suspense></LoadBoundary>;
-/** Session W Part 7: an activity line an import or a device link brought in (its id names the source). */
-const SOURCE_NAMES: Record<string, string> = {"apple-health": "Apple Health", fitbit: "Fitbit / Google Health", samsung: "Samsung Health", oura: "Oura", garmin: "Garmin", "oura-link": "Oura (linked)", "withings-link": "Withings (linked)", "polar-link": "Polar (linked)", "strava-link": "Strava (linked)"};
-function importedFrom(id: string): string | null { const m = /^health_imp-([a-z]+(?:-[a-z]+)?)-[0-9a-f]{16}$/.exec(id); return m ? SOURCE_NAMES[m[1]!] ?? null : null; }
 
 type Update = ReturnType<typeof useHealth>["update"];
-type Perform = (updater: (latest: HealthData) => HealthData, message: string, after?: () => void) => Promise<void>;
 const views = ["Diary", "Foods & recipes", "Meals & planning", "Planner", "Weight", "Measurements", "Activity", "Targets", "Insights", "Import", "Journal settings"] as const;
 /** Session AA-Local Part 5: a ZIGi open-page card names a tab by hash (#planner, #insights, #import); the page reads it once. */
 // Session AH (C9, BUG-080): every view answers to a link, as ?tab=<name> or #<name>; the full views (sleep, meditation,
@@ -246,22 +240,10 @@ function NutrientLine({ nutrients, quick = false }: { nutrients: Nutrition; quic
   const macro = (mg: number | null) => quick && mg === null ? "not given" : `${formatMacroGrams(mg)} g`;
   return <span className="health-nutrient-line">{formatNutrient(nutrients.kcal)} kcal <span>· P {macro(nutrients.proteinMg)} · C {macro(nutrients.carbsMg)} · F {macro(nutrients.fatMg)}</span></span>;
 }
-function FormBox({ title, children, onSubmit }: { title: string; children: ReactNode; onSubmit: (event: FormEvent<HTMLFormElement>) => void }) {
-  // Session AL fourth pass: the page checks each field first (data-health-check), in the app's words, not the browser's
-  // bubble (noValidate), and the page's feedback line shows at the end of this form after its submit.
-  return <form aria-label={title} className="health-form" onSubmit={onSubmit} noValidate data-health-check="">{children}<FeedbackSlot title={title} /></form>;
-}
-const formString = (form: FormData, key: string) => String(form.get(key) ?? "");
 /** Session AV lane 2 (food, LEDGER #86): a quick add's own source id (lib/health-quick/calories.ts QUICK_ADD_PREFIX, inlined so the page imports nothing more). */
 const isQuickAdd = (sourceId: string) => sourceId.startsWith("health_quickadd-");
 /** How many meal groups (Breakfast, Lunch…) have entries on a date. */
 const groupsOn = (data: HealthData, date: string) => new Set(data.diary.filter(entry => entry.date === date).map(entry => entry.meal)).size;
-const formNumber = (form: FormData, key: string, scale: 1 | 1000, min: number, max: number) => parseHealthNumber(formString(form, key), scale, min, max);
-/** Session AL (P-MO-44, MO-104): a name of only spaces is refused at its field like an invisible one (it reached the store
- *  and came back as "Could not save… available browser storage"). */
-const healthName = (value: string) => { if (!value.trim()) throw new Error(INVISIBLE_NAME); return visibleName(value); };
-/** Session AL (P-MO-81, MO-040): a movement field starts blank (a "0" was typed after); blank counts as none. */
-const blankZero = (form: FormData, key: string, max: number) => formString(form, key).trim() ? formNumber(form, key, 1, 0, max) : 0;
 
 export function HealthApp() {
   const store = useHealth();
@@ -318,6 +300,8 @@ function HealthWorkspace({ data, update, setup = null }: { data: HealthData; upd
   // hidden until they have something to show, and one teaching line stands in for them. "Show quick counters" brings the
   // counters back in place at once (the first tap or a new counter keeps them, as Health then holds them).
   const [countersAsked, setCountersAsked] = useState(false);
+  // Session AW Part 2 (speed, attempt 2): the Activity view's chunk, asked for once the page is idle, so its tab still opens at once.
+  useEffect(() => { const go = () => { void import("./activity-view").catch(() => {}); }; if (typeof window.requestIdleCallback === "function") { const id = window.requestIdleCallback(go, { timeout: 4000 }); return () => window.cancelIdleCallback(id); } const t = window.setTimeout(go, 2000); return () => window.clearTimeout(t); }, []);
   const [barcodeOpen, setBarcodeOpen] = useState(() => typeof window !== 'undefined' && /^\d{8,14}$/.test(new URLSearchParams(window.location.search).get('barcode') ?? ''));
   const undoRecord = async (record: ImportRecord) => { const {undoNutritionImport} = await import("../../lib/import/nutrition"); await update(d => undoNutritionImport(d, record).data); imports.forget(record.id); };
   // On a phone, Log a meal is a bottom sheet (Session I, Part 9); a Quick Add for a meal opens it.
@@ -476,7 +460,7 @@ function HealthWorkspace({ data, update, setup = null }: { data: HealthData; upd
       {view === "Measurements" && <><LoadBoundary label="Your measurements"><Suspense fallback={<div aria-busy="true" style={{ minHeight: 220 }} />}><BodyMeasurements data={data} perform={perform}/></Suspense></LoadBoundary><LoadBoundary quiet><Suspense fallback={null}><MeasurementsAa data={data} today={date} /></Suspense></LoadBoundary><LazyFold summary="Your numbers: blood pressure and lab values">{() => <YourNumbers today={today} />}</LazyFold></>}
       {/* Session AK RB (R2-8): the weight trend, energy estimate and coach open the Weight view (the tiles at the top link here). */}
       {view === "Weight" && <><LoadBoundary quiet><div className="health-aa-highlights"><Suspense fallback={null}><WeightCards data={data} date={date} today={today} perform={perform} /></Suspense></div></LoadBoundary><LoadBoundary quiet><Suspense fallback={null}><HealthR3 part="weigh-in" data={data} today={today} /></Suspense></LoadBoundary><WeightView data={data} update={update} today={today} date={date} choice={dateChoice} perform={perform} invalid={invalid} onDate={chooseDate} />{/* Session AW (X6; Happy Scale, LEDGER #457, #456): folded, loaded when opened */}<LazyFold summary="Notes and new lows in your weigh-ins" open={typeof window !== "undefined" && window.location.hash === "#weigh-notes"}>{() => <BodyX6 part="weigh-notes" data={data} today={today} unit={dailyData(data).preferences.weightUnit} />}</LazyFold><LazyFold summary="A day you name: where the trend would be (an estimate)" open={typeof window !== "undefined" && window.location.hash === "#named-days"}>{() => <BodyX6 part="named-days" data={data} today={today} unit={dailyData(data).preferences.weightUnit} />}</LazyFold></>}
-      {view === "Activity" && <>{!countersShown && <p className="fine health-counters-off">{/* Session AW (p5-fixes; FR-S-14) */}{movementLeftOut(setup) ? "Quick exercise counters (push-ups, pull-ups, squats or your own) are off: you did not choose moving more." : "Quick exercise counters (push-ups, pull-ups, squats or your own) wait until you use one."} <button type="button" className="text-link" onClick={() => void perform(turnOnQuickCounters, "Quick counters are on, at the top of Health.")}>Show quick counters</button></p>}<ActivityView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} /><LoadBoundary quiet><Suspense fallback={null}><HealthPlus part="activity" data={data} today={today} /></Suspense></LoadBoundary></>}
+      {view === "Activity" && <>{!countersShown && <p className="fine health-counters-off">{/* Session AW (p5-fixes; FR-S-14) */}{movementLeftOut(setup) ? "Quick exercise counters (push-ups, pull-ups, squats or your own) are off: you did not choose moving more." : "Quick exercise counters (push-ups, pull-ups, squats or your own) wait until you use one."} <button type="button" className="text-link" onClick={() => void perform(turnOnQuickCounters, "Quick counters are on, at the top of Health.")}>Show quick counters</button></p>}<LoadBoundary label="Activity"><Suspense fallback={<Skeleton label="Opening Activity…" block/>}><ActivityView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} /></Suspense></LoadBoundary><LoadBoundary quiet><Suspense fallback={null}><HealthPlus part="activity" data={data} today={today} /></Suspense></LoadBoundary></>}
       {view === "Targets" && <><HideFiguresToggle />{/* Session AV (owner follow-up 1, F-HIDE-FIGURES) */}<TargetsView key={`${JSON.stringify(data.targets)}:${dailyData(data).preferences.weightUnit}`} targets={data.targets} weightUnit={dailyData(data).preferences.weightUnit} perform={perform} invalid={invalid} /><LoadBoundary quiet><Suspense fallback={null}><TargetPanels data={data} date={date} /></Suspense></LoadBoundary>{/* Session AV lane 2 (food, LEDGER #88, #97) */}<LazyFold summary="Targets by weekday (optional)">{() => <FoodPlus part="weekdays" targets={data.targets} today={today} />}</LazyFold><LazyFold summary="Sugar alcohols for net carbs (optional)">{() => <FoodPlus part="sugar-alcohols" data={data} />}</LazyFold><LazyFold summary="Weekly calorie budget (optional)">{() => <CalorieWeekCard data={data} date={date} today={today} />}</LazyFold>{/* Session AL fourth pass (C-MO-04, C-DVG-42) */}<LazyFold summary="Estimate my maintenance calories (optional)">{() => <MaintenanceEstimator latestGrams={weightTrend(data, date).latestGrams} weightUnit={dailyData(data).preferences.weightUnit} onUse={kcal => void perform(latest => setHealthTargets(latest, { ...latest.targets, kcal }), `Calorie target set to ${formatNumber(kcal)} kcal a day, from the estimate. Change it any time.`)} />}</LazyFold></>}
     </fieldset></div>
     {/* Session AK RB (RELEASE_REVIEW_2 R2-8): the weight trend, energy and coach cards moved into the Weight view; the
@@ -748,26 +732,6 @@ function WeightChart({ data, date, unit }: { data: HealthData; date: string; uni
   if (!readings.length) return null;
   const dates = readings.map(w => w.date).sort(), goalSeries = goal !== null && dates.length ? [{ label: "Your goal", color: "#f3c57d", maxGapMs: Number.MAX_SAFE_INTEGER, points: [...new Set([dates[0]!, dates.at(-1)!])].map(at => ({ at, value: weightChartValue(goal, unit, places).value, dateOnly: true })) }] : [];
   return <Suspense fallback={<div className="health-weight-chart-pending" aria-busy="true" style={{ minHeight: 220 }} />}><EvidenceChart label="Recorded body weight" decimals={shape.decimals} currency={shape.unit} series={[{ label: "Your readings", color: "#8ad7e6", points: readings.map(w => ({ at: w.date, value: weightChartValue(w.grams, unit, places).value, dateOnly: true })) }, ...goalSeries]} /></Suspense>;
-}
-
-function ActivityView({ data, date, choice, perform, invalid }: { data: HealthData; date: string; choice: number; perform: Perform; invalid: (cause?: unknown) => void }) {
-  const entries = data.activity.filter(a => a.date === date);
-  const summary = dailyHealthSummary(data, date);
-  const [editing, setEditing] = useState<string | null>(null);
-  const current = entries.find(a => a.id === editing);
-  const operation = useRef<string | null>(null);
-  // Session AW (kcal; owner decision 1a, ADR-046): an activity's distance, effort and the calories the person typed live in
-  // their own record keyed by the activity's id (`zigoals:activity-extras:v1`; the activity record is strict). No calorie
-  // figure is ever worked out: one shows only as typed, "320 kcal · you entered".
-  const extras = useDeviceRecord(ACTIVITY_EXTRAS), unit = distanceUnitFor(dailyData(data).preferences.weightUnit), currentExtra = current ? extraOf(extras.data, current.id) : null;
-  // A removed activity's extras are kept here for its Undo, and written back when the activity comes back.
-  const removedExtras = useRef(new Map<string, ActivityExtra>());
-  useEffect(() => {
-    if (!extras.loaded || extras.unreadable || !removedExtras.current.size) return;
-    for (const [id, extra] of removedExtras.current) if (data.activity.some(a => a.id === id)) { removedExtras.current.delete(id); try { extras.update(r => withActivityExtra(r, id, extra)); } catch { /* the activity is back; its extras could not be written again */ } }
-  }, [data.activity, extras]);
-  const remove = (id: string) => { const kept = extraOf(extras.data, id); void perform(latest => removeHealthItem(latest, "activity", id), "Activity removed.", () => { if (!kept || extras.unreadable) return; removedExtras.current.set(id, kept); try { extras.update(r => withoutActivityExtra(r, id)); } catch { /* left behind, it is never shown or counted without its activity */ } }); };
-  return <div className="health-two-columns"><section className="panel health-activity-overview"><PinToToday label="Movement" choices={[{kind:'health',metric:'steps',label:'Steps today'},{kind:'health',metric:'activity',label:'Activity today'}]}/><p className="eyebrow">MOVE AT YOUR PACE</p><h2>Your movement, recorded.</h2><div className="health-weight-stats"><div><span>Steps</span><strong>{formatNumber(summary.steps)}</strong></div><div><span>Minutes</span><strong>{formatNumber(summary.minutes)}</strong></div><div><span>Your step target</span><strong>{data.targets.steps == null ? "Not set" : formatNumber(data.targets.steps)}</strong></div></div><p className="fine">Entries for {formatDate(date)}: yours, and any an import brought in (marked). Movement never changes your calorie target.</p>{entries.length ? entries.map(a => { const extra = extraOf(extras.data, a.id), parts = extraParts(extra, unit), kcal = parts.find(p => p.endsWith("you entered")); return <article className="health-library-row" key={a.id} data-activity-id={a.id}><div><h3>{a.name}</h3><p>{/* Session AL fourth pass (MO-040): a part left blank is not shown as zero ("4,000 steps", not "4,000 steps · 0 minutes") */}{[a.steps ? `${formatNumber(a.steps)} ${plural(a.steps, "step")}` : null, a.minutes ? `${formatNumber(a.minutes)} ${plural(a.minutes, "minute")}` : null, ...parts.filter(p => p !== kcal)].filter(Boolean).join(" · ") || "No steps or minutes"}</p>{kcal && <p className="health-activity-kcal">{kcal}</p>}<p className="fine">{importedFrom(a.id) ? `Imported from ${importedFrom(a.id)}` : a.updatedAt !== a.createdAt ? `Manual · corrected ${formatDate(a.updatedAt)}` : "Added by you"}</p></div><div className="health-row-actions"><button className="quiet" aria-label={`Edit activity ${a.name}`} onClick={() => { setEditing(a.id); operation.current = null; }}>Edit</button><button className="quiet" aria-label={`Remove activity ${a.name}`} onClick={() => remove(a.id)}>Remove</button></div></article>; }) : <p className="health-empty-inline">No movement logged for this day.</p>}</section><section className="panel health-fit-panel"><h2>{current ? "Correct movement." : "Add movement."}</h2><FormBox key={`${choice}:${current?.id ?? "new"}:${currentExtra ? "x" : ""}`} title="Manual activity" onSubmit={e => { e.preventDefault(); try { const form = e.currentTarget; const values = new FormData(form); operation.current ??= newHealthId(); const draft = { id: current?.id ?? operation.current, date, name: healthName(formString(values, "name")), steps: blankZero(values, "steps", 100_000), minutes: blankZero(values, "minutes", 1440) }; if (!draft.steps && !draft.minutes) return invalid(new Error("Enter steps, minutes, or both.")); const extra = { distanceKm: readDistance(formString(values, "distance"), unit), effort: readEffort(formString(values, "effort")), kcal: readEnteredKcal(formString(values, "kcal")) }; const typed = extra.distanceKm !== null || extra.effort !== null || extra.kcal !== null; if (extras.unreadable && (typed || extraOf(extras.data, draft.id))) return invalid(new Error("Enter the activity without its distance, effort and calories for now: this device cannot read where they are kept.")); void perform(latest => saveActivity(latest, draft, new Date().toISOString()), current ? "Activity corrected." : "Activity saved.", () => { if (typed || extraOf(extras.data, draft.id)) { try { extras.update(r => withActivityExtra(r, draft.id, extra)); } catch { showStatus("The activity is saved; its distance, effort and calories could not be kept in this browser.", { tone: "error" }); } } form.reset(); setEditing(null); operation.current = null; }); } catch (cause) { invalid(cause); } }}><Checked of="health-activity-name"><label className="field"><span>Activity name</span><input id="health-activity-name" name="name" required data-check="name" list="health-activity-types" placeholder="For example, a walk or strength session" defaultValue={current?.name ?? ""} /></label></Checked>{/* Session AL third pass (GAP-042, N-085): the usual types to pick from; any words of your own still work. */}<datalist id="health-activity-types">{ACTIVITY_TYPES.map(t => <option key={t} value={t} />)}{EVERYDAY_MOVE_NAMES.map(t => <option key={t} value={t} />)}</datalist><div className="health-form-grid"><Checked of="health-activity-steps"><label className="field"><span>Steps</span><input id="health-activity-steps" name="steps" type="text" inputMode="numeric" autoComplete="off" data-check="steps" defaultValue={current?.steps || ""} /></label></Checked><Checked of="health-activity-minutes"><label className="field"><span>Minutes</span><input id="health-activity-minutes" name="minutes" type="text" inputMode="numeric" autoComplete="off" data-check="minutes" defaultValue={current?.minutes || ""} /></label></Checked></div>{/* Session AW (kcal): optional distance, effort and calories, each kept only as typed. */}<div className="health-form-grid"><label className="field"><span>Distance ({unit}, optional)</span><input id="health-activity-distance" name="distance" type="text" inputMode="decimal" autoComplete="off" defaultValue={distancePrefill(currentExtra?.distanceKm, unit)} /></label><label className="field"><span>Effort (optional)</span><select id="health-activity-effort" name="effort" defaultValue={currentExtra?.effort ?? ""}><option value="">Not set</option>{EFFORTS.map(x => <option key={x} value={x}>{EFFORT_WORDS[x].en}</option>)}</select></label><label className="field"><span>Calories (you entered, optional)</span><input id="health-activity-kcal" name="kcal" type="text" inputMode="numeric" autoComplete="off" defaultValue={currentExtra?.kcal ?? ""} /></label></div><div className="actions"><button className="primary" type="submit">{current ? "Save correction" : "Save activity"}</button>{current && <button className="quiet" type="button" onClick={() => { setEditing(null); operation.current = null; }}>Cancel correction</button>}</div><p className="fine">Enter steps, minutes, or both. New entries are added together; correcting one replaces only that record. Distance, effort and calories are optional. ZIGoals never works out the calories an activity burned: a calorie figure shows only when you type it here (marked &ldquo;you entered&rdquo;) or a file you import brings it in (marked &ldquo;from your file&rdquo;), and it never changes your calorie target. Everyday movement (gardening, housework, walking the dog, a wheelchair push, carrying a child, commuting by bike) counts its minutes, with no energy figure.</p></FormBox></section></div>;
 }
 
 const targetFields = [

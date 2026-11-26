@@ -1,6 +1,6 @@
 import {addLocalDays, localWeekday} from '../local-date';
 import {monthDueDates} from '../bills/month';
-import {billTo} from '../bills/ends';
+import {billTo} from '../bills/ends-core';
 import type {BillsRecord} from '../bills/schema';
 import {cents, monthOf} from '../money-log/engine';
 import {fromMinor, minorUnits} from '../money-split/parts';

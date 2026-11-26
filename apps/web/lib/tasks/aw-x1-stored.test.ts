@@ -1,6 +1,7 @@
 import {describe, expect, test} from 'vitest';
 import {reminderSchema, taskSchema} from './schema';
-import {emptyNotifyPrefs, notifyPrefsSchema, setSnoozes, setTaskAgain, taskAgainOf} from '../notify/prefs';
+import {emptyNotifyPrefs, notifyPrefsSchema, taskAgainOf} from '../notify/prefs';
+import {setSnoozes, setTaskAgain} from '../notify/task-again';
 
 /**
  * Session AW (X1, LEDGER #438, #439; TIER 3 (stored format)): the new fields are optional and additive — a reminder's

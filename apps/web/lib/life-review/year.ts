@@ -1,4 +1,5 @@
-import {habitOutcomesBetween, latestHabitRule, type Habit} from '../habits';
+import {latestHabitRule, type Habit} from '../habits';
+import {habitOutcomesBetween} from '../habit-outcomes';
 import {goalProgress, type Platform, type PrivateGoal} from '../positions';
 import {addLocalDays} from '../local-date';
 

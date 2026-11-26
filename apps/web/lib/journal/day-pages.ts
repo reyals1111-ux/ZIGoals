@@ -1,5 +1,8 @@
 import {addLocalDays} from '../local-date';
 import {editEntry, type EntryUndo} from './versions';
+// Session AW Part 2 (speed, attempt 2): what the Journal page's fold line reads lives in lib/journal/day-pages-lite.ts; still read from here.
+import {DAY_PAGE_TEMPLATE, answered, dayPageOf, dayPagesOn, partWritten, type DayAnswer, type DayPart} from './day-pages-lite';
+export {DAY_PAGE_TEMPLATE, dayPageOf, dayPagesOn, partWritten} from './day-pages-lite';
 import {DAY_ANSWER_MAX, DAY_QUESTION_MAX, MAX_DAY_QUESTIONS, MAX_ENTRIES, MAX_TEXT, journalReminderSchema, journalSchema, type Journal, type JournalEntry, type JournalReminder} from './schema';
 
 /**
@@ -12,25 +15,16 @@ import {DAY_ANSWER_MAX, DAY_QUESTION_MAX, MAX_DAY_QUESTIONS, MAX_ENTRIES, MAX_TE
  * the morning page's `morningReminder` and the evening page's, which is the journal's one `reminder`. Pure.
  */
 export type PromptLang = 'en' | 'nl';
-export type DayPart = 'morning' | 'evening';
-export type DayAnswer = {q: string; a: string};
-/** The template id a day page's entry carries (`template`); an older build reads it as no template it knows. */
-export const DAY_PAGE_TEMPLATE = 'morning-evening';
+export type {DayAnswer, DayPart} from './day-pages-lite';
 export const DEFAULT_MORNING: Record<PromptLang, readonly string[]> = {en: ['I am grateful for…', 'What would make today great?'], nl: ['Ik ben dankbaar voor…', 'Wat zou vandaag mooi maken?']};
 export const EVENING_QUESTIONS: Record<PromptLang, readonly string[]> = {en: ['What went well today?', 'What would have made today even better?'], nl: ['Wat ging er goed vandaag?', 'Wat had vandaag nog beter gemaakt?']};
 export const PART_WORDS: Record<DayPart, Record<PromptLang, string>> = {morning: {en: 'Morning page', nl: 'Ochtendpagina'}, evening: {en: 'Evening page', nl: 'Avondpagina'}};
 /** The morning page's reminder until the person chooses one: off, at 07:30, every day. */
 export const DEFAULT_MORNING_REMINDER: JournalReminder = {on: false, time: '07:30', days: 127};
 
-export const dayPagesOn = (journal: Pick<Journal, 'dayPages'>) => journal.dayPages?.on === true;
 /** The morning page's questions: the person's own, else the two of the day's language. */
 export const morningQuestions = (journal: Pick<Journal, 'dayPages'>, lang: PromptLang): readonly string[] => journal.dayPages?.questions?.length ? journal.dayPages.questions : DEFAULT_MORNING[lang];
 export const questionsFor = (journal: Pick<Journal, 'dayPages'>, part: DayPart, lang: PromptLang) => part === 'morning' ? morningQuestions(journal, lang) : EVENING_QUESTIONS[lang];
-/** The day's page: the entry of that day written as morning and evening (never a letter still to open). */
-export const dayPageOf = (journal: Pick<Journal, 'entries'>, day: string): JournalEntry | null => journal.entries.find(e => e.date === day && e.template === DAY_PAGE_TEMPLATE && !e.opensOn) ?? null;
-const answered = (list: readonly DayAnswer[] | undefined) => (list ?? []).filter(x => x.a.trim());
-/** Whether a part of that day is written (at least one answer). */
-export const partWritten = (journal: Pick<Journal, 'entries'>, day: string, part: DayPart) => answered(dayPageOf(journal, day)?.parts?.[part]).length > 0;
 /** The answers of a part that say something, for "This morning you wrote …". */
 export const partAnswers = (entry: Pick<JournalEntry, 'parts'> | null, part: DayPart): DayAnswer[] => answered(entry?.parts?.[part]);
 /** The part to open first: the morning until it is written and before 15:00, else the evening. */

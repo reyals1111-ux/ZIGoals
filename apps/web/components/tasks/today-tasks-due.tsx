@@ -4,12 +4,11 @@ import {useEffect, useMemo, useState} from 'react';
 import {taskState, viewTasks} from '../../lib/tasks/engine';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {FOCUS_VIEW, focusName, inFocus, liveFocus} from '../../lib/tasks/focus';
-import {dueReminders, nextRing} from '../../lib/tasks/reminders';
 import {checklistZone} from '../../lib/checklist/zone';
 import {formatClock, formatNumber} from '../../lib/visual-format';
 import {useTaskList} from './use-task-list';
 import {ReminderRows} from './reminder-rows';
-import {useRemindAgain, useWakeAt} from './use-remind-again';
+import {remindersDue, ringAhead, useRemindAgain, useWakeAt} from './use-remind-again';
 import './today-tasks-due.css';
 
 /**
@@ -26,9 +25,9 @@ export function TodayTasksDue() {
   const focusRead = useDeviceRecord(FOCUS_VIEW), focus = tasks.loaded && !tasks.unreadable ? liveFocus(focusRead.data, tasks.data) : null;
   const due = useMemo(() => tasks.loaded && !tasks.unreadable ? viewTasks(tasks.data, {kind: 'today'}, today, clock).filter(t => inFocus(t, focus, tasks.data)) : [], [tasks.loaded, tasks.unreadable, tasks.data, today, clock, focus]);
   const again = useRemindAgain(); // Session AW (X1, LEDGER #438)
-  const reminders = useMemo(() => tasks.loaded && !tasks.unreadable ? dueReminders(tasks.data, now, checklistZone(), {dismissed, again}) : [], [tasks.loaded, tasks.unreadable, tasks.data, now, dismissed, again]);
+  const reminders = useMemo(() => tasks.loaded && !tasks.unreadable ? remindersDue(again, tasks.data, now, checklistZone(), dismissed) : [], [tasks.loaded, tasks.unreadable, tasks.data, now, dismissed, again]);
   // Session AW (X1, LEDGER #438): the rows wake at the next ring (a first ring or a repeat), on its minute.
-  const ringAt = useMemo(() => tasks.loaded && !tasks.unreadable ? nextRing(tasks.data, now, checklistZone(), again) : null, [tasks.loaded, tasks.unreadable, tasks.data, now, again]);
+  const ringAt = useMemo(() => tasks.loaded && !tasks.unreadable ? ringAhead(again, tasks.data, now, checklistZone()) : null, [tasks.loaded, tasks.unreadable, tasks.data, now, again]);
   useWakeAt(ringAt, setNow);
   if (!tasks.loaded || tasks.unreadable || (!due.length && !reminders.length)) return null;
   const overdue = due.filter(t => taskState(t, today, clock) === 'overdue').length, first = due.find(t => taskState(t, today, clock) !== 'overdue') ?? due[0];

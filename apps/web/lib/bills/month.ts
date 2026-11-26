@@ -5,7 +5,7 @@ import {addMonths, CADENCE_DAYS, daysBetween, dueDatesBetween, dueOnOrAfter, ste
 import {AMOUNT_TOLERANCE, normalisePayee} from './detect';
 import type {Bill, BillsRecord} from './schema';
 // Session AW X7 (LEDGER #462): a bill that ends has no date after its last payment.
-import {billTo} from './ends';
+import {billTo} from './ends-core';
 
 /**
  * Session AV (owner follow-up 1, F-BILLS-MONTH; Copilot's "paid this month", Rocket Money's "until payday"): this month's

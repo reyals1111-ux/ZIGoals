@@ -2,7 +2,8 @@ import {describe, expect, test} from 'vitest';
 import {collectEverything, DEVICE_KEYS} from '../export/everything';
 import {nextValue, planParts} from '../restore/plan';
 import {EVENING_PLAN_KEY, eveningRecordSchema} from '../evening-plan/schema';
-import {DEFAULT_ON, emptyNotifyPrefs, energyReminders, NOTIFY_KEY, NOTIFY_LABELS, NOTIFY_TYPES, notifyPrefsSchema, setEnergyReminder, typeOn} from './prefs';
+import {DEFAULT_ON, emptyNotifyPrefs, energyReminders, NOTIFY_KEY, NOTIFY_TYPES, notifyPrefsSchema, setEnergyReminder, typeOn} from './prefs';
+import {NOTIFY_LABELS} from './labels';
 
 /**
  * Session AV lane 2 (bodymind-r2; LEDGER #235, #236; TIER 3 (stored formats), additive): the notification prefs' curve

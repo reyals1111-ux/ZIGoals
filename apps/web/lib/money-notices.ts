@@ -1,6 +1,6 @@
 import {addLocalDays} from './local-date';
 import {monthDueDates, nextPayday as nextPaydayOf} from './bills/month';
-import {billTo} from './bills/ends';
+import {billTo} from './bills/ends-core';
 import type {BillsRecord} from './bills/schema';
 import {monthKey, monthView, shiftMonth} from './budgets/engine';
 import {MAX_CHALLENGES, MAX_WATCHED, type BudgetsRecord} from './budgets/schema';

@@ -3,7 +3,8 @@ import vm from 'node:vm';
 import {describe, expect, it} from 'vitest';
 import {buildPlan, withSnoozes, SNOOZE_MS, type PlanInput, type Snapshot} from './plan';
 import {snoozedTaskSeries} from './actions';
-import {DEFAULT_ON, emptyNotifyPrefs, NOTIFY_LABELS, NOTIFY_TYPES} from './prefs';
+import {DEFAULT_ON, emptyNotifyPrefs, NOTIFY_TYPES} from './prefs';
+import {NOTIFY_LABELS} from './labels';
 import {zonedInstant} from './zone';
 import {snoozeButton} from '../tasks/snooze-choices';
 

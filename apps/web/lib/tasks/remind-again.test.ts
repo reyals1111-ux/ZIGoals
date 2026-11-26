@@ -1,6 +1,8 @@
 import {describe, expect, test} from 'vitest';
 import {againAt, againChoiceOf, againFor, againPatch, repeatInstants} from './remind-again';
-import {dueReminders, nextRing, snoozeReminder} from './reminders';
+import {snoozeReminder} from './reminders';
+// Session AW Part 2 (speed, deliberate): the repeats moved to their own module; the same functions, the same assertions.
+import {dueReminders, nextRing} from './reminder-rings';
 import {instantAt} from '../zone-time';
 import {tasksSchema, type Tasks} from './schema';
 
