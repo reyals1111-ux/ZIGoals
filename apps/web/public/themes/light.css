@@ -28330,6 +28330,9 @@
         border-color: var(--cyan);
         background: var(--surface, var(--panel, #f3f4f9eb))
     }
+    .tasks-main > .tasks-reminders:not(#\-) {
+        border-color: var(--line)
+    }
     .tasks-completed h2 small:not(#\-) {
         color: var(--text-secondary, var(--muted))
     }

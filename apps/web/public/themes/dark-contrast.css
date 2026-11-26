@@ -27093,6 +27093,9 @@
         border-color: color-mix(in srgb, var(--cyan) 40%, #fff);
         background: var(--surface, var(--panel, #000000eb))
     }
+    .tasks-main > .tasks-reminders:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
     .tasks-completed h2 small:not(#\-):not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
