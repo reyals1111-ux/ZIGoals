@@ -305,3 +305,7 @@
 /* Session AV lane 2 (tasks-r2, LEDGER #225): "Print this list" under the list. */
 .tasks-print-line { margin: 8px 0 0; }
 .tasks-print-line button { min-height: 44px; font-size: 16px; }
+/* Session AW (CI run 2034 and the local re-run, a10-life A10-11): the line's syntax hint ("A day, a time, …") shows once the
+   field is focused (typing, or a control of the form), so "New task" and the first task fit the first screen at 768; it stays
+   the field's description for a screen reader either way. Layout only. */
+.tasks-smart-add:not(:focus-within) > .tasks-smart-help { display: none; }
