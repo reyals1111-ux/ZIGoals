@@ -1,5 +1,5 @@
 import type {Period} from '../../../ai/local-answers/exact/period';
-import {balanceOn, moneyText} from '../../../accounts/net-worth';
+import {moneyText, owedAfterPayments} from '../../../accounts/net-worth';
 import {isDebtKind, type Accounts} from '../../../accounts/schema';
 import type {BudgetsRecord} from '../../../budgets/schema';
 import type {MoneyEntry} from '../../../money-log/schema';
@@ -32,7 +32,9 @@ export type DebtRanks = {
 };
 export function debtRanks(accounts: Accounts, today: string): DebtRanks {
   const debts = accounts.items.filter(a => !a.archivedAt && isDebtKind(a.kind));
-  const sized = debts.map(a => { const b = balanceOn(a, today); return {a, date: b?.date ?? null, cents: b ? Math.round(Number(moneyText(b)) * 100) : null}; });
+  // Session AW (fr-money, FR-AW-3): what each debt owes as Wealth's row shows it — its balance less the payments recorded
+  // since (lib/accounts/net-worth.ts owedAfterPayments, the one function), dated by that balance.
+  const sized = debts.map(a => { const b = owedAfterPayments(a, today); return {a, date: b?.date ?? null, cents: b ? Math.round(Number(moneyText(b)) * 100) : null}; });
   const per = new Map<string, number>();
   for (const s of sized) if (s.cents !== null) per.set(s.a.currency, (per.get(s.a.currency) ?? 0) + s.cents);
   const ranked = [...per.entries()].sort((x, y) => y[1] - x[1] || x[0].localeCompare(y[0])), cur = ranked[0]?.[0] ?? null, total = ranked[0]?.[1] ?? 0;
