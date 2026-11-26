@@ -86,7 +86,7 @@ export function cspDirectives(egress, { nonce, development = false, https = true
   ];
 }
 export function composeCsp(egress, options) { return cspDirectives(egress, options).map(([name, sources]) => [name, ...sources].join(" ")).join("; "); }
-/** The Permissions-Policy of a document: the camera and Bluetooth only on Health, the microphone on app pages, the rest denied. */
+/** The Permissions-Policy of a document (lib/egress-policy.json): the camera only on Health, the microphone on app pages, geolocation denied; Bluetooth is not named (Chromium has no such feature; Session AL TK-191). */
 export function permissionsPolicyFor(egress, pathname) {
   return pathname === "/app/health" ? egress.permissionsPolicy.health : documentClass(pathname) === "app" ? egress.permissionsPolicy.app : egress.permissionsPolicy.global;
 }
