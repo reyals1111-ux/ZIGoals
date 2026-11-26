@@ -2,8 +2,8 @@ import {scaleNutrition, type HealthDiaryEntry} from '../../health';
 import {addLocalDays} from '../../local-date';
 import type {MealWords, MealWordsEntry} from '../../meal-words/schema';
 import type {DayRange} from '../tools/range';
-import {HEALTH_CLOSED, HEALTH_CLOSED_NL, text as clean} from '../tools/format';
-import {ALLOW_HEALTH_CARD, novaEnvInfo, novaHealthClosed} from './nova-env';
+import {text as clean} from '../tools/format';
+import {novaEnvInfo, novaHealthClosed, zigiHealthClosedText} from './nova-env';
 import type {ToolEnv} from '../tools/env';
 import {answer, asked, count, MIXED, say, type Asked, type Lang} from './av-words';
 import type {LocalReply} from './engine';
@@ -111,7 +111,7 @@ export function awFrAnswer(question: string, env: ToolEnv, record: MealWords | n
     if (!env.health) {
       if (!healthy) return null;
       const nova = novaEnvInfo(env);
-      return {kind: 'refusal', text: nova ? novaHealthClosed(nova, a.lang) : a.lang === 'nl' ? HEALTH_CLOSED_NL + ALLOW_HEALTH_CARD : HEALTH_CLOSED, calls: []};
+      return {kind: 'refusal', text: nova ? novaHealthClosed(nova, a.lang) : zigiHealthClosedText(env, a.lang), calls: []};
     }
     const words = record?.entries ?? [];
     return healthy ? healthyAnswer(a, env.health.diary, words) : averageAnswer(a, env.health.diary, words);

@@ -25,5 +25,5 @@ export function novaLocalEnv({sources, gates, scopes, chainChosen}: {sources: To
   // Session AS (ADR-042): this environment's results are shown on the device only, whatever the narrowing built it as.
   const env = novaToolEnv(sources, local, scopes, chainChosen);
   env.purpose = 'local';
-  return markNovaEnv(env, {healthScope: scopes.health, healthGate: gates.localHealth, todayScope: scopes.today});
+  return markNovaEnv(env, {healthScope: scopes.health, healthGate: gates.localHealth, todayScope: scopes.today, ...(!gates.localHealth && gates.healthBlock ? {healthBlock: gates.healthBlock} : {})});
 }

@@ -53,3 +53,14 @@ export function refuse(tool: string, label: string, reason: ToolRefusal['reason'
 export const HEALTH_CLOSED = 'Health isn’t shared with ZIGi here, so nothing from Health is read. Tap Allow Health in NOVA → Permissions: one tap opens Health to ZIGi and NOVA.';
 /** Session AU (D-ALLOW-HEALTH): the same sentence for a Dutch question on the device (ZIGi's own reply; tools and models keep the English one). */
 export const HEALTH_CLOSED_NL = 'Health wordt hier niet met ZIGi gedeeld, dus er wordt niets uit Health gelezen. Tik op Allow Health in NOVA → Permissions: één tik opent Health voor ZIGi en NOVA.';
+/**
+ * Session AW (fr-answers review): the two cases where Allow Health is not shown, said as they are (permissions-panel.tsx
+ * hides the button then and says the same there): an account is open and its Health permission is not on for this device,
+ * or Health is not on this device's Today. Each still opens "Health isn’t shared with ZIGi" (nova-env.ts HEALTH_REFUSAL).
+ */
+export const HEALTH_CLOSED_BY: Record<'account' | 'layout', {en: string; nl: string}> = {
+  account: {en: 'Health isn’t shared with ZIGi here, so nothing from Health is read. With your account open, Health is read only when the account’s Health permission is on for this device, and here it is off or not confirmed yet: Settings → Account & sync.',
+    nl: 'Health wordt hier niet met ZIGi gedeeld, dus er wordt niets uit Health gelezen. Met je account open wordt Health alleen gelezen als de Health-toestemming van het account op dit apparaat aan staat, en hier staat die uit of is die nog niet bevestigd: Settings → Account & sync.'},
+  layout: {en: 'Health isn’t shared with ZIGi here, so nothing from Health is read. Health is not on your Today layout on this device: add it to Today first, then Allow Health in NOVA → Permissions opens it in one tap.',
+    nl: 'Health wordt hier niet met ZIGi gedeeld, dus er wordt niets uit Health gelezen. Health staat niet op je Today-indeling op dit apparaat: zet het eerst op Today, dan opent Allow Health in NOVA → Permissions het met één tik.'},
+};
