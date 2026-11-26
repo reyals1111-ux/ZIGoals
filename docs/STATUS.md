@@ -1,3 +1,12 @@
+# Session AX — "PROFESSIONAL REVIEW & POLISH" (ADR-047) (2026-11-26, `feature/session-ax-pro-review`, Draft PR "Session AX — Professional review & polish"; in progress, not merged, not deployed)
+
+**Base:** `main` `36bd987f` (PR #110 merged). **Rules (owner):** the brief, the plan and the approval, verbatim in `docs/architecture/ADR-047-session-ax.md`. Resume: `docs/handoff/AX_RESUME.md`.
+
+## Part 0 — records (26 Nov)
+- **PR #110** merged into `main` as `36bd987fb374c0c5e5e41363530161e60a981f24` (parents `8fa8aa1d` and `b29f08c5`).
+- Nothing deployed since **Alpha #59** (`8fa8aa1d`); #60 is the owner's deploy after this PR.
+- **Frozen readers** stay #37–#59 (`scripts/frozen-readers.mjs`).
+
 # Session AW — "FINISH LINE" (ADR-046) (2026-11-25/26, `feature/session-aw-finish-line`, Draft [PR #110](https://github.com/reyals1111-ux/ZIGoals/pull/110) "Session AW — Finish line"; complete, not merged, not deployed)
 
 **Base:** `main` `8fa8aa1d` (PR #109 merged). **Rules (owner):** the brief, the plan and the approval, verbatim in `docs/architecture/ADR-046-session-aw.md`. Resume: `docs/handoff/AW_RESUME.md`.
