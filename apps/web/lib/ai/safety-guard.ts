@@ -298,10 +298,47 @@ export function guardTopic(raw: string): GuardTopic | null {
   if (INJECTION.some(p => p.test(text))) return 'injection';
   return null;
 }
+// ---- Session AW (fr-answers, FR-AW-22): a reflective question about one's own mood ----
+/**
+ * "Do I seem depressed?", "Lijk ik depressief?": a question about one's own mood, asked of ZIGi, got the full crisis reply.
+ * That is safe but heavy for a reflective question. The whole message must be such a question (so "I feel depressed and
+ * hopeless", any self-harm or suicide word, and any other distress words keep exactly the distress reply): its first lines
+ * are gentler (caring, no diagnosis, ZIGi can't judge it, the journal and a GP), and the same real help lines follow. The
+ * topic stays `distress`, so every path still answers it first, before any model or lookup.
+ */
+const MOOD_TAIL = String.raw`(?:\s+(?:to you|lately|these days|recently|at the moment|right now|this week|this month|from my (?:journal|entries|records|notes)|in my (?:journal|entries)|based on my (?:journal|entries|records)|de laatste tijd|tegenwoordig|op dit moment|nu|deze week|deze maand|volgens jou|volgens mijn (?:dagboek|gegevens)|in mijn dagboek|uit mijn dagboek))*\s*[?.!]*`;
+const MOOD_LEAD = String.raw`(?:(?:hey|hi|so|and|ok|okay|zigi|nova|hoi|en|dus|eerlijk gezegd),?\s+)?`;
+const SOFT = String.raw`(?:a bit |kind of |sort of |a little |rather |very |really |quite |een beetje |wat |erg |echt |nogal |best )?`;
+const REFLECTIVE_MOOD: RegExp[] = [
+  new RegExp(String.raw`^${MOOD_LEAD}(?:do|does|did|would|could|might) (?:i|my (?:journal|entries|diary|mood|notes|week|writing)) (?:seem|look|sound|come across|appear|read)(?: as| like)? ${SOFT}(?:depressed|down|low)${MOOD_TAIL}$`),
+  new RegExp(String.raw`^${MOOD_LEAD}(?:am i|could i be|might i be|would i be|do you think i(?:'m| am)|do you think i might be) ${SOFT}(?:depressed|down)${MOOD_TAIL}$`),
+  new RegExp(String.raw`^${MOOD_LEAD}(?:lijk|klink|kom|ben) ik ${SOFT}(?:depressief|somber|neerslachtig)(?: over)?${MOOD_TAIL}$`),
+  new RegExp(String.raw`^${MOOD_LEAD}(?:zou ik|denk je dat ik) ${SOFT}(?:depressief|somber|neerslachtig) (?:zijn|ben|kan zijn|zou kunnen zijn)${MOOD_TAIL}$`),
+  new RegExp(String.raw`^${MOOD_LEAD}(?:klinkt|lijkt|leest) mijn (?:dagboek|stemming|week) ${SOFT}(?:depressief|somber|neerslachtig)${MOOD_TAIL}$`),
+];
+/** The language of a message that is wholly a reflective question about one's own mood (nothing of self-harm), else null. */
+export function reflectiveMood(raw: string): GuardLanguage | null {
+  const text = norm(raw);
+  if (!text || text.length > 120 || detectRisk(text) === 'self-harm') return null;
+  const hit = REFLECTIVE_MOOD.findIndex(p => p.test(text));
+  // The first two patterns are English, the rest Dutch ("Lijk ik depressief?" holds one Dutch function word only).
+  return hit < 0 ? null : hit < 2 ? 'en' : 'nl';
+}
+const HELP_LINES = (lang: GuardLanguage) => GUARD_REPLIES.distress[lang].split('\n').filter(line => line.startsWith('- '));
+/** The gentler reply's own first lines; the help lines are the distress reply's own, word for word. */
+export const REFLECTIVE_MOOD_REPLIES: Record<GuardLanguage, string> = {
+  en: ['It is good that you ask yourself this. I can\'t tell whether you are depressed: that is not something an app can judge, and I don\'t read it from your records. Writing in your journal can help you notice how your days feel, and your GP (family doctor) is a good person to talk it through with.',
+    'If things feel heavy, or you might hurt yourself, help is there today:', ...HELP_LINES('en'), 'ZIGi is an app, not a counsellor; the people at these lines are there for exactly this.'].join('\n'),
+  nl: ['Goed dat je het jezelf afvraagt. Of je depressief bent, kan ik niet beoordelen: dat kan een app niet, en ik lees het niet uit je gegevens. Schrijven in je dagboek kan helpen om te zien hoe je dagen voelen, en je huisarts is een goede persoon om het mee te bespreken.',
+    'Voelt het zwaar, of denk je eraan jezelf iets aan te doen, dan is er vandaag hulp:', ...HELP_LINES('nl'), 'ZIGi is een app, geen hulpverlener; de mensen bij deze lijnen zijn er juist hiervoor.'].join('\n'),
+};
 /** The guard's fixed reply for the person's message, or null when the message is ordinary. */
 export function guardMessage(raw: string): GuardReply | null {
   const topic = guardTopic(raw);
   if (!topic) return null;
+  // Session AW (fr-answers, FR-AW-22): the same topic and order; a reflective question gets the gentler first lines.
+  const mood = topic === 'distress' ? reflectiveMood(raw) : null;
+  if (mood) return {topic, lang: mood, text: REFLECTIVE_MOOD_REPLIES[mood]};
   const lang = guardLanguage(raw);
   return {topic, lang, text: GUARD_REPLIES[topic][lang]};
 }
