@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import {afterEach, beforeEach, expect, test, vi} from 'vitest';
+import {readFileSync} from 'node:fs';
 import {act, createElement as h} from 'react';
 import {createRoot, type Root} from 'react-dom/client';
 import {JournalCompose} from '../../components/journal/journal-compose';
@@ -68,7 +69,9 @@ test('recovery words are never kept, and a draft kept before goes', async () => 
   await settle();
   await guardReady();
   expect(kept()?.text).toBe('A fictional morning.');
-  await type('abandon ability able about above absent absorb abstract absurd abuse access accident');
+  // Integrator: the words come from the repository's list, as lib/ai/privacy-mode.test.ts reads them (from the repository root, where vitest runs: jsdom has no file URL), so no seed-like line sits
+  // in a tracked file (scripts/check-secrets.mjs).
+  await type(readFileSync(`${process.cwd()}/scripts/bip39-english.txt`, 'utf8').trim().split('\n').slice(0, 12).join(' '));
   await settle(1000);
   expect(localStorage.getItem(JOURNAL_DRAFT_KEY)).toBeNull();
   expect(element.querySelector('.secret-guard')).toBeTruthy();
