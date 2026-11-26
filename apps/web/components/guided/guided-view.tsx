@@ -12,6 +12,7 @@ import {GUIDED_PROGRAMS, type GuidedProgram, type ProgrammeDay} from '../../lib/
 import {GUIDED_JOURNEYS, type GuidedJourney, type GuidedJourneys} from '../../lib/guided/schema';
 import {GuidedError, activeJourneyFor, activeJourneys, addCalendarDays, dayProgress, endJourney, isStepDone, journeyState, markDone, programmeToday, progressLine, startJourney, startRefusal, tickStep, undoDone, untickStep} from '../../lib/guided/engine';
 import {ReadAloud} from '../read-aloud/read-aloud';
+import {GuidedCollections} from './guided-collections';
 import {saveFailureMessage} from '../../lib/storage-error-copy';
 import {formatDate} from '../../lib/visual-format';
 import './guided.css';
@@ -47,6 +48,12 @@ export function GuidedView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [record.loaded]);
   const journeys = GUIDED_PROGRAMS.filter(p => !p.days), programmes = GUIDED_PROGRAMS.filter(p => p.days);
+  // Session AW (content): a collection's link to a programme or journey moves to it on this page, focused: its journey
+  // when it is going, else its card to start.
+  const goToProgram = (id: string) => {
+    const target = activeJourneyFor(record.data, id) ? `guided-journey-${id}` : `guided-program-title-${id}`;
+    requestAnimationFrame(() => { const el = document.getElementById(target); el?.scrollIntoView({block: 'start'}); el?.focus({preventScroll: true}); });
+  };
   const startButton = (p: GuidedProgram) => {
     const refusal = startRefusal(record.data, p.id), on = !!activeJourneyFor(record.data, p.id);
     return on ? <p className="guided-on">{p.days ? 'You are on this programme.' : 'You are on this journey.'}</p>
@@ -99,8 +106,8 @@ export function GuidedView() {
       </section>
       <section className="guided-section" aria-labelledby="guided-programs-title">
         <h2 id="guided-programs-title">Choose a journey</h2>
-        <ul className="guided-programs">{journeys.map(p => <li key={p.id} className="panel guided-program" data-pillar={p.pillar}>
-          <div className="guided-title-row"><PillarMark pillar={p.pillar} size={14} /><h3>{p.title}</h3></div>
+        <ul className="guided-programs">{journeys.map(p => <li key={p.id} id={`guided-program-${p.id}`} className="panel guided-program" data-pillar={p.pillar}>
+          <div className="guided-title-row"><PillarMark pillar={p.pillar} size={14} /><h3 id={`guided-program-title-${p.id}`} tabIndex={-1}>{p.title}</h3></div>
           <p>{p.summary}</p>
           <p className="guided-meta">{p.steps.length} days · one step a day</p>
           {p.care && <p className="fine guided-care">{p.care}</p>}
@@ -108,6 +115,8 @@ export function GuidedView() {
           {startButton(p)}
         </li>)}</ul>
       </section>
+      {/* Session AW (content; LEDGER #82, #278): themed collections of what is above and elsewhere, folds below it all. */}
+      <GuidedCollections goToProgram={goToProgram} />
       <p className="guided-message" role="status" aria-live="polite">{message}</p>
     </>}
   </div>;

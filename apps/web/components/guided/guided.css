@@ -67,3 +67,22 @@
 .guided-journey, .guided-days, .guided-day, .guided-day > details, .guided-day > details > summary, .guided-day-body, .guided-day .guided-step { min-width: 0; max-width: 100%; }
 .guided-journey :is(.guided-step-actions, .read-aloud, .guided-end) > :is(a, button) { white-space: normal; max-width: 100%; text-align: center; overflow-wrap: anywhere; }
 .guided-day-head, .guided-day-title { overflow-wrap: anywhere; }
+/* Session AW (content; LEDGER #82, #278): Collections, folds below the programmes and journeys, and the seven sleep
+   lessons inside "Sleep better". Tokens only (no new colours); every control a 44 px target; nothing moves; long words
+   and button labels wrap inside the fold at 320 px. */
+.guided-collections-lede { margin: 0; color: var(--text-secondary); }
+.guided-collection-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; min-width: 0; }
+.panel.guided-collection { padding: 0; min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+.guided-collection > summary { display: flex; align-items: center; min-height: 44px; padding: 12px 16px; cursor: pointer; }
+.guided-collection > summary:focus-visible { outline: 2px solid var(--brand-cyan); outline-offset: 2px; }
+.guided-collection > summary .guided-day-title { font-size: 19px; }
+.guided-collection-body { display: grid; gap: 12px; padding: 0 16px 16px; margin: 0; min-width: 0; }
+.guided-collection-body p, .guided-collection .guided-collection-body .fine { margin: 0; }
+.guided-collection-body h3 { margin: 4px 0 0; font-size: 18px; }
+.guided-collection-intro { color: var(--text-secondary); }
+.guided-lessons-part { display: grid; gap: 8px; min-width: 0; }
+.guided-collection-items { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; min-width: 0; }
+.guided-collection-item { min-width: 0; max-width: 100%; }
+.guided-collection-item .guided-preview li { color: var(--text-secondary); }
+.guided-collection :is(.guided-step-actions, .read-aloud) > :is(a, button) { white-space: normal; max-width: 100%; text-align: center; overflow-wrap: anywhere; }
+.guided-lesson, .guided-lesson > details, .guided-lesson > details > summary, .guided-lesson .guided-day-body { min-width: 0; max-width: 100%; }

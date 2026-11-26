@@ -1,5 +1,5 @@
 'use client';
-import {ProgrammeLinks} from '../../guided/programme-links';
+import {CollectionLink, ProgrammeLinks} from '../../guided/programme-links';
 import {showToast} from '../../ui/undo-toast';
 import {removeWithUndo} from '../../ui/remove-with-undo';
 import {announceHealthRemoval} from '../../../lib/health-events';
@@ -155,7 +155,7 @@ export default function SleepView() {
       {patterns.length ? <ul>{patterns.map(p => <li key={p.id}><p>{p.sentence}</p><details><summary>How this is worked out</summary><p className="fine">Average time asleep on the {p.withTag.nights} logged nights with the tag and the {p.without.nights} without it, from {formatDate(p.window.start)} to {formatDate(p.window.end)}. Shown only with at least 14 logged nights and 5 on each side.</p></details></li>)}</ul>
         : <p className="fine">Patterns appear once you have logged at least 14 nights in 60 days, with a tag on at least 5 of them and missing from at least 5 others. They describe your log; they do not explain it.</p>}
     </section>
-    <section className="panel" aria-labelledby="sleep-goal-title"><h2 id="sleep-goal-title">Your sleep goal</h2><LoadBoundary quiet><Suspense fallback={null}><SleepX6 part="goal-period" store={store}/></Suspense></LoadBoundary><LoadBoundary quiet><Suspense fallback={null}><SleepNeed store={store} onDone={done}/></Suspense></LoadBoundary><SleepGoalForm key={`goal-${sleep.goal?.updatedAt ?? 'none'}`} store={store} onDone={done}/>{/* Session AW (programmes; owner decision 1d): the 7-day sleep reset, a quiet line under the goal. */}<ProgrammeLinks ids={['sleep-reset']}/></section>
+    <section className="panel" aria-labelledby="sleep-goal-title"><h2 id="sleep-goal-title">Your sleep goal</h2><LoadBoundary quiet><Suspense fallback={null}><SleepX6 part="goal-period" store={store}/></Suspense></LoadBoundary><LoadBoundary quiet><Suspense fallback={null}><SleepNeed store={store} onDone={done}/></Suspense></LoadBoundary><SleepGoalForm key={`goal-${sleep.goal?.updatedAt ?? 'none'}`} store={store} onDone={done}/>{/* Session AW (programmes; owner decision 1d): the 7-day sleep reset, a quiet line under the goal. */}<ProgrammeLinks ids={['sleep-reset']}/>{/* Session AW (content; LEDGER #82, #278): the Sleep better collection and its seven short lessons. */}<CollectionLink id="sleep-better" line="Seven short lessons on sleeping better, and quiet practices for the evening, in Guided journeys."/></section>
     <section className="panel sleep-recent" aria-labelledby="sleep-recent-title">
       <h2 id="sleep-recent-title">Recent nights and naps</h2>
       {/* Session AV lane 2 (P-22): the latest five, then "Show all" (the page was 13,800 px at 390) */}{nights.length ? <ul className="sleep-nights" id="sleep-nights-list">{(allNights ? nights : nights.slice(0, 5)).map(n => <li key={n.id}>
