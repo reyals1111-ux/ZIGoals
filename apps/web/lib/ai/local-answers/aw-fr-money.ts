@@ -1,4 +1,4 @@
-import {owedAfterPayments} from '../../accounts/net-worth';
+import {onBalanceDayWords, owedAfterPayments} from '../../accounts/net-worth';
 import {localDate} from '../../local-date';
 import {isDebtKind, type Account} from '../../accounts/schema';
 import type {ToolEnv} from '../tools/env';
@@ -91,7 +91,7 @@ function owedNl(a: Asked): LocalReply | null {
   if (!known.length) return answer(`Geen van je schulden heeft al een saldo; voeg het toe in ${PLACE}.`, calls);
   const minor = (m: {value: bigint; decimals: number}) => m.decimals === 2 ? m.value : m.decimals < 2 ? m.value * 10n ** BigInt(2 - m.decimals) : m.value / 10n ** BigInt(m.decimals - 2);
   const totals = [...known.reduce((m, r) => m.set(r.account.currency, (m.get(r.account.currency) ?? 0n) + minor(r.owed!)), new Map<string, bigint>())].sort(([x], [y]) => x.localeCompare(y));
-  const line = (r: (typeof known)[number]) => { const o = r.owed!, at = r.account.snapshots.find(s => s.date === o.date)!; return `- ${r.account.name}: ${moneyIn('nl', Number(minor(o)), r.account.currency)}${o.payments ? `, na ${count(o.payments, 'nl', ['', ''], ['betaling', 'betalingen'])} sinds je saldo van ${moneyIn('nl', Number(minor({value: BigInt(at.value), decimals: at.decimals})), r.account.currency)} op ${dayIn('nl', o.date, a.today)}` : ` op ${dayIn('nl', o.date, a.today)}`}`; };
+  const line = (r: (typeof known)[number]) => { const o = r.owed!, at = r.account.snapshots.find(s => s.date === o.date)!; return `- ${r.account.name}: ${moneyIn('nl', Number(minor(o)), r.account.currency)}${o.payments ? `, na ${count(o.payments, 'nl', ['', ''], ['betaling', 'betalingen'])} sinds je saldo van ${moneyIn('nl', Number(minor({value: BigInt(at.value), decimals: at.decimals})), r.account.currency)} op ${dayIn('nl', o.date, a.today)}` : ` op ${dayIn('nl', o.date, a.today)}`}${o.onBalanceDay ? ` (${onBalanceDayWords(o.onBalanceDay, 'nl')})` : ''}`; };
   return answer([`Je hebt ${list(totals.map(([c, v]) => moneyIn('nl', Number(v), c)), 'nl')} schuld, over ${count(known.length, 'nl', ['', ''], ['schuld', 'schulden'])}, zoals ingevoerd op dit apparaat:`, ...known.map(line),
     ...(unknown ? [`${count(unknown, 'nl', ['', ''], ['schuld', 'schulden'])} zonder saldo ${unknown === 1 ? 'telt' : 'tellen'} niet mee`] : []), ...(totals.length > 1 ? ['Eén totaal per valuta, nooit omgerekend'] : [])].join('\n'), calls);
 }

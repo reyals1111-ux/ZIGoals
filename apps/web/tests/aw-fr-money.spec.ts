@@ -54,6 +54,12 @@ for (const theme of THEMES) test(`${theme}: a debt starts in the currency of the
   expect((await readRecord<DebtPlannerRecord>(page, DEBT_PLANNER_KEY)).debts?.[card.id]).toEqual({minimum: '60.00'});
   const row = section.locator('.accounts-row').filter({hasText: 'Credit card'});
   await expect(row.locator('.accounts-row-balance strong')).toHaveText('€2,400.00');
+  // Re-walk: a payment recorded on the balance's own day is kept and said, not taken off (it cannot be ordered against it).
+  await row.getByRole('button', {name: 'Record a payment on Credit card'}).click();
+  await row.getByRole('form', {name: 'Payment on Credit card'}).getByLabel('Payment (EUR)').fill('150');
+  await row.getByRole('form', {name: 'Payment on Credit card'}).getByRole('button', {name: 'Save'}).click();
+  await expect(row.locator('.accounts-row-balance strong')).toHaveText('€2,400.00');
+  await expect(row.locator('.accounts-owed-now')).toHaveText("1 payment on the balance's day, not taken off (enter the new balance when your statement shows it)");
   // The planner reads the minimum typed in the form.
   await section.getByRole('button', {name: 'Plan paying off your debts'}).click();
   await expect(section.getByLabel('Minimum a month for Credit card (EUR)')).toHaveValue('60.00');
