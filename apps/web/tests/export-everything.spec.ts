@@ -88,5 +88,7 @@ test('Showcase: the file name says showcase-demo', async ({page}) => {
   await openSettings(page);
   const {name, bytes} = await download(page);
   expect(name).toBe('zigoals-showcase-demo-export-2026-09-15.zip');
-  expect(readStoredZip(bytes).map(e => e.name)).toEqual(['everything.json', 'README.txt', ...CSV_FILES]) /* Session AH (DS6): README.txt says each file's rows */;
+  // Session AW (CI run 2039, deliberate): the Showcase journal's two labelled example photos (07d11817) are exported with
+  // it, as any journal photo is; the list stays exact (was: no photo files).
+  expect(readStoredZip(bytes).map(e => e.name)).toEqual(['everything.json', 'README.txt', ...CSV_FILES, 'journal/photos/m-showcase-run.jpeg', 'journal/photos/m-showcase-walk.jpeg']) /* Session AH (DS6): README.txt says each file's rows */;
 });
