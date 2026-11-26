@@ -150,3 +150,7 @@ Not counted (environment, not the app):
 - FR-AW-23 (Showcase speed at 1440): Carried, 2 failed attempts (ADR-046 D-SPEED; FR-TJ-22 and FR-S-19).
 - FR-AW-25 (the Checklist planet art in Light): Carried, a protected area outside FR-TJ-7 (the Checklist orbit path).
 - FR-AW-27 (the date order in native pickers): no app change. The browser's own language sets it.
+- Found by the corpus while wiring FR-AW-9 (not a walk row): "can you see my health?" gets the trust answer. "Is my health
+  shared" gets the Health summary instead, and the Dutch "kun je mijn gezondheid zien?" opens Health with an English
+  line. One attempt (answering the trust question first, in `alFirst`) did not reach them, because earlier layers answer
+  first. It was reverted. Open: the next attempt is in the local-answers order (`lib/ai/local-answers/no-model.ts`).

@@ -452,3 +452,17 @@ machine ended at a plain `idle`, past the machine's rest state: a reminder's kno
 the push-open greeting (`ai-launcher.tsx`). The likely trigger is a Showcase reminder due at the runner's hour. Both now
 rest where the machine rests (`zigiResting` in `bus.ts`, told by `events.ts`; `3998d8a9`, unit test). WebKit does not
 run in this sandbox, so the next CI runs are the check. A third red means attempt 2.
+
+### D-CI2039 — run 2039 on `c0cb9d07`
+Every red is fixed at its cause, each reproduced locally first:
+- **Web checks.** The round trip's own Chess computer seed duplicated the Showcase fixtures' record (`af51c180`).
+- **`export-everything:84`.** The Showcase's two labelled example photos are exported, as any journal photo is; the
+  list stays exact (`370d9292`, deliberate).
+- **`aw-showcase:19`.** Entry photos are `loading="lazy"`, so the spec read one below the fold. It is now scrolled to
+  first (`4ee4ff53`, deliberate).
+- **`ui-design-pass:396`.** The Water card is 1,118 px at 720 once every part is drawn (1,132 on #59, which passed only
+  while parts were still loading). It is a long section, so the typing check proved nothing there; it now runs on
+  Notes' Capture card (`4ee4ff53`, deliberate).
+- **`a10-life` A10-11.** The Showcase's labelled areas showed Tasks' Area choice beside the heading, which added a row
+  (`e81a48df`: it now sits beside Filter).
+- **`aw-p5-fixes:232`** was red on both attempts in CI and green locally on build-9 (one run, both projects). It is watched: a second CI red means investigate.
