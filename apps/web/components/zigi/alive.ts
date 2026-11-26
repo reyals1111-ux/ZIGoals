@@ -188,7 +188,9 @@ export function startZigiAlive(options: {random?: () => number} = {}): () => voi
     let needs = false;
     try { const {data} = readAiSettings(getAppStorage()); needs = data.enabled && (!data.provider || !data.model); } catch { needs = false; }
     if (needs && !askedForSetup) { askedForSetup = true; zigiEvents.emit('attention'); }
-    else if (!needs && askedForSetup) { askedForSetup = false; zigiEvents.emit('connected'); }
+    // Session AW (D-ZIGI200, attempt 2): the launcher may already show the ask from its first paint (lib/ai/launcher-record.ts
+    // setupAsked); set up after all, ZIGi rests.
+    else if (!needs && (askedForSetup || zigiState.get() === 'attention')) { askedForSetup = false; zigiEvents.emit('connected'); }
   };
   watchSetup();
   window.addEventListener(AI_SETTINGS_EVENT, watchSetup); window.addEventListener('storage', watchSetup);
