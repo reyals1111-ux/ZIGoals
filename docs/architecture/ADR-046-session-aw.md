@@ -452,6 +452,17 @@ machine ended at a plain `idle`, past the machine's rest state: a reminder's kno
 the push-open greeting (`ai-launcher.tsx`). The likely trigger is a Showcase reminder due at the runner's hour. Both now
 rest where the machine rests (`zigiResting` in `bus.ts`, told by `events.ts`; `3998d8a9`, unit test). WebKit does not
 run in this sandbox, so the next CI runs are the check. A third red means attempt 2.
+- **Attempt 1 did not hold.** Green in 2038 and 2039, then red on both attempts in 2040. That run's trace showed the
+  real cause. Seven seconds after the navigation the figure was still the shell's one constant idle frame (no `data-own`),
+  so the alive chunk had not started at all. On the slow WebKit runner the page was still loading its chunks 3–5 s after
+  the load, and the alive chunk follows ZIGi becoming visible plus an 800 ms timer (Safari has no `requestIdleCallback`).
+  The machine's set-up ask came after the 5-second check. Attempt 1's change stays: it is correct on its own (a one-shot
+  must rest where the machine rests), but it was not this cause.
+- **Attempt 2** (`bf16e24a`): the launcher shows the set-up ask from its first paint. `lib/ai/launcher-record.ts`
+  `setupAsked` reads the same plain fields the shell already reads, and the launcher sets `attention` at mount when it
+  says so. The machine stays the authority: it asks again, or, if ZIGi is set up after all, rests ZIGi (`watchSetup` also
+  answers an early `attention`). A unit test checks `setupAsked` against the full reader, record by record. This is the
+  last attempt this session allows. A red after it is Carried: 2 failed attempts.
 
 ### D-CI2039 — run 2039 on `c0cb9d07`
 Every red is fixed at its cause, each reproduced locally first:
@@ -466,3 +477,10 @@ Every red is fixed at its cause, each reproduced locally first:
 - **`a10-life` A10-11.** The Showcase's labelled areas showed Tasks' Area choice beside the heading, which added a row
   (`e81a48df`: it now sits beside Filter).
 - **`aw-p5-fixes:232`** was red on both attempts in CI and green locally on build-9 (one run, both projects). It is watched: a second CI red means investigate.
+
+### D-CI2040 — run 2040 on `f27009c3`
+- `zigi-states:200` (WebKit): see D-ZIGI200, attempt 2.
+- `scripts/run11/market-status.test.mjs` (web checks), first sighting: Miniflare's local workerd reset its own loopback
+  connection (`ECONNRESET` in `dispatchFetch`). Nothing is sent to a network. The test is unchanged since Session U, and it
+  passes 3 of 3 locally. It is recorded here; a second red means investigate.
+- `webkit-smoke:94` was flaky (green on its retry): the registered WebKit slow-load class.

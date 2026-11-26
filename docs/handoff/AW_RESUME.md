@@ -4,8 +4,9 @@ Read this first after a pause, a limit or a model switch; continue from "Next" w
 `feature/session-aw-finish-line` from `main` `8fa8aa1d` (Alpha #59), Draft PR "Session AW — Finish line". Rules:
 CLAUDE.md, the owner's brief, the plan and the approval, all verbatim in `docs/architecture/ADR-046-session-aw.md`.
 
-**Safe to merge now: no — run 2038 on `8314213f` red (6 main shards: spec reads before a lazily loaded part arrives,
-and the task editor not opening; being fixed at the cause); the next push waits for 2038 to finish.**
+**Safe to merge now: no — run 2040 on `f27009c3` red (zigi-states:200 on WebKit, attempt 2 now on the branch; a
+first-sighting Miniflare reset in web checks). The persona walks' review fixes are merged locally; the next push waits for
+2040 to finish and the head's checks.**
 
 ## Done
 - Part 0; ADR-046 with the plan and the owner's 12 amendments verbatim.
@@ -20,11 +21,10 @@ and the task editor not opening; being fixed at the cause); the next push waits 
 - Part 7: OWNER_STEPS.md as one ordered checklist. Part 8 started: FRIENDS_GUIDE section "Session AW".
 
 ## In progress
-- Persona walks (fresh agent, E4) → FRIEND_READINESS.md; its `tests/zz-persona-*` files are never committed.
-- CI 2038's failures: av2-r5-everyday and polish2-af:150 (spec reads before a chunk arrives: fixed in the spec,
-  deliberate); av-task-minutes, av-deadlines, l5-fourth-pass (the task editor: local repro first).
-- zigi-states:200 (WebKit) attempt 1: the reminder knock and the push-open greeting rested ZIGi at a plain idle over
-  the set-up ask; they now rest where the machine rests (`zigiResting`, bus.ts).
+- Persona walks (E4): FRIEND_READINESS.md committed (1 Blocker, 5 Majors, 21 Minors). Builders fr-journal, fr-money,
+  fr-answers and fr-ui have built them, a fresh review found no Blocker and 1 Major, and every finding is fixed and merged.
+  Next: build-11, the new specs (aw-fr-*), then the walk re-checked by a fresh helper.
+- zigi-states:200: attempt 2 (`bf16e24a`), the set-up ask from the launcher's first paint (ADR-046 D-ZIGI200).
 
 ## Next
 - Push when 2038 finishes; two green runs on the final head (E1); CI rows' verdicts with run evidence; ADR-046 closing
