@@ -259,6 +259,63 @@ self.addEventListener('activate', event => {
     if (OFFLINE) for (const client of await self.clients.matchAll({type: 'window'})) { try { await keepDocument(new URL(client.url)); } catch { /* kept on the next visit */ } }
   })());
 });
+// Session AW Part 6 ([TIER 3] (PWA), owner amendment 7; aw-offline.spec): a page opened once online must work offline,
+// its folds, sheets and forms included. The version's warm above keeps one level of later parts of the twelve install
+// pages within WARM_BYTES, which this build's parts outgrow (about 11 MB at that level), and never a part loaded by a part
+// (the Timers sheet inside the timer gate), nor a part of a page outside WARM_ORDER (the Journal, the Life review, Your
+// data). So when an open page asks ("zigoals:sw-warm" with its address, `path`, and the hashed scripts it has loaded, sent
+// only online once the page settled, and again later), the worker keeps what those scripts load on a tap: their later
+// parts, then those parts' own, the most recently loaded scripts first (the page's own parts before the shell's), within
+// WARM_BYTES for each ask; once per script and address in this version (the marker holds the scripts already read); never
+// under Data Saver or on a 2G connection. The same rules as above: hashed files only, same origin, this version's cache
+// (LAZY, deleted with the version), nothing personal (an address of /app, no record).
+const PAGE_DONE = path => WARM_DONE + '?page=' + encodeURIComponent(path), SCRIPT = /^\/_next\/static\/chunks\/[A-Za-z0-9_\-.~]+\.js$/, MAX_SCRIPTS = 800;
+let pageWarming = Promise.resolve();
+function warmPage(path, scripts) {
+  if (typeof path !== 'string' || !path.startsWith('/app') || path.length > 300 || !Array.isArray(scripts)) return pageWarming;
+  let url; try { url = new URL(path, self.location.origin); } catch { return pageWarming; }
+  if (url.origin !== self.location.origin || neverStored(url)) return pageWarming;
+  const loaded = [...new Set(scripts.filter(f => typeof f === 'string' && SCRIPT.test(f)))].slice(-MAX_SCRIPTS);
+  pageWarming = pageWarming.then(() => warmLazy()).then(() => warmPageOnce(url.pathname + url.search, loaded)).catch(() => {});
+  return pageWarming;
+}
+async function warmPageOnce(path, loaded) {
+  if (forgotten || !OFFLINE) return;
+  const link = self.navigator && self.navigator.connection;
+  if (link && (link.saveData || /2g/.test(link.effectiveType || ''))) return;
+  const lazy = await caches.open(LAZY), statics = await caches.open(STATIC);
+  const marker = await lazy.match(PAGE_DONE(path));
+  let read = [];
+  try { const kept = marker ? await marker.json() : []; if (Array.isArray(kept)) read = kept.filter(f => typeof f === 'string' && SCRIPT.test(f)); } catch { read = []; }
+  const fresh = loaded.filter(f => !read.includes(f));
+  if (marker && !fresh.length) return;
+  const superseded = () => Boolean(self.registration.installing || self.registration.waiting);
+  const seen = new Set(loaded), queue = [];
+  const named = text => { for (const m of text.matchAll(LATER_PART)) { const part = '/_next/' + m[1]; if (!seen.has(part)) { seen.add(part); queue.push(part); } } };
+  // The scripts not read before, the last loaded first; a file not kept here is read from the network once.
+  for (const file of [...fresh].reverse()) {
+    if (forgotten || superseded()) return;
+    let kept = await statics.match(file) || await lazy.match(file);
+    if (!kept) { try { const response = await fetch(file); if (!cacheable(response)) continue; kept = response; } catch { return; } }
+    named(await kept.text());
+  }
+  let bytes = 0;
+  for (let i = 0; i < queue.length; i++) {
+    if (forgotten || bytes >= WARM_BYTES || superseded()) break;
+    const part = queue[i], kept = await statics.match(part) || await lazy.match(part);
+    if (kept) { if (part.endsWith('.js')) named(await kept.text()); continue; }
+    try {
+      const response = await fetch(part);
+      if (forgotten || !cacheable(response)) continue;
+      const body = await response.clone().arrayBuffer();
+      bytes += body.byteLength;
+      await lazy.put(part, response);
+      if (part.endsWith('.js')) named(new TextDecoder().decode(body));
+    } catch { return; } // offline again: the next ask online goes on from here
+  }
+  if (forgotten || superseded()) return;
+  await lazy.put(PAGE_DONE(path), new Response(JSON.stringify([...new Set([...read, ...loaded])].slice(-MAX_SCRIPTS * 2)), {headers: {'Content-Type': 'application/json', 'Cache-Control': 'no-store'}}));
+}
 // Session AK (journey bug J6-1): after Erase everything this worker keeps nothing more: "zigoals:sw-forget" stops every
 // cache write (the requests go straight to the network) for as long as this worker runs, then its caches leave, then it
 // answers on the message's port so the page knows. The page unregisters it too; the next load registers a fresh one.
@@ -266,7 +323,7 @@ let forgotten = false;
 self.addEventListener('message', event => {
   const type = event.data && event.data.type;
   if (type === 'zigoals:sw-reload') event.waitUntil(self.skipWaiting());
-  if (type === 'zigoals:sw-warm') event.waitUntil(warmLazy());
+  if (type === 'zigoals:sw-warm') event.waitUntil(event.data.path ? warmPage(event.data.path, event.data.scripts) : warmLazy());
   if (type === 'zigoals:sw-forget') {
     forgotten = true;
     event.waitUntil((async () => {
