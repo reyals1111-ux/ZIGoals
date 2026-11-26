@@ -35,6 +35,17 @@ describe('FR-AW-10: the chart caption, the stat card and the chips in Dutch for 
     expect(statOf(result, 'nl')).toEqual({value: '3.000 mL', label: 'Water · deze week', detail: '4 van 7 dagen met een registratie', source: 'From your Health records'});
     expect(statOf(result)).toMatchObject({label: 'Water · this week', detail: '4 of 7 days with a record'});
   });
+  test('a habit\'s and a counter\'s stat card in Dutch too (review)', () => {
+    const habit = {ok: true, tool: 'habit_stats', label: 'Meditate · this month', provenance: 'From your Habits journal on this device', data: {valueText: '120 minutes', checkIns: 12, days: {inRange: 17}}} as unknown as ToolResult;
+    expect(statOf(habit, 'nl')).toEqual({value: '120 minuten', label: 'Meditate · deze maand', detail: '12 check-ins in 17 dagen', source: 'From your Habits journal on this device'});
+    expect(statOf(habit)).toEqual({value: '120 minutes', label: 'Meditate · this month', detail: '12 check-ins over 17 days', source: 'From your Habits journal on this device'});
+    const streak = {...habit, data: {valueText: '3 days now, best 9 days', checkIns: 3, days: {inRange: 7}}} as unknown as ToolResult;
+    expect(statOf(streak, 'nl')).toMatchObject({value: 'nu 3 dagen, beste 9 dagen', detail: '3 check-ins in 7 dagen'});
+    const counter = {ok: true, tool: 'counters', label: 'Push-ups · this week', provenance: 'From your Health records', data: {counters: [{total: 1250, daysWithEntry: 1}]}} as unknown as ToolResult;
+    expect(statOf(counter, 'nl')).toEqual({value: '1.250 keer', label: 'Push-ups · deze week', detail: 'op 1 dag', source: 'From your Health records'});
+    expect(statOf(counter)).toMatchObject({value: '1,250 times', detail: 'on 1 day'});
+    expect(seriesSummary({title: 'Meditate per day', unit: 'minutes', shape: 'bars', points: [{date: '2026-11-16', value: 10}, {date: '2026-11-17', value: 20}]}, 'nl')).toBe('Meditate per dag: 2 dagen met een registratie van 16 nov 2026 tot 17 nov 2026, 30 minuten in totaal, het meest 20 minuten op 17 nov 2026.');
+  });
   test('the follow-up chips: Dutch in a Dutch conversation, English otherwise', () => {
     expect(followupsFor([{tool: 'sleep_summary'}], 'Hoe heb ik deze week geslapen?', 3, 'nl')).toEqual(['Hoe heb ik vannacht geslapen?', 'Hoe regelmatig is mijn bedtijd?']);
     expect(followupsFor([{tool: 'sleep_summary'}], 'How did I sleep this week?')).toEqual(['How did I sleep last night?', 'How consistent is my bedtime?']);
