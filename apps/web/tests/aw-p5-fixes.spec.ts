@@ -250,7 +250,17 @@ test('D-CI2026: the Water card\'s own drinks are drawn with the card, not after 
   expect(await row.evaluate(el => !!el.closest('.r3-water'))).toBe(false);
   const seen = await page.evaluate(() => (window as unknown as {awSeen: Record<string, number>}).awSeen);
   expect(seen.card).toBeGreaterThan(0);
-  expect(seen.row! - seen.card!).toBeLessThanOrEqual(150);
+  // Session AW (integration, deliberate; local re-run): "drawn with the card" means the row never waits for its own script:
+  // no script that holds the row arrives between the card's arrival and the row's (the row only waits for the drinks
+  // record, read after the card mounts; other parts of the page may load meanwhile). A time bound (150 ms) failed on a
+  // loaded runner (178 ms) with only an unrelated part loading between them.
+  const rowScriptsBetween = await page.evaluate(async ({from, to}) => {
+    const between = performance.getEntriesByType('resource').filter(e => (e as PerformanceResourceTiming).initiatorType === 'script' && e.startTime >= from && e.startTime <= to).map(e => e.name);
+    const holding: string[] = [];
+    for (const url of between) if ((await (await fetch(url, {cache: 'force-cache'})).text()).includes('Your drinks, one tap each')) holding.push(url);
+    return holding;
+  }, {from: seen.card!, to: seen.row!});
+  expect(rowScriptsBetween).toEqual([]);
   // The keyboard step of ui-design-pass:385 no longer waits for the row: Shift+Tab, Tab comes back to the amount.
   const field = page.getByLabel('Water amount', {exact: true});
   await field.focus(); await page.keyboard.press('Shift+Tab'); await page.keyboard.press('Tab');
