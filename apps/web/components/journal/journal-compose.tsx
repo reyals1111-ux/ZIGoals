@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {Suspense, lazy, useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent} from 'react';
+import {Suspense, lazy, useEffect, useId, useMemo, useRef, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {addLocalDays} from '../../lib/local-date';
 import {journalDay} from '../../lib/journal/journal-day';
@@ -30,7 +30,9 @@ import {OPENS_WORDS, addMonths, opensOnFor, type OpensChoice} from '../../lib/jo
 import {formatDate} from '../../lib/visual-format';
 import {setQuestionLang, useQuestionLang} from './question-lang';
 // Session AW (fr-journal, FR-AW-1): the unsaved entry kept on this device while it is typed, back when the Journal opens.
-import {DRAFT_DELAY_MS, draftBackLine, draftOf, draftWorthKeeping, keepJournalDraft, readJournalDraft, type JournalDraft} from '../../lib/journal/draft';
+import {DRAFT_DELAY_MS, draftBackLine, draftOf, draftWorthKeeping, keepJournalDraft, readJournalDraft, savedAlready, type DraftChoices, type JournalDraft} from '../../lib/journal/draft';
+import {GUARD_MIN_CHARS} from '../../lib/secret-guard/min';
+type GuardModule = typeof import('../../lib/secret-guard/guard');
 import {getAppStorage} from '../../lib/showcase-storage';
 import {ACCOUNT_CHANGE} from '../../lib/account-session';
 import {showUndo} from '../ui/undo-toast';
@@ -74,7 +76,9 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
   const [dream, setDream] = useState<string | null>(null);
   // Session AV lane 2 (r3-notes; LEDGER #279, Stoic): a letter to open later — when it opens ('' not a letter).
   const [opens, setOpens] = useState<'' | OpensChoice | 'day'>(''), [opensDay, setOpensDay] = useState(''), [asLetter, setAsLetter] = useState(false);
-  useEffect(() => { if (compact) return; try { const d = new URLSearchParams(window.location.search).get('dream'); if (d && /^\d{4}-\d{2}-\d{2}$/.test(d) && d <= today) setDream(d); } catch { /* no address */ } }, [compact, today]);
+  // Session AW (fr-journal): set once a kept draft came back (the address's ?dream= and ?quote= then fill nothing).
+  const fromDraft = useRef(false);
+  useEffect(() => { if (compact || fromDraft.current) return; try { const d = new URLSearchParams(window.location.search).get('dream'); if (d && /^\d{4}-\d{2}-\d{2}$/.test(d) && d <= today) setDream(d); } catch { /* no address */ } }, [compact, today]);
   const words = useRef<HTMLTextAreaElement>(null);
   const [text, setText] = useState(''), [problem, setProblem] = useState(''), [status, setStatus] = useState(''), [asked, setAsked] = useState<string | null>(null), [answer, setAnswer] = useState('');
   const todayEnergy = energy.data.days[today]?.energy ?? null;
@@ -84,15 +88,25 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
   const defaultTemplate = useMemo(() => { const d = journal.data.defaultTemplate; if (!d) return null; const own = (journal.data.templates ?? []).find(t => t.id === d); return own ? asJournalTemplate(own) : templateById(d); }, [journal.data.defaultTemplate, journal.data.templates]);
   // Session AW (fr-journal, FR-AW-1): the unsaved draft comes back once, when the journal has loaded (before the default
   // template would fill the box: a draft wins). Per account: an account change empties the box and reads that account's.
-  const draftRead = useRef(false), fromDraft = useRef(false), skipWrite = useRef(false), [draftBack, setDraftBack] = useState<JournalDraft | null>(null), [accountTick, setAccountTick] = useState(0);
+  function applyChoices(c: DraftChoices) {
+    setPeriod(c.period ?? ''); setOpens(c.opens ?? ''); setOpensDay(c.opensDay ?? ''); setAsLetter(!!c.opens);
+    setChosenBook(c.book); setDream(c.dream ?? null);
+  }
+  const draftRead = useRef(false), skipWrite = useRef(false), [draftBack, setDraftBack] = useState<JournalDraft | null>(null), [accountTick, setAccountTick] = useState(0);
   useEffect(() => {
     if (compact || !journal.loaded || draftRead.current) return;
     draftRead.current = true;
     let kept: JournalDraft | null = null;
     try { kept = readJournalDraft(getAppStorage()); } catch { /* storage locked or refused: nothing comes back */ }
     if (!kept) return;
+    // Review fix (two tabs): words another tab saved since are not brought back (and their draft goes).
+    if (savedAlready(journal.data.entries, kept, today)) { try { keepJournalDraft(getAppStorage(), null); } catch { /* removed with the next write */ } return; }
     fromDraft.current = true; skipWrite.current = true;
     setText(kept.text); if (kept.tags) setTagText(kept.tags); if (kept.template) setPrompt(kept.template); setDraftBack(kept);
+    // Review fix: the entry's choices come back with its words (a letter stays a letter, a dream a dream).
+    applyChoices(kept);
+    // On loading (and after an account change) only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [compact, journal.loaded, accountTick]);
   useEffect(() => {
     if (compact || !fillDefault || !journal.loaded) return;
@@ -104,7 +118,7 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
   // Session AV lane 2 (r3-notes; LEDGER #277): "Write about this" on Today's quote opens the Journal with ?quote=<id>; the
   // entry starts with the quote and its writer (its words load on that visit only).
   useEffect(() => {
-    if (compact || !journal.loaded) return;
+    if (compact || !journal.loaded || fromDraft.current) return; // Session AW (fr-journal): a draft that came back wins
     let id: string | null = null;
     try { id = new URLSearchParams(window.location.search).get('quote'); } catch { /* no address */ }
     if (!id || !/^[a-z0-9-]{1,20}$/.test(id)) return;
@@ -178,23 +192,44 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
   // visibilitychange). Only the person's own words: an empty box, a template's headings or the default template's words
   // remove it. Nothing is sent or logged.
   const pendingDraft = useRef<{draft: JournalDraft | null} | null>(null), live = useRef(true), [draftKept, setDraftKept] = useState(true);
-  const flushDraft = useCallback(() => {
+  // One function for the page's life (it reads only refs and a state setter), so the listeners below stay put.
+  const [flushDraft] = useState(() => () => {
     const p = pendingDraft.current; if (!p) return;
     pendingDraft.current = null;
     let kept = true;
     try { keepJournalDraft(getAppStorage(), p.draft); } catch { kept = !p.draft; }
     if (live.current) setDraftKept(kept);
-  }, []);
+  });
   const forgetDraft = () => { pendingDraft.current = null; fromDraft.current = false; setDraftBack(null); try { keepJournalDraft(getAppStorage(), null); } catch { /* removed with the next write */ } };
   const started = [defaultTemplate ? templateText(defaultTemplate, qLang) : null, promptTemplate && prompt ? templateText(promptTemplate, prompt.lang) : null];
   const worth = !compact && draftWorthKeeping(text, started, onlyHeadings);
+  // Review fix (privacy): the secret guard reads the box before any draft is written; text it flags (recovery words, a
+  // private key) is never kept, and a draft kept before is removed. Its code and the Latin word list load once the
+  // Journal is open (a lazy chunk, after the page), so an ordinary sentence is read exactly; until then nothing is
+  // written for text long enough to hold a secret.
+  const [guard, setGuard] = useState<GuardModule | null>(null), [guardTick, setGuardTick] = useState(0);
+  useEffect(() => {
+    if (compact || guard || !journal.loaded) return;
+    let on = true;
+    void Promise.all([import('../../lib/secret-guard/guard'), import('../../lib/secret-guard/word-lists').then(w => w.loadWordLists(['latin']))]).then(([m]) => { if (on) setGuard(m); }, () => undefined);
+    return () => { on = false; };
+  }, [compact, guard, journal.loaded]);
+  const choices: DraftChoices = {period: period || undefined, opens: opens || undefined, opensDay: opensDay || undefined, book: chosenBook, dream};
+  const choicesKey = JSON.stringify(choices);
+  // Review fix (two tabs): the box's words are already saved (another tab saved them); kept no longer, and said.
+  const savedHere = !compact && worth && savedAlready(journal.data.entries, {day: today, text}, today);
   useEffect(() => {
     if (compact || !draftRead.current) return;
     if (skipWrite.current) { skipWrite.current = false; return; } // the draft just read is the one stored
-    pendingDraft.current = {draft: draftOf({day: today, text, tags: tagText, template: prompt, now: new Date(), worth})};
+    const long = text.length >= GUARD_MIN_CHARS;
+    if (long && !guard) return; // not read by the guard yet: nothing new is written
+    const secret = long && !!guard && guard.looksSecret(text);
+    // A cautious answer while a word list this text needs is still loading is read again once it is here.
+    if (secret && guard) void guard.guardTextReady(text).then(found => { if (!found && live.current) setGuardTick(n => n + 1); }, () => undefined);
+    pendingDraft.current = {draft: draftOf({day: today, text, tags: tagText, template: prompt, now: new Date(), worth: worth && !savedHere, secret, choices: JSON.parse(choicesKey) as DraftChoices})};
     const timer = window.setTimeout(flushDraft, DRAFT_DELAY_MS);
     return () => window.clearTimeout(timer);
-  }, [compact, today, text, tagText, prompt, worth, flushDraft]);
+  }, [compact, today, text, tagText, prompt, worth, savedHere, guard, guardTick, choicesKey, flushDraft]);
   useEffect(() => {
     if (compact) return;
     live.current = true;
@@ -212,16 +247,16 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
   }, [compact, draftKept, flushDraft]);
   useEffect(() => {
     if (compact) return;
-    const onAccount = () => { pendingDraft.current = null; draftRead.current = false; fromDraft.current = false; setText(''); setTagText(''); setPrompt(null); setDraftBack(null); setDraftKept(true); setAccountTick(n => n + 1); };
+    const onAccount = () => { pendingDraft.current = null; draftRead.current = false; fromDraft.current = false; setText(''); setTagText(''); setPrompt(null); applyChoices({}); setDraftBack(null); setDraftKept(true); setAccountTick(n => n + 1); };
     window.addEventListener(ACCOUNT_CHANGE, onAccount);
     return () => window.removeEventListener(ACCOUNT_CHANGE, onAccount);
   }, [compact]);
   const discardDraft = () => {
-    const back = {text, tags: tagText, prompt};
-    forgetDraft(); setText(''); setTagText(''); setPrompt(null); setGridOn(null); setStatus('');
+    const back = {text, tags: tagText, prompt, choices};
+    forgetDraft(); setText(''); setTagText(''); setPrompt(null); setGridOn(null); applyChoices({}); setStatus('');
     showUndo({message: 'Draft discarded.', undoLabel: 'Undo discarding the draft', restore: () => {
-      try { keepJournalDraft(getAppStorage(), draftOf({day: today, text: back.text, tags: back.tags, template: back.prompt, now: new Date(), worth: true})); } catch { /* the box still gets it back */ }
-      setText(back.text); setTagText(back.tags); setPrompt(back.prompt);
+      try { keepJournalDraft(getAppStorage(), draftOf({day: today, text: back.text, tags: back.tags, template: back.prompt, now: new Date(), worth: true, choices: back.choices})); } catch { /* the box still gets it back */ }
+      setText(back.text); setTagText(back.tags); setPrompt(back.prompt); applyChoices(back.choices);
       return {undone: 'The draft is back in the box.'};
     }});
     words.current?.focus();
@@ -245,7 +280,8 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
       {dream && <p className="fine journal-dream-line" role="status">A dream from the night ending {formatDate(dream, {weekday: true})}. It goes in your {dreamsBook(journal.data)?.name ?? 'Dreams'} journal{dreamsBook(journal.data) ? '' : ' (made when you save)'}, and shows on that night in your sleep log. <button type="button" className="text-link" onClick={() => setDream(null)}>Not a dream</button></p>}
       {prompt && templateById(prompt.id)?.note && <p className="fine">{templateById(prompt.id)!.note![prompt.lang]}</p>}
       {/* Session AW (fr-journal, FR-AW-1): the draft kept on this device came back; one line, and a way to throw it away. */}
-      {!compact && draftBack && text.trim() && <p className="fine journal-draft-line" role="status">{draftBackLine(draftBack, today)} <button type="button" className="text-link" onClick={discardDraft}>Discard draft</button></p>}
+      {savedHere && <p className="fine journal-draft-line" role="status">These words are already saved in your journal (perhaps in another tab), so no draft of them is kept.</p>}
+      {!compact && draftBack && text.trim() && !savedHere && <p className="fine journal-draft-line" role="status">{draftBackLine(draftBack, today)} <button type="button" className="text-link" onClick={discardDraft}>Discard draft</button></p>}
       {!compact && !draftKept && text.trim() && <p className="fine journal-draft-line" role="status">This device did not keep a draft of these words. Save entry to keep them.</p>}
       {/* Session AV Part 7 (ADR-045 F-PROMPT): one question a day (lib/journal-prompts/daily.ts); using it only writes it into the text. Session AV lane 2 (fr-layout, FR-TJ-9): under the entry box, not above it — there it pushed "Today’s entry" 336 px down on a phone. */}
       {!compact && !text.trim() && <div className="journal-today-question" role="group" aria-label="Today’s question"><p><span className="fine">Today’s question{todayQ.pack ? <> · <span lang={qLang}>{todayQ.pack.title[qLang]}</span> pack</> : null}</span> <strong lang={qLang}>{todayQ.question}</strong></p>
