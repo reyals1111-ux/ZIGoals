@@ -1,5 +1,5 @@
 import {billOccurrences, monthlyEstimate, nextDueOf, totalsByCurrency} from '../../bills/store';
-import {hasEnded} from '../../bills/ends';
+import {hasEnded} from '../../bills/ends-core';
 import type {BillCadence, BillsRecord} from '../../bills/schema';
 import {fromCents} from '../../money-log/engine';
 import {formatCurrencyAmount, formatDate} from '../../visual-format';

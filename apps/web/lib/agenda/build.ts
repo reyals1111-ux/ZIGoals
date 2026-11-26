@@ -6,7 +6,7 @@ import {planScenario, type Platform, type PrivateGoal} from '../positions';
 import {revisionInstallments} from '../plan-revisions';
 import {scheduledFundingCredits} from '../goal-intelligence';
 import {dueDatesBetween} from '../bills/cadence';
-import {billTo} from '../bills/ends';
+import {billTo} from '../bills/ends-core';
 import type {BillsRecord} from '../bills/schema';
 import type {Workouts} from '../workouts/schema';
 import {PLAN_LABELS, type RemindersPlan} from '../reminders-plan/schema';

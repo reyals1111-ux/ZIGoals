@@ -5,7 +5,7 @@ import {formatDate, formatMonth, formatWeekday} from '../visual-format';
 import {axMoney, axPlain, spanWords} from '../nova/cards/ax/money-spend';
 import {addMonths, dueDatesBetween, dueOnOrAfter} from './cadence';
 import {monthDueDates} from './month';
-import {billTo} from './ends';
+import {billTo} from './ends-core';
 import {totalsByCurrency} from './store';
 import type {BillsRecord} from './schema';
 

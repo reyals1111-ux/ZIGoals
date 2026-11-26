@@ -4,7 +4,7 @@ import {amountText, currencyCode} from '../money-log/schema';
 import {PER_MONTH, dueDatesBetween, dueOnOrAfter} from './cadence';
 import type {BillCandidate} from './detect';
 // Session AW X7 (LEDGER #462): a bill that ends leaves the due dates, the estimates and the reminders after its last payment.
-import {billTo, hasEnded} from './ends';
+import {billTo, hasEnded} from './ends-core';
 import {MAX_BILLS, MAX_DISMISSED, billsSchema, type Bill, type BillCadence, type BillsRecord} from './schema';
 
 /**

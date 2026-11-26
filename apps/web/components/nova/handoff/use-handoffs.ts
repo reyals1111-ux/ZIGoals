@@ -3,7 +3,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import {guardLanguage} from '../../../lib/ai/safety-guard';
 import type {ToolEnv} from '../../../lib/ai/tools/env';
 import {dueOnOrAfter} from '../../../lib/bills/cadence';
-import {hasEnded} from '../../../lib/bills/ends';
+import {hasEnded} from '../../../lib/bills/ends-core';
 import {localDate} from '../../../lib/local-date';
 import {HANDOFF_WHAT, handoffTarget, type HandoffLang} from '../../../lib/nova/handoff/handoff';
 import {healthReadOver, heldOutsideText} from '../../../lib/nova/handoff/health';
