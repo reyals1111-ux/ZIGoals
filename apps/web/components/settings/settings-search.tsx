@@ -16,12 +16,14 @@ const MAX_QUERY = 80;
  * them, Enter on the field opens the first, Escape clears.
  */
 export function SettingsSearch({chain}: {chain: boolean}) {
-  const id = useId(), [query, setQuery] = useState(''), [index, setIndex] = useState<Index | null>(null), [open, setOpen] = useState(true);
+  const id = useId(), [query, setQuery] = useState(''), [index, setIndex] = useState<Index | null>(null), [open, setOpen] = useState(true), [failed, setFailed] = useState(false);
   const list = useRef<HTMLUListElement>(null), field = useRef<HTMLInputElement>(null), loading = useRef(false);
   const load = () => {
     if (index || loading.current) return;
     loading.current = true;
-    import('../../lib/settings-search').then(setIndex, () => { loading.current = false; });
+    // Session AW Part 6 (aw-offline.spec): a failed load (offline, its file not on this device yet) says so, and the next
+    // word typed tries again; it never stays on "Searching…".
+    import('../../lib/settings-search').then(m => { setFailed(false); setIndex(m); }, () => { loading.current = false; setFailed(true); });
   };
   const words = query.trim();
   const results: SettingsEntry[] = index && words.length >= 2 ? index.searchSettings(words, {chain}) : [];
@@ -41,7 +43,7 @@ export function SettingsSearch({chain}: {chain: boolean}) {
       if (next < 0) field.current?.focus(); else all[Math.min(next, all.length - 1)]!.focus();
     } else if (event.key === 'Escape') { event.preventDefault(); field.current?.focus(); setQuery(''); }
   };
-  const status = words.length < 2 ? '' : !index ? 'Searching…' : results.length === 0 ? `No setting matches “${words}”. Try another word.` : `${results.length} ${results.length === 1 ? 'setting' : 'settings'} found.`;
+  const status = words.length < 2 ? '' : !index ? (failed ? 'Search needs a connection the first time. The rest of Settings keeps working.' : 'Searching…') : results.length === 0 ? `No setting matches “${words}”. Try another word.` : `${results.length} ${results.length === 1 ? 'setting' : 'settings'} found.`;
   return <div className="settings-search" role="search" aria-label="Settings">
     <label htmlFor={`${id}-q`}>Search Settings</label>
     <input ref={field} id={`${id}-q`} type="search" value={query} maxLength={MAX_QUERY} autoComplete="off" spellCheck={false} enterKeyHint="go"
