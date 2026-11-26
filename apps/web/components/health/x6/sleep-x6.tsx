@@ -2,7 +2,8 @@
 import {useEffect, useRef, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {showUndo} from '../../ui/undo-toast';
-import {clockFromNoon, GOAL_PERIODS, goalPeriod, type GoalPeriod} from '../../../lib/sleep/engine';
+import {clockFromNoon} from '../../../lib/sleep/engine';
+import {GOAL_PERIODS, goalPeriod, type GoalPeriod} from '../../../lib/sleep/goal-period-figures';
 import {SLEEP_GOAL_PERIOD} from '../../../lib/sleep/goal-period';
 import {removeSleepTag, renameSleepTag, restoreSleepTags, SLEEP_TAG_MAX, tagCounts, type TagChange} from '../../../lib/sleep/tags';
 import type {Sleep} from '../../../lib/sleep/schema';

@@ -1,5 +1,5 @@
 import {describe, expect, test} from 'vitest';
-import {goalPeriod} from './engine';
+import {goalPeriod} from './goal-period-figures';
 import {removeSleepTag, renameSleepTag, restoreSleepTags, tagCounts} from './tags';
 import {sleepSchema, type Sleep, type SleepNight} from './schema';
 import {showcaseSleep} from './showcase';
