@@ -50,7 +50,7 @@ separately.
 
 | Condition | 1440 wide | 390 wide | Result |
 |---|---|---|---|
-| Empty profile, all routes | checked (48 routes) | queued, not finished when this file was written (the 1440 run and the poisoned 390 run cover the same code) | 0 injected elements, 0 CSP/TT violations, 0 outside requests, 0 page errors |
+| Empty profile, all routes | checked (48 routes) | checked (48 routes): the same result | 0 injected elements, 0 CSP/TT violations, 0 outside requests, 0 page errors |
 | Showcase, poisoned (780 fields), all routes | checked (49 routes) | checked (49 routes): the same result | payload shown as text on 20 routes (e.g. /app/agenda 30×, /app/health 22×, /app/journal 20×); 0 injected elements, 0 violations, 0 outside requests, 0 marker in any URL or console line |
 | Heavy profile, poisoned, all routes + 5 dynamic | checked (54 routes, 1,147 fields poisoned, capped at 150 per key to fit the storage quota) | checked (54 routes) | payload shown as text on 18 routes (e.g. /app/agenda 112×, /app/journal 150×, /app/portfolio/coin/bitcoin 23×); 0 injected elements, 0 violations, 0 outside requests, 0 page errors |
 | Share target (`/app/share`) with a payload title, text and a `javascript:` / quote-breaking URL | checked | not run (same component) | text only; no link made for either URL; the address bar is cleared (`/app/share`) |
