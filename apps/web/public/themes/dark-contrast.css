@@ -8410,6 +8410,18 @@
     .guided-day-count:not(#\-):not(#\-) {
         color: color-mix(in srgb, var(--text-secondary) 25%, #fff)
     }
+    .guided-collections-lede:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-secondary) 25%, #fff)
+    }
+    .guided-collection > summary:focus-visible:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--brand-cyan) 40%, #fff)
+    }
+    .guided-collection-intro:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-secondary) 25%, #fff)
+    }
+    .guided-collection-item .guided-preview li:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-secondary) 25%, #fff)
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .auto-rules-fine:not(#\-):not(#\-), .auto-rules-empty:not(#\-):not(#\-) {

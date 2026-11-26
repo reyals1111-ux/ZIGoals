@@ -8767,6 +8767,18 @@
     .guided-day-count:not(#\-) {
         color: var(--text-secondary)
     }
+    .guided-collections-lede:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .guided-collection > summary:focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan)
+    }
+    .guided-collection-intro:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .guided-collection-item .guided-preview li:not(#\-) {
+        color: var(--text-secondary)
+    }
 }
 /*  components/habits/auto-rules.css  */
 @scope (:root[data-theme=dark]) {

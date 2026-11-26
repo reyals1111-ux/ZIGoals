@@ -504,4 +504,7 @@ export const HELP_ALIASES: Readonly<Record<string, readonly string[]>> = {
   'aw-today-coach': ['coach', 'weekly check-in', 'macrofactor', 'calorie target', 'weigh-in'],
   'aw-log-food-phone': ['log food', 'meal', 'myfitnesspal', 'cronometer', 'lose it', 'eten loggen'],
   'aw-health-closed': ['allow health', 'include health', 'health page data', 'privacy', 'toestaan', 'gezondheid delen'],
+  // Session AW Part 5 (content: LEDGER #82, #278)
+  'aw-collections': ['collections', 'themes', 'lifestyle', 'hub', 'sleep better', 'calm down', 'move gently', 'start a habit', 'calm', 'headspace', 'library'],
+  'aw-sleep-lessons': ['sleep lessons', 'insomnia', 'cannot sleep', 'trouble sleeping', 'sleep hygiene', '20-minute rule', 'worry time', 'cbt-i', 'sleepio', 'stoic'],
 };
