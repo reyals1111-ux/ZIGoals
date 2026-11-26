@@ -63,7 +63,11 @@ for (const theme of THEMES) test(`${theme}: the Showcase's examples show real co
   const walk = page.locator('ol.journal-entries > li').filter({hasText: 'long walk before work'});
   const photo = walk.getByRole('img', {name: /^Your photo with the entry of /});
   await expect(photo).toBeVisible({timeout: 15_000});
-  expect(await photo.evaluate(img => (img as HTMLImageElement).naturalWidth)).toBe(320);
+  // Session AW (CI run 2039, deliberate): entry photos load lazily (loading="lazy"), so the photo is brought into view as a
+  // person scrolls to it, made in the Showcase's media scope and decoded; its size is read then (was: read at once, below
+  // the fold, so 0). Still exactly 320 px wide.
+  await photo.scrollIntoViewIfNeeded();
+  await expect.poll(() => photo.evaluate(img => (img as HTMLImageElement).naturalWidth)).toBe(320);
   expect(await serious(page, walk)).toEqual([]);
   await noSideways(page);
 });

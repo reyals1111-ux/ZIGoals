@@ -404,12 +404,12 @@ test.describe('Part 3: liquid glass',()=>{
   const box=(await section.boundingBox())!;await page.mouse.move(box.x+12,box.y+12);await page.mouse.move(box.x+16,box.y+16,{steps:2});
   expect(await section.getAttribute('data-glass-hover')).toBeNull();
   // Typing keeps its focus ring only; the card around the field stays where it is.
-  await page.goto('/app/health');const field=page.getByLabel('Water amount',{exact:true});await expect(field).toBeVisible();
+  // Session AW (CI run 2039, deliberate): on a card that fits the screen, Notes' Capture. Health's Water card was 1,118 px at
+  // 720 once all of its parts were drawn (1,132 on #59; it passed while its later parts were still on their way), so it is
+  // a long section, which never lifts anyway, and the typing rule proved nothing there. Every check below is the same.
+  await page.goto('/app/notes');const field=page.getByLabel('Capture a note',{exact:true});await expect(field).toBeVisible();
   // Its card fits the screen, so only the typing rule keeps it still.
   expect(await field.evaluate(e=>e.closest<HTMLElement>('.panel')!.getBoundingClientRect().height<=Math.max(900,innerHeight*1.25))).toBe(true);
-  // Session AV lane 2 (CI run 2026, both attempts): the Showcase's own drinks load in their own part and take their row between
-  // the buttons and this field a moment after the page answers; the keyboard step waits for that row, so Tab comes back here.
-  await expect(page.getByRole('group',{name:'Your drinks, one tap each'})).toBeVisible();
   await field.focus();await page.keyboard.press('Shift+Tab');await page.keyboard.press('Tab');await expect(field).toBeFocused();
   expect(await field.evaluate(e=>e.matches(':focus-visible')&&e.closest('[data-glass-hover]')===null)).toBe(true);
   const star=page.locator('.sidebar-star');
