@@ -1,5 +1,5 @@
 import * as z from 'zod';
-import {balanceOn, holdingsOf, moneyText, netWorthTotal} from '../../accounts/net-worth';
+import {balanceOn, holdingsOf, moneyText, netWorthTotal, owedAfterPayments} from '../../accounts/net-worth';
 import {wealthOverview} from '../../wealth';
 import {emptyAccounts, isDebtKind, type AccountKind} from '../../accounts/schema';
 import {milestoneDateOf, milestoneState} from '../../goals/milestones';
@@ -23,7 +23,7 @@ const KIND_WORDS: Readonly<Record<AccountKind, string>> = {cash: 'cash', savings
 
 export const accountsTool: ToolDefinition<{include_archived?: boolean}> = {
   name: 'accounts', title: 'Accounts and debts', area: 'wealth',
-  description: 'The person\'s own accounts and debts kept on this device: kind, name, currency, the latest balance and its date (for a debt, what is owed) and an interest rate only when they typed one. Never converted between currencies; no account number or bank link exists.',
+  description: 'The person\'s own accounts and debts kept on this device: kind, name, currency, the latest balance and its date (for a debt, what is owed; owedAfterPayments when payments were recorded since) and an interest rate only when they typed one. Never converted between currencies; no account number or bank link exists.',
   parameters: {type: 'object', properties: {include_archived: {type: 'boolean', description: 'Also list archived accounts (default false).'}}},
   args: z.object({include_archived: z.boolean().optional()}),
   label: () => 'Accounts and debts',
@@ -31,7 +31,12 @@ export const accountsTool: ToolDefinition<{include_archived?: boolean}> = {
     const items = (env.accounts?.items ?? []).filter(a => args.include_archived || !a.archivedAt);
     const rows = items.map(a => {
       const b = balanceOn(a);
+      // Session AW (fr-money, FR-AW-3; TIER 3, AI tools; additive): a debt with payments recorded after its latest balance
+      // also says what it owes after them, from the same function Wealth's row reads (owedAfterPayments), so ZIGi, NOVA and
+      // a model answer with the figure Wealth shows ("US$2,250.00 after 1 payment since"), not the statement's.
+      const o = b && isDebtKind(a.kind) ? owedAfterPayments(a, env.habitDay) : null, after = o && o.payments > 0 && o.date === b!.date ? o : null;
       return {kind: KIND_WORDS[a.kind], debt: isDebtKind(a.kind), name: text(a.name, 60), currency: a.currency, ...(b ? {latest: `${moneyText(b)} ${a.currency}`, asOf: b.date} : {latest: 'no balance yet'}),
+        ...(after ? {owedAfterPayments: `${moneyText(after)} ${a.currency}`, paymentsSince: after.payments} : {}),
         ...(a.ratePercent ? {yourRatePercent: a.ratePercent} : {}), ...(a.archivedAt ? {archived: true} : {})};
     });
     const capped = capRows(rows, env, false);

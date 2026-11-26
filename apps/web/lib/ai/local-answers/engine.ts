@@ -60,6 +60,7 @@ import {av2R6BodyAnswer} from './av2-r6-body';
 import {awProgrammesAnswer} from './aw-programmes';
 import {av2R6MoneyAnswer} from './av2-r6-money';
 import {awX7MoneyAnswer} from './aw-x7-money';
+import {awFrMoneyAnswer} from './aw-fr-money';
 import {av2R6NotesAnswer} from './av2-r6-notes';
 import {awX3Answer} from './aw-x3';
 import {av2R6PlanAnswer} from './av2-r6-plan';
@@ -308,6 +309,8 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   if (!subject) { const own = awX5Answer(question, env, readAwX5Extra()); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2, batch 2 (Money; Food, reading its device records; Body after AV's, as its builder asked).
   // Session AW, round 7 X7 (money; Cashew, Money Manager): removed recently, a bill that ends, a card's next payment.
+  // Session AW (fr-money, FR-AW-4): "how much have I paid off this week" from the debts' recorded payments, never the spending.
+  if (!subject) { const own = awFrMoneyAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   if (!subject) { const own = awX7MoneyAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   if (!subject) { const food = (() => { try { return typeof window === 'undefined' ? {} : readFoodSources(getAppStorage()); } catch { return {}; } })(); const own = av2R6MoneyAnswer(question, env) ?? av2R5MoneyAnswer(question, env) ?? av2R4MoneyAnswer(question, env) ?? av2R3MoneyAnswer(question, env) ?? av2MoneyR2Answer(question, env) ?? av2MoneyAnswer(question, env) ?? av2FoodAnswer(question, env, food); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AV lane 2 (Journal and notes; task attachments, ZIGi's hello, chess): their own answers, before AV's.
@@ -1099,15 +1102,18 @@ function devicesAnswer(env: ToolEnv): LocalReply {
 }
 function accountsAnswer(env: ToolEnv, q: string): LocalReply {
   const r = call(env, 'accounts', {}), refused = refusalOf([r]); if (refused) return refused;
-  const d = dataOf(r.result), accounts = d.accounts as {name: string; debt: boolean; currency: string; latest: string; asOf?: string}[];
+  const d = dataOf(r.result), accounts = d.accounts as {name: string; debt: boolean; currency: string; latest: string; asOf?: string; owedAfterPayments?: string; paymentsSince?: number}[];
   if (!accounts.length) return {kind: 'answer', text: d.note, calls: [r.record]};
-  const row = (a: (typeof accounts)[number]) => `${a.name}: ${a.asOf ? `${money(a.latest)}${a.debt ? ' owed' : ''} on ${dayText(a.asOf, env.habitDay.slice(0, 4))}` : a.latest}`;
+  // Session AW (fr-money, FR-AW-3): a debt with payments recorded since its balance answers with what Wealth's row shows
+  // (the tool's owedAfterPayments, from lib/accounts/net-worth.ts owedAfterPayments), and says so.
+  const owes = (a: (typeof accounts)[number]) => a.debt && a.owedAfterPayments ? a.owedAfterPayments : a.latest;
+  const row = (a: (typeof accounts)[number]) => `${a.name}: ${a.asOf ? a.debt && a.owedAfterPayments ? `${money(a.owedAfterPayments)} owed after ${plural(a.paymentsSince ?? 1, 'payment')} since your balance of ${money(a.latest)} on ${dayText(a.asOf, env.habitDay.slice(0, 4))}` : `${money(a.latest)}${a.debt ? ' owed' : ''} on ${dayText(a.asOf, env.habitDay.slice(0, 4))}` : a.latest}`;
   const owned = accounts.filter(a => !a.debt), owed = accounts.filter(a => a.debt);
   // "What do I owe?": the debts' latest balances, one total per currency; a debt without a balance is named, never zero.
   if (/\b(owe|debts?|loans?|mortgage|credit cards?)\b/.test(q) && !/\baccounts?\b/.test(q)) {
     if (!owed.length) return {kind: 'answer', text: 'No debts are kept in Wealth\'s accounts on this device.', calls: [r.record]};
     const totals = new Map<string, {sum: Decimal; places: number}>();
-    for (const a of owed) if (a.asOf) { const value = a.latest.split(' ')[0]!, t = totals.get(a.currency); totals.set(a.currency, {sum: (t?.sum ?? new Decimal(0)).plus(value), places: Math.max(t?.places ?? 0, (value.split('.')[1] ?? '').length)}); }
+    for (const a of owed) if (a.asOf) { const value = owes(a).split(' ')[0]!, t = totals.get(a.currency); totals.set(a.currency, {sum: (t?.sum ?? new Decimal(0)).plus(value), places: Math.max(t?.places ?? 0, (value.split('.')[1] ?? '').length)}); }
     const unknown = owed.filter(a => !a.asOf).length, sum = [...totals].sort(([x], [y]) => x.localeCompare(y)).map(([c, t]) => amount(t.sum.toFixed(t.places), c)).join(' and ');
     return {kind: 'answer', text: lines(totals.size ? `You owe ${sum} across ${plural(owed.length - unknown, 'debt')}, as entered on this device:` : 'None of your debts has a balance entered yet:', [...owed.map(row), unknown > 0 && totals.size > 0 && `${plural(unknown, 'debt')} without a balance ${unknown === 1 ? 'is' : 'are'} not counted`, totals.size > 1 && 'One total per currency, never converted']), calls: [r.record]};
   }

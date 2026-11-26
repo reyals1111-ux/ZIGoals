@@ -1,7 +1,7 @@
 'use client';
 import {holdingsBySource, SOURCE_LABEL, type SourceKind} from '../../lib/accounts/by-source';
 import {isMoneyCurrency} from '../../lib/visual-format';
-import {Suspense, lazy, useEffect, useState} from 'react';
+import {Suspense, lazy, useEffect, useId, useState} from 'react';
 import {accountForPrefill, BALANCE_PREFILL_EVENT, takeBalancePrefill} from '../../lib/ai/actions/balance-prefill';
 import {showUndo} from '../ui/undo-toast';
 import {reinsertAccount, unarchiveAccount} from '../../lib/wealth-undo';
@@ -25,6 +25,9 @@ import {formatDate, formatMoney, formatNumber} from '../../lib/visual-format';
 import {amountIssue, moneyUnitsIssue, validateValue, within} from '../../lib/limits/plausibility';
 import {parseNumberInput} from '../../lib/numbers/parse';
 import {useMoneyCurrency} from './use-money-currency';
+import {usedCurrencies} from '../../lib/wealth-currency';
+// Session AW (fr-money, FR-AW-13): a debt's minimum monthly payment, typed when it is added, kept where the payoff planner keeps it.
+import {DEBT_PLANNER} from '../../lib/debt-planner/store';
 // Session AV lane 2 (money; Monarch): a note on each account and the person's own order (kept on the money log's loose record).
 import {MONEY_LOG} from '../../lib/money-log/schema';
 import {inOrder, moveAccount, withAccountNote} from '../../lib/money-log/counted';
@@ -65,7 +68,7 @@ const rateText = (raw: string) => { if (!raw.trim()) return ''; const v = valida
 const toMoney = (text: string, date: string): Money & {date: string} => { const value = parseAmountInput(text, 2); within(moneyUnitsIssue(value, 2)); /* Session AH (VA2, B3) */ if (value < 0n) throw Error('Enter the amount as a positive number; a debt’s balance is what is owed.'); return {value, decimals: 2, date}; };
 /** Session AC: inside Wealth's one holdings list, `only` follows its chips (Accounts: what you own; Debts: what you owe). */
 export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?: 'all' | 'accounts' | 'debts'}) {
-  const accounts = useDeviceRecord(ACCOUNTS), platform = usePlatform(), today = localDate(), extras = useDeviceRecord(MONEY_LOG), [arranging, setArranging] = useState<'assets' | 'debts' | null>(null), [merging, setMerging] = useState<'assets' | 'debts' | null>(null);
+  const accounts = useDeviceRecord(ACCOUNTS), platform = usePlatform(), today = localDate(), extras = useDeviceRecord(MONEY_LOG), planner = useDeviceRecord(DEBT_PLANNER), [arranging, setArranging] = useState<'assets' | 'debts' | null>(null), [merging, setMerging] = useState<'assets' | 'debts' | null>(null);
   /* Session AK (F5a, item 1) */ const [planOpen, setPlanOpen] = useState(false), [adding, setAdding] = useState(false), [open, setOpen] = useState<{id: string; mode: 'balance' | 'payment' | 'edit'} | null>(null), [message, setMessage] = useState(''), [error, setError] = useState('');
   // Session W Part 21: ZIGi's balance hand-off, read once (on arrival, or when told while Wealth is already open); the
   // named account's balance form opens filled in, and the person saves it.
@@ -89,6 +92,13 @@ export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?:
   function change(fn: (current: Accounts) => Accounts, words: string, undo?: {fn: (current: Accounts) => Accounts; done: string}) {
     try { accounts.update(fn); setMessage(words); setError(''); if (undo) showUndo({message: words, restore: () => accounts.update(undo.fn), undone: undo.done}); /* Session AL (3e): the one Undo; restore reads the latest record */ return true; } catch (cause) { /* Session AH (VA7): never the last success beside the error */ setMessage(''); setError(plainErrorMessage(cause, 'Not saved on this device.')); return false; }
   }
+  // Session AW (fr-money, FR-AW-13): the minimum typed in the debt form goes to the payoff planner's own record
+  // (`zigoals:debt-planner:v1` debts[id].minimum, the field "Keep these figures on this device" writes; no new field), so
+  // the planner, NOVA and ZIGi have it without a second visit. The account itself is saved either way.
+  function keepMinimum(id: string, name: string, minimum: string, currency: string) {
+    try { if (!planner.loaded || planner.unreadable) throw Error('unreadable'); planner.update(p => ({...p, debts: {...p.debts, [id]: {...p.debts?.[id], minimum}}})); setMessage(`${name} added, with its minimum of ${formatMoney(minimum, currency)} a month for the payoff planner.`); }
+    catch { setMessage(`${name} added. Its minimum could not be kept on this device; enter it in Plan paying off your debts.`); }
+  }
   const market = useMarketQuotes(wealthMarketRequests(platform.data)), now = useEvidenceNow(platform.data, market.now);
   if (!accounts.loaded) return <section {...layout} className="panel accounts-section" aria-labelledby="accounts-title" aria-busy="true"><h2 id="accounts-title">Accounts, debts &amp; net worth</h2></section>;
   if (accounts.unreadable) return <section {...layout} className="panel accounts-section" aria-labelledby="accounts-title"><h2 id="accounts-title">Accounts, debts &amp; net worth</h2><p role="alert">Your accounts on this device could not be read. Their bytes are kept; nothing was changed.</p></section>;
@@ -99,7 +109,7 @@ export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?:
   return <section {...layout} className="panel accounts-section" aria-labelledby="accounts-title">
     <header className="wealth-section-heading"><div><p className="eyebrow">EVERYTHING YOU OWN AND OWE</p><h2 id="accounts-title">Accounts, debts &amp; net worth</h2><p>Balances you enter, per account in its own currency. Accounts are kept on this device; with an account they also travel in your encrypted sync.</p></div>
       <button type="button" className="secondary" aria-expanded={adding} onClick={() => { setAdding(o => !o); setMessage(''); setError(''); }}>{adding ? 'Close' : 'Add an account or debt'}</button></header>
-    {adding && <AddAccount onAdd={(input, words) => { if (change(g => addAccount(g, input, new Date().toISOString()), words)) setAdding(false); }} today={today} held={worth.rows.map(r => ({currency: r.currency, value: BigInt(Math.round(Number(moneyText(add(r.assets, r.holdings))) || 0))}))} />}
+    {adding && <AddAccount onAdd={(input, words, minimum) => { if (change(g => addAccount(g, input, new Date().toISOString()), words)) { setAdding(false); if (minimum) keepMinimum(input.id, input.name, minimum, input.currency); } }} today={today} held={worth.rows.map(r => ({currency: r.currency, value: BigInt(Math.round(Number(moneyText(add(r.assets, r.holdings))) || 0))}))} used={usedCurrencies({entries: extras.data.entries, accounts: items, logCurrency: extras.data.currency})} />}
     {worth.rows.length > 0 && <div className="accounts-worth" role="group" aria-label="Net worth by currency">
       {worth.rows.map(r => <article key={r.currency} className="accounts-worth-card" aria-label={`Net worth in ${r.currency}`}>
         <h3>Net worth · {r.currency}</h3>
@@ -135,18 +145,23 @@ function AssetsVsDebts({assets, holdings, debts, currency}: {assets: Money; hold
     <span><b>Own</b><i style={{width: `${(own / max) * 100}%`}} /></span><span><b>Owe</b><i className="owe" style={{width: `${(owe / max) * 100}%`}} /></span>
   </div>;
 }
-function AddAccount({onAdd, today, held}: {onAdd: (input: Parameters<typeof addAccount>[1], words: string) => void; today: string; held: readonly {currency: string; value: bigint}[]}) {
+function AddAccount({onAdd, today, held, used}: {onAdd: (input: Parameters<typeof addAccount>[1], words: string, minimum?: string) => void; today: string; held: readonly {currency: string; value: bigint}[]; used: readonly string[]}) {
   // Session Y Part 9: a refused currency or balance marks its own field (aria-invalid, described by the message) and takes the focus.
   const [kind, setKind] = useState<AccountKind>('savings'), fe = useFieldErrors(), check = usePlausibleCheck();
   // Session AL (P-DVR-22, PR-068): a new account or debt starts in the person's net-worth currency (was always EUR).
-  const startCurrency = useMoneyCurrency(held);
+  // Session AW (fr-money, FR-AW-2): then the currency the person's spending, accounts and debts are kept in, never a silent USD.
+  const startCurrency = useMoneyCurrency(held, used), minHint = useId();
   return <form className="platform-form accounts-add" aria-label="Add an account or debt" onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); let field = ''; try {
     const name = String(f.get('name')).trim(), currency = String(f.get('currency')).trim().toUpperCase(), balance = String(f.get('balance') ?? '').trim(), rate = rateText(String(f.get('rate') ?? ''));
     field = 'currency'; if (!isMoneyCurrency(currency)) throw Error(`“${currency}” is not a three-letter currency code ZIGoals knows. Use one such as EUR, USD or GBP.`);
-    field = 'balance'; const money = balance ? toMoney(balance, String(f.get('date') || today)) : undefined; field = '';
+    field = 'balance'; const money = balance ? toMoney(balance, String(f.get('date') || today)) : undefined;
+    // Session AW (fr-money, FR-AW-13): a debt's minimum a month, optional, above zero, read as the balance is.
+    field = 'minimum'; const minText = isDebtKind(kind) ? String(f.get('minimum') ?? '').trim() : '', min = minText ? toMoney(minText, today) : undefined;
+    if (min && min.value <= 0n) throw Error('Enter the minimum monthly payment as an amount above zero, for example 25.00, or leave it empty.');
+    field = '';
     // Session AL (P-TK-49, N-TK-12): a billion or more asks once ("check this?"); keeping it saves as typed.
     if (!check.ask(`add:${currency}:${money ? moneyText(money) : ''}`, money ? plausibilityWarning(Number(moneyText(money)), currency, isDebtKind(kind) ? 'debt' : 'balance') : null)) { fe.clear(); return; }
-    onAdd({id: crypto.randomUUID(), kind, name, currency, institution: String(f.get('institution') ?? ''), ...(rate ? {ratePercent: rate} : {}), ...(money ? {balance: money} : {})}, `${name} added.`); fe.clear();
+    onAdd({id: crypto.randomUUID(), kind, name, currency, institution: String(f.get('institution') ?? ''), ...(rate ? {ratePercent: rate} : {}), ...(money ? {balance: money} : {})}, `${name} added.`, min ? moneyText(min) : undefined); fe.clear();
   } catch (cause) { fe.fail(plainErrorMessage(cause, 'Check the account.'), ...(field ? [field] : [])); } }}>
     <label className="field">Kind<select value={kind} onChange={e => setKind(e.target.value as AccountKind)}><optgroup label="What you own">{ASSET_KINDS.map(k => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}</optgroup><optgroup label="What you owe">{DEBT_KINDS.map(k => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}</optgroup></select></label>
     {/* Session AL (RR-2): an account counts toward net worth, not toward a goal; said where "Savings" invites it */(kind === 'cash' || kind === 'savings') && <p className="fine accounts-goal-note">An account counts toward net worth, not toward a goal. To count this money toward a goal, record it as a Cash asset instead (+ Add asset, then Cash), or from the goal’s What counts step.</p>}
@@ -157,6 +172,8 @@ function AddAccount({onAdd, today, held}: {onAdd: (input: Parameters<typeof addA
     <PlausibleCheck id={check.id} warning={check.warning} />
     <label className="field">On<input name="date" type="date" defaultValue={today} max={today} /></label>
     <label className="field">Yearly rate, your own figure (optional, %)<input name="rate" inputMode="decimal" /></label>
+    {isDebtKind(kind) && <label className="field">Minimum monthly payment (optional)<input name="minimum" inputMode="decimal" autoComplete="off" {...fe.field('minimum', {describedBy: minHint})} /></label>}
+    {isDebtKind(kind) && <p className="fine" id={minHint}>From your statement. Plan paying off your debts uses it to work out when the debt could be paid off; nothing is paid or moved.</p>}
     <button type="submit" className="primary">Add</button>
     {fe.error && <p role="alert" id={fe.messageId}>{fe.error}</p>}
   </form>;

@@ -4,18 +4,31 @@
  * 1. the person's own stored choice (`baseCurrency` in zigoals:ui-prefs:v1), when there is one;
  * 2. else the USD/EUR currency that holds the most of what they already track (the currency Wealth's headline leads
  *    with; magnitudes are compared to pick, nothing is converted or added across currencies);
- * 3. else the device's default (lib/default-currency: euro in the euro area, US dollars otherwise).
+ * 3. else (Session AW, FR-AW-2) the USD/EUR currency most of their records are kept in (spending, accounts, debts);
+ * 4. else the device's default (lib/default-currency: euro in the euro area, US dollars otherwise).
  * Only the two Alpha currencies (F: Alpha USD/EUR); the form still lets the person choose the other one.
  */
 export type MoneyCurrency = 'USD' | 'EUR';
 export type HeldTotal = {currency: string; value: bigint};
 const isMoney = (code: string): code is MoneyCurrency => code === 'USD' || code === 'EUR';
 
-export function defaultMoneyCurrency({stored, held = [], device}: {stored?: MoneyCurrency | null; held?: readonly HeldTotal[]; device: MoneyCurrency}): MoneyCurrency {
+/**
+ * Session AW (fr-money, FR-AW-2; persona Tom): `used` — the currencies of the records the person already keeps in Wealth
+ * (spending entries, accounts and debts, the money log's own last choice), one item per record — comes after `held` and
+ * before the device: Tom's spending was all in euros, his device en-GB, and his first debt started (and was saved) in US
+ * dollars. The currency used most wins; nothing is converted.
+ */
+export function defaultMoneyCurrency({stored, held = [], used = [], device}: {stored?: MoneyCurrency | null; held?: readonly HeldTotal[]; used?: readonly string[]; device: MoneyCurrency}): MoneyCurrency {
   if (stored) return stored;
   let lead: HeldTotal | undefined;
   for (const h of held) if (isMoney(h.currency) && h.value > 0n && (!lead || h.value > lead.value)) lead = h;
-  return lead ? lead.currency as MoneyCurrency : device;
+  if (lead) return lead.currency as MoneyCurrency;
+  const usd = used.filter(c => c === 'USD').length, eur = used.filter(c => c === 'EUR').length;
+  return eur > usd ? 'EUR' : usd > eur ? 'USD' : device;
+}
+/** Session AW (fr-money, FR-AW-2): the currencies Wealth's own records are kept in, one per record, for `used` above. */
+export function usedCurrencies({entries = [], accounts = [], logCurrency}: {entries?: readonly {currency: string}[]; accounts?: readonly {currency: string; archivedAt?: string}[]; logCurrency?: string}): string[] {
+  return [...entries.map(e => e.currency), ...accounts.filter(a => !a.archivedAt).map(a => a.currency), ...(logCurrency ? [logCurrency] : [])];
 }
 
 type HeldPosition = {asset: string; quantity: string; decimals: number; archivedAt?: string; valuation?: {value: string; currency: string; decimals: number}};
