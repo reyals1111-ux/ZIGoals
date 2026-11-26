@@ -24,6 +24,7 @@ export {EXTRA_SOURCES, EXTRA_LABEL, type ExtraSource} from './extra-sources';
 export const MAX_EXTRA_ITEMS = 3000, TASK_MINUTES = 30;
 type Base = Omit<AgendaItem, 'source' | 'pillar' | 'href'>;
 export type TaskAgendaItem = Base & {source: 'task'; pillar: 'goals' | 'life'; href: string; taskId: string; priority: TaskPriority; goal?: string; overdueSince?: string;
+  /** Session AW (fr-answers, FR-AW-19): an overdue task's own time of day, for what shows it (NOVA's agenda clock); never placed on today. */ overdueTime?: string;
   /** Session AV lane 2 (r5-plan, review B5L-3): closed without being done; its state is 'skipped', never 'done'. */ cancelled?: true};
 export type EventAgendaItem = Base & {source: 'event'; pillar: 'life'; href: null; calendarId: string; calendar: string; part?: number; parts?: number};
 export type DayItem = AgendaItem | TaskAgendaItem | EventAgendaItem;
@@ -37,7 +38,7 @@ function taskItem(t: Task, date: string, today: string): TaskAgendaItem {
   // Session AV lane 2 (LEDGER #24; Sunsama's timeboxing): a timed task's block ends after its own minutes (30 when it has none).
   const time = t.time && t.due === date ? t.time : null;
   return {id: `task:${t.id}:${date}`, source: 'task', pillar: t.goal ? 'goals' : 'life', date, time, minutes: time ? (t.doneAt ? t.minutes ?? TASK_MINUTES : blockLength(t)) : 0, /* Session AV lane 2 (r4-plan, LEDGER #303): a task in pieces holds one piece */ title: t.title, href: `/app/tasks#task-${t.id}`,
-    state: t.doneAt ? (isCancelled(t) ? 'skipped' : 'done') : 'open', ...(isCancelled(t) ? {cancelled: true as const} : {}), taskId: t.id, priority: t.priority, ...(t.goal ? {goal: t.goal} : {}), ...(!t.doneAt && t.due && isLate(t, today) ? {overdueSince: t.due} : {})};
+    state: t.doneAt ? (isCancelled(t) ? 'skipped' : 'done') : 'open', ...(isCancelled(t) ? {cancelled: true as const} : {}), taskId: t.id, priority: t.priority, ...(t.goal ? {goal: t.goal} : {}), ...(!t.doneAt && t.due && isLate(t, today) ? {overdueSince: t.due, ...(t.time ? {overdueTime: t.time} : {})} : {})};
 }
 /** The tasks between two days (`doneDay` gives the local day of a finish time). */
 export function taskAgendaItems(record: Tasks, from: string, to: string, today: string, doneDay: (iso: string) => string): TaskAgendaItem[] {

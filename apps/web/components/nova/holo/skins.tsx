@@ -106,7 +106,7 @@ export function HoloOrbit({size}: {size: WidgetSize}) {
     <HoloTable caption="Today’s orbit" rows={[['Done', `${summary.done} of ${summary.total} ${unit}`]]}/>
   </div>;
 }
-const WHEN = {next: 'next', later: 'later', earlier: 'earlier', anytime: 'any time today'} as const;
+const WHEN = {next: 'next', later: 'later', earlier: 'earlier', anytime: 'any time today', overdue: 'overdue'} as const;
 /** Next three across every source of the Agenda's day, by time (P-LA-14). */
 export function HoloNext({size}: {size: WidgetSize}) {
   const {items, now} = useAgendaToday();
@@ -123,8 +123,8 @@ export function HoloNext({size}: {size: WidgetSize}) {
     <svg className="holo-rail-hex" viewBox="-18 -18 36 36" aria-hidden="true" focusable="false"><path className="holo-rail-hex-rim" d="M0 -15.5L13.4 -7.75V7.75L0 15.5L-13.4 7.75V-7.75Z"/><path className="holo-rail-hex-in" d="M0 -11.6L10 -5.8V5.8L0 11.6L-10 5.8V-5.8Z"/><path className="holo-rail-hex-glyph" data-fill={i.when === 'next' || undefined} d={HEX_GLYPH[i.when]}/></svg>
   </li>)}</WholeRows>;
 }
-/** What the hexagon draws for a step's state: a play mark (next), a clock (later), a turn back (earlier), a small sun (any time). */
-const HEX_GLYPH = {next: 'M-2.8 -4.6L4.8 0L-2.8 4.6Z', later: 'M0 -6A6 6 0 1 0 0 6A6 6 0 1 0 0 -6M0 -3.4V0L2.6 1.7', earlier: 'M-4.2 -4.2A6 6 0 1 1 -6 0M-4.4 -7.4V-4H-1', anytime: 'M0 -2.8A2.8 2.8 0 1 0 0 2.8A2.8 2.8 0 1 0 0 -2.8M0 -7V-5.2M0 5.2V7M-7 0H-5.2M5.2 0H7M-5 -5L-3.7 -3.7M3.7 3.7L5 5M5 -5L3.7 -3.7M-3.7 3.7L-5 5'} as const;
+/** What the hexagon draws for a step's state: a play mark (next), a clock (later), a turn back (earlier and overdue), a small sun (any time). */
+const HEX_GLYPH = {next: 'M-2.8 -4.6L4.8 0L-2.8 4.6Z', later: 'M0 -6A6 6 0 1 0 0 6A6 6 0 1 0 0 -6M0 -3.4V0L2.6 1.7', earlier: 'M-4.2 -4.2A6 6 0 1 1 -6 0M-4.4 -7.4V-4H-1', overdue: 'M-4.2 -4.2A6 6 0 1 1 -6 0M-4.4 -7.4V-4H-1', anytime: 'M0 -2.8A2.8 2.8 0 1 0 0 2.8A2.8 2.8 0 1 0 0 -2.8M0 -7V-5.2M0 5.2V7M-7 0H-5.2M5.2 0H7M-5 -5L-3.7 -3.7M3.7 3.7L5 5M5 -5L3.7 -3.7M-3.7 3.7L-5 5'} as const;
 /** Tasks: the due, overdue and open counters (taskCounts) over the Tasks page's own rows and quick add. */
 export function HoloTasks({size}: {size: WidgetSize}) {
   // Release review AL (RR-8): the Tasks page's own day and clock (the app's zone), so a task late today counts as overdue here too.
