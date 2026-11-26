@@ -78,7 +78,6 @@ const SEEDS: Record<string, unknown> = {
   'zigoals:task-templates:v1': {version: 1, items: [{id: 'tpl-move', name: 'Moving house', createdAt: AT, items: [{title: 'Book the van', section: 'Before', offset: 0, minutes: 20}, {title: 'Pack the books', section: 'Before', parent: 0, offset: 2}]}],
     repeats: [{id: 'rep-month', name: 'Month end', every: 'month', start: '2026-10-01', lastMade: '2026-10-01', items: [{title: 'Pay the rent'}]}]},
   'zigoals:budget-periods:v1': {version: 1, paychecks: {items: [{id: 'p1', name: '1st', every: 'month', day: 1, amount: '1000.00', currency: 'EUR'}], lines: {'b:b1': 'p1'}}},
-  'zigoals:chess-computer:v1': {version: 1, game: {side: 'w', level: 'easy', moves: ['e2e4', 'e7e5', 'g1f3'], startedAt: AT}, tally: {easy: {won: 3, lost: 1, drawn: 0}}},
   'zigoals:workout-places:v1': {version: 1, places: [{id: 'place-home', name: 'Home', equipment: ['dumbbells', 'mat'], createdAt: AT}, {id: 'place-gym1', name: 'Gym', equipment: ['barbell', 'rack'], createdAt: AT}], current: 'place-home'},
   'zigoals:money-more:v1': {version: 1, saved: [{id: 's1', name: 'Coffee', kind: 'expense', amount: '3.20', currency: 'EUR', category: 'Eating out'}], owed: [{id: 'o1', name: 'Sam', amount: '12.00', currency: 'EUR', date: '2026-10-10'}],
     loans: [{id: 'l1', kind: 'lent', name: 'Noor', amount: '50.00', currency: 'EUR', date: '2026-09-20', repaid: [{date: '2026-10-01', amount: '20.00'}]}], streak: {on: true, looked: ['2026-10-12']}},
