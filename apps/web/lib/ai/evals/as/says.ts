@@ -79,6 +79,8 @@ export const SAYS: Readonly<Record<string, readonly string[]>> = {
   'awx6-weigh-on': ['71.8 kg', '73.6 kg'], 'awx6-weight-week': ['3', '2'], 'awx6-sleep-goal-period': ['8 h 00 min'], // its two phrasings read 14 and 30 days
   ...SAYS_AW_P5, // Session AW Part 5 (p5-answers)
   'awx7-money-removed': ['Phone case', '19'], 'awx7-money-bill-ends': ['Music', '3', '24'], 'awx7-money-card-payment': ['Credit card'],
+  // Session AW (fr-money, persona walks FR-AW-3/4/11): a payment recorded on a debt, never spending; what is owed after it.
+  'awfr-money-paid-month': ['300', 'Car loan'], 'awfr-money-paid-week': [], 'awfr-money-owed': ['Car loan', 'Credit card', '640'], 'awfr-money-loan-advice': [],
 };
 
 // Session AV lane 2 (Dutch dates, deliberate): a Dutch answer now writes its dates the Dutch way (exact/period.ts nlDay,

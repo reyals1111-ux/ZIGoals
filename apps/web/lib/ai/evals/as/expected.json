@@ -9597,5 +9597,37 @@
   "widgets": [],
   "fresh": "No week in a row yet: a workout this week starts one.",
   "freshNl": "Nog geen week op rij: een workout deze week begint er een."
+ },
+ "awfr-money-paid-month": {
+  "en": "$300.00 paid on Car loan this month (Sun, Nov 1 to Tue, Nov 17), in 1 payment recorded in Wealth → What you owe.",
+  "nl": "US$ 300,00 afgelost op Car loan deze maand (zo 1 nov t/m di 17 nov), in 1 betaling vastgelegd in Wealth → What you owe.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No debt is kept in Wealth → What you owe, so no payment is recorded on one. Spending is not counted as paying off a debt.",
+  "freshNl": "Er staat geen schuld in Wealth → What you owe, dus er is geen aflossing vastgelegd. Uitgaven tellen niet als aflossing."
+ },
+ "awfr-money-paid-week": {
+  "en": "No debt payment is recorded this week (Mon, Nov 16 to Tue, Nov 17). A payment counts here once you record it with Record a payment on the debt in Wealth → What you owe; spending is not counted as paying off.",
+  "nl": "Er is deze week (ma 16 nov t/m di 17 nov) geen aflossing vastgelegd. Een betaling telt hier zodra je hem vastlegt met Record a payment bij de schuld in Wealth → What you owe; uitgaven tellen niet als aflossing.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No debt is kept in Wealth → What you owe, so no payment is recorded on one. Spending is not counted as paying off a debt.",
+  "freshNl": "Er staat geen schuld in Wealth → What you owe, dus er is geen aflossing vastgelegd. Uitgaven tellen niet als aflossing."
+ },
+ "awfr-money-owed": {
+  "en": "You owe 7,551.00 USD across 2 debts, as entered on this device:\n- Car loan: 6,911.00 USD owed on Tue, Nov 17\n- Credit card: 640.00 USD owed on Tue, Nov 17",
+  "nl": "Je hebt US$ 7.551,00 schuld, over 2 schulden, zoals ingevoerd op dit apparaat:\n- Car loan: US$ 6.911,00 op di 17 nov\n- Credit card: US$ 640,00 op di 17 nov",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No accounts or debts yet (Wealth → Accounts and debts).",
+  "freshNl": "Er staat geen schuld in Wealth → What you owe op dit apparaat."
+ },
+ "awfr-money-loan-advice": {
+  "en": "I can’t advise on buying, selling, staking or investing: that choice is yours. I can show the facts from your records here, for example “What is the price of BTC?” or “What is my net worth?”.",
+  "nl": "Ik kan geen advies geven over kopen, verkopen, staken of beleggen: die keuze is aan jou. Ik kan de feiten uit je gegevens laten zien, bijvoorbeeld “Wat is mijn nettovermogen?”.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "I can’t advise on buying, selling, staking or investing: that choice is yours. I can show the facts from your records here, for example “What is the price of BTC?” or “What is my net worth?”.",
+  "freshNl": "Ik kan geen advies geven over kopen, verkopen, staken of beleggen: die keuze is aan jou. Ik kan de feiten uit je gegevens laten zien, bijvoorbeeld “Wat is mijn nettovermogen?”."
  }
 }
