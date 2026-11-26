@@ -13,6 +13,9 @@ import {BILLS, BILL_CADENCES, type Bill, type BillCadence, type BillsRecord} fro
 import './bills.css';
 import {parseNumberInput} from '../../../lib/numbers/parse';
 import {useMoneyCurrency} from '../use-money-currency';
+// Session AW X7 (LEDGER #462): a bill that ends ("Ends after 24 payments", "3 of 24 left").
+import {endsOf, endsProblem, setEnds, type EndsChoice} from '../../../lib/bills/ends';
+import {EndsFields, endsWords} from './bill-ends';
 // Session AP (feature 6): price changes of bills found in the money log, its own chunk.
 const PriceChanges = lazy(() => import('./price-changes'));
 // Session AV (follow-up 1, F-BILL-CALENDAR): the next 31 days on a calendar, its own chunk loaded when opened.
@@ -47,7 +50,7 @@ export function BillsView({record, entries, today, showcase = false, unreadable 
   const occurrences = useMemo(() => billOccurrences(record, today, days), [record, today, days]);
   const [calendar, setCalendar] = useState(false), [tracking, setTracking] = useState(false);
   const candidates = useMemo(() => openCandidates(detectBills(entries, today), record), [entries, record, today]);
-  const totals = totalsByCurrency(occurrences), monthly = monthlyEstimate(record), yearly = yearlyEstimate(record), notes = cancelReminders(record, today);
+  const totals = totalsByCurrency(occurrences), monthly = monthlyEstimate(record, today), yearly = yearlyEstimate(record, today), notes = cancelReminders(record, today); // Session AW X7 (#462): an ended bill leaves the estimates
   const change = (fn: (r: BillsRecord) => BillsRecord, done: string) => {
     setProblem('');
     try { onChange(fn); setStatus(done); } catch (cause) { setStatus(''); setProblem(cause instanceof Error ? cause.message : 'This could not be saved on this device. Nothing was changed.'); }
@@ -77,7 +80,7 @@ export function BillsView({record, entries, today, showcase = false, unreadable 
     <Suspense fallback={null}><PriceChanges bills={record.bills} candidates={candidates} entries={entries} today={today}/></Suspense>
     <section aria-labelledby={`${id}-list`}>
       <h3 id={`${id}-list`}>Upcoming</h3>
-      {occurrences.length ? <ul className="bills-list">{occurrences.map(o => <BillRow key={`${o.billId}-${o.due}`} occurrence={o} bill={record.bills.find(b => b.id === o.billId)!} onRemove={remove} onNote={(bill, note, by) => change(r => setCancelNote(r, bill.id, note, by || undefined), note.trim() ? `Note saved for ${bill.title}.` : `Note removed from ${bill.title}.`)}/>)}</ul>
+      {occurrences.length ? <ul className="bills-list">{occurrences.map(o => <BillRow key={`${o.billId}-${o.due}`} occurrence={o} bill={record.bills.find(b => b.id === o.billId)!} today={today} onRemove={remove} onNote={(bill, note, by) => change(r => setCancelNote(r, bill.id, note, by || undefined), note.trim() ? `Note saved for ${bill.title}.` : `Note removed from ${bill.title}.`)}/>)}</ul>
         : <p className="fine">{record.bills.length ? `No bill is due in the next ${days} days.` : 'No bills yet. Confirm one found in your spending below, or add one by hand (for example rent on the 1st).'}</p>}
       {record.bills.length > 0 && <details className="bills-calendar-fold" onToggle={e => setCalendar((e.currentTarget as HTMLDetailsElement).open)}><summary>On a calendar</summary>{calendar && <Suspense fallback={<p className="fine">Opening…</p>}><BillMonthGrid record={record} today={today}/></Suspense>}</details>}
     </section>
@@ -90,7 +93,7 @@ export function BillsView({record, entries, today, showcase = false, unreadable 
         <span className="bills-actions"><button type="button" className="secondary" onClick={() => confirm(c)} aria-label={`Confirm ${c.title} as a bill`}>Confirm</button><button type="button" className="quiet" onClick={() => dismiss(c)} aria-label={`${c.title} is not a bill`}>Not a bill</button></span>
       </li>)}</ul>
     </section>}
-    {adding ? <ManualBillForm today={today} onCancel={() => setAdding(false)} onSave={input => { change(r => addManualBill(r, input, crypto.randomUUID(), new Date()), `${input.title.trim()} added to your bills.`); setAdding(false); }}/>
+    {adding ? <ManualBillForm today={today} onCancel={() => setAdding(false)} onSave={(input, ends) => { const billId = crypto.randomUUID(); change(r => setEnds(addManualBill(r, input, billId, new Date()), billId, endsOf(ends)), `${input.title.trim()} added to your bills.`); setAdding(false); }}/>
       : <button type="button" className="secondary bills-add" onClick={() => { setAdding(true); setStatus(''); }}>+ Add a bill by hand</button>}
     <p className="bills-status" role="status" aria-live="polite">{status}</p>
     {problem && <p role="alert">{problem}</p>}
@@ -98,11 +101,12 @@ export function BillsView({record, entries, today, showcase = false, unreadable 
   </div>;
 }
 
-function BillRow({occurrence: o, bill, onRemove, onNote}: {occurrence: BillOccurrence; bill: Bill; onRemove: (b: Bill) => void; onNote: (b: Bill, note: string, by: string) => void}) {
+function BillRow({occurrence: o, bill, today, onRemove, onNote}: {occurrence: BillOccurrence; bill: Bill; today: string; onRemove: (b: Bill) => void; onNote: (b: Bill, note: string, by: string) => void}) {
   const [editing, setEditing] = useState(false), [note, setNote] = useState(bill.cancelNote ?? ''), [by, setBy] = useState(bill.cancelBy ?? '');
+  const ends = endsWords(bill, today); // Session AW X7 (#462): "3 of 24 left · the last on ..." 
   return <li className="bills-row">
     <span className="bills-date">{formatDate(o.due, {weekday: true, year: false})}</span>
-    <span className="bills-what"><strong>{o.title}</strong><span className="fine"> · {CADENCE_LABEL[o.cadence].toLowerCase()}{o.cadence !== 'yearly' ? ` · about ${money(yearlyOf(bill), o.currency)} a year` : ''}{o.origin === 'detected' ? ' · from your spending' : ''}</span>{o.cancelNote && <span className="fine bills-note-line">Note: {o.cancelNote}{o.cancelBy ? ` (by ${formatDate(o.cancelBy)})` : ''}</span>}</span>
+    <span className="bills-what"><strong>{o.title}</strong><span className="fine"> · {CADENCE_LABEL[o.cadence].toLowerCase()}{o.cadence !== 'yearly' ? ` · about ${money(yearlyOf(bill), o.currency)} a year` : ''}{o.origin === 'detected' ? ' · from your spending' : ''}</span>{ends && <span className="fine bills-ends-line">{ends}</span>}{o.cancelNote && <span className="fine bills-note-line">Note: {o.cancelNote}{o.cancelBy ? ` (by ${formatDate(o.cancelBy)})` : ''}</span>}</span>
     <span className="bills-amount">{money(o.amountCents, o.currency)}</span>
     <span className="bills-actions">
       <button type="button" className="quiet" aria-expanded={editing} onClick={() => setEditing(!editing)} aria-label={`Note to self for ${o.title}`}>Note</button>
@@ -116,14 +120,16 @@ function BillRow({occurrence: o, bill, onRemove, onNote}: {occurrence: BillOccur
   </li>;
 }
 
-function ManualBillForm({today, onSave, onCancel}: {today: string; onSave: (input: {title: string; amount: string; currency: string; cadence: BillCadence; nextDue: string}) => void; onCancel: () => void}) {
+function ManualBillForm({today, onSave, onCancel}: {today: string; onSave: (input: {title: string; amount: string; currency: string; cadence: BillCadence; nextDue: string}, ends: EndsChoice) => void; onCancel: () => void}) {
+  const [ends, setEndsChoice] = useState<EndsChoice>({kind: 'never'});
   const startCurrency = useMoneyCurrency(); // Session AL (P-DVR-22): the one default currency, never a fixed EUR
   const [title, setTitle] = useState(''), [amount, setAmount] = useState(''), [picked, setCurrency] = useState<string | null>(null), currency = picked ?? startCurrency, [cadence, setCadence] = useState<BillCadence>('monthly'), [nextDue, setNextDue] = useState(today), [problem, setProblem] = useState('');
   const submit = (event: FormEvent) => {
     event.preventDefault();
     const input = {title, amount: readAmount(amount), currency, cadence, nextDue}, issue = manualBillIssue(input);
     if (issue) { setProblem(issue); return; }
-    onSave(input);
+    const endIssue = endsProblem(ends); if (endIssue) { setProblem(endIssue); return; }
+    onSave(input, ends);
   };
   return <form className="bills-form" onSubmit={submit} aria-label="Add a bill by hand">
     <label className="field"><span>Name</span><input maxLength={80} value={title} onChange={e => setTitle(e.target.value)} placeholder="Rent"/></label>
@@ -133,6 +139,7 @@ function ManualBillForm({today, onSave, onCancel}: {today: string; onSave: (inpu
       <label className="field"><span>How often</span><select value={cadence} onChange={e => setCadence(e.target.value as BillCadence)}>{BILL_CADENCES.map(c => <option key={c} value={c}>{CADENCE_LABEL[c]}</option>)}</select></label>
       <label className="field"><span>Next due</span><input type="date" value={nextDue} onChange={e => setNextDue(e.target.value)}/></label>
     </div>
+    <EndsFields choice={ends} onChange={setEndsChoice} nextDue={nextDue}/>
     {problem && <p role="alert">{problem}</p>}
     <div className="bills-actions"><button type="submit" className="primary">Save bill</button><button type="button" className="quiet" onClick={onCancel}>Cancel</button></div>
   </form>;

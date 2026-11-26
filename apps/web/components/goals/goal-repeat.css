@@ -1,0 +1,9 @@
+/* Session AW (X4, LEDGER #447): a goal's "Starts again" fold — layout only; colours are the app's own variables. */
+.goal-repeat { display: grid; gap: 12px; }
+.goal-repeat h2 { margin: 0; }
+.goal-repeat-now { margin: 0; font-size: 16px; }
+.goal-repeat-rows { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.goal-repeat-rows li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); font-size: 15px; }
+.goal-repeat-rows li span { color: var(--text-secondary); }
+.goal-repeat form { display: grid; gap: 10px; }
+.goal-repeat form button { justify-self: start; min-height: 44px; }

@@ -11,6 +11,7 @@ import {askZigiWhenShown, openZigiPanel} from '../zigi-door';
 import {openSearch} from '../search/search-trigger';
 import {APP_PAGES, PALETTE_GROUPS, filterRows, orderRows, type PaletteRow} from './palette-items';
 import './command-palette.css';
+import {openTimersEvent} from '../../lib/timers/open';
 
 /**
  * Session AL fourth pass (LS-H36, C-LS-22): the command palette (Ctrl/⌘+K). One field; the rows below narrow as you type:
@@ -34,6 +35,8 @@ export default function CommandPalette({onClose}: {onClose: () => void}) {
       ...(isShown(view, 'zigi') ? [{id: 'zigi', group: 'Actions' as const, label: words ? `Ask ZIGi: “${words}”` : 'Ask ZIGi', detail: 'Your companion · Ctrl/⌘+Shift+Z', run: 'zigi' as const, words: 'ai chat assistant help'}] : []),
       ...(isShown(view, 'quick-add') ? [{id: 'quick-add', group: 'Actions' as const, label: 'Quick add', detail: 'Log water, a meal, a habit, a note or a task in one line', run: 'quick-add' as const, words: 'log add new'}] : []),
       {id: 'new-task', group: 'Actions', label: 'Add a task', detail: 'Tasks, with the add field ready', href: '/app/tasks?add=1', words: 'todo to-do new'},
+      // Session AW (X1, LEDGER #440): the named timers' sheet, over the page that is open.
+      {id: 'timers', group: 'Actions', label: 'Timers', detail: 'Named countdowns, several at once', run: 'timers', words: 'timer countdown kitchen clock alarm'},
       {id: 'search', group: 'Actions', label: words ? `Search everything for “${words}”` : 'Search everything', detail: 'Goals, habits, foods, assets, pages and Help · /', run: 'search', words: 'find'},
     ];
     const pages: PaletteRow[] = [...NAV_ITEMS.map(([href, label]) => [href, label, ''] as const), ...APP_PAGES]
@@ -57,6 +60,7 @@ export default function CommandPalette({onClose}: {onClose: () => void}) {
     close(false); // what the row opens takes the focus
     if (row.run === 'zigi') { void (words ? askZigiWhenShown(words) : openZigiPanel()); return; }
     if (row.run === 'search') { openSearch(words); return; }
+    if (row.run === 'timers') { openTimersEvent(); return; }
     if (row.run === 'quick-add') {
       const trigger = [...document.querySelectorAll<HTMLButtonElement>('.quick-add-trigger')].find(b => b.offsetParent !== null);
       if (trigger) trigger.click(); else router.push('/app/tasks?add=1');

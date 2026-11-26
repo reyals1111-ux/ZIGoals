@@ -82,6 +82,9 @@
   .tasks-layout > .tasks-nav .tasks-nav-item:not([aria-current=page]) { border-color: var(--line, rgba(128, 128, 160, .3)); }
   .tasks-layout > .tasks-nav h3 { margin: 6px 0 2px; }
   .tasks-layout > .tasks-nav .tasks-nav-area h4 { margin: 4px 0 2px; }
+  /* Session AW (simplicity-b, Part 3): This evening, Someday, Priority matrix and Completed (the fold's first row on a
+     phone) start 4 px under the chips above, the rows' own gap. */
+  .tasks-layout > .tasks-nav .tasks-nav-more > .tasks-nav-later { margin-top: 4px; }
 }
 /* Session AV lane 2 (fr-layout, FR-L-5, FR-MAX-2, FR-S-7, FR-TJ-8): on a phone, Plan and views, Projects, Labels, Priority
    and Saved filters fold behind the "More views" chip at the end of the first row, so "New task" is on the first screen
@@ -199,6 +202,9 @@
 /* Session AV lane 2 (r6-plan, LEDGER #391): any day, and a label added or taken off, kept together as small groups. */
 .tasks-bulk-group { display: inline-flex; flex-wrap: wrap; align-items: end; gap: 6px 8px; max-width: 100%; }
 .tasks-bulk-group input { min-height: 44px; max-width: 100%; }
+/* Session AW (FR-AW-15): the reminders sit in the list's panel under "New task", framed by the panel's own line. */
+.tasks-main > .tasks-reminders { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; min-width: 0; }
+.tasks-main > .tasks-reminders .fine { margin: 4px 0 0; }
 .tasks-reminders ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .tasks-reminders li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; overflow-wrap: anywhere; }
 .tasks-reminders .text-link { min-height: 44px; }
@@ -302,3 +308,9 @@
 /* Session AV lane 2 (tasks-r2, LEDGER #225): "Print this list" under the list. */
 .tasks-print-line { margin: 8px 0 0; }
 .tasks-print-line button { min-height: 44px; font-size: 16px; }
+/* Session AW (CI run 2034 and the local re-run, a10-life A10-11): the line's syntax hint ("A day, a time, …") shows while
+   the line has words in it, so "New task" and the first task fit the first screen at 768; it stays the field's description
+   for a screen reader either way. Layout only. CI run 2038: it followed the focus before, so pressing a row's Edit (or any
+   control below) after adding a task hid it mid-press, the rows moved up under the pointer and the release missed the
+   button; it now changes only as the line is typed or cleared, never on a press elsewhere. */
+.tasks-smart-add:has(.tasks-smart-row input:placeholder-shown) > .tasks-smart-help { display: none; }

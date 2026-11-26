@@ -33,6 +33,7 @@ import type {useProposals} from '../../ai/use-proposals';
 import {ZigiAvatar} from '../../zigi/zigi-avatar';
 import {AgentGlyph, PersonaFigure, type NovaPersona} from './nova-figure';
 import {countOf, gaugeOf, gaugeWords, readoutFigures, ReadoutInstrument} from './nova-readout';
+import {questionLanguage} from '../../../lib/ai/local-answers/no-model';
 const QuickAddLine = lazy(() => import('../../quick-add-line').then(m => ({default: m.QuickAddLine})));
 
 /**
@@ -115,8 +116,8 @@ export function NovaReplyTurn({turn, asked, mark, isLast, earlier, busy, common,
         {(parsed.text || parsed.proposals.length > 0) && <TurnKind cards={parsed.proposals.length > 0}/>}
         {parsed.text && !(cardShown && reply?.kind === 'examples') && <div className="ncx-rx-words" data-gauge={gauge ? '' : undefined} data-inst={instrument ? '' : undefined}>{instrument && <ReadoutInstrument gauge={instrument.gauge} caption={instrument.caption} count={instrument.count}/>}<SafeText className={local ? 'ai-local-answer' : undefined} text={parsed.text} mark={readoutFigures}/></div>}
         {!local && turn.tools && turn.tools.length > 0 && <p className="nova-looked"><span>{zigi ? 'ZIGi looked at:' : 'Looked at:'}</span> {turn.tools.map((t, i) => <span key={i} className="ai-source-chip">{t.label}</span>)}</p>}
-        <DataViz results={local ? info?.results : session.lookupsFor(turn.id)?.map(l => l.result)}/>
-        {(parsed.proposals.length > 0 || parsed.rejected.length > 0) && <ProposalList onDevice={local} proposals={parsed.proposals} rejected={parsed.rejected} handles={local ? localHandles : session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed.bundle}/>}
+        <DataViz results={local ? info?.results : session.lookupsFor(turn.id)?.map(l => l.result)} lang={questionLanguage(question) === 'nl' ? 'nl' : 'en'}/>
+        {(parsed.proposals.length > 0 || parsed.rejected.length > 0) && <ProposalList onDevice={local} lang={local && questionLanguage(question) === 'nl' ? 'nl' : 'en'} proposals={parsed.proposals} rejected={parsed.rejected} handles={local ? localHandles : session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed.bundle}/>}
         {!isLast && reply?.kind === 'examples' && reply.examples.length > 0 && <ul className="ai-local-examples" aria-label="Questions answered on this device">{reply.examples.map(e => <li key={e}>{e}</li>)}</ul>}
         {chips.length > 0 && !(cardShown && reply?.kind === 'examples') && <div className="ai-chips" role="group" aria-label={reply?.kind === 'examples' ? 'Questions answered on this device' : 'Which one?'}>{chips.map(c => <button key={c.label} type="button" className="ai-chip" title={c.label} onClick={c.run}>{c.label}</button>)}</div>}
         {local && (parsed.text.includes(NOVA_PERMISSIONS) || parsed.text.includes(NOVA_PERMISSIONS_NL)) && <p className="nova-turn-permissions">

@@ -57,7 +57,8 @@ test('before setup: a lookup is answered on the device with its records, nothing
   // Health stays closed until its gate opens: the plain sentence, and the matching habit offered.
   await panel(page).getByLabel('Ask ZIGi about your records').fill('How much water did I drink yesterday?');
   await panel(page).getByRole('button', {name: 'Send', exact: true}).click();
-  await expect(panel(page).locator('.ai-turn-local').last()).toContainText('Health isn’t shared with ZIGi — turn it on in Settings');
+  // Session AW (FR-S-16, p5-answers, deliberate): the closed-Health line names its one switch, Allow Health in NOVA → Permissions.
+  await expect(panel(page).locator('.ai-turn-local').last()).toContainText('Health isn’t shared with ZIGi here, so nothing from Health is read. Tap Allow Health in NOVA → Permissions');
   await expect(panel(page).locator('.ai-turn-local').last().getByRole('button', {name: 'Drink water (habit)'})).toBeVisible();
   await panel(page).locator('.ai-turn-local').last().getByRole('button', {name: 'Drink water (habit)'}).click();
   // Session AL (Part 13, deliberate): the Showcase's Drink water habit is 2 liters a day, linked to the water journal (was 8 glasses).

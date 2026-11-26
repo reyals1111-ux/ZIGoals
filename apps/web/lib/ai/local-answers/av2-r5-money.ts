@@ -43,11 +43,11 @@ type Ak = {notifyPrefs?: NotifyPrefs | null; bills?: import('../../bills/schema'
 export const akOf = (env: ToolEnv): Ak => (env.ak ?? {}) as Ak;
 const call = (tool: string, args: Record<string, unknown>, label: string) => [{tool, args, label}];
 export const PLACES = {
-  spending: {en: 'Wealth → Spending', nl: 'Vermogen → Uitgaven'},
-  budgets: {en: 'Wealth → Budgets', nl: 'Vermogen → Budgetten'},
-  bills: {en: 'Wealth → Upcoming bills → Bill tracker', nl: 'Vermogen → Komende rekeningen → Bill tracker'},
-  accounts: {en: 'Wealth → Accounts', nl: 'Vermogen → Rekeningen'},
-  forecast: {en: 'Wealth → Spending → Money tools → Next 60 days', nl: 'Vermogen → Uitgaven → Money tools → Next 60 days'},
+  spending: {en: 'Wealth → Spending', nl: 'Wealth → Spending'},
+  budgets: {en: 'Wealth → Budgets', nl: 'Wealth → Budgets'},
+  bills: {en: 'Wealth → Upcoming bills → Bill tracker', nl: 'Wealth → Upcoming bills → Bill tracker'},
+  accounts: {en: 'Wealth → Accounts', nl: 'Wealth → Accounts'},
+  forecast: {en: 'Wealth → Spending → Money tools → Next 60 days', nl: 'Wealth → Spending → Money tools → Next 60 days'},
 } as const;
 
 // ── Yesterday's money (#384) ───────────────────────────────────────────────────────────────────────────────────────
@@ -68,7 +68,7 @@ function yesterday(a: Asked): LocalReply | null {
   if (!d.entries && !d.byCurrency.length) return answer(say(a.lang, `Nothing was logged for ${when('en')}.${balances('en').length ? ` Your cash and savings: ${list(balances('en'), 'en')}.` : ''}${tail('en')}`,
     `Voor ${when('nl')} is niets gelogd.${balances('nl').length ? ` Je contant geld en spaargeld: ${list(balances('nl'), 'nl')}.` : ''}${tail('nl')}`), calls);
   return answer(say(a.lang, `${when('en')}: ${count('en')}${figures('en').length ? `, ${list(figures('en'), 'en')}` : ''}.${balances('en').length ? ` Cash and savings: ${list(balances('en'), 'en')}.` : ''} Counted as Spending counts it.${tail('en')}`,
-    `${when('nl')}: ${count('nl')}${figures('nl').length ? `, ${list(figures('nl'), 'nl')}` : ''}.${balances('nl').length ? ` Contant en spaargeld: ${list(balances('nl'), 'nl')}.` : ''} Geteld zoals Uitgaven telt.${tail('nl')}`), calls);
+    `${when('nl')}: ${count('nl')}${figures('nl').length ? `, ${list(figures('nl'), 'nl')}` : ''}.${balances('nl').length ? ` Contant en spaargeld: ${list(balances('nl'), 'nl')}.` : ''} Geteld zoals Spending telt.${tail('nl')}`), calls);
 }
 add(yesterday);
 

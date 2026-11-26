@@ -1,5 +1,5 @@
-import type {ToolEnv} from '../tools/env';
-import {HEALTH_CLOSED, HEALTH_CLOSED_NL} from '../tools/format';
+import {healthBlockOf, type ToolEnv} from '../tools/env';
+import {HEALTH_CLOSED, HEALTH_CLOSED_BY, HEALTH_CLOSED_NL} from '../tools/format';
 import type {LocalReply} from './engine';
 
 /**
@@ -15,6 +15,7 @@ export type NovaEnvInfo = {
   /** NOVA → Permissions: Health is allowed for NOVA. */ healthScope: boolean;
   /** This device's three-part Health gate (Health page data, Include Health, Health on Today, the account's permission). */ healthGate: boolean;
   /** NOVA → Permissions: Today (agenda, tasks, focus, Checklist) is allowed for NOVA (absent: allowed). */ todayScope?: boolean;
+  /** Session AW (fr-answers review): Health is closed where Allow Health cannot open it (Gates `healthBlock`). */ healthBlock?: 'account' | 'layout';
 };
 const NOVA_ENVS = new WeakMap<object, NovaEnvInfo>();
 export function markNovaEnv<T extends ToolEnv>(env: T, info: NovaEnvInfo): T { NOVA_ENVS.set(env, {...info}); return env; }
@@ -35,11 +36,18 @@ type Lang = 'en' | 'nl';
  * never the three switches to find one by one.
  */
 export function novaHealthClosed(info: NovaEnvInfo, lang: Lang = 'en'): string {
+  // Session AW (fr-answers review): where the one button cannot open Health, say why, never "one tap".
+  if (info.healthBlock === 'account') return lang === 'nl'
+    ? 'Health-antwoorden staan uit op dit apparaat, dus er wordt hier niets uit Health gelezen: met je account open wordt Health alleen gelezen als de Health-toestemming van het account op dit apparaat aan staat, en hier staat die uit of is die nog niet bevestigd (Settings → Account & sync).'
+    : 'Health answers are off on this device, so nothing from Health is read here: with your account open, Health is read only when the account’s Health permission is on for this device, and here it is off or not confirmed yet (Settings → Account & sync).';
+  if (info.healthBlock === 'layout') return lang === 'nl'
+    ? `Health-antwoorden staan uit op dit apparaat, dus er wordt hier niets uit Health gelezen: Health staat niet op je Today-indeling op dit apparaat. Zet het eerst op Today, dan opent Allow Health in ${NOVA_PERMISSIONS_NL} het met één tik.`
+    : `Health answers are off on this device, so nothing from Health is read here: Health is not on your Today layout on this device. Add it to Today first, then Allow Health in ${NOVA_PERMISSIONS} opens it in one tap.`;
   if (lang === 'nl') {
-    if (!info.healthScope) return `Health staat uit voor NOVA, dus er wordt niets uit Health gelezen. Tik op Allow Health in ${NOVA_PERMISSIONS_NL}: één tik opent Health (de knop staat er zodra Health op je Today-pagina staat).`;
+    if (!info.healthScope) return `Health staat uit voor NOVA, dus er wordt niets uit Health gelezen. Tik op Allow Health in ${NOVA_PERMISSIONS_NL}: één tik opent Health.`;
     return `Health-antwoorden staan uit op dit apparaat, dus er wordt hier niets uit Health gelezen; zet ze aan met Allow Health in ${NOVA_PERMISSIONS_NL}.`;
   }
-  if (!info.healthScope) return `Health is off for NOVA, so nothing from Health is read here. Tap Allow Health in ${NOVA_PERMISSIONS}: one tap opens Health (the button is there once Health is on your Today page).`;
+  if (!info.healthScope) return `Health is off for NOVA, so nothing from Health is read here. Tap Allow Health in ${NOVA_PERMISSIONS}: one tap opens Health.`;
   return `Health answers are off on this device, so nothing from Health is read here; turn them on with Allow Health in ${NOVA_PERMISSIONS}.`;
 }
 const AREA_WORDS: Record<string, string> = {Today: 'Today (your agenda, tasks, focus and Checklist)', Goals: 'Goals', Habits: 'Habits', Wealth: 'Wealth'};
@@ -76,11 +84,12 @@ export function novaWording(reply: LocalReply, info: NovaEnvInfo, lang: Lang = '
 
 /**
  * Session AU (D-ALLOW-HEALTH): the one button to where Health is allowed, for a reply that says Health is not shared. On
- * ZIGi's panel: the existing open-page card to Settings → ZIGi (its Privacy & data holds both switches; nothing is
- * written, the person turns them on there). On NOVA: the words name NOVA → Permissions, which holds the same switches and
+ * ZIGi's panel: the open-page card to NOVA → Permissions (Session AW p5-answers, FR-S-16: its Allow Health turns on both
+ * switches in one tap; nothing is written by the card, the person taps it there). On NOVA: the words name NOVA → Permissions, which holds the same switches and
  * which NOVA's chat turns into its one button (components/nova/chat/nova-turns.tsx), so no second card is added.
  */
-export const ALLOW_HEALTH_CARD = `\n\n\`\`\`zigoals-action\n${JSON.stringify({kind: 'open-page', page: 'settings', view: 'zigi'})}\n\`\`\``;
+// Session AW (p5-answers, FR-S-16; TIER 3, AI tools): the one button goes to NOVA → Permissions, where Allow Health is.
+export const ALLOW_HEALTH_CARD = `\n\n\`\`\`zigoals-action\n${JSON.stringify({kind: 'open-page', page: 'nova', view: 'permissions'})}\n\`\`\``;
 export function allowHealth(env: ToolEnv | null | undefined, lang: Lang = 'en'): string {
   if (!novaEnvInfo(env)) return ALLOW_HEALTH_CARD;
   return lang === 'nl' ? `\n\nHealth sta je toe in ${NOVA_PERMISSIONS_NL}.` : `\n\nHealth is allowed in ${NOVA_PERMISSIONS}.`;
@@ -92,5 +101,14 @@ export function allowHealth(env: ToolEnv | null | undefined, lang: Lang = 'en'):
  */
 export function zigiHealthClosed(reply: LocalReply, env: ToolEnv | null | undefined, lang: Lang): LocalReply {
   if (novaEnvInfo(env) || reply.kind !== 'refusal' || reply.text !== HEALTH_CLOSED) return reply;
-  return {...reply, text: (lang === 'nl' ? HEALTH_CLOSED_NL : HEALTH_CLOSED) + ALLOW_HEALTH_CARD};
+  return {...reply, text: zigiHealthClosedText(env, lang)};
+}
+/**
+ * ZIGi's Health-closed sentence for this environment, in `lang`: with the one button to NOVA → Permissions when Allow Health
+ * opens Health there; where it cannot (an account's Health permission off, Health off Today: Session AW fr-answers review),
+ * the reason, and no button that would not help.
+ */
+export function zigiHealthClosedText(env: ToolEnv | null | undefined, lang: Lang): string {
+  const block = healthBlockOf(env);
+  return block ? HEALTH_CLOSED_BY[block][lang] : (lang === 'nl' ? HEALTH_CLOSED_NL : HEALTH_CLOSED) + ALLOW_HEALTH_CARD;
 }

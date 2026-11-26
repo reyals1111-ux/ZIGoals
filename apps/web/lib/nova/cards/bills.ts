@@ -1,4 +1,5 @@
 import {billOccurrences, monthlyEstimate, nextDueOf, totalsByCurrency} from '../../bills/store';
+import {hasEnded} from '../../bills/ends-core';
 import type {BillCadence, BillsRecord} from '../../bills/schema';
 import {fromCents} from '../../money-log/engine';
 import {formatCurrencyAmount, formatDate} from '../../visual-format';
@@ -41,11 +42,12 @@ export function billLine(bill: {id: string; title: string; amount: string; curre
   return {id: bill.id, title: bill.title, amount: formatCurrencyAmount(bill.amount, bill.currency), currency: bill.currency, cadence: bill.cadence, due, date: billDay(due, today), days, overdue: days < 0, when: dueWords(days), near: nearness(days)};
 }
 export function billsCard(record: BillsRecord, today: string): BillsCard {
-  const lines = record.bills.map(b => billLine(b, nextDueOf(b, today), today)).sort((a, b) => a.due.localeCompare(b.due) || a.title.localeCompare(b.title));
+  // Session AW X7 (LEDGER #462): a bill whose last payment has passed is no longer listed.
+  const lines = record.bills.filter(b => !hasEnded(b, today)).map(b => billLine(b, nextDueOf(b, today), today)).sort((a, b) => a.due.localeCompare(b.due) || a.title.localeCompare(b.title));
   return {
     state: lines.length ? 'live' : 'empty', lines, next: lines[0] ?? null,
     month: totalsByCurrency(billOccurrences(record, today, NEAR_DAYS)).map(t => ({currency: t.currency, text: money(t.cents, t.currency), count: t.count})),
-    typical: monthlyEstimate(record).map(m => ({currency: m.currency, text: money(m.cents, m.currency)})),
+    typical: monthlyEstimate(record, today).map(m => ({currency: m.currency, text: money(m.cents, m.currency)})),
   };
 }
 /** The widget's table for assistive technology: the same figures as text. */

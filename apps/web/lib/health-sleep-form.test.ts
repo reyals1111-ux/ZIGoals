@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {defaultNightTimes, defaultWakeFor, nightLabels, nightTimeIssues, optionalWhole, quickLastNight} from './health-sleep-form';
+import {defaultNightTimes, defaultWakeFor, nightLabels, nightTimeIssues, optionalWhole, quickLastNight, readNightDates} from './health-sleep-form';
 import {emptySleep} from './sleep/schema';
 import {saveNight} from './sleep/engine';
 import {instantAt} from './zone-time';
@@ -74,5 +74,47 @@ describe('NB-138: quickLastNight, the write Today can call', () => {
   });
   it('refuses hours that are not a night', () => {
     for (const h of [0, -1, 17, Number.NaN]) expect(() => quickLastNight(h, '2026-11-04', at('2026-11-04', '10:30'), BXL)).toThrow();
+  });
+});
+
+// Session AW (FR-AW-8): Sanne went to bed at 00:30, typed 00:30 and kept the default bed date (the evening before).
+describe('FR-AW-8: a bed time after midnight with the default bed date is read as the wake day', () => {
+  const now = at('2026-12-03', '09:00');
+  it('00:30 → 07:00 with yesterday as the bed date is 00:30 → 07:00 on the wake day, and saves', () => {
+    const typed = {...defaultNightTimes('2026-12-03', now, BXL), bedTime: '00:30'};
+    expect(typed.bedDate).toBe('2026-12-02');
+    expect(nightTimeIssues(typed, 'night', now, BXL, clock)).toEqual({wakeDate: 'The night can last at most 24 hours: check the dates.'});
+    const read = readNightDates(typed, BXL);
+    expect(read).toEqual({bedMoved: true, times: {bedDate: '2026-12-03', bedTime: '00:30', wakeDate: '2026-12-03', wakeTime: '07:00'}});
+    expect(nightTimeIssues(read.times, 'night', now, BXL, clock)).toEqual({});
+  });
+  it('an after-midnight bed time is 00:00 up to 05:59: 05:59 → 07:00 moves, 06:00 → 07:00 does not', () => {
+    expect(readNightDates({bedDate: '2026-12-02', bedTime: '00:00', wakeDate: '2026-12-03', wakeTime: '07:00'}, BXL).bedMoved).toBe(true);
+    expect(readNightDates({bedDate: '2026-12-02', bedTime: '05:59', wakeDate: '2026-12-03', wakeTime: '07:00'}, BXL).bedMoved).toBe(true);
+    const six = {bedDate: '2026-12-02', bedTime: '06:00', wakeDate: '2026-12-03', wakeTime: '07:00'};
+    expect(readNightDates(six, BXL)).toEqual({times: six, bedMoved: false});
+  });
+  it('review fix: bed 22:00 the day before with a mistyped wake at 23:00 stays as typed and is refused, not saved as 1 hour', () => {
+    const typed = {bedDate: '2026-12-02', bedTime: '22:00', wakeDate: '2026-12-03', wakeTime: '23:00'};
+    expect(readNightDates(typed, BXL)).toEqual({times: typed, bedMoved: false});
+    expect(nightTimeIssues(typed, 'night', at('2026-12-04', '09:00'), BXL, clock)).toEqual({wakeDate: 'The night can last at most 24 hours: check the dates.'});
+    // A daytime nap typed with the default dates is not an after-midnight bedtime either.
+    const nap = {bedDate: '2026-12-02', bedTime: '13:00', wakeDate: '2026-12-03', wakeTime: '14:30'};
+    expect(readNightDates(nap, BXL)).toEqual({times: nap, bedMoved: false});
+  });
+  it('leaves every other night as typed: an evening bed time, exactly 24 hours, dates two days apart, the same day, a missing field', () => {
+    for (const t of [
+      {bedDate: '2026-12-02', bedTime: '23:00', wakeDate: '2026-12-03', wakeTime: '07:00'},
+      {bedDate: '2026-12-02', bedTime: '07:00', wakeDate: '2026-12-03', wakeTime: '07:00'},
+      {bedDate: '2026-12-01', bedTime: '00:30', wakeDate: '2026-12-03', wakeTime: '07:00'},
+      {bedDate: '2026-12-03', bedTime: '00:30', wakeDate: '2026-12-03', wakeTime: '07:00'},
+      {bedDate: '2026-12-02', bedTime: '', wakeDate: '2026-12-03', wakeTime: '07:00'},
+      {bedDate: '1900-01-01', bedTime: '00:30', wakeDate: '1900-01-02', wakeTime: '07:00'},
+    ]) expect(readNightDates(t, BXL)).toEqual({times: t, bedMoved: false});
+  });
+  it('across the spring clock change, a span that is not longer than 24 hours stays as typed', () => {
+    // Brussels moves its clocks from 02:00 to 03:00 on 2026-03-29, so 03:00 on the 28th → 03:30 on the 29th is 23 h 30 min.
+    const t = {bedDate: '2026-03-28', bedTime: '03:00', wakeDate: '2026-03-29', wakeTime: '03:30'};
+    expect(readNightDates(t, BXL)).toEqual({times: t, bedMoved: false});
   });
 });

@@ -3,6 +3,8 @@ import {formatCurrencyAmount} from '../visual-format';
 import {amountText, currencyCode} from '../money-log/schema';
 import {PER_MONTH, dueDatesBetween, dueOnOrAfter} from './cadence';
 import type {BillCandidate} from './detect';
+// Session AW X7 (LEDGER #462): a bill that ends leaves the due dates, the estimates and the reminders after its last payment.
+import {billTo, hasEnded} from './ends-core';
 import {MAX_BILLS, MAX_DISMISSED, billsSchema, type Bill, type BillCadence, type BillsRecord} from './schema';
 
 /**
@@ -53,7 +55,7 @@ export type BillOccurrence = {billId: string; title: string; due: string; amount
 export function billOccurrences(record: BillsRecord, today: string, days = 30): BillOccurrence[] {
   const end = new Date(`${today}T12:00:00Z`); end.setUTCDate(end.getUTCDate() + days);
   const to = end.toISOString().slice(0, 10);
-  return record.bills.flatMap(b => dueDatesBetween(b.nextDue, b.cadence, today, to).map(due => ({billId: b.id, title: b.title, due, amountCents: cents(b.amount), currency: b.currency, cadence: b.cadence, origin: b.origin, ...(b.cancelNote ? {cancelNote: b.cancelNote} : {}), ...(b.cancelBy ? {cancelBy: b.cancelBy} : {})})))
+  return record.bills.flatMap(b => dueDatesBetween(b.nextDue, b.cadence, today, billTo(b, to)).map(due => ({billId: b.id, title: b.title, due, amountCents: cents(b.amount), currency: b.currency, cadence: b.cadence, origin: b.origin, ...(b.cancelNote ? {cancelNote: b.cancelNote} : {}), ...(b.cancelBy ? {cancelBy: b.cancelBy} : {})})))
     .sort((a, b) => a.due.localeCompare(b.due) || a.title.localeCompare(b.title));
 }
 /** The next due date of one bill, today or later. */
@@ -70,9 +72,9 @@ export function totalsByCurrency(items: readonly {amountCents: number; currency:
  * currency, from each one's own cadence (weekly ×52, monthly ×12, every 3 months ×4, yearly ×1): an estimate from today's
  * amounts, never converted between currencies.
  */
-export function yearlyEstimate(record: BillsRecord): {currency: string; cents: number}[] {
+export function yearlyEstimate(record: BillsRecord, today?: string): {currency: string; cents: number}[] {
   const by = new Map<string, number>();
-  for (const b of record.bills) { const [n, d] = PER_MONTH[b.cadence]; by.set(b.currency, (by.get(b.currency) ?? 0) + cents(b.amount) * n * 12 / d); }
+  for (const b of record.bills) { if (today && hasEnded(b, today)) continue; /* Session AW X7 (#462): an ended bill is no longer in the estimate */ const [n, d] = PER_MONTH[b.cadence]; by.set(b.currency, (by.get(b.currency) ?? 0) + cents(b.amount) * n * 12 / d); }
   return [...by].map(([currency, total]) => ({currency, cents: Math.round(total)})).sort((a, b) => a.currency.localeCompare(b.currency));
 }
 /** Session AV (fresh-agent check q1, F-YEAR row 8; Rocket Money's per-bill yearly cost): one bill's yearly cost in cents, an estimate from its cadence. */
@@ -80,9 +82,9 @@ export function yearlyOf(bill: Pick<Bill, 'amount' | 'cadence'>): number {
   const [n, d] = PER_MONTH[bill.cadence];
   return Math.round(cents(bill.amount) * n * 12 / d);
 }
-export function monthlyEstimate(record: BillsRecord): {currency: string; cents: number}[] {
+export function monthlyEstimate(record: BillsRecord, today?: string): {currency: string; cents: number}[] {
   const by = new Map<string, number>();
-  for (const b of record.bills) { const [n, d] = PER_MONTH[b.cadence]; by.set(b.currency, (by.get(b.currency) ?? 0) + cents(b.amount) * n / d); }
+  for (const b of record.bills) { if (today && hasEnded(b, today)) continue; /* Session AW X7 (#462): an ended bill is no longer in the estimate */ const [n, d] = PER_MONTH[b.cadence]; by.set(b.currency, (by.get(b.currency) ?? 0) + cents(b.amount) * n / d); }
   return [...by].map(([currency, total]) => ({currency, cents: Math.round(total)})).sort((a, b) => a.currency.localeCompare(b.currency));
 }
 const format = (amountCents: number, currency: string) => {
@@ -101,5 +103,5 @@ export function upcomingBills(record: BillsRecord, today: string, days = 30): {i
 export function cancelReminders(record: BillsRecord, today: string, days = 7): {billId: string; title: string; cancelBy: string; note: string}[] {
   const end = new Date(`${today}T12:00:00Z`); end.setUTCDate(end.getUTCDate() + days);
   const to = end.toISOString().slice(0, 10);
-  return record.bills.flatMap(b => b.cancelNote && b.cancelBy && b.cancelBy >= today && b.cancelBy <= to ? [{billId: b.id, title: b.title, cancelBy: b.cancelBy, note: b.cancelNote}] : []).sort((a, b) => a.cancelBy.localeCompare(b.cancelBy));
+  return record.bills.flatMap(b => b.cancelNote && b.cancelBy && !hasEnded(b, today) && b.cancelBy >= today && b.cancelBy <= to ? [{billId: b.id, title: b.title, cancelBy: b.cancelBy, note: b.cancelNote}] : []).sort((a, b) => a.cancelBy.localeCompare(b.cancelBy));
 }

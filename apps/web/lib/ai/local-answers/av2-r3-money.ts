@@ -45,9 +45,9 @@ const entriesOf = (env: ToolEnv): readonly MoneyEntry[] => env.moneyLog?.entries
 const moreOf = (env: ToolEnv): MoneyMore | null => (env as ToolEnv & {moneyMore?: MoneyMore | null}).moneyMore ?? ((env.ak as {moneyMore?: MoneyMore | null} | null | undefined)?.moneyMore ?? null);
 const call = (tool: string, args: Record<string, unknown>, label: string) => [{tool, args, label}];
 export const PLACES = {
-  budgets: {en: 'Wealth → Budgets', nl: 'Vermogen → Budgetten'},
-  spending: {en: 'Wealth → Spending', nl: 'Vermogen → Uitgaven'},
-  forecast: {en: 'Wealth → Spending → Money tools → the cash forecast', nl: 'Vermogen → Uitgaven → Money tools → de kasprognose'},
+  budgets: {en: 'Wealth → Budgets', nl: 'Wealth → Budgets'},
+  spending: {en: 'Wealth → Spending', nl: 'Wealth → Spending'},
+  forecast: {en: 'Wealth → Spending → Money tools → the cash forecast', nl: 'Wealth → Spending → Money tools → de kasprognose'},
 } as const;
 const contributionsOf = (a: Asked) => a.env.areas.goals ? plannedContributions(a.env.platform.goals) : [];
 
@@ -116,6 +116,8 @@ const sheetOf = (env: ToolEnv): WealthSheet | null => (env as ToolEnv & {wealthS
 const pctIn = (lang: Lang, share: number) => lang === 'nl' ? `${Math.round(share * 100)}%` : formatPercent(share * 100);
 /** "How much of my credit card limit have I used", "hoeveel van mijn creditcardlimiet heb ik gebruikt". */
 function cardUse(a: Asked): LocalReply | null {
+  // Session AW (X7, LEDGER #464): what is on the card this statement and its next payment are X7's answer (aw-x7-money.ts).
+  if (/\bso far this statement\b|\bnext (?:credit ?card )?payment\b/.test(a.f)) return null;
   const en = /\bcredit ?cards?\b/.test(a.f) && /\b(?:limits?|used|use|utili[sz]ation|available|due|statement)\b/.test(a.f);
   const nl = /creditcardlimiet/.test(a.f) || (/\bcreditcards?\b/.test(a.f) && /\b(?:limiet|gebruikt|beschikbaar|betalen|betaald|afschrift|vervalt)\b/.test(a.f));
   if (!(en || nl) || /\b(?:paid with|betaald met|spent with|uitgegeven met|by payment|per betaalwijze)\b/.test(a.f)) return null;
@@ -217,7 +219,7 @@ function netWorthMovers(a: Asked): LocalReply | null {
   const shut = closed(a.env, 'wealth'); if (shut) return shut;
   const rows = networthMovers(a.env.accounts, historyOf(a.env), a.today).filter(r => r.movers.length), calls = call('accounts', {movers: a.today.slice(0, 7)}, 'Net worth · what moved it this month');
   if (!rows.length) return answer(say(a.lang, 'Nothing to compare yet: no account has a balance from both before this month and this month. Enter each balance once a month; Wealth → Net worth by source then lists what moved it most.',
-    'Nog niets te vergelijken: geen rekening heeft een saldo van voor deze maand én van deze maand. Vul elk saldo eens per maand in; Vermogen → Net worth by source toont dan wat het meest bewoog.'), calls);
+    'Nog niets te vergelijken: geen rekening heeft een saldo van voor deze maand én van deze maand. Vul elk saldo eens per maand in; Wealth → Net worth by source toont dan wat het meest bewoog.'), calls);
   const text = rows.map(r => {
     const items = (lang: Lang) => r.movers.slice(0, 5).map(m => `${m.name} ${signedIn(lang, m.cents, r.currency)}`);
     return say(a.lang, `In ${r.currency}, ${signedIn('en', r.total, r.currency)} since the end of last month; most by ${list(items('en'), 'en')}.`,

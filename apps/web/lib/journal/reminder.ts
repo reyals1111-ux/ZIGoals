@@ -1,6 +1,7 @@
 import {addLocalDays} from '../local-date';
 import {journalReminderSchema, journalSchema, type Journal, type JournalReminder} from './schema';
 import {writingStreak} from './stats';
+import {dayPagesOn, partWritten} from './day-pages-lite';
 
 /**
  * Session AV lane 2 (journal; LEDGER #40, Day One's journaling reminders and streaks): a reminder to write, at a time and
@@ -35,11 +36,14 @@ export const reminderLine = (r: JournalReminder) => r.on ? `A reminder to write 
  * What the notification plan needs: the time and weekdays, whether today (and tomorrow, for the 48-hour window) already
  * has an entry, and the streak a new entry today keeps or starts. Nothing of the entries' words. Null while off.
  */
-export function reminderPlanInput(journal: Pick<Journal, 'reminder' | 'entries'>, today: string): {time: string; weekdays: number; written: string[]; streak: number} | null {
+export function reminderPlanInput(journal: Pick<Journal, 'reminder' | 'entries'> & Partial<Pick<Journal, 'dayPages'>>, today: string): {time: string; weekdays: number; written: string[]; streak: number; part?: 'evening'} | null {
   const r = journal.reminder;
   if (!r?.on) return null;
-  const days = new Set(journal.entries.map(e => e.date)), written = [today, addLocalDays(today, 1)].filter(d => days.has(d));
-  const s = writingStreak(journal.entries, today);
+  const s = writingStreak(journal.entries, today), window = [today, addLocalDays(today, 1)];
+  // Session AW (x3; LEDGER #444): with "Morning and evening" on, this is the evening page's reminder — quiet once that
+  // day's evening page is written (the morning page alone does not quiet it).
+  if (dayPagesOn(journal)) return {time: r.time, weekdays: r.days, written: window.filter(d => partWritten(journal, d, 'evening')), streak: s.current, part: 'evening'};
+  const days = new Set(journal.entries.map(e => e.date)), written = window.filter(d => days.has(d));
   return {time: r.time, weekdays: r.days, written, streak: s.current};
 }
 /** The reminder's own line under the streak: what a new entry today does to it. */

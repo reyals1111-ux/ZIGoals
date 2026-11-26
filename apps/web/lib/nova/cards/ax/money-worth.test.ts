@@ -38,9 +38,11 @@ test('the recorded net worth as a river: the last 90 days, the change from the f
 test('each budget as a gauge: spent of available this month, and over said in words', () => {
   const view = budgetGauges(budgets, log, DAY);
   expect(view).toMatchObject({state: 'live', month: '2026-11', within: 3, count: 3, daysLeft: 14, over: []});
-  expect(view.gauges.map(g => [g.label, g.percent, g.spent, g.available, g.words])).toEqual([['Groceries', '75%', '€187.10', '€250.00', '€62.90 left'], ['Food & drink', '41%', '€49.10', '€120.00', '€70.90 left'], ['Fun', '40%', '€24.00', '€60.00', '€36.00 left']]);
+  // Session AW (showcase, deliberate): the Showcase's Fun budget is €27.50 a month (was €60.00), its near-limit example
+  // (lib/showcase/aw-examples.ts), so it is the fullest and comes first; equally strict.
+  expect(view.gauges.map(g => [g.label, g.percent, g.spent, g.available, g.words])).toEqual([['Fun', '87%', '€24.00', '€27.50', '€3.50 left'], ['Groceries', '75%', '€187.10', '€250.00', '€62.90 left'], ['Food & drink', '41%', '€49.10', '€120.00', '€70.90 left']]);
   const more = [...log, {id: 'z', kind: 'expense' as const, amount: '50.00', currency: 'EUR', category: 'Fun', date: '2026-11-15', createdAt: '2026-11-15T10:00:00.000Z'}];
   const over = budgetGauges(budgets, more, DAY);
-  expect(over).toMatchObject({within: 2}); expect(over.gauges[0]).toMatchObject({label: 'Fun', over: true, percent: '123%', words: 'over by €14.00'});
+  expect(over).toMatchObject({within: 2}); expect(over.gauges[0]).toMatchObject({label: 'Fun', over: true, percent: '269%', words: 'over by €46.50'});
   expect(budgetGauges({version: 1, budgets: []}, log, DAY)).toMatchObject({state: 'empty', gauges: [], count: 0});
 });

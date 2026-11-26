@@ -7,7 +7,7 @@ import {formatClock} from '../../../lib/visual-format';
 import {useAgendaToday} from '../holo/use-agenda-today';
 import {NovaEmpty, NovaReading} from './empty';
 
-const WHEN: Record<NextItem['when'], (time: string | null) => string> = {next: t => `at ${t}`, later: t => `at ${t}`, earlier: t => `earlier, ${t}`, anytime: () => 'any time today'};
+const WHEN: Record<NextItem['when'], (time: string | null) => string> = {next: t => `at ${t}`, later: t => `at ${t}`, earlier: t => `earlier, ${t}`, anytime: () => 'any time today', overdue: t => t ? `overdue, ${t}` : 'overdue'};
 const PILLARS = new Set(['goals', 'habits', 'health', 'wealth']);
 /**
  * "Next three": the next three things in the day, across every source. Session AL Part 11 (lane L8; P-LA-14, LA-023): from

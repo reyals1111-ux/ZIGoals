@@ -44,6 +44,11 @@ const ReviewNotes = lazy(() => import('../review-unified/review-notes'));
 const ReviewShare = lazy(() => import('../review-unified/review-share'));
 // Session AV (follow-up 1, F-FACTORS): every factor against mood, energy and sleep, its own chunk.
 const FactorEffectsCard = lazy(() => import('../insights/factor-effects-card'));
+// Session AW (X4, LEDGER #446; Strides): "This year" and "All time", by life area, its own chunk (loaded on the tap).
+const LifeReviewYear = lazy(() => import('./life-review-year'));
+/** The periods the review can show: the stored week | month, and the year and all time, never stored (older builds read the record). */
+type Shown = Period | 'year' | 'all';
+const SHOWN: readonly [Shown, string][] = [['week', 'Last 7 days'], ['month', 'This month'], ['year', 'This year'], ['all', 'All time']];
 
 /**
  * The Life review (Session AA-Cloud Part 5, S2): a week or a month across Goals, Habits, Health and Wealth, beside the
@@ -55,24 +60,24 @@ const FactorEffectsCard = lazy(() => import('../insights/factor-effects-card'));
 export function LifeReviewView() {
   const record = useDeviceRecord(LIFE_REVIEW), today = useLocalToday(), focusRecord = useDeviceRecord(FOCUS_SESSIONS);
   const habits = useHabits(), health = useHealth(), platform = usePlatform(), goals = useUnifiedGoals(), averages = useAverageGoals(), extras = useGoalExtras(), legacy = useGoals(), pages = usePagesView();
-  const [chosen, setChosen] = useState<Period | null>(null), [now] = useState(() => Date.now());
+  const [chosen, setChosen] = useState<Shown | null>(null), [now] = useState(() => Date.now());
   const market = useMarketQuotes(platform.error ? false : wealthMarketRequests(platform.data));
-  const period: Period = chosen ?? (record.loaded ? record.data.period ?? 'week' : 'week');
+  const shown: Shown = chosen ?? (record.loaded ? record.data.period ?? 'week' : 'week'), period: Period = shown === 'month' ? 'month' : 'week', long = shown === 'year' || shown === 'all';
   const window = useMemo(() => reviewPeriod(period, today), [period, today]);
   const focus = focusRecord.loaded && !focusRecord.unreadable ? focusMinutesBetween(focusRecord.data, window.start, window.end) : null;
   const ready = habits.loaded && health.loaded && platform.loaded && goals.loaded && averages.loaded && extras.loaded;
-  const review = useMemo(() => !ready ? null : lifeReview({
+  const review = useMemo(() => !ready || long ? null : lifeReview({
     window, habits: habits.error ? {...habits.data, habits: []} : habits.data, health: health.data, platform: platform.data,
     goals: goals.goals.map(g => ({key: g.key, id: g.id, name: g.name, href: g.href, status: g.status})),
     averages: averages.unreadable ? [] : averages.data.goals, extras: extras.data,
     history: platform.error ? [] : wealthOverview(platform.data, now).history, today,
     ...(platform.error ? {current: []} : (o => ({current: o.subtotals, currentComplete: !o.missingValue}))(wealthOverview(platform.data, market.now || now, market.quotes))),
-  }), [ready, window, habits.data, habits.error, health.data, platform.data, platform.error, goals.goals, averages.data, averages.unreadable, extras.data, today, now, market.now, market.quotes]);
+  }), [ready, long, window, habits.data, habits.error, health.data, platform.data, platform.error, goals.goals, averages.data, averages.unreadable, extras.data, today, now, market.now, market.quotes]);
   const [focusDraft, setFocusDraft] = useState<{key: string; text: string} | null>(null);
   const saved = record.loaded ? record.data.focus[window.key]?.text ?? '' : '';
   const focusText = focusDraft?.key === window.key ? focusDraft.text : saved;
   const last = record.loaded ? previousFocus(record.data, window.key) : null;
-  const pick = (p: Period) => { setChosen(p); try { record.update(s => setPeriod(s, p)); } catch { /* the view still changes */ } };
+  const pick = (p: Shown) => { setChosen(p); if (p === 'year' || p === 'all') return; try { record.update(s => setPeriod(s, p)); } catch { /* the view still changes */ } };
   const saveFocus = () => {
     const before = saved;
     try {
@@ -86,10 +91,11 @@ export function LifeReviewView() {
 
   return <div className="life-review">
     <div className="life-review-period" role="group" aria-label="Review period">
-      {(['week', 'month'] as const).map(p => <button key={p} type="button" aria-pressed={period === p} onClick={() => pick(p)}>{/* Session AL (NB-227): the review's week is the last seven days (Journey's week starts on Monday), so it says so */}{p === 'week' ? 'Last 7 days' : 'This month'}</button>)}
-      <p>{formatDay(window.start)} – {formatDay(window.end)} · beside {formatDay(window.prevStart)} – {formatDay(window.prevEnd)}</p>
+      {/* Session AL (NB-227): the review's week is the last seven days (Journey's week starts on Monday), so it says so */}
+      {SHOWN.map(([p, label]) => <button key={p} type="button" aria-pressed={shown === p} onClick={() => pick(p)}>{label}</button>)}
+      {!long && <p>{formatDay(window.start)} – {formatDay(window.end)} · beside {formatDay(window.prevStart)} – {formatDay(window.prevEnd)}</p>}
     </div>
-    {!review ? <div className="aa-skeleton zg-skeleton" aria-hidden="true"><i /><i /><i /></div> : <>
+    {long ? (ready ? <LoadBoundary label={shown === 'all' ? 'All time' : 'Your year'}><Suspense fallback={<div className="aa-skeleton zg-skeleton" aria-hidden="true"><i /><i /><i /></div>}><LifeReviewYear scope={shown === 'all' ? 'all' : 'year'} habits={habits.error ? {...habits.data, habits: []} : habits.data} platform={platform.data} extras={extras.data} today={today} /></Suspense></LoadBoundary> : <div className="aa-skeleton zg-skeleton" aria-hidden="true"><i /><i /><i /></div>) : !review ? <div className="aa-skeleton zg-skeleton" aria-hidden="true"><i /><i /><i /></div> : <>
       <section className="panel life-review-hero life-review-cover" aria-labelledby="life-review-highlights">
         {/* Phase 2, Part 9 (owner request 35): the review as a small magazine — this cover, then one chapter per pillar. */}
         <p className="life-cover-kicker" aria-hidden="true">{period === 'week' ? 'Your week' : 'Your month'}, in {financial ? 'four' : 'three'} chapters.</p>

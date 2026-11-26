@@ -3,7 +3,8 @@ import Link from 'next/link';
 import {Suspense, lazy, useEffect, useRef, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {Switch} from '../ai/ai-switch';
-import {NOTIFY_LABELS, NOTIFY_PREFS, NOTIFY_TYPES, eveningTime, moodTimes, morningTime, setMoodTimes, setTime, setType, typeOn, type NotifyType} from '../../lib/notify/prefs';
+import {NOTIFY_PREFS, NOTIFY_TYPES, eveningTime, moodTimes, morningTime, setMoodTimes, setTime, setType, typeOn, type NotifyType} from '../../lib/notify/prefs';
+import {NOTIFY_LABELS} from '../../lib/notify/labels';
 import {REMINDERS_PLAN, quietHours} from '../../lib/reminders-plan/schema';
 import {pushSupport} from '../../lib/push/support';
 import {isShowcase} from '../../lib/showcase-storage';
@@ -49,18 +50,31 @@ export function NotificationsCard() {
   useEffect(() => {
     const node = card.current;
     if (!node || typeof IntersectionObserver !== 'function') { setNear(true); return; }
+    // Session AW (CI runs 2040 and 2041, j06-data-safety:43): an address that names this card (#notifications) is the
+    // person on their way here. Its status is asked at once, so the card never stays at "Checking…" when the groups above
+    // it open (later, from their own chunk) and push it below the screen before the observer saw it near.
+    if (window.location.hash === '#notifications') { setNear(true); return; }
+    const onHash = () => { if (window.location.hash === '#notifications') setNear(true); };
+    window.addEventListener('hashchange', onHash);
     const observer = new IntersectionObserver(entries => { if (entries.some(e => e.isIntersecting)) { setNear(true); observer.disconnect(); } }, {rootMargin: '200px 0px'});
     observer.observe(node);
-    return () => observer.disconnect();
+    return () => { observer.disconnect(); window.removeEventListener('hashchange', onHash); };
+  }, []);
+  // Session AW (Part 2; bn-114 under load): what this device can know without a request (the Showcase, an iPhone tab that
+  // must be on the Home Screen first, a browser without web push) is said as soon as the card mounts, not when it comes
+  // near the screen: Settings' lower groups now hydrate from their own chunk, and "Checking…" never stands for a fact the
+  // page already has. Only the build's status (/api/push-device) still waits for the card to come near.
+  const local = useRef(false);
+  useEffect(() => {
+    if (isShowcase()) { local.current = true; setPhase({kind: 'unavailable', text: 'Not available in the Showcase: its example data never reaches a notification.'}); return; }
+    const support = pushSupport();
+    if (support === 'needs-install') { local.current = true; setPhase({kind: 'unavailable', text: 'On iPhone and iPad, notifications work in ZIGoals saved to your Home Screen (iOS 16.4 or later).', install: true}); return; }
+    if (support === 'unsupported') { local.current = true; setPhase({kind: 'unavailable', text: 'This browser does not support notifications from web apps.'}); }
   }, []);
   useEffect(() => {
-    if (!near) return;
+    if (!near || local.current) return;
     let active = true;
     void (async () => {
-      if (isShowcase()) { if (active) setPhase({kind: 'unavailable', text: 'Not available in the Showcase: its example data never reaches a notification.'}); return; }
-      const support = pushSupport();
-      if (support === 'needs-install') { if (active) setPhase({kind: 'unavailable', text: 'On iPhone and iPad, notifications work in ZIGoals saved to your Home Screen (iOS 16.4 or later).', install: true}); return; }
-      if (support === 'unsupported') { if (active) setPhase({kind: 'unavailable', text: 'This browser does not support notifications from web apps.'}); return; }
       const device = await import('../../lib/notify/device');
       if (await device.notifyOn()) { if (active) setPhase({kind: 'on'}); return; }
       const status = await device.notifyStatus();

@@ -5,7 +5,7 @@ import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/settings';
 import {ZIGI_VOICE_KEY} from '../lib/z-device-keys';
 import {NOVA_SETUP_KEY, setPrivacyMode, type PrivacyMode} from '../lib/nova/setup';
-import {STRICT_NO_LOCAL_SPEECH, STRICT_NO_LOCAL_VOICE} from '../lib/ai/voice-privacy';
+import {NO_LOCAL_VOICE, STRICT_NO_LOCAL_SPEECH, STRICT_NO_LOCAL_VOICE} from '../lib/ai/voice-privacy';
 import {pressZigi} from './zigi-open';
 
 /**
@@ -18,8 +18,11 @@ const BASE = 'http://127.0.0.1:1234', DAY = '2026-09-20', EVENING = '2026-09-20T
 const chunk = (delta: Record<string, unknown>, finish: string | null = null) => `data: ${JSON.stringify({id: 'mock', object: 'chat.completion.chunk', choices: [{index: 0, delta, finish_reason: finish}]})}\n\n`;
 const stream = (text: string) => [chunk({role: 'assistant', content: text}), chunk({}, 'stop'), 'data: [DONE]\n\n'].join('');
 type Log = {starts: {lang: string; event: string; processLocally?: boolean}[]; stops: number; aborts: number; streams: number; ended: number};
-async function fakes(page: Page, {recognition = true, onDevice = false} = {}) {
-  await page.addInitScript(({recognition, onDevice}) => {
+// Session AW (owner decision 1d, amendment 3; privacy audit; deliberate): a mock voice says whether it runs on this
+// device, as every browser's voice does (`localService`). The device's voices below are local unless a test asks for
+// online-only voices (`onlineVoices`), which never read in any privacy mode.
+async function fakes(page: Page, {recognition = true, onDevice = false, onlineVoices = false} = {}) {
+  await page.addInitScript(({recognition, onDevice, onlineVoices}) => {
     const log = {starts: [] as {lang: string; event: string}[], stops: 0, aborts: 0, streams: 0, ended: 0, tracks: [] as MediaStreamTrack[]};
     const w = window as unknown as Record<string, unknown>;
     w.__voiceLog = log;
@@ -43,8 +46,12 @@ async function fakes(page: Page, {recognition = true, onDevice = false} = {}) {
     Object.defineProperty(navigator, 'mediaDevices', {configurable: true, value: {getUserMedia: async () => { const ctx = new AudioContext(), dest = ctx.createMediaStreamDestination(); log.streams++; for (const t of dest.stream.getTracks()) { log.tracks.push(t); const stop = t.stop.bind(t); t.stop = () => { log.ended++; stop(); }; } return dest.stream; }}});
     const spoken: {text: string; lang: string; voice: string | null}[] = [];
     w.__spoken = spoken;
-    Object.defineProperty(window, 'speechSynthesis', {configurable: true, value: {speaking: false, speak(u: SpeechSynthesisUtterance) { if (u.text) spoken.push({text: u.text, lang: u.lang, voice: u.voice?.name ?? null}); setTimeout(() => u.onend?.(new Event('end') as SpeechSynthesisEvent), 10); }, cancel() {}, getVoices() { return [{lang: 'en-GB', name: 'Daniel'}, {lang: 'en-US', name: 'Samantha'}, {lang: 'nl-BE', name: 'Ellen'}, {lang: 'nl-NL', name: 'Xander'}]; }}});
-  }, {recognition, onDevice});
+    // Session AW (deliberate): the engine's own utterance as well, since Chromium's refuses a mock voice object, and ZIGoals
+    // never falls back to the browser's default voice (which may be online); the stand-in keeps lang, voice and the events.
+    class MockUtterance { text: string; lang = ''; voice: unknown = null; volume = 1; rate = 1; pitch = 1; onend: ((e: Event) => void) | null = null; onerror: ((e: Event) => void) | null = null; onstart: ((e: Event) => void) | null = null; constructor(text = '') { this.text = text; } addEventListener() { /* events are the on* handlers */ } removeEventListener() { /* nothing */ } }
+    Object.defineProperty(window, 'SpeechSynthesisUtterance', {configurable: true, writable: true, value: MockUtterance});
+    Object.defineProperty(window, 'speechSynthesis', {configurable: true, value: {speaking: false, speak(u: SpeechSynthesisUtterance) { if (u.text) spoken.push({text: u.text, lang: u.lang, voice: u.voice?.name ?? null}); setTimeout(() => u.onend?.(new Event('end') as SpeechSynthesisEvent), 10); }, cancel() {}, getVoices() { return [{lang: 'en-GB', name: 'Daniel'}, {lang: 'en-US', name: 'Samantha'}, {lang: 'nl-BE', name: 'Ellen'}, {lang: 'nl-NL', name: 'Xander'}].map(v => ({...v, localService: !onlineVoices})); }}});
+  }, {recognition, onDevice, onlineVoices});
 }
 const log = (page: Page) => page.evaluate(() => { const l = (window as unknown as {__voiceLog: Log}).__voiceLog; return {starts: l.starts, stops: l.stops, aborts: l.aborts, streams: l.streams, ended: l.ended}; });
 const spoken = (page: Page) => page.evaluate(() => (window as unknown as {__spoken: unknown[]}).__spoken);
@@ -338,7 +345,7 @@ test('Strict privacy: browser recognition that is not on this device is refused 
 });
 
 test('Strict privacy: on-device recognition listens; the reply is not read in an online voice, and the reason is shown', async ({page}) => {
-  await fakes(page, {onDevice: true});
+  await fakes(page, {onDevice: true, onlineVoices: true});
   await server(page);
   await seed(page, {ai: {}, voice: SEEN, privacy: 'strict'});
   await openChat(page);
@@ -348,5 +355,20 @@ test('Strict privacy: on-device recognition listens; the reply is not read in an
   await page.evaluate(() => (window as unknown as {__voiceEnd: (t: string) => void}).__voiceEnd('Tell me something nice about my week'));
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK: you drank');
   await expect(panel(page).getByRole('status').filter({hasText: STRICT_NO_LOCAL_VOICE})).toBeVisible();
+  expect(await spoken(page)).toEqual([]);
+});
+
+// Session AW (owner decision 1d, amendment 3; Part 6 privacy audit): outside Strict too, a reply is never read in an
+// online voice: with only online voices nothing is spoken and the reason is shown.
+test('Guarded privacy with only online voices: the reply to a spoken question is not read, and the reason is shown', async ({page}) => {
+  await fakes(page, {onlineVoices: true});
+  await server(page);
+  await seed(page, {ai: {}, voice: SEEN, privacy: 'guarded'});
+  await openChat(page);
+  await tap(mic(page));
+  await expect(mic(page)).toHaveAttribute('aria-pressed', 'true');
+  await page.evaluate(() => (window as unknown as {__voiceEnd: (t: string) => void}).__voiceEnd('Tell me something nice about my week'));
+  await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK: you drank');
+  await expect(panel(page).getByRole('status').filter({hasText: NO_LOCAL_VOICE})).toBeVisible();
   expect(await spoken(page)).toEqual([]);
 });

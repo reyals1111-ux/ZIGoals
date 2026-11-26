@@ -5,6 +5,7 @@ import {formatDate, formatMonth, formatWeekday} from '../visual-format';
 import {axMoney, axPlain, spanWords} from '../nova/cards/ax/money-spend';
 import {addMonths, dueDatesBetween, dueOnOrAfter} from './cadence';
 import {monthDueDates} from './month';
+import {billTo} from './ends-core';
 import {totalsByCurrency} from './store';
 import type {BillsRecord} from './schema';
 
@@ -35,7 +36,8 @@ export function billCalendar(record: BillsRecord, today: string, shown: 'next' |
   const month = shown !== 'next' && /^\d{4}-\d{2}$/.test(shown) ? shown : null;
   const from = month ? `${month}-01` : today;
   const to = month ? addLocalDays(dueOnOrAfter(from, 'monthly', addLocalDays(from, 1)), -1) : addLocalDays(today, CALENDAR_DAYS - 1);
-  const due = record.bills.flatMap(b => (month ? monthDueDates(b.nextDue, b.cadence, from, to, today) : dueDatesBetween(b.nextDue, b.cadence, from, to))
+  // Session AW X7 (LEDGER #462): a bill that ends shows no date after its last payment.
+  const due = record.bills.flatMap(b => (month ? monthDueDates(b.nextDue, b.cadence, from, billTo(b, to), today) : dueDatesBetween(b.nextDue, b.cadence, from, billTo(b, to)))
     .map(date => ({id: b.id, title: axPlain(b.title), cents: cents(b.amount), currency: b.currency, amount: axMoney(cents(b.amount), b.currency), date, dateWords: longDay(date, today)})))
     .sort((a, b) => a.date.localeCompare(b.date) || a.title.localeCompare(b.title));
   const start = weekStart(from), end = addLocalDays(weekStart(to), 6), weeks: CalendarDay[][] = [];

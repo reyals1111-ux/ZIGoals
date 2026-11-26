@@ -1,5 +1,6 @@
 import {addLocalDays, localWeekday} from '../local-date';
 import {monthDueDates} from '../bills/month';
+import {billTo} from '../bills/ends-core';
 import type {BillsRecord} from '../bills/schema';
 import {cents, monthOf} from '../money-log/engine';
 import {fromMinor, minorUnits} from '../money-split/parts';
@@ -48,7 +49,7 @@ export type PaycheckMonth = {month: string; plans: PaycheckPlan[]; unset: Payche
 export function monthLines(budgets: BudgetsRecord, bills: BillsRecord | null | undefined, month: string, today: string): PaycheckLine[] {
   const {start, end} = monthOf(`${month}-01`);
   const own = budgetsInOrder(budgets.budgets).filter(b => b.since <= month).map((b): PaycheckLine => ({key: `b:${b.id}`, kind: 'budget', name: b.category, currency: b.currency, cents: budgetedIn(b, month)}));
-  const due = (bills?.bills ?? []).flatMap((b): PaycheckLine[] => { const dates = monthDueDates(b.nextDue, b.cadence, start, end, today > end ? addLocalDays(end, 1) : today); return dates.length ? [{key: `bill:${b.id}`, kind: 'bill', name: b.title, currency: b.currency, cents: cents(b.amount) * dates.length, due: dates}] : []; });
+  const due = (bills?.bills ?? []).flatMap((b): PaycheckLine[] => { const dates = monthDueDates(b.nextDue, b.cadence, start, billTo(b, end), today > end ? addLocalDays(end, 1) : today); /* Session AW X7 (#462) */ return dates.length ? [{key: `bill:${b.id}`, kind: 'bill', name: b.title, currency: b.currency, cents: cents(b.amount) * dates.length, due: dates}] : []; });
   return [...own, ...due];
 }
 /** The month by paycheck: each one's days, what it holds, the lines set against it, what they cover and what is left; then the lines set against none. */

@@ -1,10 +1,10 @@
 'use client';
 import {useEffect, useState} from 'react';
+import {usePathname} from 'next/navigation';
 import {catchInstallPrompt} from '../../lib/install/prompt-store';
 import './notify-sync.css';
 import {getAppStorage, isShowcase} from '../../lib/showcase-storage';
 import {readDeviceRecord} from '../../lib/device-record';
-import {NOTIFY_PREFS} from '../../lib/notify/prefs';
 import {readPushRecord} from '../../lib/push/client';
 import {showToast} from '../ui/undo-toast';
 import {RELOAD_MARK, UPDATE_WAITING} from '../../lib/sw/stale-code';
@@ -23,7 +23,16 @@ const WARM_AFTER_MS = 6000;
 const OWN_COMMIT = (process.env.NEXT_PUBLIC_APP_COMMIT ?? '').toLowerCase();
 /** Session AV Part 3 (D-KEEP): device records that are the person's own entries (a save of one is "new data"), not a fold or a setting. */
 const PERSONAL_SAVE = /^zigoals:(money-log|tasks|notes|journal|meal-words|mood-tags|workouts|checklist-days|checklist):v1$/;
-const hereOn = () => { try { return !isShowcase() && readDeviceRecord(getAppStorage(), NOTIFY_PREFS).data.here === true; } catch { return false; } };
+/** The hashed scripts this page has loaded, in the order they loaded (the resource timings, then any script tag not listed). */
+function loadedScripts(): string[] {
+  const out = new Set<string>(), add = (href: string) => { try { const u = new URL(href, location.href); if (u.origin === location.origin && u.pathname.startsWith('/_next/static/chunks/') && u.pathname.endsWith('.js')) out.add(u.pathname); } catch { /* not an address */ } };
+  try { for (const e of performance.getEntriesByType('resource')) add(e.name); } catch { /* no timings */ }
+  for (const s of document.querySelectorAll<HTMLScriptElement>('script[src]')) add(s.src);
+  return [...out].slice(-800);
+}
+// Session AW Part 2 (speed, attempt 2): the preferences' module (its schema, as before) is asked for here, when the check
+// runs (once the page is idle, or on a change), not in the first scripts of every page.
+const hereOn = async () => { try { if (isShowcase()) return false; const {NOTIFY_PREFS} = await import('../../lib/notify/prefs'); return readDeviceRecord(getAppStorage(), NOTIFY_PREFS).data.here === true; } catch { return false; } };
 const accountPushOn = () => { try { return readPushRecord(getAppStorage()).data !== null; } catch { return false; } };
 /** ADR-010's account worker is registered (or on its way): never replaced by this build's worker (Q15, Q19). */
 const accountWorker = async () => { try { const reg = await navigator.serviceWorker?.getRegistration('/'); return [reg?.active, reg?.waiting, reg?.installing].some(w => w && new URL(w.scriptURL).pathname === '/push-sw.js'); } catch { return false; } };
@@ -61,6 +70,29 @@ export function NotifySync() {
     return () => { window.removeEventListener(UPDATE_WAITING, waitingNote); document.removeEventListener('visibilitychange', check); window.removeEventListener('focus', check); window.removeEventListener('online', check); };
   }, []);
   useEffect(() => catchInstallPrompt(window), []);
+  // Session AW Part 6 ([TIER 3] (PWA), owner amendment 7): each page opened online, once it has settled, asks this version's
+  // worker to keep what its loaded scripts open on a tap (a fold, a sheet, a form), so the page works offline next time
+  // (public/sw.js warmPage: once per script and address in a version, within its byte budget, never under Data Saver or
+  // on 2G). Asked again each minute while the page is open, and when it is left, for the parts a tap loaded since (a view
+  // chosen in place). Only the page's address and the names of this app's hashed scripts go, to the worker on this device.
+  const pathname = usePathname();
+  useEffect(() => {
+    if (!pathname || !pathname.startsWith('/app') || !('serviceWorker' in navigator)) return;
+    let live = true;
+    const ask = () => {
+      if (!live || navigator.onLine === false) return;
+      void navigator.serviceWorker.ready.then(ready => {
+        const worker = ready.active, at = worker ? new URL(worker.scriptURL) : null;
+        if (!live || !worker || at?.pathname !== '/sw.js' || at.searchParams.get('v') !== swVersion() || !navigator.serviceWorker.controller) return;
+        worker.postMessage({type: 'zigoals:sw-warm', path: location.pathname + location.search, scripts: loadedScripts()});
+      }).catch(() => undefined);
+    };
+    const onHide = () => { if (document.visibilityState === 'hidden') ask(); };
+    const wait = window.setTimeout(() => { const w = window as Window & {requestIdleCallback?: (cb: () => void, o?: {timeout: number}) => number}; if (w.requestIdleCallback) w.requestIdleCallback(ask, {timeout: 4000}); else ask(); }, WARM_AFTER_MS);
+    const again = window.setInterval(ask, 60_000);
+    document.addEventListener('visibilitychange', onHide);
+    return () => { live = false; window.clearTimeout(wait); window.clearInterval(again); document.removeEventListener('visibilitychange', onHide); };
+  }, [pathname]);
   useEffect(() => {
     let active = true, timer = 0, warmTimer = 0;
     const idle = (fn: () => void) => { const w = window as Window & {requestIdleCallback?: (cb: () => void, o?: {timeout: number}) => number}; if (w.requestIdleCallback) w.requestIdleCallback(fn, {timeout: 4000}); else window.setTimeout(fn, 1500); };
@@ -90,11 +122,11 @@ export function NotifySync() {
     };
     idle(() => { if (active && !accountPushOn()) void accountWorker().then(account => account || !active ? null : import('../../lib/sw/register').then(m => m.registerAppWorker())).then(reg => watch(reg ?? null)); });
     const apply = async () => {
-      if (!active || !hereOn()) return;
+      if (!active || !(await hereOn())) return;
       const [{applyQueuedActions}, {localDate}] = await Promise.all([import('../../lib/notify/actions'), import('../../lib/local-date')]);
       for (const done of await applyQueuedActions(localDate())) showToast({message: done.message, ...(done.undo ? {undo: done.undo, undone: 'Undone. The habit is back to how it was.'} : {})});
     };
-    const refresh = async () => { if (!active || !hereOn()) return; try { await (await import('../../lib/notify/device')).refreshNotifications(); } catch { /* the next moment tries again */ } };
+    const refresh = async () => { if (!active || !(await hereOn())) return; try { await (await import('../../lib/notify/device')).refreshNotifications(); } catch { /* the next moment tries again */ } };
     const later = () => { window.clearTimeout(timer); timer = window.setTimeout(() => { void refresh(); }, 1500); };
     const onVisible = () => { if (document.visibilityState === 'hidden') void refresh(); else { void apply().then(refresh); } };
     const onMessage = (event: MessageEvent) => { const type = (event.data as {type?: unknown} | null)?.type; if (type === 'zigoals:notify-action') void apply().then(refresh); };

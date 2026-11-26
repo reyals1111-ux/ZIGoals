@@ -1,0 +1,45 @@
+/* Session AW (X2, LEDGER #432–#437, #448; Amazing Marvin): the stuck-task guide, Pick one for me, today's progress line,
+   Tasks → Review's "Moved most" and "Open a long time", and the time targets. Layout only: theme variables, no colour of its
+   own (so every theme, pure black and high contrast draw it), never red, no motion. */
+.task-stuck { flex: 1 1 100%; border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 12px 10px; display: grid; gap: 8px; min-width: 0; }
+.task-stuck p { margin: 0; font-size: 15px; overflow-wrap: anywhere; }
+.task-stuck .task-stuck-title { font-weight: 600; font-size: 16px; }
+.task-stuck-reasons, .task-stuck-actions, .tasks-pick-actions, .tasks-x2-actions { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.task-stuck button, .tasks-pick button, .tasks-x2-review button, .tasks-targets button { min-height: 44px; }
+.task-stuck-way { display: grid; gap: 8px; min-width: 0; }
+.task-stuck-way:focus-visible { outline: 2px solid var(--accent, currentColor); outline-offset: 4px; border-radius: 4px; }
+.task-stuck .field, .tasks-pick .field, .tasks-x2-review .field, .tasks-targets .field { min-width: 0; }
+.task-stuck textarea { font-size: 16px; }
+.task-stuck-focus { min-width: 0; }
+/* Pick one for me (#435), in Plan my day */
+.tasks-pick { border: 1px solid var(--line); border-radius: var(--radius); padding: 0 12px 10px; margin: 12px 0; min-width: 0; }
+.tasks-pick > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.tasks-pick-body { display: grid; gap: 8px; min-width: 0; }
+.tasks-pick-body p { margin: 0; font-size: 15px; }
+.tasks-pick-one { font-size: 17px; font-weight: 600; overflow-wrap: anywhere; }
+.tasks-pick-two { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+.tasks-pick-two button { text-align: start; white-space: normal; overflow-wrap: anywhere; }
+/* Today's progress and where the day is (#436), one line under Tasks → Today's list */
+.tasks-day-progress { flex: 1 1 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 12px 0 0; font-size: 15px; color: var(--text-secondary, var(--muted)); }
+.tasks-x2-track { display: block; height: 10px; border-radius: 5px; background: var(--surface-2, var(--line)); overflow: hidden; min-width: 0; }
+.tasks-x2-bar { display: block; height: 100%; border-radius: 5px; background: var(--accent, currentColor); }
+.tasks-day-progress .tasks-x2-track { flex: 0 1 160px; min-width: 96px; }
+/* Tasks → Review: Moved most (#433) and Open a long time (#434) */
+.tasks-x2-review { margin-top: 20px; display: grid; gap: 8px; min-width: 0; }
+.tasks-x2-review h3 { margin: 8px 0 0; display: flex; flex-wrap: wrap; gap: 2px 10px; align-items: baseline; }
+.tasks-x2-review h3 small { font-weight: 400; font-size: 14px; color: var(--text-secondary, var(--muted)); }
+.tasks-x2-review > p { margin: 0; font-size: 15px; }
+.tasks-x2-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.tasks-x2-list > li { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 6px 12px; border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 10px; min-width: 0; }
+.tasks-x2-what { flex: 1 1 220px; min-width: 0; display: grid; gap: 2px; overflow-wrap: anywhere; font-size: 15px; }
+.tasks-x2-what small { font-size: 14px; color: var(--text-secondary, var(--muted)); }
+.tasks-x2-actions .field { flex: 0 1 180px; }
+/* Time targets (#437), in Tasks → This week */
+.tasks-targets { display: grid; gap: 8px; min-width: 0; }
+.tasks-targets-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.tasks-targets-list > li { display: grid; grid-template-columns: minmax(0, 12rem) minmax(0, 1fr) auto auto; gap: 8px; align-items: center; font-size: 15px; min-width: 0; }
+.tasks-targets-name { overflow-wrap: anywhere; }
+.tasks-targets-form { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-end; }
+.tasks-targets-form .field { flex: 1 1 160px; }
+.tasks-targets-form input, .tasks-pick select, .tasks-x2-review input, .tasks-targets-form select { font-size: 16px; }
+@media (max-width: 479.98px) { .tasks-targets-list > li { grid-template-columns: minmax(0, 1fr) auto; } .tasks-targets-list .tasks-x2-track { grid-column: 1 / -1; grid-row: 2; } }

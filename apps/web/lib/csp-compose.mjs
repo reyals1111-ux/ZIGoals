@@ -70,6 +70,9 @@ export function cspDirectives(egress, { nonce, development = false, https = true
     // React progress bars use style attributes. This exception never authorizes scripts.
     ["style-src", ["'self'", "'unsafe-inline'"]],
     ["img-src", imgSources(egress, cls)],
+    // Session AW (TIER 3 CSP; Part 6, aw-x3-notes-journal): a voice note recorded on this device plays from a blob: URL; without
+    // media-src it fell back to default-src 'self' and every journal voice note was refused ("URL safety check").
+    ["media-src", ["'self'", "blob:"]],
     ["font-src", ["'self'"]],
     ["connect-src", [...connectSources(egress, cls), ...(development ? [DEV_SOCKET] : [])]],
     ["object-src", ["'none'"]],

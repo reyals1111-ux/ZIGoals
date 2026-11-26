@@ -1,5 +1,6 @@
 import {useId, type ReactNode} from 'react';
-import {formatDate, formatMoney, formatMonth} from '../../../lib/visual-format';
+import {formatDate, formatMonth} from '../../../lib/visual-format';
+import {writtenMoney} from '../../../lib/ai/written-money';
 
 /**
  * Session AM-2 (conversation console): what makes an answer in NOVA's conversation a read-out, in the language of the
@@ -25,11 +26,11 @@ export const litFigures = (words: string): ReactNode => words.split(FIGURE).map(
  * shared with ZIGi) is unchanged, the value is the same to the cent and the day, and anything that is not exactly one of
  * these three shapes — another currency, a token amount, a number — stays as it is written.
  */
-const STORED_AMOUNT = /(?<![\d.,])(\d{1,3}(?:,\d{3})*|\d+)\.(\d{2}) (USD|EUR)\b/g, STORED_DAY = /(?<![\d-])(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])(?![\d-])/g, STORED_MONTH = /(?<![\d-])(\d{4})-(0[1-9]|1[0-2])(?![\d-])/g;
+// Session AW (fr-money, FR-AW-14): the amounts through the one writer ZIGi's answers use too (lib/ai/written-money.ts).
+const STORED_DAY = /(?<![\d-])(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])(?![\d-])/g, STORED_MONTH = /(?<![\d-])(\d{4})-(0[1-9]|1[0-2])(?![\d-])/g;
 export function writtenFigures(words: string): string {
   if (!/\d/.test(words)) return words;
-  return words
-    .replace(STORED_AMOUNT, (all, whole: string, cents: string, code: string) => { const out = formatMoney(`${whole.replace(/,/g, '')}.${cents}`, code); return out === 'Unavailable' ? all : out; })
+  return writtenMoney(words)
     .replace(STORED_DAY, (all, y: string, m: string, d: string) => { const day = new Date(Number(y), Number(m) - 1, Number(d), 12); return day.getDate() === Number(d) ? formatDate(day, {weekday: true, year: day.getFullYear() !== new Date().getFullYear()}) : all; })
     .replace(STORED_MONTH, (_, y: string, m: string) => formatMonth(new Date(Number(y), Number(m) - 1, 1, 12)));
 }

@@ -49,7 +49,7 @@ export const addAnswers = (...more: Answer[]) => { ANSWERS.push(...more); };
 export const entriesOf = (env: ToolEnv): readonly MoneyEntry[] => env.moneyLog?.entries ?? [];
 const totalsOf = (entries: readonly MoneyEntry[]) => summarizeSelection(entries, entries.map(e => e.id)).totals.map(t => money(Math.abs(t.cents), t.currency));
 const yearOf = (a: Asked) => a.today.slice(0, 4);
-export const SPENDING_PLACE = {en: 'Wealth → Spending', nl: 'Vermogen → Uitgaven'} as const;
+export const SPENDING_PLACE = {en: 'Wealth → Spending', nl: 'Wealth → Spending'} as const;
 
 // ── Group 5: the money log's tools ────────────────────────────────────────────────────────────────────────────────
 
@@ -107,7 +107,7 @@ addAnswers(leftOut, taxMarked, ownCategories, transfers);
 
 // ── Group 5: notices ─────────────────────────────────────────────────────────────────────────────────────────────
 
-const BUDGETS_PLACE = {en: 'Wealth → Budgets by category', nl: 'Vermogen → Budgets by category'} as const;
+const BUDGETS_PLACE = {en: 'Wealth → Budgets by category', nl: 'Wealth → Budgets by category'} as const;
 const forecastOf = (a: Asked) => a.env.accounts && a.env.ak?.bills ? cashForecast({accounts: a.env.accounts, bills: a.env.ak.bills, entries: entriesOf(a.env), ...(a.env.nova?.budgets ? {budgets: a.env.nova.budgets} : {}), planned: plannedForForecast(moreOf(a.env), entriesOf(a.env), a.today), today: a.today}).rows : []; // Session AV lane 2, round 3: planned costs count
 const about = (c: bigint, currency: string) => money(Number(c), currency);
 /** "Which payees am I watching", "welke winkels volg ik": each watched payee this month against last. */
@@ -255,7 +255,7 @@ function paidDown(a: Asked): LocalReply | null {
   if (!/\bpaid? down\b|\bpay down\b|\bhoeveel\b.*\b(?:afgelost|afbetaald)\b/.test(a.f)) return null;
   const shut = closed(a.env, 'wealth'); if (shut) return shut;
   const lang = a.lang, rows = debtSummary(a.env.accounts, a.env.ak?.debtPlanner, a.today), calls = [{tool: 'accounts', args: {paidDown: true}, label: 'What you owe · paid down'}];
-  if (!rows.length) return answer(say(lang, 'You have no debts with a balance in Wealth → What you owe.', 'Je hebt geen schulden met een saldo in Vermogen → Wat je schuldig bent.'), calls);
+  if (!rows.length) return answer(say(lang, 'You have no debts with a balance in Wealth → What you owe.', 'Je hebt geen schulden met een saldo in Wealth → What you owe.'), calls);
   return answer(rows.map(r => say(lang, `${r.currency}: ${debtMoney(r.owed, r.currency)} owed now${r.thisYear !== null ? `; ${r.thisYear >= 0n ? 'paid down' : 'up'} ${debtMoney(r.thisYear, r.currency)} this year` : ''}${r.last12 !== null ? `; ${r.last12 >= 0n ? 'paid down' : 'up'} ${debtMoney(r.last12, r.currency)} over 12 months` : ''}.`, `${r.currency}: nu ${debtMoney(r.owed, r.currency)} schuld${r.thisYear !== null ? `; dit jaar ${r.thisYear >= 0n ? 'afgelost' : 'erbij'} ${debtMoney(r.thisYear, r.currency)}` : ''}${r.last12 !== null ? `; over 12 maanden ${r.last12 >= 0n ? 'afgelost' : 'erbij'} ${debtMoney(r.last12, r.currency)}` : ''}.`)).join('\n'), calls);
 }
 /** "Am I on track with my debt plan", "lig ik op schema met mijn aflosplan". */
@@ -275,7 +275,7 @@ function debtFreeBy(a: Asked): LocalReply | null {
   const shut = closed(a.env, 'wealth'); if (shut) return shut;
   const lang = a.lang, by = `${y}-12`, calls = [{tool: 'debt_plan', args: {by}, label: `Debt planner · debt-free by ${y}`}];
   const v = debtView(a.env.accounts, a.env.ak?.debtPlanner, a.today).find(x => x.comparison);
-  if (!v?.comparison) return answer(say(lang, 'The debt planner needs each debt’s rate and minimum first (Wealth → What you owe → Plan paying off your debts).', 'De aflosplanner heeft eerst per schuld de rente en het minimum nodig (Vermogen → Wat je schuldig bent → Plan je aflossing).'), calls);
+  if (!v?.comparison) return answer(say(lang, 'The debt planner needs each debt’s rate and minimum first (Wealth → What you owe → Plan paying off your debts).', 'De aflosplanner heeft eerst per schuld de rente en het minimum nodig (Wealth → What you owe → Plan paying off your debts).'), calls);
   const debts = v.debts.filter(d => d.ratePercent && d.minimum).map(d => ({id: d.id, name: d.name, balance: d.owed, ratePercent: d.ratePercent!, minimum: d.minimum!}));
   const need = extraFor(debts, 'avalanche', by, a.today);
   if (need === null) return answer(say(lang, `December ${y} is too close for these debts with any extra I can work out.`, `December ${y} is te dichtbij voor deze schulden met elk extra bedrag dat ik kan uitrekenen.`), calls);
@@ -289,7 +289,7 @@ addAnswers(paidOff, paidDown, keptPlan, debtFreeBy);
 // answers say where the figures live.
 
 const sheetOf = (a: Asked): WealthSheet | null => (a.env as ToolEnv & {wealthSheet?: WealthSheet | null}).wealthSheet ?? ((a.env.ak as {wealthSheet?: WealthSheet | null} | null | undefined)?.wealthSheet ?? null);
-const SHEET_WHERE = {en: 'Wealth → Accounts, debts & net worth → each account’s “Sheet”', nl: 'Vermogen → Accounts, debts & net worth → bij elke rekening “Sheet”'} as const;
+const SHEET_WHERE = {en: 'Wealth → Accounts, debts & net worth → each account’s “Sheet”', nl: 'Wealth → Accounts, debts & net worth → bij elke rekening “Sheet”'} as const;
 /** "What is my home equity", "hoeveel overwaarde heb ik". */
 function equity(a: Asked): LocalReply | null {
   if (!/\bequity\b|\bovenwaarde\b|\boverwaarde\b|\beigen vermogen in (?:mijn )?huis\b/.test(a.f)) return null;
@@ -312,7 +312,7 @@ function oneTotalAnswer(a: Asked): LocalReply | null {
   if (!/\bone total\b|\bnet worth in (?:one|a single) currency\b|\b(?:in )?(?:een|één) totaal\b/.test(a.f)) return null;
   const shut = closed(a.env, 'wealth'); if (shut) return shut;
   const lang = a.lang, accounts = a.env.accounts, sheet = sheetOf(a), calls = [{tool: 'accounts', args: {oneTotal: true}, label: 'Your sheet · one total'}];
-  if (!accounts?.items.length) return answer(say(lang, 'You have no accounts yet (Wealth → Accounts, debts & net worth).', 'Je hebt nog geen rekeningen (Vermogen → Accounts, debts & net worth).'), calls);
+  if (!accounts?.items.length) return answer(say(lang, 'You have no accounts yet (Wealth → Accounts, debts & net worth).', 'Je hebt nog geen rekeningen (Wealth → Accounts, debts & net worth).'), calls);
   const s = sheet ?? {version: 1 as const}, rows = shareTotals(accounts, s, a.today), cur = s.total ?? rows[0]?.currency ?? 'EUR', t = oneTotal(rows.map(r => ({currency: r.currency, cents: r.net})), s.rates, cur);
   const head = say(lang, `One total in ${cur}: ${t.cents < 0n ? '−' : ''}${money(Math.abs(Number(t.cents)), cur)}`, `Eén totaal in ${cur}: ${t.cents < 0n ? '−' : ''}${money(Math.abs(Number(t.cents)), cur)}`);
   const used = t.used.length ? say(lang, `, with your own rates (${t.used.map(u => u.inverse ? `1 ${cur} = ${u.rate} ${u.from}` : `1 ${u.from} = ${u.rate} ${cur}`).join(', ')}), not live ones`, `, met je eigen koersen (${t.used.map(u => u.inverse ? `1 ${cur} = ${u.rate} ${u.from}` : `1 ${u.from} = ${u.rate} ${cur}`).join(', ')}), geen actuele`) : '';

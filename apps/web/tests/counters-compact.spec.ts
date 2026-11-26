@@ -1,4 +1,5 @@
 import {expect,test,type Page} from '@playwright/test';
+import {showQuickCounters} from './aw-simplicity-helpers';
 
 /**
  * Session I, Part 4: quick counters without a visible "Today" / "No entry today" subtitle. On phones the name shares the
@@ -9,6 +10,8 @@ const NAMES=['Push-ups with a clap','Wide-grip pull-ups x','Bulgarian split squa
 
 async function sixLongCounters(page:Page){
  await page.goto('/app/health');
+ // Session AW (simplicity-a, deliberate): on a journal that never used them, Quick counters wait behind Health's teaching line; they are opened first (showQuickCounters proves they show), then every step and assertion is as before.
+ await showQuickCounters(page);
  // One real counter through the editor gives a valid stored Health record; the other names and counters follow its shape.
  await page.getByRole('button',{name:'+ Add counter'}).click();
  const dialog=page.getByRole('dialog',{name:'Add a counter'});await dialog.getByLabel('Counter name').fill('Seed');await dialog.getByRole('button',{name:'Add counter'}).click();
@@ -27,6 +30,8 @@ async function sixLongCounters(page:Page){
 
 test('no visible subtitle under a counter name; "today" is still announced with it',async({page})=>{
  await page.goto('/app/health');
+ // Session AW (simplicity-a, deliberate): on a journal that never used them, Quick counters wait behind Health's teaching line; they are opened first (showQuickCounters proves they show), then every step and assertion is as before.
+ await showQuickCounters(page);
  const bar=page.getByRole('article',{name:'Push-ups',exact:true});await expect(bar).toBeVisible();
  const caption=bar.locator('.exercise-counter-caption');
  // Visually hidden (the section heading already says "Today in your Health journal"), still in the reading order.

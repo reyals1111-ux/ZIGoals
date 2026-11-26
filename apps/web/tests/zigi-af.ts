@@ -78,7 +78,12 @@ export async function voiceFakes(page: Page) {
     Object.defineProperty(navigator, 'mediaDevices', {configurable: true, value: {getUserMedia: async () => new AudioContext().createMediaStreamDestination().stream}});
     const spoken: string[] = [];
     w.__spoken = spoken;
-    Object.defineProperty(window, 'speechSynthesis', {configurable: true, value: {speaking: false, speak(u: SpeechSynthesisUtterance) { if (u.text) spoken.push(u.text); setTimeout(() => u.onend?.(new Event('end') as SpeechSynthesisEvent), 10); }, cancel() {}, getVoices() { return [{lang: 'en-GB', name: 'Daniel'}, {lang: 'nl-BE', name: 'Ellen'}]; }}});
+    // Session AW (owner decision 1d; deliberate): the device's own voices (`localService`), the only ones ZIGoals reads with.
+    // Session AW (deliberate): the engine's own utterance as well, since Chromium's refuses a mock voice object, and ZIGoals
+    // never falls back to the browser's default voice (which may be online); the stand-in keeps lang, voice and the events.
+    class MockUtterance { text: string; lang = ''; voice: unknown = null; volume = 1; rate = 1; pitch = 1; onend: ((e: Event) => void) | null = null; onerror: ((e: Event) => void) | null = null; onstart: ((e: Event) => void) | null = null; constructor(text = '') { this.text = text; } addEventListener() { /* events are the on* handlers */ } removeEventListener() { /* nothing */ } }
+    Object.defineProperty(window, 'SpeechSynthesisUtterance', {configurable: true, writable: true, value: MockUtterance});
+    Object.defineProperty(window, 'speechSynthesis', {configurable: true, value: {speaking: false, speak(u: SpeechSynthesisUtterance) { if (u.text) spoken.push(u.text); setTimeout(() => u.onend?.(new Event('end') as SpeechSynthesisEvent), 10); }, cancel() {}, getVoices() { return [{lang: 'en-GB', name: 'Daniel'}, {lang: 'nl-BE', name: 'Ellen'}].map(v => ({...v, localService: true})); }}});
   });
 }
 export const spoken = (page: Page) => page.evaluate(() => (window as unknown as {__spoken: string[]}).__spoken);

@@ -100,6 +100,8 @@ const FROZEN_READERS: Record<string, {module: string; spec: string}> = {
   'zigoals:macro-mode:v1': {module: './health-aa/macro-mode', spec: 'MACRO_MODE'}, 'zigoals:aisles:v1': {module: './health-aa/aisles', spec: 'AISLES_RECORD'},
   'zigoals:measurements-custom:v1': {module: './health-aa/measurements-custom', spec: 'MEASUREMENTS_CUSTOM'},
   'zigoals:health-vitamins:v1': {module: './health-vitamins/schema', spec: 'HEALTH_VITAMINS'},
+  // Session AW: two section records a build before AW does not know (its reader says ABSENT; the section carries them unread).
+  'zigoals:activity-extras:v1': {module: './aw-kcal/activity-extras', spec: 'ACTIVITY_EXTRAS'}, 'zigoals:goal-repeat:v1': {module: './goals/repeat', spec: 'GOAL_REPEAT'},
   // Session AM (ADR-038 D18; TIER 3 (sync)): the NOVA section's two records (#52 and later read NOVA's own record; the
   // stage record is this session's, absent before it).
   [NOVA_KEY]: {module: './nova/store', spec: 'NOVA_STORE'}, [NOVA_STAGE_KEY]: {module: './nova/stage/record', spec: 'NOVA_STAGE'},
@@ -124,6 +126,8 @@ export function frozenFixture() {
     'zigoals:routine-run:v1': {version: 1, run: {version: 1, headId: 'showcase-morning', day: '2026-10-13', step: 1, startedAt: '2026-10-13T07:00:00.000Z', stepStartedAt: '2026-10-13T07:05:00.000Z', done: ['stretch'], skipped: []}},
     'zigoals:aisles:v1': {version: 1, overrides: {'oat milk': 'Dairy & eggs'}},
     'zigoals:health-vitamins:v1': {version: 1, foods: {'health_fixture-oats': {cMg: 0, dUg: 2500, b12Ug: 400}}, entries: {'health_fixture-entry-1': {dUg: 2500}}, targets: {dUg: 15000}},
+    'zigoals:activity-extras:v1': {version: 1, items: {'health_activity-fixture-01': {distanceKm: 4.2, effort: 'easy', kcal: 180}}},
+    'zigoals:goal-repeat:v1': {version: 1, goals: {'9205': {every: 'month', since: '2026-11-01', period: 'month:2026-11', setAt: '2026-11-01T10:00:00.000Z'}}},
   };
   for (const [key, value] of Object.entries(SEEDS)) if (!a.has(key)) a.set(key, JSON.stringify(value));
   // Session AJ (item 35; TIER 3 (stored format) + TIER 3 (auth/sync)): a habit's everyday clock time in the synced habit
@@ -214,7 +218,7 @@ export function frozenFixture() {
   records[MONEY_LOG_KEY] = JSON.stringify({version: 1, entries: [{id: 'm1', kind: 'expense', amount: '12.50', currency: 'EUR', category: 'Food & drink', note: 'Fictional lunch', date: '2026-10-27', createdAt: '2026-10-27T12:00:00.000Z', source: 'form', parts: [{amount: '10.00', category: 'Food & drink'}, {amount: '2.50', category: 'Coffee'}]}], budget: {weekly: '200.00', currency: 'EUR'}, weekStartsOn: 'monday', currency: 'EUR'});
   checks.push({key: MONEY_LOG_KEY, module: './money-log/schema', spec: 'MONEY_LOG', expect: {version: 1, 'entries.0.amount': '12.50', 'entries.0.parts.1.category': 'Coffee'}});
   // Session AI (B3, TIER 3 (stored format)): the journal and the daily energy rating, two new device-only keys (fictional).
-  records[JOURNAL_KEY] = JSON.stringify({version: 1, entries: [{id: 'j1', date: '2026-10-27', text: 'Fictional calm day.', createdAt: '2026-10-27T21:00:00.000Z', followUp: {question: 'What made it calm?', from: 'device', answer: 'A walk.', answeredAt: '2026-10-27T21:05:00.000Z'}}], shareWithAi: false, followUps: true, /* Session AV (F-OWN-TEMPLATES): an own template, an unknown field to older builds */ templates: [{id: 'own-fixture001', title: 'Fictional run diary', headings: ['How it went:']}]});
+  records[JOURNAL_KEY] = JSON.stringify({version: 1, entries: [{id: 'j1', date: '2026-10-27', text: 'Fictional calm day.', createdAt: '2026-10-27T21:00:00.000Z', followUp: {question: 'What made it calm?', from: 'device', answer: 'A walk.', answeredAt: '2026-10-27T21:05:00.000Z'}, /* Session AW (#444, #445): an entry's morning page and its photo of the day */ parts: {morning: [{q: 'What would make today great?', a: 'A fictional walk.'}]}, dayPhoto: 'm-fixture0001', photos: ['m-fixture0001']}], shareWithAi: false, followUps: true, /* Session AV (F-OWN-TEMPLATES): an own template, an unknown field to older builds */ templates: [{id: 'own-fixture001', title: 'Fictional run diary', headings: ['How it went:']}], /* Session AW (#444): the morning and evening page, unknown fields to older builds */ dayPages: {on: true}});
   checks.push({key: JOURNAL_KEY, module: './journal/schema', spec: 'JOURNAL', expect: {version: 1, 'entries.0.followUp.answer': 'A walk.'}});
   records[ENERGY_KEY] = JSON.stringify({version: 1, days: {'2026-10-27': {energy: 4, at: '2026-10-27T20:30:00.000Z'}}, words: {'2026-10-27': {energy: 'high', pleasantness: 'pleasant', word: 'focused', at: '2026-10-27T20:31:00.000Z'}}});
   checks.push({key: ENERGY_KEY, module: './energy/schema', spec: 'ENERGY', expect: {'days.2026-10-27.energy': 4, 'words.2026-10-27.word': 'focused'}});
@@ -222,7 +226,7 @@ export function frozenFixture() {
   records[AI_MEMORY_KEY] = JSON.stringify({version: 1, notes: [{id: 'note_frozen', text: 'Fictional: trains in the morning', category: 'schedule', source: 'person', createdAt: '2026-10-27T08:00:00.000Z', updatedAt: '2026-10-28T08:00:00.000Z', paused: true}]});
   checks.push({key: AI_MEMORY_KEY, module: './ai/store/records', spec: 'AI_MEMORY', expect: {'notes.0.text': 'Fictional: trains in the morning', 'notes.0.paused': true}});
   // Session AI (tasks, TIER 3 (stored format)): one-off tasks with a priority and a due date, a new device-only key (fictional).
-  records[TASKS_KEY] = JSON.stringify({version: 1, tasks: [{id: 'task_1', title: 'Fictional: call the bank', priority: 'high', due: '2026-10-30', /* Session AV (F-DEADLINES): the optional deadline, an unknown field to older builds */ deadline: '2026-11-02', /* Session AV (F-TASK-MINUTES): the optional minutes, likewise */ minutes: 45, createdAt: '2026-10-28T09:00:00.000Z'}]});
+  records[TASKS_KEY] = JSON.stringify({version: 1, tasks: [{id: 'task_1', title: 'Fictional: call the bank', priority: 'high', due: '2026-10-30', /* Session AV (F-DEADLINES): the optional deadline, an unknown field to older builds */ deadline: '2026-11-02', /* Session AV (F-TASK-MINUTES): the optional minutes, likewise */ minutes: 45, /* Session AW (#432, #433): how much it is dreaded and how often it was moved, likewise */ dread: 2, moved: 3, /* Session AW (#438): a reminder that rings again */ reminders: [{before: 0, again: {every: 10, times: 6}}], createdAt: '2026-10-28T09:00:00.000Z'}]});
   checks.push({key: TASKS_KEY, module: './tasks/schema', spec: 'TASKS', expect: {'tasks.0.priority': 'high'}});
   // Session AI (J15, TIER 3 (stored format)): what a Portfolio transfer in was, a new device-only key (fictional ids).
   records[RECEIPTS_KEY] = JSON.stringify({version: 1, kinds: {'showcase-tx-9': 'reward'}});
@@ -266,16 +270,16 @@ export function frozenFixture() {
     templates: [], exercises: [], restSeconds: 90, plates: {unit: 'kg', bar: 20, plates: [{size: 20, pairs: 2}, {size: 10, pairs: 2}]}});
   checks.push({key: WORKOUTS_KEY, module: './workouts/schema', spec: 'WORKOUTS', expect: {'workouts.0.name': 'Run (imported)'}});
   // Session AJ (item 34, D13; TIER 3 (stored format)): Guided journeys, a new device-only key (fictional).
-  records[GUIDED_JOURNEYS_KEY] = JSON.stringify({version: 1, journeys: [{programId: 'walking-start', startedOn: '2026-10-27', done: ['walk-1']}]});
-  checks.push({key: GUIDED_JOURNEYS_KEY, module: './guided/schema', spec: 'GUIDED_JOURNEYS', expect: {'journeys.0.programId': 'walking-start'}});
+  records[GUIDED_JOURNEYS_KEY] = JSON.stringify({version: 1, journeys: [/* Session AW (programmes): a programme with steps done, unknown fields to older builds */ {programId: 'run-5k', startedOn: '2026-11-10', done: ['w1-r1', 'w1-r2', 'w1-r3'], stepsDone: ['w2-r1/warm-up'], showcase: true}, {programId: 'walking-start', startedOn: '2026-10-27', done: ['walk-1']}]});
+  checks.push({key: GUIDED_JOURNEYS_KEY, module: './guided/schema', spec: 'GUIDED_JOURNEYS', expect: {'journeys.0.programId': 'run-5k', 'journeys.1.programId': 'walking-start'}});
   // Session AK Part 2 (ADR-036 Q3; TIER 3 (stored format)): notification choices, a new device-only key.
-  records[NOTIFY_KEY] = JSON.stringify({version: 1, types: {habits: true, evening: true, future: false}, morning: {time: '07:45'}, here: true});
+  records[NOTIFY_KEY] = JSON.stringify({version: 1, types: {habits: true, evening: true, future: false, /* Session AW (#440) */ timers: true}, morning: {time: '07:45'}, here: true, /* Session AW (#438, #439): unknown fields to older builds */ taskAgain: {every: 10, times: 6}, snoozes: [{for: 120}]});
   checks.push({key: NOTIFY_KEY, module: './notify/prefs', spec: 'NOTIFY_PREFS', expect: {'morning.time': '07:45'}});
   // Session AK Part 1d (MUSIC; TIER 3 (stored format)): the sound mix, a new device-only key (zigoals:music:v1 unchanged).
   records[MUSIC_MIX_KEY] = JSON.stringify({version: 1, mix: {v: 1, active: true, layers: [{sound: 'rain', level: 0.6}, {sound: 'pad', level: 0.3}]}, master: 40, timerMin: 30, preset: 'wind-down', playOnSilent: false});
   checks.push({key: MUSIC_MIX_KEY, module: './music/mix-store', spec: 'MUSIC_MIX', expect: {timerMin: 30}});
   // Session AK Parts 5 and 7 (TIER 3 (stored format)): five new device-only keys (fictional values).
-  records[BILLS_KEY] = JSON.stringify({version: 1, bills: [{id: 'b1', title: 'Fictional rent', amount: '900.00', currency: 'EUR', cadence: 'monthly', nextDue: '2026-11-01', origin: 'manual', createdAt: '2026-10-27T12:00:00.000Z'}], dismissed: []});
+  records[BILLS_KEY] = JSON.stringify({version: 1, bills: [{id: 'b1', title: 'Fictional rent', amount: '900.00', currency: 'EUR', cadence: 'monthly', nextDue: '2026-11-01', origin: 'manual', createdAt: '2026-10-27T12:00:00.000Z', /* Session AW (#462): a bill that ends */ ends: {after: 24, from: '2025-03-05'}}], dismissed: []});
   checks.push({key: BILLS_KEY, module: './bills/schema', spec: 'BILLS', expect: {'bills.0.amount': '900.00'}});
   records[BUDGETS_KEY] = JSON.stringify({version: 1, budgets: [{id: 'g1', category: 'Food', currency: 'EUR', monthly: '400.00', rollover: true, since: '2026-10', /* Session AV (F-BUDGET-TARGETS): the optional target, read by older builds as an unknown field */ target: {amount: '900.00', by: '2027-03'}, /* Session AV (F-FRESH-MONTH): the optional fresh start, likewise */ freshFrom: '2026-11'}], /* Session AV (F-WATCH): the optional watch list, unknown to older builds */ watch: [{category: 'Dining', currency: 'EUR'}]});
   checks.push({key: BUDGETS_KEY, module: './budgets/schema', spec: 'BUDGETS', expect: {'budgets.0.category': 'Food'}});
@@ -293,7 +297,7 @@ export function frozenFixture() {
   checks.push({key: FOOD_SCANS_KEY, module: './food-scans/schema', spec: 'FOOD_SCANS', expect: {'scans.0.count': 2}});
   records[NUTRIENT_EXTRAS_KEY] = JSON.stringify({version: 1, foods: {'health_fixture-muesli': {magnesiumMg: 90000, zincMg: 2500}}});
   checks.push({key: NUTRIENT_EXTRAS_KEY, module: './health-vitamins/extras', spec: 'NUTRIENT_EXTRAS_RECORD', expect: {'foods.health_fixture-muesli.zincMg': 2500}});
-  records[GROCERY_KEY] = JSON.stringify({version: 1, ticks: {'2026-10-26|oats|g': {on: true, at: '2026-10-27T10:00:00.000Z'}}, pantry: {Salt: '2026-10-27T10:00:00.000Z'}, showFrequent: true});
+  records[GROCERY_KEY] = JSON.stringify({version: 1, ticks: {'2026-10-26|oats|g': {on: true, at: '2026-10-27T10:00:00.000Z'}}, pantry: {Salt: '2026-10-27T10:00:00.000Z'}, showFrequent: true, /* Session AW (#452): a use-by day, an unknown field to older builds */ useBy: {Salt: '2027-10-27'}});
   checks.push({key: GROCERY_KEY, module: './grocery/schema', spec: 'GROCERY_RECORD', expect: {showFrequent: true}});
   records[CALORIE_WEEK_KEY] = JSON.stringify({version: 1, shifts: [-100, -100, -100, -100, 0, 200, 200], rollover: {on: true, maxKcal: 300}});
   checks.push({key: CALORIE_WEEK_KEY, module: './health-aa/calorie-week', spec: 'CALORIE_WEEK', expect: {'rollover.maxKcal': 300}});

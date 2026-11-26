@@ -27,6 +27,7 @@ import {useGazeHold} from '../zigi/use-gaze-hold';
 import {ZigiAvatar} from '../zigi/zigi-avatar';
 import {ProposalList} from './proposal-list';
 import {SafeText} from './safe-text';
+import {writtenMoney} from '../../lib/ai/written-money';
 import {useAiContext} from './use-ai-context';
 import {useAiSettings, type AiSettingsStore} from './use-ai-settings';
 import {currentAiScope} from '../../lib/ai/scope';
@@ -467,9 +468,10 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
     <ZigiAvatar state="idle" size={28} decorative/>
     <div className="ai-turn-body">
       <TurnKind cards={proposals.length > 0}/>
-      {!quiet && <SafeText className="ai-local-answer" text={shown}/>}
-      {proposals.length > 0 && <ProposalList onDevice proposals={proposals} rejected={parsed?.rejected ?? []} handles={localHandles} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed?.bundle}/>}
-      <DataViz results={info?.results}/>
+      {/* Session AW (fr-money, FR-AW-14): money written as NOVA writes it (lib/ai/written-money.ts), for the eye only */}
+      {!quiet && <SafeText className="ai-local-answer" text={shown} mark={writtenMoney}/>}
+      {proposals.length > 0 && <ProposalList onDevice lang={questionLanguage(question) === 'nl' ? 'nl' : 'en'} proposals={proposals} rejected={parsed?.rejected ?? []} handles={localHandles} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed?.bundle}/>}
+      <DataViz results={info?.results} lang={questionLanguage(question) === 'nl' ? 'nl' : 'en'}/>
       {/* Gate C (persona round): an earlier reply keeps its examples as plain words, so its "For example:" never ends empty. */}
       {!isLast && reply?.kind === 'examples' && reply.examples.length > 0 && <ul className="ai-local-examples" aria-label="Questions ZIGi answers here">{reply.examples.map(e => <li key={e}>{e}</li>)}</ul>}
       {chips.length > 0 && !quiet && <div className="ai-chips" role="group" aria-label={reply?.kind === 'examples' ? 'Questions ZIGi answers here' : 'Which one?'}>{chips.map(c => <button key={c.label} type="button" className="ai-chip" title={c.label} onClick={c.run}>{c.label}</button>)}</div>}
@@ -482,7 +484,7 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
         <p className="ai-note">Your question, these records{attach ? ' and this page’s data' : ''}, sent to your AI only when you choose “Ask my AI for more”.</p>
         {preview && <pre>{preview}</pre>}
       </details>}
-      {isLast && calls.length > 0 && <FollowupChips calls={calls} asked={question} onAsk={onAsk}/>}
+      {isLast && calls.length > 0 && <FollowupChips calls={calls} asked={question} onAsk={onAsk} lang={questionLanguage(question) === 'nl' ? 'nl' : 'en'}/>}
       <SourceLine short={turn.source === 'on-device' ? 'Chrome’s on-device model' : 'On your device · no AI'} full={label}/>
       {turn.records && turn.records.length > 0 && <p className="ai-turn-records" title="Which records went with your question; never their values">Records sent: {turn.records.join(' · ')}</p>}
       <div className={`ai-reply-row${isLast ? ' ai-reply-row-latest' : ''}`}>
@@ -556,10 +558,10 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
       {(parsed.text || parsed.proposals.length > 0) && <TurnKind cards={parsed.proposals.length > 0}/>}
       {parsed.text && <SafeText text={parsed.text}/>}
       <LookedAt turn={turn} session={session} context={context}/>
-      <DataViz results={session.lookupsFor(turn.id)?.map(l => l.result)}/>
+      <DataViz results={session.lookupsFor(turn.id)?.map(l => l.result)} lang={questionLanguage(asked) === 'nl' ? 'nl' : 'en'}/>
       {repeated > 0 && <p className="ai-note">{`${repeated} of these cards were also in an earlier reply. Add only what you still want.`}</p>}
       {(cards.length > 0 || parsed.rejected.length > 0) && <ProposalList proposals={cards} rejected={parsed.rejected} handles={session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} fromPhoto={fromPhoto} replaced={replaced} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed.bundle}/>}
-      {isLast && turn.tools && turn.tools.length > 0 && <FollowupChips calls={turn.tools} asked={asked} onAsk={onAsk}/>}
+      {isLast && turn.tools && turn.tools.length > 0 && <FollowupChips calls={turn.tools} asked={asked} onAsk={onAsk} lang={questionLanguage(asked) === 'nl' ? 'nl' : 'en'}/>}
       <MoneyNote text={parsed.text}/>
       {/* Panel polish round 2: the source as one short line; the full sentence for screen readers and in its tooltip. */}
       <SourceLine short={shortLabel} full={label} extra={turn.mode === 'deep' ? <span className="ai-turn-deep ai-sr-only">Thought deeper with {turn.model}</span> : null} deeper={turn.mode === 'deep'} time={<TurnTime at={turn.at}/>}/>
@@ -834,7 +836,7 @@ function BridgeView({settings, context, attach, sensitive, phone}: {settings: Ai
     <label className="field">Your question<textarea value={question} onChange={e => { setQuestion(e.target.value); setRemoved(new Set()); }} rows={3} maxLength={5000}/></label>
     <CareNote text={typed}/>
     <QuestionSources question={chosen} onRemove={id => setRemoved(current => new Set([...current, id]))}/>
-    {local && <div className="ai-bridge-local"><SafeText className="ai-local-answer" text={local.text}/><SourceLine short="On your device · no AI" full={LOCAL_LABEL}/></div>}
+    {local && <div className="ai-bridge-local"><SafeText className="ai-local-answer" text={local.text} mark={writtenMoney}/><SourceLine short="On your device · no AI" full={LOCAL_LABEL}/></div>}
     <div className="ai-card-actions"><button type="button" className="primary" onClick={copy} disabled={!question.trim()}>Copy for my AI</button>{app && <a className="secondary" href={app.url} target="_blank" rel="noopener noreferrer">Open {app.name} ↗</a>}{app && !phone && <button type="button" className="secondary" onClick={() => openSideBySide(app.url)}>Open {app.name} side by side</button>}</div>
     {status && <p className="ai-note" role="status">{status}</p>}
     <details className="ai-context-preview"><summary>What will be copied</summary><pre>{prompt}</pre></details>

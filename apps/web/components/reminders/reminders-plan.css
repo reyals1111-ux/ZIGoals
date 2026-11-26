@@ -12,7 +12,7 @@
 .reminders-switch { display: flex; align-items: center; gap: 12px; min-height: 44px; cursor: pointer; min-width: 0; }
 /* Gate C (design critique): a broader label rule turned this row into a column, centring the switch above its words. */
 :root .reminders-item > .reminders-switch { flex-direction: row; justify-content: flex-start; text-align: start; }
-.reminders-switch input { width: 22px; height: 22px; margin: 0; flex: 0 0 auto; }
+.reminders-switch input { width: 24px; height: 24px; margin: 0; flex: 0 0 auto; } /* Session AW (SWEEP.md): 24 px, WCAG 2.5.8 */
 .reminders-switch span { display: grid; gap: 2px; min-width: 0; }
 .reminders-switch strong { font-size: 16px; }
 .reminders-switch small { font-size: 14px; color: var(--text-meta); }

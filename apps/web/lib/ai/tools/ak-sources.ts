@@ -1,4 +1,9 @@
+import {FOOD_PLUS} from '../../food-plus/schema';
+import {GROCERY_RECORD} from '../../grocery/schema';
+import {TIMERS} from '../../timers/store';
 import {BRING_UP} from '../../clinician-report/bring-up';
+import {ACTIVITY_EXTRAS} from '../../aw-kcal/activity-extras';
+import {MONEY_REMOVED} from '../../money-log/removed';
 import {CALORIE_WEEK} from '../../health-aa/calorie-week';
 import {PLANNED_WORKOUTS} from '../../workouts/planned';
 import {RACES} from '../../workouts/races';
@@ -28,6 +33,7 @@ import {REMINDERS_PLAN} from '../../reminders-plan/schema';
 import {HABIT_EXTRAS} from '../../habits-extras/schema';
 import {WORKOUT_SPLITS} from '../../workouts/splits-schema';
 import {MONEY_REVIEW} from '../../money-review/review';
+import {GUIDED_JOURNEYS} from '../../guided/schema';
 
 /**
  * Session AK (Part 12): the device records ZIGi's AK tools read, read at the moment of the question (like the rest
@@ -51,5 +57,15 @@ export function readAkToolSources(storage: Read): AkToolSources {
     // Round 4 (health).
     plannedWorkouts: one(PLANNED_WORKOUTS), races: one(RACES), workoutHr: one(WORKOUT_HR), calorieWeek: one(CALORIE_WEEK),
     // Round 6 (health): the visit's "To bring up" list (Health gate in the answer). The low-day plan is never an AI source.
-    bringUp: one(BRING_UP)};
+    bringUp: one(BRING_UP),
+    // Session AW (kcal; owner decision 1a): the distance, effort and calories typed on an activity (aw-kcal.ts; Health gate in the answer).
+    activityExtras: one(ACTIVITY_EXTRAS),
+    // Session AW (programmes): which journey or programme is going, and today's day (aw-programmes.ts; device only, never sent).
+    guidedJourneys: one(GUIDED_JOURNEYS),
+    // Session AW (X1, #440): the named timers (aw-x1-due.ts), as this device keeps them.
+    timers: one(TIMERS),
+    // Session AW (X5): the kitchen's records for 'use soon', 'last made' and 'my menu' (aw-x5-paprika.ts; Health gate there).
+    foodPlus: one(FOOD_PLUS), grocery: one(GROCERY_RECORD),
+    // Session AW X7 (LEDGER #461): Removed recently, read only by the Wealth answers (Wealth's gate in the answer).
+    moneyRemoved: one(MONEY_REMOVED)};
 }

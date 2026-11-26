@@ -1,4 +1,5 @@
 'use client';
+import {ProgrammeLinks} from '../../guided/programme-links';
 import {setBest, SET_BEST_WORDS, withEarlier, type SetBest} from '../../../lib/workouts/set-best';
 import Link from 'next/link';
 import {LoggingFor, useLinkedDay} from '../health-day';
@@ -269,6 +270,12 @@ export default function WorkoutsView() {
       <label className="field workouts-took">Took (minutes, optional: for a workout you log afterwards)<input type="text" inputMode="numeric" autoComplete="off" value={tookMinutes} onChange={e => setTookMinutes(e.target.value)}/></label></>
       : <section className="panel workouts-start" aria-labelledby="workouts-start-title">
         <h2 id="workouts-start-title">Start a workout</h2>
+        {/* Session AW (FR-AW-18): the start buttons come first, above the week figures and the 12-week chart, which pushed
+            them from y 910 to 1,269 at 390 (1,172 at 1440) as the weeks filled. */}
+        <div className="workouts-start-actions">
+          <button className="primary" type="button" onClick={() => begin({date: logDay, now: new Date()})}>Start an empty workout</button>
+          {last && <button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), repeat: last})}>Repeat {last.name}</button>}
+        </div>
         {past.some(x => x.exercises.length) && <Suspense fallback={null}><MuscleFreshToday w={w} library={library} today={today}/></Suspense>}
         <p className="fine">This week: {week.workouts} {plural(week.workouts, 'workout')}{week.workouts ? ` · ${week.minutes} min · ${week.sets} ${plural(week.sets, 'set')}${week.volumeKg ? ` · ${weightShown(week.volumeKg, unit)} lifted` : ''}` : ''}.</p>
         {past.length > 0 ? <Suspense fallback={null}><WeeklyChart w={w} today={today} unit={unit}/></Suspense>
@@ -282,10 +289,6 @@ export default function WorkoutsView() {
         {/* Session AV lane 2 (bodymind-r2; LEDGER #240, Fitbod): a workout for today from your own history, freshness and place. */}
         <Fold className="av2-fold workouts-suggest-fold" summary="Suggest a workout for today, from your own sets" loading="Working out a suggestion…"><SuggestWorkout w={w} library={library} today={today} unit={unit} places={places} onStart={x => begin({date: logDay, now: new Date(), repeat: x})}/></Fold>
         <Fold className="av2-fold workouts-places-fold" summary={place ? `Places and equipment · now: ${place.name}` : 'Places and equipment · where you train and what is there'} loading="Opening your places…"><Places/></Fold>
-        <div className="workouts-start-actions">
-          <button className="primary" type="button" onClick={() => begin({date: logDay, now: new Date()})}>Start an empty workout</button>
-          {last && <button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), repeat: last})}>Repeat {last.name}</button>}
-        </div>
         {/* Session AV lane 2 (body; LEDGER #115, #119): routines by folder, each with its note and an Edit for both. */}
         {w.templates.length > 0 && <><h3>Your routines</h3>{routineGroups(w).map(g => <div key={g.folder ?? ''} className="av2-routine-group">
           {(g.folder || routineGroups(w).length > 1) && <h4 className="av2-folder">{g.folder ?? 'No folder'} <span className="fine">({g.routines.length})</span></h4>}
@@ -297,6 +300,8 @@ export default function WorkoutsView() {
           {editing === t.id && <Suspense fallback={<p className="fine" role="status">Opening…</p>}><RoutineEdit w={w} routine={t} change={change} unit={unit} onDone={() => setEditing(null)}/></Suspense>}
         </li>)}</ul></div>)}</>}
         <Fold className="av2-fold workouts-guides-fold" summary="Ready-made routines, and routines shared with you" loading="Opening the routines…"><RoutineLibrary w={w} onSave={(g, lang) => saveFromLibrary(g, lang, false)} onStart={(g, lang) => saveFromLibrary(g, lang, true)} onImport={share => change(x => addSharedRoutine(x, share, new Date()).workouts, `${share.name} is added to your routines.`)}/></Fold><Fold className="av2-fold workouts-circuits-fold" summary="Timed circuits: work, rest and rounds" loading="Opening the circuits…"><Circuits logDay={logDay || today}/></Fold>
+        {/* Session AW (programmes; owner decision 1d): the written strength and running plans, a quiet line among the folds. */}
+        <ProgrammeLinks ids={['strength-start', 'run-5k']}/>
       </section>}
     {asking === 'finish' && current && <ConfirmInline title="Finish with unticked sets?" confirmLabel="Finish workout" cancelLabel="Keep logging" tone="neutral" onConfirm={() => void finish()} onCancel={() => setAsking(null)}><p>Sets you have not ticked are left out. Tick a set when you finish it.</p></ConfirmInline>}
     {asking === 'discard' && <ConfirmInline title="Discard this workout?" confirmLabel="Discard workout" cancelLabel="Keep it" onConfirm={() => { setAsking(null); setRestUntil(null); change(discardWorkout, 'The workout in progress is discarded. Nothing was added to Health.'); }} onCancel={() => setAsking(null)}><p>Its sets are not kept.</p></ConfirmInline>}

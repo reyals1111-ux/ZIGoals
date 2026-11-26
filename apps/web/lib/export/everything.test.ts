@@ -88,7 +88,8 @@ describe('T4 export everything', () => {
     expect(readme).toMatch(/check-ins\.csv: \d+ rows/);
     // Session AU (D8, deliberate): the Showcase now keeps twelve example moods, so a header-only file is vitals.csv.
     expect(readme).toContain('vitals.csv: no rows, nothing recorded yet');
-    expect(readme).toContain('moods.csv: 12 rows');
+    // Session AW (showcase, deliberate): with the older moods for "your usual" (50 more days, lib/showcase/aw-examples.ts).
+    expect(readme).toContain('moods.csv: 62 rows');
   });
   test('readEverything reads every key as stored and writes nothing', async () => {
     const {records} = buildShowcase('2026-09-20');

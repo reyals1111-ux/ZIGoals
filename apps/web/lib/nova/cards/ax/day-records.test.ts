@@ -59,11 +59,13 @@ test('the focus gauge: this week so far beside the whole of last week', () => {
   expect(focusGauge([], DAY)).toMatchObject({now: {minutes: 0, sessions: 0}, nowShare: null, beforeShare: null, delta: 0});
 });
 test('tasks: the Tasks page’s one overdue rule, with the clock', () => {
-  expect(taskLoad(tasks, DAY, CLOCK)).toEqual({open: 5, overdue: 2, today: 0, ahead: 2, someday: 1});
-  expect(taskLoad(tasks, DAY, '09:00')).toEqual({open: 5, overdue: 1, today: 1, ahead: 2, someday: 1}); // the dentist's 10:30 has not passed
+  // Session AW (showcase, deliberate): the Showcase's new example tasks (lib/showcase/aw-examples.ts): one more open with no
+  // day (Someday), and three finished on 12, 14 and 15 November; equally strict.
+  expect(taskLoad(tasks, DAY, CLOCK)).toEqual({open: 6, overdue: 2, today: 0, ahead: 2, someday: 2});
+  expect(taskLoad(tasks, DAY, '09:00')).toEqual({open: 6, overdue: 1, today: 1, ahead: 2, someday: 2}); // the dentist's 10:30 has not passed
   const late = taskOverdue(tasks, DAY, CLOCK);
   expect(late.rows.map(r => [r.label, r.days, r.text])).toEqual([['Sketch the garden bed', 1, '1 day · due Nov 16'], ['Book the dentist', 0, 'due today at 10:30 AM']]);
-  expect(late).toMatchObject({open: 5, max: 1});
+  expect(late).toMatchObject({open: 6, max: 1}); // Session AW (showcase, deliberate): one more open example task
   expect(taskTitle('Example · Book the dentist')).toBe('Book the dentist'); expect(taskTitle('Rent · SHOWCASE DATA')).toBe('Rent');
   expect(taskOverdue(NONE, DAY, CLOCK)).toEqual({rows: [], open: 0, max: 1}); expect(taskLoad(NONE, DAY, CLOCK)).toEqual({open: 0, overdue: 0, today: 0, ahead: 0, someday: 0});
 });
@@ -73,7 +75,9 @@ test('the task timeline: from the oldest overdue day to a week ahead, done tasks
   expect(view.ticks).toEqual([{at: 0.125, label: 'Today'}, {at: 1, label: 'Nov 24'}]); // the first day is one day back: no room for its own label
   expect(view.marks.map(m => [m.title, m.kind, m.at])).toEqual([['Sketch the garden bed', 'overdue', 0], ['Book the dentist', 'overdue', 0.125], ['Compare two savings accounts', 'ahead', 0.375], ['Draft the trip budget', 'ahead', 0.75]]);
   expect(view.done.map(m => [m.title, m.at, m.words])).toEqual([['Renew the library card', 0, 'Renew the library card: done Mon, Nov 16']]);
-  expect(view.counts).toEqual({open: 5, overdue: 2, today: 0, ahead: 2, someday: 1, later: 0, done: 1, earlier: 0});
+  // Session AW (showcase, deliberate): the Showcase's new example tasks (lib/showcase/aw-examples.ts): one more open with no
+  // day (Someday), and three finished on 12, 14 and 15 November; equally strict.
+  expect(view.counts).toEqual({open: 6, overdue: 2, today: 0, ahead: 2, someday: 2, later: 0, done: 1, earlier: 0});
   expect(view.oldest).toMatchObject({label: 'Sketch the garden bed', days: 1});
   const empty = taskTimeline(NONE, widgetPeriod('this-week', DAY), DAY, CLOCK, doneDay);
   expect(empty).toMatchObject({from: DAY, marks: [], done: [], oldest: null, todayAt: 0}); expect(empty.ticks.map(t => t.label)).toEqual(['Today', 'Nov 24']);
@@ -81,8 +85,10 @@ test('the task timeline: from the oldest overdue day to a week ahead, done tasks
 test('the tasks calendar: the days of November with a task due or done', () => {
   const month = tasksMonth(tasks, widgetPeriod('this-month', DAY), DAY, CLOCK, doneDay);
   expect(month.view.title).toMatch(/Nov/); expect(month.view.weeks).toHaveLength(6);
-  expect(month).toMatchObject({dueDays: ['2026-11-19', '2026-11-22'], overdueDays: ['2026-11-16', '2026-11-17'], doneDays: ['2026-11-16'], taskDays: 4, due: 4, done: 1});
-  expect(month.view.lit).toEqual(['2026-11-16', '2026-11-19', '2026-11-22']); // today is ringed, never lit
+  // Session AW (showcase, deliberate): the Showcase's new example tasks (lib/showcase/aw-examples.ts): one more open with no
+  // day (Someday), and three finished on 12, 14 and 15 November; equally strict.
+  expect(month).toMatchObject({dueDays: ['2026-11-19', '2026-11-22'], overdueDays: ['2026-11-16', '2026-11-17'], doneDays: ['2026-11-12', '2026-11-14', '2026-11-15', '2026-11-16'], taskDays: 7, due: 4, done: 4});
+  expect(month.view.lit).toEqual(['2026-11-16', '2026-11-19', '2026-11-22']); // today is ringed, never lit (a day with only done tasks is not lit)
   const cells = month.view.weeks.flat(), of = (date: string) => cells.find(c => c.date === date)!;
   expect(of('2026-11-16')).toMatchObject({state: 'missed', words: 'Mon, Nov 16: 1 overdue, 1 done'}); expect(of('2026-11-17')).toMatchObject({state: 'missed', today: true});
   expect(of('2026-11-19')).toMatchObject({state: 'part', inPeriod: true}); expect(of('2026-11-20').state).toBe('ahead'); expect(of('2026-11-10').state).toBe('rest'); expect(of('2026-10-30').inPeriod).toBe(false);
@@ -120,14 +126,16 @@ test('the life radar: this period beside the one before, as facts; an unread or 
   // The Checklist's kept days and today's live count; done tasks are kept 30 days, so an older period is unknown.
   const kept = lifeRadar({checklist: {days: {'2026-11-16': {done: 5, total: 6}, '2026-11-09': {done: 3, total: 6}}, today: {date: DAY, done: 2, total: 6}}, tasks}, widgetPeriod('this-week', DAY), DAY, doneDay);
   expect(kept.spokes[3]).toMatchObject({figure: '7', unit: 'of 12', now: {text: '7 of 12 Checklist dots done'}, before: {text: '3 of 6 Checklist dots done', share: 0.5}});
-  expect(lifeRadar({tasks}, widgetPeriod('this-month', DAY), DAY, doneDay).spokes[1]).toMatchObject({now: {value: 1}, before: {value: null, share: null}});
+  // Session AW (showcase, deliberate): three more example tasks finished this month (12, 14 and 15 November).
+  expect(lifeRadar({tasks}, widgetPeriod('this-month', DAY), DAY, doneDay).spokes[1]).toMatchObject({now: {value: 4}, before: {value: null, share: null}});
   expect(lifeRadar({}, widgetPeriod('this-week', DAY), DAY, doneDay).known).toBe(0);
   expect(lifeRadar({habits: [], tasks: NONE, focus: [], checklist: null}, widgetPeriod('this-week', DAY), DAY, doneDay).known).toBe(0); // nothing kept is unknown, not four zeros
 });
 test('the day scan: today across habits, tasks, focus and the agenda; a part that was not read is left out', () => {
   const lanes = dayScan({habits, tasks, focus, agenda: [{state: 'done'}, {state: 'open'}, {state: 'open'}]}, DAY, CLOCK);
-  expect(lanes.map(l => [l.key, l.figure, l.unit, l.text])).toEqual([['habits', '4', 'of 7', '4 of 7 done, 3 open'], ['tasks', '5', 'open', '5 open, 2 overdue'], ['focus', '0', 'min', 'No session yet today'], ['agenda', '2', 'of 3', '2 of 3 items left, 1 done']]);
-  expect(lanes[0]!.pips).toEqual(['lit', 'lit', 'lit', 'lit', 'open', 'open', 'open']); expect(lanes[1]!.pips).toEqual(['late', 'late', 'open', 'open', 'open']); expect(lanes[2]!.pips).toEqual([]);
+  // Session AW (showcase, deliberate): one more open example task (lib/showcase/aw-examples.ts): 6 open, 6 pips.
+  expect(lanes.map(l => [l.key, l.figure, l.unit, l.text])).toEqual([['habits', '4', 'of 7', '4 of 7 done, 3 open'], ['tasks', '6', 'open', '6 open, 2 overdue'], ['focus', '0', 'min', 'No session yet today'], ['agenda', '2', 'of 3', '2 of 3 items left, 1 done']]);
+  expect(lanes[0]!.pips).toEqual(['lit', 'lit', 'lit', 'lit', 'open', 'open', 'open']); expect(lanes[1]!.pips).toEqual(['late', 'late', 'open', 'open', 'open', 'open']); expect(lanes[2]!.pips).toEqual([]);
   expect(dayScan({tasks}, DAY, CLOCK).map(l => l.key)).toEqual(['tasks']);
   expect(dayScan({habits: [], tasks: NONE, focus: [], agenda: []}, DAY, CLOCK)).toEqual([]); expect(dayScan({}, DAY)).toEqual([]);
 });

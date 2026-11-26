@@ -1,6 +1,7 @@
 import {addLocalDays} from '../local-date';
 import {notesSchema, type Notes} from './schema';
 import {periodStart} from './schedules';
+import {noteSearchesSchema, type NoteSearches} from './saved-searches';
 
 /**
  * Session AK (B): the Showcase's fictional notes, labelled as examples. They link to the Showcase's own goals ("Japan
@@ -28,4 +29,16 @@ export function showcaseNotes(day: string): Notes {
   return notesSchema.parse({version: 1, notes: notes.sort((a, b) => a.createdAt.localeCompare(b.createdAt)), voice: false, schedules: [{...weekly, lastMade: periodStart(weekly, day)}],
     // Session AV lane 2 (notes; LEDGER #33): "Books to read" was changed once, so it has one earlier version.
     versions: [{id: 'v-showcasenote1', noteId: 'showcase-note-books', title: 'Books to read', body: 'Twenty minutes a day with the [[Read]] habit.\n\n1. A short history of Japan\n2. The Psychology of Money\n\n(SHOWCASE DATA)', savedAt: at(-18)}]});
+}
+
+/**
+ * Session AW (x3; LEDGER #441, Evernote's saved searches): two labelled example searches kept by name — the travel notes
+ * still being planned (a tag and a property filter) and the reading notes (words and a kind) — so Notes → Notes shows
+ * them above the search. Only the searches; the notes they find are the Showcase's own.
+ */
+export function showcaseNoteSearches(): NoteSearches {
+  return noteSearchesSchema.parse({version: 1, searches: [
+    {id: 'ns-showcase01', name: 'Example · Travel being planned', tag: 'travel', filters: [{name: 'Status', op: 'is', value: 'Planning'}]},
+    {id: 'ns-showcase02', name: 'Example · Reading', words: 'read', kind: 'topic'},
+  ]});
 }

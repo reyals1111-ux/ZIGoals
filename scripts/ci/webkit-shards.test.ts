@@ -11,7 +11,7 @@ describe('WebKit shard lists', () => {
     expect(files.length).toBeGreaterThan(0);
     // The failure lists each problem with its fix, e.g. "… is a WebKit spec in no shard: add it to the shortest list …".
     expect(partitionProblems(files), partitionProblems(files).join('\n')).toEqual([]);
-    expect(WEBKIT_SHARDS).toHaveLength(4);
+    expect(WEBKIT_SHARDS).toHaveLength(6); // Session AW (TIER 3 CI, owner amendment 9): six lists
     for (const list of WEBKIT_SHARDS) expect(list.length).toBeGreaterThan(0);
     expect(WEBKIT_SHARDS.flat().sort()).toEqual(files);
   });
@@ -26,13 +26,14 @@ describe('WebKit shard lists', () => {
   });
 
   test('WEBKIT_SHARD selects only its own files, anchored to tests/', () => {
-    const [first] = webkitShardMatch('1/4', TESTS);
-    expect(first!.test('/x/apps/web/tests/webkit-celebration.spec.ts')).toBe(true);
-    expect(first!.test('/x/apps/web/tests/xwebkit-celebration.spec.ts')).toBe(false);
-    const memory = webkitShardMatch('2/4', TESTS);
+    // Session AW (TIER 3 CI, six lists, deliberate): the same checks on the lists' new places.
+    const [first] = webkitShardMatch('1/6', TESTS);
+    expect(first!.test('/x/apps/web/tests/zigi-accept-correct.spec.ts')).toBe(true);
+    expect(first!.test('/x/apps/web/tests/xzigi-accept-correct.spec.ts')).toBe(false);
+    const memory = webkitShardMatch('3/6', TESTS);
     expect(memory.some(r => r.test('/x/tests/zigi-memory.spec.ts'))).toBe(true);
     expect(memory.some(r => r.test('/x/tests/zigi-memory-af.spec.ts'))).toBe(false);
-    expect(() => webkitShardMatch('5/4', TESTS)).toThrow(/expected n\/4/);
-    expect(() => webkitShardMatch('1/3', TESTS)).toThrow(/expected n\/4/);
+    expect(() => webkitShardMatch('7/6', TESTS)).toThrow(/expected n\/6/);
+    expect(() => webkitShardMatch('1/4', TESTS)).toThrow(/expected n\/6/);
   });
 });

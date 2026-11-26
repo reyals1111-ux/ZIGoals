@@ -37,7 +37,7 @@ test('phone default orders: Health title, date, counters; Habits check-ins befor
  await expect(page.getByLabel('Journal date')).toHaveCount(1);
  await open(page,'/app/habits');
  const items=(r:string)=>page.evaluate(r=>[...document.querySelectorAll<HTMLElement>(`[data-layout-region="${r}"]`)].map(e=>e.dataset.layoutItem),r);
- expect(await items('habits:body')).toEqual(['habits:overview','habits:list','habits:routines','habits:consistency','habits:rhythm']); // Session AE Part 4 (deliberate, S4): Routines is its own block after your habits
+ expect(await items('habits:body')).toEqual(['habits:list','habits:routines','habits:overview','habits:consistency','habits:rhythm']); // Session AE Part 4 (deliberate, S4): Routines is its own block after your habits. Session AW (FR-TJ-7, deliberate): your habits first, Today's rhythm after Routines
  await open(page,'/app/wealth');
  // Session Z-Cloud Part 4.5 (deliberate): "What you have" follows the holdings on a phone (wealth-view.tsx PHONE_ORDER); it is a
  // layout card since Gate B (15c36a5), so it is counted here. As strict: the first six, in order.
@@ -65,7 +65,13 @@ test('Settings on a phone: a grouped list under the title goes to every section;
  // Session AK G2 (RELEASE_REVIEW_2 R2-4, deliberate): the ZIGi group is "Your assistant", with a row for NOVA's settings: 24.
  /* Session AO (owner decision 13 Nov and C-DVG-22, deliberate): Appearance's own row and "My day ends at" (24 → 25; Motion & display became Appearance's row) */const rows=list.getByRole('link');
  // (fr-layout; deliberate) FR-L-7: "Restore a backup" opens Settings → Your data at Restore from a backup (25 → 26).
- expect(await rows.count()).toBe(26);
+ // Session AW (p5-fixes, FR-L-17; deliberate, as strict): "Erase everything" ends Data & privacy and "Notifications" sits in
+ // Your areas before "Reminders when closed" (26 → 28); each row's own place is checked below.
+ expect(await rows.count()).toBe(28);
+ const dataRows=list.getByRole('region',{name:'Data & privacy'}).getByRole('link');
+ await expect(dataRows.last()).toHaveAccessibleName('Erase everything');await expect(dataRows.last()).toHaveAttribute('href','#erase-everything');
+ const areaRows=await list.getByRole('region',{name:'Your areas'}).getByRole('link').evaluateAll(as=>as.map(a=>a.getAttribute('aria-label')));
+ expect(areaRows.indexOf('Notifications')).toBe(areaRows.indexOf('Reminders when closed')-1);
  await expect(list.getByRole('link',{name:'Wallet & network (advanced)',exact:true})).toHaveCount(0);
  // Session AL (COPY_AUDIT, deliberate): DV-262/DV-266 — Music, Links and Chess in "Extras"; the Showcase tour last, in "Try it". Still 24 rows.
  // Session AO (owner decision 13 Nov, deliberate): Appearance is the first group (theme, motion, display; #appearance moved

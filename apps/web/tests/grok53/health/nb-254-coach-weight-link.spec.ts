@@ -14,9 +14,19 @@ test('NB-244: nothing logged yet, so Today shows no coach', async ({page}) => {
   await expect(page.getByText('Your coach', {exact: true})).toHaveCount(0);
 });
 
-test('NB-254: with Health in use but no weight, "Log a weight →" opens the Weight view with its field focused', async ({page}) => {
+// Session AW (p5-fixes, FR-S-14; deliberate, as strict): water alone (Health in use, no weight interest) no longer brings the
+// coach to Today; a goal weight with no weigh-in yet does, and its "Log a weight →" is checked exactly as before.
+test('FR-S-14: water logged but no weight and no goal weight, so Today shows no coach', async ({page}) => {
   const today = new Intl.DateTimeFormat('en-CA', {timeZone: 'Europe/Brussels'}).format(new Date());
   await freshHealth(page, addWater(createEmptyHealth(), {id: 'health_00000000-0000-4000-8000-000000000254', date: today, amountMilli: 250_000, unit: 'ml'}, new Date().toISOString()));
+  await page.goto('/app'); await hydrated(page);
+  await expect(page.locator('.today-focus')).toBeVisible();
+  await expect(page.getByText('Your coach', {exact: true})).toHaveCount(0);
+});
+
+test('NB-254: with a goal weight but no weigh-in yet, "Log a weight →" opens the Weight view with its field focused', async ({page}) => {
+  const empty = createEmptyHealth();
+  await freshHealth(page, {...empty, targets: {...empty.targets, weightGrams: 70_000}});
   await page.goto('/app'); await hydrated(page);
   const coach = page.getByRole('region', {name: 'Your coach'});
   await coach.getByRole('link', {name: 'Log a weight →'}).click();

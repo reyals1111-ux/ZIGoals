@@ -59,6 +59,10 @@ test('the Goals header reads "Your Goals" and the cards follow one compact contr
  const tops=new Set((await controls.evaluateAll(els=>els.map(e=>Math.round(e.getBoundingClientRect().top)))));expect(tops.size).toBeLessThanOrEqual(isMobile?2:1);
  for(const box of await controls.evaluateAll(els=>els.map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {h:r.height,w:r.width,font:parseFloat(s.fontSize)};}))){expect(box.h).toBeGreaterThanOrEqual(44);expect(box.font).toBeGreaterThanOrEqual(14);}
  const sw=(await toolbar.getByRole('group',{name:'Show goals as'}).boundingBox())!,hb=(await page.locator('.goals-heading').boundingBox())!;expect(Math.abs((sw.x+sw.width)-(hb.x+hb.width))).toBeLessThanOrEqual(60); // the switch at the right end
+ // Session AW (simplicity-a, deliberate; owner brief Part 3): on a phone Search and Sort wait behind the page's ⋯ (Options for
+ // Goals → Search and sort goals), so the first goal starts within the first screen; opened, the row sits exactly where it
+ // did and every measurement below is unchanged. As strict, plus: on a phone it is hidden until asked for.
+ if(isMobile){await expect(page.getByRole('region',{name:'Browse Goals',exact:true})).toBeHidden();await toolbar.getByRole('button',{name:'Options for Goals',exact:true}).click();await page.getByRole('menuitem',{name:'Search and sort goals',exact:true}).click();await expect(page.getByLabel('Search Goals',{exact:true})).toBeFocused();}
  const subtitle=(await page.getByText('Small steps. A bigger future. Every plan starts with you.',{exact:true}).boundingBox())!,bar=(await toolbar.boundingBox())!,grid=(await page.getByRole('region',{name:'Your goals',exact:true}).boundingBox())!;
  // Phase 2 (deliberate, ADR-024 "Phase 2 — assertions changed"): the shared header ends with its actions (under the lede on
  // phones), so the controls row is measured from the header's end, not the lede's. As strict: ≤ 32 px.

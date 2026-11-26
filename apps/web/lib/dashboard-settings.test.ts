@@ -51,7 +51,9 @@ test('legacy settings keep their original shape while placement resolves determi
  expect(placement.version).toBe(1);// Session AA-Cloud Part 1 (deliberate, as strict): the whole-life overview first, then the day's items, Goals led by the attention agenda, money, the summary.
  // Session AC (deliberate, the owner's "each thing once"): Daily Habits stands down for its widget twin (the same list),
  // which takes the place right after it (still "Your day"); the other widgets follow the summary as before.
- expect(placement.main.slice(0,12).map(r=>r.id)).toEqual(['whole-life','habits','preset-balanced-1','health','attention','goals','next-action','funding','needs-attention','watchlist','progress','summary']);
+ // Session AW (simplicity-a, deliberate; owner brief Part 3): the day's habits (Daily Habits and its twin) lead, ahead of
+ // the whole-life overview; every other card keeps its place. The same twelve ids, in one exact order, as strict as before.
+ expect(placement.main.slice(0,12).map(r=>r.id)).toEqual(['habits','preset-balanced-1','whole-life','health','attention','goals','next-action','funding','needs-attention','watchlist','progress','summary']);
  expect(placement.hiddenBuiltins).toEqual(['habits','next-action']);
  expect(placement.rail.map(r=>r.id)).toEqual(['wallet','staking','destination','activity']);
  expect(placement.main.slice(12)).toEqual(old.widgets.filter(w=>w.id!=='preset-balanced-1').map(w=>widget(w.id)));

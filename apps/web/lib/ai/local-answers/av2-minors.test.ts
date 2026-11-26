@@ -9,7 +9,8 @@ describe('Dutch days in the task answers\' span (Showcase, 17 Nov 2026)', () => 
   for (const [who, env] of [['NOVA', novaEnv(showcaseAll())], ['ZIGi', zigiEnv(showcaseAll())]] as const) {
     test(who, () => {
       expect(ask('hoeveel taken heb ik deze week afgerond', env).text).toBe('1 taak gedaan deze week (ma 16 nov t/m di 17 nov): Renew the library card.');
-      expect(ask('hoeveel taken heb ik vorige week afgerond', env).text).toBe('Geen taak gedaan vorige week (ma 9 nov t/m zo 15 nov).');
+      // Session AW (showcase, deliberate): three example tasks finished last week (lib/showcase/aw-examples.ts), named; equally strict.
+      expect(ask('hoeveel taken heb ik vorige week afgerond', env).text).toBe('3 taken gedaan vorige week (ma 9 nov t/m zo 15 nov): Clear the old flower pots, Move the savings standing order en Return the library books.');
       expect(ask('how many tasks did I finish this week', env).text).toBe('1 task done this week (Mon, Nov 16 to Tue, Nov 17): Renew the library card.');
     });
   }

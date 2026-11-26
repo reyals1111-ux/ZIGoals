@@ -3,6 +3,7 @@ import {AV2_FOOD_CATALOG_LABELS, AV2_FOOD_EXPORT_KEYS, AV2_FOOD_PERSONAL_KEYS} f
 import {AV2_MONEY_R2_CATALOG_LABELS, AV2_MONEY_R2_EXPORT_KEYS, AV2_MONEY_R2_PERSONAL_KEYS} from './av2-money-r2-keys';
 import {AV2_R4_HEALTH_CATALOG_LABELS, AV2_R4_HEALTH_EXPORT_KEYS, AV2_R4_HEALTH_PERSONAL_KEYS} from './av2-r4-health-keys';
 import {AV2_R5_NOTES_CATALOG_LABELS, AV2_R5_NOTES_EXPORT_KEYS, AV2_R5_NOTES_PERSONAL_KEYS} from './av2-r5-notes-keys';
+import {AW_CATALOG_LABELS, AW_DISPLAY_KEYS, AW_EXPORT_KEYS, AW_PERSONAL_KEYS} from './aw-device-keys';
 import {AV2_R6_BODY_CATALOG_LABELS, AV2_R6_BODY_EXPORT_KEYS, AV2_R6_BODY_PERSONAL_KEYS} from './av2-r6-body-keys';
 /**
  * Session AV lane 2 (owner follow-up 4; ADR-045): lane 2's device keys and their rows for the shared registries, as
@@ -32,11 +33,11 @@ export const WORKOUT_PLACES_KEY_LITERAL = 'zigoals:workout-places:v1';
 export const HEALTH_GOALS_MORE_KEY_LITERAL = 'zigoals:health-goals-more:v1';
 export const WORKOUT_CIRCUITS_KEY_LITERAL = 'zigoals:workout-circuits:v1';
 /** Personal device records: a device holding one is not new (onboarding `DEVICE_RECORD_KEYS`). */
-export const AV2_PERSONAL_KEYS: readonly string[] = [TASK_PLAN_KEY_LITERAL, TASK_TEMPLATES_KEY_LITERAL, BUDGET_PERIODS_KEY_LITERAL, CHESS_COMPUTER_KEY_LITERAL, EVENING_PLAN_KEY_LITERAL, BODY_EXTRAS_KEY_LITERAL, WORKOUT_PLACES_KEY_LITERAL, HEALTH_GOALS_MORE_KEY_LITERAL, WORKOUT_CIRCUITS_KEY_LITERAL, ...AV2_MONEY_PERSONAL_KEYS, ...AV2_FOOD_PERSONAL_KEYS, ...AV2_MONEY_R2_PERSONAL_KEYS, ...AV2_R4_HEALTH_PERSONAL_KEYS, ...AV2_R5_NOTES_PERSONAL_KEYS, ...AV2_R6_BODY_PERSONAL_KEYS];
+export const AV2_PERSONAL_KEYS: readonly string[] = [TASK_PLAN_KEY_LITERAL, TASK_TEMPLATES_KEY_LITERAL, BUDGET_PERIODS_KEY_LITERAL, CHESS_COMPUTER_KEY_LITERAL, EVENING_PLAN_KEY_LITERAL, BODY_EXTRAS_KEY_LITERAL, WORKOUT_PLACES_KEY_LITERAL, HEALTH_GOALS_MORE_KEY_LITERAL, WORKOUT_CIRCUITS_KEY_LITERAL, ...AV2_MONEY_PERSONAL_KEYS, ...AV2_FOOD_PERSONAL_KEYS, ...AV2_MONEY_R2_PERSONAL_KEYS, ...AV2_R4_HEALTH_PERSONAL_KEYS, ...AV2_R5_NOTES_PERSONAL_KEYS, ...AV2_R6_BODY_PERSONAL_KEYS, /* Session AW */ ...AW_PERSONAL_KEYS];
 /** Display/setting records (onboarding `NON_PERSONAL_KEYS`). */
-export const AV2_DISPLAY_KEYS: readonly string[] = [TASK_AREA_KEY_LITERAL, ZIGI_HELLO_DAY_KEY_LITERAL];
+export const AV2_DISPLAY_KEYS: readonly string[] = [TASK_AREA_KEY_LITERAL, ZIGI_HELLO_DAY_KEY_LITERAL, /* Session AW */ ...AW_DISPLAY_KEYS];
 /** Export everything (`DEVICE_KEYS`): the names in everything.json. */
-export const AV2_EXPORT_KEYS = {taskPlan: TASK_PLAN_KEY_LITERAL, taskTemplates: TASK_TEMPLATES_KEY_LITERAL, budgetPeriods: BUDGET_PERIODS_KEY_LITERAL, chessComputer: CHESS_COMPUTER_KEY_LITERAL, eveningPlan: EVENING_PLAN_KEY_LITERAL, bodyExtras: BODY_EXTRAS_KEY_LITERAL, workoutPlaces: WORKOUT_PLACES_KEY_LITERAL, healthGoalsMore: HEALTH_GOALS_MORE_KEY_LITERAL, workoutCircuits: WORKOUT_CIRCUITS_KEY_LITERAL, ...AV2_MONEY_EXPORT_KEYS, ...AV2_FOOD_EXPORT_KEYS, ...AV2_MONEY_R2_EXPORT_KEYS, ...AV2_R4_HEALTH_EXPORT_KEYS, ...AV2_R5_NOTES_EXPORT_KEYS, ...AV2_R6_BODY_EXPORT_KEYS} as const;
+export const AV2_EXPORT_KEYS = {taskPlan: TASK_PLAN_KEY_LITERAL, taskTemplates: TASK_TEMPLATES_KEY_LITERAL, budgetPeriods: BUDGET_PERIODS_KEY_LITERAL, chessComputer: CHESS_COMPUTER_KEY_LITERAL, eveningPlan: EVENING_PLAN_KEY_LITERAL, bodyExtras: BODY_EXTRAS_KEY_LITERAL, workoutPlaces: WORKOUT_PLACES_KEY_LITERAL, healthGoalsMore: HEALTH_GOALS_MORE_KEY_LITERAL, workoutCircuits: WORKOUT_CIRCUITS_KEY_LITERAL, ...AV2_MONEY_EXPORT_KEYS, ...AV2_FOOD_EXPORT_KEYS, ...AV2_MONEY_R2_EXPORT_KEYS, ...AV2_R4_HEALTH_EXPORT_KEYS, ...AV2_R5_NOTES_EXPORT_KEYS, ...AV2_R6_BODY_EXPORT_KEYS, /* Session AW */ ...AW_EXPORT_KEYS} as const;
 /** The data catalog (`DEVICE_LABELS`): [label, area], home "device". */
 export const AV2_CATALOG_LABELS = {
   taskPlan: ['Tasks: your planning choices, timers and the count of finished tasks per day', 'Today'],
@@ -44,11 +45,11 @@ export const AV2_CATALOG_LABELS = {
   budgetPeriods: ['Budgets: pay periods, the paycheck fill and debts paid from a budget', 'Wealth'],
   chessComputer: ['Chess: your game against the computer and your results by level', 'Chess'],
   eveningPlan: ['Sleep: your evening plan', 'Health'],
-  bodyExtras: ['Body: your height and weight milestones', 'Health'],
+  bodyExtras: ['Body: your height, weight milestones, days you name for the trend and notes on weigh-ins', 'Health'], // Session AW (#456, #457)
   workoutPlaces: ['Workouts: your places and their equipment', 'Health'],
   healthGoalsMore: ['Health goals: averages over 7, 14 or 30 days on nutrients, measurements and your own numbers', 'Health'],
   workoutCircuits: ['Workouts: your timed circuits', 'Health'],
-  ...AV2_MONEY_CATALOG_LABELS, ...AV2_FOOD_CATALOG_LABELS, ...AV2_MONEY_R2_CATALOG_LABELS, ...AV2_R4_HEALTH_CATALOG_LABELS, ...AV2_R5_NOTES_CATALOG_LABELS, ...AV2_R6_BODY_CATALOG_LABELS,
+  ...AV2_MONEY_CATALOG_LABELS, ...AV2_FOOD_CATALOG_LABELS, ...AV2_MONEY_R2_CATALOG_LABELS, ...AV2_R4_HEALTH_CATALOG_LABELS, ...AV2_R5_NOTES_CATALOG_LABELS, ...AV2_R6_BODY_CATALOG_LABELS, /* Session AW */ ...AW_CATALOG_LABELS,
 } as const;
 /** The account erase (`lib/aa-device-forget.ts`): every key above. */
 export const AV2_ERASE_KEYS: readonly string[] = [...AV2_PERSONAL_KEYS, ...AV2_DISPLAY_KEYS];

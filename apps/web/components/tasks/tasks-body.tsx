@@ -4,11 +4,11 @@ import {useEffect, useMemo, useState} from 'react';
 import {openTasks, setAside} from '../../lib/tasks/engine';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {FOCUS_VIEW, inFocus, liveFocus} from '../../lib/tasks/focus';
-import {dueReminders} from '../../lib/tasks/reminders';
 import {checklistZone} from '../../lib/checklist/zone';
 import {TaskAddForm, TaskRow, TaskStatusLine} from './task-parts';
 import {useTaskList} from './use-task-list';
 import {ReminderRows} from './reminder-rows';
+import {remindersDue, ringAhead, useRemindAgain, useWakeAt} from './use-remind-again';
 import {useGoalOptions} from './use-goal-options';
 import './tasks.css';
 
@@ -27,7 +27,11 @@ export function TasksBody() {
   // Session AV lane 2 (r6-plan, LEDGER #392–#394): not a task of a project on hold or one waiting its turn; with a focus on, only its tasks and the Inbox's.
   const focusRead = useDeviceRecord(FOCUS_VIEW), focus = useMemo(() => liveFocus(focusRead.data, tasks.data), [focusRead.data, tasks.data]);
   const open = useMemo(() => openTasks(tasks.data, today).filter(t => !t.parentId && !setAside(tasks.data, t, today) && inFocus(t, focus, tasks.data)), [tasks.data, today, focus]);
-  const reminders = useMemo(() => tasks.loaded ? dueReminders(tasks.data, now, checklistZone(), {dismissed}) : [], [tasks.loaded, tasks.data, now, dismissed]);
+  const again = useRemindAgain(); // Session AW (X1, LEDGER #438)
+  const reminders = useMemo(() => tasks.loaded ? remindersDue(again, tasks.data, now, checklistZone(), dismissed) : [], [tasks.loaded, tasks.data, now, dismissed, again]);
+  // Session AW (X1, LEDGER #438): the rows wake at the next ring (a first ring or a repeat), on its minute.
+  const ringAt = useMemo(() => tasks.loaded ? ringAhead(again, tasks.data, now, checklistZone()) : null, [tasks.loaded, tasks.data, now, again]);
+  useWakeAt(ringAt, setNow);
   if (!tasks.loaded) return <p className="fine">Loading your tasks…</p>;
   return <div className="tasks-body">
     {/* Session AV (1c, q1 #1): Done, Snooze (15 min, 1 h, tomorrow) and Dismiss. */}

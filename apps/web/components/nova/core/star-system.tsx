@@ -41,6 +41,7 @@ export type StarReport = {shows: 'star' | 'picture' | 'orb'; why: StarWhy | null
   always: boolean};
 type Probe = StarProbe;
 const LOST_GRACE_MS = 2500;
+const PROVE_AFTER_MS = 120; // Session AW (D36): the first frames are read back this long after they are drawn
 export function StarSystem({state, hud, accent = 'violet', phone = false, size, column, beam = null, onReport, onMount}: {
   state: NovaOrbState; hud: HudMotionState; accent?: string; phone?: boolean;
   /** The canvas's box, in CSS pixels (it is square and centred on the orb by its stylesheet). */
@@ -125,7 +126,7 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
     // The picture's own clock and eased values.
     const v = {t: 12, spin: 0.72, rate: 0.06, listen: 0, think: 0, speak: 0, beam: 0, beamA: 0, beamKey: live.current.beam?.key ?? 0, beamAt: -1e9};
     let frame = 0, timer = 0, lostTimer = 0, last = 0, lastDraw = 0, tierNow = 0, late = 0, graceUntil = 0, losses = 0, stopped = false, activeAt = performance.now(), focused = true; // the focus is read from focus and blur events only (a page that never had it still starts active)
-    let checks = 0, proven = false, said = '', stillKey = '';
+    let checks = 0, proven = false, said = '', stillKey = '', proveTimer = 0;
     // A processor-drawn star is at most SOFTWARE_PACE.pixels across in its own pixels, whatever its box (a 940 px star at
     // half scale was 470 px: four times the work of the 2560 px proof's first star, for a page drawn on the same processor).
     const pixels = (scale: number) => { const full = starPixels(live.current.size, window.devicePixelRatio, scale), want = live.current.software ? Math.min(full, SOFTWARE_PACE.pixels) : full; if (el.width !== want) { el.width = want; el.height = want; } };
@@ -144,6 +145,11 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
       } catch { /* a browser that refuses the read says nothing either way */ proven = true; return; }
       if (checks >= 2) { stopped = true; cancel(); setFailure('empty'); }
     };
+    // Session AW Part 2 (D36, NOVA's slow start): the read-back waits a moment after its frame. Read in the same task as
+    // the draw, it held the page until the GPU had finished that frame (on a runner's software GPU, the whole frame on the
+    // processor: about 200 ms a frame unthrottled); a moment later the frame is done and the 4 × 4 read is quick. The
+    // same frames are read, and the same two empty ones still mean "empty" (the drawing buffer is preserved).
+    const proveSoon = () => { if (proven || proveTimer) return; proveTimer = window.setTimeout(() => { proveTimer = 0; prove(); }, PROVE_AFTER_MS); };
     const draw = (now: number, dt: number, speed: number, detail: number) => {
       if (!gl) return;
       const {state: s, accent: a, beam: b} = live.current, target = STAR_STATE[s], ease = 1 - Math.exp(-dt * 5);
@@ -160,7 +166,7 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
       gl.uniform1f(uniforms.uDetail ?? null, detail); gl.uniform1f(uniforms.uEdge ?? null, live.current.edge);
       gl.uniform3fv(uniforms.uA ?? null, rgb(ca, [0.57, 0.45, 1])); gl.uniform3fv(uniforms.uB ?? null, rgb(cb, [0.14, 0.92, 1])); gl.uniform3fv(uniforms.uC ?? null, rgb(cc, [0.94, 0.43, 1]));
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-      prove();
+      proveSoon();
       countHudFrame();
     };
     /** One still frame for the state as it is now: the eased values jump to their targets (a composed frame, not a frozen one), at full quality. */
@@ -229,7 +235,7 @@ export function StarSystem({state, hud, accent = 'violet', phone = false, size, 
     el.addEventListener('webglcontextlost', lostContext); el.addEventListener('webglcontextrestored', restored);
     start();
     return () => {
-      stopped = true; cancel(); window.clearTimeout(lostTimer); kick.current = () => undefined;
+      stopped = true; cancel(); window.clearTimeout(lostTimer); window.clearTimeout(proveTimer); kick.current = () => undefined;
       window.removeEventListener('keydown', active); window.removeEventListener('pointerdown', active);
       window.removeEventListener('focus', focus); window.removeEventListener('blur', blur);
       document.removeEventListener('visibilitychange', visible); document.removeEventListener('freeze', freeze); document.removeEventListener('resume', resume);

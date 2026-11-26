@@ -1,5 +1,5 @@
 'use client';
-import {firstSeries, firstStat, seriesSummary, type Series, type Stat} from '../../lib/ai/viz';
+import {firstSeries, firstStat, seriesSummary, vizDate, vizNumber, vizUnit, type Series, type Stat, type VizLang} from '../../lib/ai/viz';
 import type {ToolResult} from '../../lib/ai/tools/types';
 import {formatDate, formatNumber} from '../../lib/visual-format';
 import {ChartLookDefs, useChartLook} from '../charts/chart-defs';
@@ -32,14 +32,15 @@ function Line({series, look}: {series: Series; look: ReturnType<typeof useChartL
     {series.points.map((p, i) => <circle key={p.date} cx={x(i)} cy={y(p.value)} r={2} className="ai-viz-dot"/>)}
   </>;
 }
-export function MiniChart({series}: {series: Series}) {
-  const summary = seriesSummary(series), look = useChartLook();
+/** Session AW (fr-answers, FR-AW-10): `lang`, the conversation's language: the caption and the figures' table in Dutch for a Dutch question. */
+export function MiniChart({series, lang = 'en'}: {series: Series; lang?: VizLang}) {
+  const summary = seriesSummary(series, lang), look = useChartLook(), nl = lang === 'nl';
   return <figure className="ai-viz">
     <svg className="zg-chart" viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label={summary} focusable="false">
       {series.shape === 'line' ? <Line series={series} look={look}/> : <Bars series={series}/>}
     </svg>
     <figcaption className="ai-note">{summary}</figcaption>
-    <details className="ai-viz-table"><summary>Show the figures</summary><table><thead><tr><th scope="col">Day</th><th scope="col">{series.unit || 'Value'}</th></tr></thead><tbody>{series.points.map(p => <tr key={p.date}><td>{formatDate(p.date)}</td><td>{formatNumber(p.value)}</td></tr>)}</tbody></table></details>
+    <details className="ai-viz-table"><summary>{nl ? 'Toon de cijfers' : 'Show the figures'}</summary><table><thead><tr><th scope="col">{nl ? 'Dag' : 'Day'}</th><th scope="col">{vizUnit(series.unit, lang) || (nl ? 'Waarde' : 'Value')}</th></tr></thead><tbody>{series.points.map(p => <tr key={p.date}><td>{nl ? vizDate(p.date, 'nl') : formatDate(p.date)}</td><td>{nl ? vizNumber(p.value, 'nl') : formatNumber(p.value)}</td></tr>)}</tbody></table></details>
   </figure>;
 }
 /** A figure from the records, as a small card: the number, what it counts, and where it comes from. */
@@ -50,8 +51,8 @@ export function StatCard({stat}: {stat: Stat}) {
     <small className="ai-stat-source">{stat.source}</small>
   </div>;
 }
-export function DataViz({results}: {results: readonly ToolResult[] | undefined}) {
-  const stat = results ? firstStat(results) : null, series = results ? firstSeries(results) : null;
+export function DataViz({results, lang = 'en'}: {results: readonly ToolResult[] | undefined; lang?: VizLang}) {
+  const stat = results ? firstStat(results, lang) : null, series = results ? firstSeries(results) : null;
   if (!stat && !series) return null;
-  return <div className="ai-data-viz">{stat && <StatCard stat={stat}/>}{series && <MiniChart series={series}/>}</div>;
+  return <div className="ai-data-viz">{stat && <StatCard stat={stat}/>}{series && <MiniChart series={series} lang={lang}/>}</div>;
 }

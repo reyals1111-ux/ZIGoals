@@ -133,6 +133,14 @@
 .journal-calendar-day{border:1px solid color-mix(in srgb,var(--brand-violet) 60%,transparent);background:color-mix(in srgb,var(--brand-violet) 22%,transparent);color:inherit;cursor:pointer;font-weight:650}
 .journal-calendar-empty{color:var(--text-secondary,var(--muted))}
 .journal-calendar-empty[data-today]{outline:1px dashed currentColor;outline-offset:-4px}
+/* Session AW (p5-fixes; QUALITY b1 #9): below 390 px a seven-day row inside a phone card left 34 px per day (320) or 40
+   (360). The month's table takes the card's padding (16 px), its border (1 px) and the page gutter less 4 px (13 px + the
+   gutter; 4 px from each screen edge stays free), with no cell padding, so every day button is 44 × 44. Above 390 px nothing changes. */
+@media (max-width: 389.98px){
+  :root main .panel .journal-calendar-grid{width:calc(100% + 2 * (13px + var(--phone-gutter,16px)));max-width:none;margin-inline:calc(-1 * (13px + var(--phone-gutter,16px)))}
+  :root main .panel .journal-calendar-grid td{padding:0}
+  :root main .panel .journal-calendar-day,:root main .panel .journal-calendar-empty{width:44px;min-width:44px}
+}
 .journal-books{display:grid;gap:12px}
 .journal-books-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 .journal-books-row{display:grid;gap:4px;border-bottom:1px solid var(--line);padding-bottom:8px}
@@ -283,3 +291,51 @@
 .journal-sky-typed .field{flex:1 1 8rem}
 .journal-sky-typed input,.journal-sky-typed button,.journal-sky-settings select{min-height:44px}
 @media (forced-colors:active){.journal-calendar-day[data-met]{border-bottom:3px solid CanvasText;box-shadow:none}}
+/* Session AW (x3; LEDGER #442): the journal's own voice player — Play, 15 s back and forward, the time, the speed. */
+.voice-player{display:grid;gap:6px;min-width:0}
+.voice-player-row,.voice-player-speeds{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.voice-player button{min-height:44px;min-width:44px;font-size:15px}
+.voice-player-play{min-width:5.5rem}
+.voice-player-time{font-size:15px;font-variant-numeric:tabular-nums;color:var(--text)}
+.voice-player-speeds button[aria-pressed="true"]{border-color:var(--brand-cyan);color:var(--text-strong,var(--text))}
+.voice-player-said:empty{display:none}
+.journal-photo-tile.is-audio{grid-column:1/-1;display:grid;gap:6px;padding:8px 10px;border:1px solid var(--line);border-radius:10px}
+.journal-photo-voice-open{justify-self:start;min-height:44px;font-size:15px;font-variant-numeric:tabular-nums}
+/* Session AW (x3; LEDGER #445): the photo of the day on an entry, and "A photo a day" — a month's strip. */
+.journal-entry-photo-actions{display:flex;flex-wrap:wrap;gap:4px}
+.journal-day-photo-mark[aria-pressed="true"]{border-color:var(--brand-cyan);color:var(--text-strong,var(--text))}
+.journal-day-strip{display:grid;gap:8px;margin:4px 0 12px}
+.journal-day-strip h3{margin:0;font-size:16px}
+.journal-day-strip-nav{display:flex;align-items:center;gap:8px}
+.journal-day-strip-nav button{min-height:44px;min-width:44px}
+.journal-day-strip-month{font-size:16px}
+.journal-day-strip-days{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:4px}
+.journal-day-strip-cell{min-width:0;aspect-ratio:1;display:flex}
+.journal-day-strip-cell.is-blank{align-items:center;justify-content:center;border:1px dashed var(--line);border-radius:8px;font-size:14px;color:var(--text)}
+.journal-day-strip-cell.is-future{border-style:dotted}
+.journal-day-strip-open{position:relative;flex:1;display:flex;align-items:center;justify-content:center;min-height:44px;padding:0;overflow:hidden;border-radius:8px;border:1px solid var(--line);background:color-mix(in srgb,var(--brand-violet) 10%,transparent);color:inherit;cursor:pointer}
+.journal-day-strip-open img{width:100%;height:100%;object-fit:cover}
+.journal-day-strip-open:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+.journal-day-strip-n{position:absolute;left:2px;bottom:2px;padding:0 4px;border-radius:5px;font-size:14px;background:color-mix(in srgb,var(--bg) 78%,transparent);color:var(--text)}
+/* Session AW (x3; LEDGER #444): Morning and evening — today's page in two parts. */
+.day-pages{display:grid;gap:10px}
+.day-pages-parts{display:flex;flex-wrap:wrap;gap:6px}
+.day-pages-parts button{min-height:44px}
+.day-pages-parts button[aria-pressed="true"]{border-color:var(--brand-cyan);color:var(--text-strong,var(--text))}
+.day-pages-form{display:grid;gap:8px}
+.day-pages-form textarea{font-size:16px}
+.day-pages-morning{padding:10px 12px;border:1px solid var(--line);border-radius:12px}
+.day-pages-morning-title{margin:0 0 4px;font-weight:600}
+.day-pages-morning dl{margin:0;display:grid;gap:6px}
+.day-pages-morning dt{font-size:15px;font-weight:600}
+.day-pages-morning dd{margin:0;font-size:15px;overflow-wrap:anywhere}
+.day-pages-settings form,.day-pages-reminder{display:grid;gap:8px;margin:8px 0}
+.day-pages-settings button{min-height:44px;justify-self:start}
+.day-pages-time{max-width:12rem}
+.day-pages-time input{min-height:44px;font-size:16px}
+
+/* Session AW (fr-journal, FR-AW-1): the draft's line (as the dream's: a 44 px Discard), and the optional extras after Save
+   entry, set apart by the theme's own line colour (no new colours). */
+.journal-draft-line { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 6px 0; font-size: 15px; }
+.journal-draft-line .text-link { min-height: 44px; }
+.journal-compose-extras { margin-top: 14px; padding-top: 6px; border-top: 1px solid var(--line); }

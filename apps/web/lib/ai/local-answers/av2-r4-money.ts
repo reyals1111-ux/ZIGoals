@@ -45,9 +45,9 @@ const entriesOf = (env: ToolEnv): readonly MoneyEntry[] => env.moneyLog?.entries
 export const moreOf = (env: ToolEnv): MoneyMore | null => (env as ToolEnv & {moneyMore?: MoneyMore | null}).moneyMore ?? ((env.ak as {moneyMore?: MoneyMore | null} | null | undefined)?.moneyMore ?? null);
 const call = (tool: string, args: Record<string, unknown>, label: string) => [{tool, args, label}];
 export const PLACES = {
-  spending: {en: 'Wealth → Spending', nl: 'Vermogen → Uitgaven'},
-  insights: {en: 'Wealth → Spending → Your money over time', nl: 'Vermogen → Uitgaven → Your money over time'},
-  accounts: {en: 'Wealth → Accounts', nl: 'Vermogen → Rekeningen'},
+  spending: {en: 'Wealth → Spending', nl: 'Wealth → Spending'},
+  insights: {en: 'Wealth → Spending → Your money over time', nl: 'Wealth → Spending → Your money over time'},
+  accounts: {en: 'Wealth → Accounts', nl: 'Wealth → Accounts'},
 } as const;
 
 // ── A calendar of the month (#338) ─────────────────────────────────────────────────────────────────────────────────
@@ -160,7 +160,8 @@ const tagsRecordOf = (env: ToolEnv): MoneyTags | null => (env as ToolEnv & {mone
 function savedSearches(a: Asked): LocalReply | null {
   const en = /\bsaved (?:money )?(?:searches|search|queries|query|questions)\b/.test(a.f);
   const nl = /\bopgeslagen (?:zoekopdrachten|zoekopdracht|zoekvragen|vragen)\b|\bbewaarde (?:zoekopdrachten|zoekvragen)\b/.test(a.f);
-  if (!(en || nl)) return null;
+  // Session AW (#441): saved searches of notes are the Notes answer's (aw-x3.ts), in either language.
+  if (!(en || nl) || /\b(?:notes?|notities?|aantekeningen)\b/.test(a.f)) return null;
   const shut = closed(a.env, 'wealth'); if (shut) return shut;
   const list = questionsOf(moreOf(a.env)), entries = entriesOf(a.env), tags = tagsRecordOf(a.env), calls = call('money_more', {questions: true}, 'Money · saved searches');
   if (!list.length) return answer(say(a.lang, `You have no saved searches yet. In ${PLACES.spending.en} → Search all your entries, set your filters and tap "Save this search"; ${PLACES.insights.en} → Saved searches then draws it as a chart, with its total and monthly average.`,
@@ -172,7 +173,7 @@ function savedSearches(a: Asked): LocalReply | null {
     return `${q.name}: ${charts.map(c => say(lang, `${moneyIn(lang, c.total, c.currency)} ${c.figure} since ${dayIn(lang, c.from, a.today)}, ${moneyIn(lang, c.monthly, c.currency)} a month on average`, `${moneyIn(lang, c.total, c.currency)} ${c.figure === 'spent' ? 'uitgegeven' : 'ontvangen'} sinds ${dayIn(lang, c.from, a.today)}, gemiddeld ${moneyIn(lang, c.monthly, c.currency)} per maand`)).join('; ')}`;
   };
   return answer(say(a.lang, `${list.map(q => one('en', q)).join('. ')}. Counted as Wealth → Spending counts; each is drawn in ${PLACES.insights.en} → Saved searches.`,
-    `${list.map(q => one('nl', q)).join('. ')}. Geteld zoals Vermogen → Uitgaven telt; elke staat als grafiek in ${PLACES.insights.nl} → Saved searches.`), calls);
+    `${list.map(q => one('nl', q)).join('. ')}. Geteld zoals Wealth → Spending telt; elke staat als grafiek in ${PLACES.insights.nl} → Saved searches.`), calls);
 }
 add(savedSearches);
 

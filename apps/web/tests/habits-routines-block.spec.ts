@@ -18,8 +18,10 @@ async function showcase(page: Page) {
   await expect(page.getByRole('complementary', {name: 'Showcase data'})).toBeVisible();
 }
 const LAYOUT = 'zigoals:layout:v1';
-const DESKTOP = ['habits:overview', 'habits:consistency', 'habits:list', 'habits:routines', 'habits:rhythm'];
-const PHONE = ['habits:overview', 'habits:list', 'habits:routines', 'habits:consistency', 'habits:rhythm'];
+// Session AW (FR-TJ-7, deliberate): the owner's decision 1e puts your habits first in both default orders; Routines stays
+// right after them (S4), then Today's rhythm, consistency and the weekday rhythm. As strict: each order, item by item.
+const DESKTOP = ['habits:list', 'habits:routines', 'habits:overview', 'habits:consistency', 'habits:rhythm'];
+const PHONE = ['habits:list', 'habits:routines', 'habits:overview', 'habits:consistency', 'habits:rhythm'];
 const order = (page: Page) => page.evaluate(() => [...document.querySelectorAll<HTMLElement>('[data-layout-region="habits:body"]')].map(e => e.dataset.layoutItem));
 const saved = (page: Page) => page.evaluate(key => sessionStorage.getItem(key), LAYOUT);
 async function openHabits(page: Page) {
@@ -86,15 +88,20 @@ test('arrange mode: "Your habits" and "Routines" each have a handle and arrows; 
     await expect(controls).toHaveCount(1);
     await expect(controls).toHaveAttribute('aria-label', `Arrange ${label}`);
     await expect(controls.locator('.layout-handle')).toHaveCount(1);
-    await expect(controls.getByRole('button', {name: `Move ${label} up`, exact: true})).toBeEnabled();
+    // Session AW (FR-TJ-7, deliberate): your habits are the first card now (the owner's decision 1e), so its "up" is the one
+    // arrow off; every other arrow of the two is on. As strict: each arrow's state, stated.
+    if (id === 'habits:list') await expect(controls.getByRole('button', {name: `Move ${label} up`, exact: true})).toBeDisabled();
+    else await expect(controls.getByRole('button', {name: `Move ${label} up`, exact: true})).toBeEnabled();
     await expect(controls.getByRole('button', {name: `Move ${label} down`, exact: true})).toBeEnabled();
   }
-  const up = page.locator('[data-layout-item="habits:routines"] > .layout-controls').getByRole('button', {name: 'Move Routines up', exact: true});
-  await up.focus(); await page.keyboard.press('Enter');
-  const moved = phone ? ['habits:overview', 'habits:routines', 'habits:list', 'habits:consistency', 'habits:rhythm'] : ['habits:overview', 'habits:consistency', 'habits:routines', 'habits:list', 'habits:rhythm'];
+  // Session AW (FR-TJ-7, deliberate): Routines starts right under your habits, so one move puts it above the groups: your
+  // habits moved down (Routines up would leave its own arrow off at the top, with nowhere for the focus to stay).
+  const down = page.locator('[data-layout-item="habits:list"] > .layout-controls').getByRole('button', {name: 'Move Your habits down', exact: true});
+  await down.focus(); await page.keyboard.press('Enter');
+  const moved = ['habits:routines', 'habits:list', 'habits:overview', 'habits:consistency', 'habits:rhythm'];
   await expect.poll(() => order(page)).toEqual(moved);
-  await expect(page.locator('[data-layout-announcer]')).toHaveText(`Moved Routines to position ${phone ? 2 : 3} of 5.`);
-  await expect(up).toBeFocused();
+  await expect(page.locator('[data-layout-announcer]')).toHaveText('Moved Your habits to position 2 of 5.');
+  await expect(down).toBeFocused();
   expect(await saved(page)).toBe(`{"version":1,"pages":{"habits":{"body":{"order":${JSON.stringify(moved)}}}}}`);
   let p = await place(page); expect(p.routines).toBeLessThan(p.groupsTop);
   await page.reload(); await openHabits(page);

@@ -145,3 +145,25 @@ describe('the signal bus (Session AV lane 2, D-CI2025)', () => {
     expect(again).toEqual(['assistant_listening']);
   });
 });
+
+test('Session AW (zigi-states:200, attempt 1): a one-shot shown outside the machine (the push-open greeting, a reminder\'s knock) rests where the machine rests, so the set-up ask is never replaced by a plain idle', async () => {
+  vi.resetModules();
+  const listeners = new Map<string, () => void>();
+  vi.stubGlobal('window', {addEventListener: (type: string, fn: () => void) => listeners.set(type, fn), removeEventListener: (type: string) => listeners.delete(type), setTimeout: () => 0, clearTimeout: () => undefined, sessionStorage: {getItem: () => null, setItem: () => undefined}});
+  vi.stubGlobal('navigator', {onLine: true});
+  try {
+    const {zigiEvents, zigiResting} = await import('../../components/zigi/bus');
+    // Before the machine runs, the rest is idle.
+    expect(zigiResting.get()).toBe('idle');
+    const {startZigiMachine} = await import('../../components/zigi/events');
+    const stop = startZigiMachine();
+    expect(zigiResting.get()).toBe('idle');
+    zigiEvents.emit('attention');
+    expect(zigiResting.get()).toBe('attention');
+    zigiEvents.emit('offline');
+    expect(zigiResting.get()).toBe('offline');
+    zigiEvents.emit('online'); zigiEvents.emit('connected');
+    expect(zigiResting.get()).toBe('idle');
+    stop();
+  } finally { vi.unstubAllGlobals(); }
+});

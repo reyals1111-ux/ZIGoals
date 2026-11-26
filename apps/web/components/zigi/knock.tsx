@@ -16,7 +16,7 @@ import {useHabits} from '../habits/use-habits';
 import {useHealth} from '../health/use-health';
 import {usePlatform} from '../platform/use-platform';
 import {useReminders} from '../reminders/use-reminders';
-import {zigiSignals, zigiState} from './bus';
+import {zigiResting, zigiSignals, zigiState} from './bus';
 import {zigiAliveRunning, zigiController} from './alive';
 import './knock.css';
 
@@ -83,7 +83,7 @@ export function ZigiKnock({away, phone, side}: {away: boolean; phone: boolean; s
     if (zigiAliveRunning()) zigiSignals.emit('reminder_due'); else zigiController.dispatch({type: 'reminder_due'}, now.getTime());
     if (zigiState.get() !== 'reminder') zigiState.set('reminder');
     const root = document.documentElement; root.dataset.zigiKnock = '';
-    window.setTimeout(() => { delete root.dataset.zigiKnock; if (zigiState.get() === 'reminder') zigiState.set('idle'); }, RIPPLE_MS * 2);
+    window.setTimeout(() => { delete root.dataset.zigiKnock; if (zigiState.get() === 'reminder') zigiState.set(zigiResting.get()); }, RIPPLE_MS * 2);
   }, [next]); // eslint-disable-line react-hooks/exhaustive-deps -- one knock per chosen reminder
   // Session AJ (item 13): once the due rules have run against the records and their answer is painted, the page says so
   // (`data-zigi-knock-looked` on <html>), so a check that no knock came reads a fact rather than waiting a fixed time.

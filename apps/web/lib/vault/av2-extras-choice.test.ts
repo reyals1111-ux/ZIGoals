@@ -89,8 +89,9 @@ describe('what the chosen sections carry, pinned', () => {
       expect(r.spec.schema.safeParse(r.spec.empty()).success, r.spec.key).toBe(true);
       expect([r.verbatim, r.syncFields, r.fit], r.spec.key).toEqual([true, undefined, undefined]);
     }
-    expect(EXTRAS_CHOICE_SECTION_LIST.flatMap(s => s.records.flatMap(r => (r.deviceFields ?? []).map(f => `${r.spec.key}#${f}`)))).toEqual(['shareWithAi', 'versions', 'reminder', 'todayLines', 'affirmations'].map(f => `${JOURNAL_KEY}#${f}`));
-    expect(JOURNAL_DEVICE_FIELDS).toEqual(['shareWithAi', 'versions', 'reminder', 'todayLines', 'affirmations']);
+    expect(EXTRAS_CHOICE_SECTION_LIST.flatMap(s => s.records.flatMap(r => (r.deviceFields ?? []).map(f => `${r.spec.key}#${f}`)))).toEqual(['shareWithAi', 'versions', 'reminder', 'todayLines', 'affirmations', /* Session AW (#444, deliberate) */ 'morningReminder'].map(f => `${JOURNAL_KEY}#${f}`));
+    // Session AW (#444, deliberate): the journal's morning reminder is device-only too, as its evening reminder is.
+    expect(JOURNAL_DEVICE_FIELDS).toEqual(['shareWithAi', 'versions', 'reminder', 'todayLines', 'affirmations', 'morningReminder']);
     // Every one of them is a field the journal really has.
     for (const f of JOURNAL_DEVICE_FIELDS) expect(Object.keys(journalSchema.shape)).toContain(f);
   });

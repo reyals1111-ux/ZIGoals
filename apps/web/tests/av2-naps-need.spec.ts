@@ -44,7 +44,8 @@ for (const theme of THEMES) test(`${theme}: naps in the balance and the curve, a
   await expect(curve.getByRole('img')).toHaveAttribute('aria-label', /A small lift after today's nap, ending/);
 
   // The sleep need, an estimate, kept as the goal with Undo.
-  const goal = page.getByRole('region', {name: 'Your sleep goal'});
+  // Session AW (X6, deliberate): Health → Sleep now also holds X6's region "Your sleep goal over 14 days"; this is the goal's own panel, by its exact name.
+  const goal = page.getByRole('region', {name: 'Your sleep goal', exact: true});
   const need = goal.getByRole('group', {name: 'Your sleep need, an estimate'});
   await expect(need).toContainText('8 h 30 min');
   await expect(need).toContainText('the middle of your 8 weekend nights in the last 30 days');

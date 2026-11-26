@@ -141,6 +141,10 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
     if (change(r => { const out = addTopic(r, {title: name, now: new Date().toISOString()}); made = out.note.id; return out.record; }, `“${name}” made. Write in it below.`)) { setNewTitle(''); router.push(noteHref(made)); }
   };
   if (!notes.loaded) return <p className="fine">Loading your notes…</p>;
+  const listFirst = view === 'notes' && !noteId && !capture;
+  const capturePanel = <section className="panel note-capture-panel" aria-label="Capture">
+    <CaptureBox autoFocus={capture} showInboxLink={view !== 'inbox'}/>
+  </section>;
   return <div className="notes-workspace">
     {showcase && <p className="fine">Fictional Showcase notes, labelled as examples.</p>}
     {notes.unreadable && <p role="alert">This device&rsquo;s notes could not be read; they are not written over.</p>}
@@ -150,9 +154,9 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
         {label}{v === 'inbox' && inbox.length > 0 && <><span className="note-tab-count" aria-hidden="true">{inbox.length}</span><span className="sr-only">, {inbox.length} to file</span></>}
       </button>)}
     </nav>
-    <section className="panel note-capture-panel" aria-label="Capture">
-      <CaptureBox autoFocus={capture} showInboxLink={view !== 'inbox'}/>
-    </section>
+    {/* Session AW (simplicity-b, Part 3): in the Notes view "New note" comes first and Capture follows the list (above it,
+        "New note" began 1.05–1.17 screens down); Today, the Inbox and every other view keep Capture at the top. */}
+    {!listFirst && capturePanel}
     {status && <p className="note-status" role="status" aria-live="polite">{status}</p>}
     {madeNote > 0 && !status && <p className="note-status" role="status">{madeNote === 1 ? 'A repeating note was made for this period' : `${madeNote} repeating notes were made for this period`}: see <button type="button" className="text-link" onClick={() => { setMadeNote(0); go({view: 'notes'}); }}>Notes</button>.</p>}
 
@@ -224,6 +228,7 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
         {trashOpen && <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening…</p>}><NotesTrash record={record} change={change}/></Suspense></LoadBoundary>}
       </details>}
     </section>; })()}
+    {listFirst && capturePanel}
 
     {!noteId && view === 'days' && <section className="panel" aria-labelledby="note-days-title">
       <h2 id="note-days-title">Days</h2>

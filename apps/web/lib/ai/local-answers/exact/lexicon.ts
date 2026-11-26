@@ -46,7 +46,9 @@ export const ASK_WORDS: readonly [Ask, RegExp][] = [
   ['last', w('last time|when did i last|when was the last|when was my last|most recent|most recently|latest|laatste keer|voor het laatst|meest recente|wanneer voor het laatst|laatst gedaan')],
   ['next', w('next|upcoming|coming up|volgende|aankomende|eerstvolgende|binnenkort|komende')],
   ['late', w('late|overdue|past due|behind|te laat|achterstallig|verlopen|achter')],
-  ['skipped', w('skip|skipped|skips|skipping|overgeslagen|overslaan|geskipt|oversloeg')],
+  // Session AW (p5-answers, FR-MAX-6): the Dutch split verb, "welke gewoonte sla ik het vaakst over", is skipping too (its
+  // "over" read as what is left, the open habits); "sla … over" within a few words, never "sla op" or "over" alone.
+  ['skipped', new RegExp(`${w('skip|skipped|skips|skipping|overgeslagen|overslaan|geskipt|oversloeg').source}|\\b(?:sla|slaat|sloeg|sloegen)\\b(?: [a-z]+){0,6} over\\b`)],
   ['missed', w('miss|missed|missing|misses|failed|fail|blew|gemist|mis|misgelopen|mislukt|gefaald|misser|missers')],
   ['not-done', w('forgot|forget|forgotten|forgetting|didnt|did not|havent|have not|hasnt|wasnt|not done|not do|not finished|not completed|not completing|undone|without|never|no entry|under my|below my|under goal|below target|short of|fell short|vergeten|vergat|niet|geen|nooit|zonder|onder mijn|onder het doel|onder doel|te weinig')],
   ['best', w('best|most|highest|biggest|largest|longest|strongest|top|record|closest|nearest|beste|meeste|meest|hoogste|grootste|langste|sterkste|dichtst|dichtste')],

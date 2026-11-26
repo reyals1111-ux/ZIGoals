@@ -34,13 +34,49 @@ export function holdInView(target: HTMLElement, ms = 2000, most = 10_000, still:
  * target even when a section above finishes loading just after the jump: ZIGi's settings load on demand and grow by
  * about 900 px, and the browser's own scroll anchoring did not hold the target there.
  */
+/**
+ * Session AW (Part 2; CI run 2034, j06): Settings' lower groups now come from their own chunk, so a jump to one of their
+ * anchors (#notifications) can run before its target exists, and the browser lands nowhere near it. Until the target
+ * appears (ten seconds at most, and never once the person scrolls by wheel, touch or keys, or another jump follows) this
+ * waits for it and lands on it once, instantly (no hold: the late part may scroll to its own anchor). A click (opening
+ * a group) keeps the wait: it does not move the page.
+ */
+const SCROLLS = ['wheel', 'touchstart', 'keydown'] as const;
+export function whenOnPage(id: string, found: (target: HTMLElement) => void, most = 10_000, still: () => boolean = () => true): () => void {
+  const now = document.getElementById(id);
+  if (now) { found(now); return () => {}; }
+  if (typeof MutationObserver !== 'function') return () => {};
+  let stop = () => {};
+  const observer = new MutationObserver(() => {
+    if (!still()) { stop(); return; }
+    const target = document.getElementById(id);
+    if (target) { stop(); found(target); }
+  });
+  const cap = window.setTimeout(() => stop(), most);
+  stop = () => { observer.disconnect(); window.clearTimeout(cap); for (const type of SCROLLS) window.removeEventListener(type, stop); stop = () => {}; };
+  for (const type of SCROLLS) window.addEventListener(type, stop, {passive: true});
+  observer.observe(document.body, {childList: true, subtree: true});
+  return () => stop();
+}
+
 export function KeepSettingsJump() {
   useEffect(() => {
     let stop = () => {};
     const keep = () => {
       stop();
-      const id = hashId(window.location.hash), target = id ? document.getElementById(id) : null;
-      if (target) stop = holdInView(target, undefined, undefined, () => hashId(window.location.hash) === id);
+      const id = hashId(window.location.hash);
+      if (!id) return;
+      const same = () => hashId(window.location.hash) === id;
+      let hold = () => {}, late = false;
+      const wait = whenOnPage(id, target => {
+        // Landed late (its chunk arrived after the jump): put it where the jump would have, once. No hold then: a part
+        // that draws itself late may scroll to its own anchor (ZIGi's section does), and a hold would pull the page back
+        // from it (aw-simplicity-c, the local re-run). A target already there is held as before.
+        if (late) { target.scrollIntoView({block: 'start', behavior: 'instant'}); return; }
+        hold = holdInView(target, undefined, undefined, same);
+      }, undefined, same);
+      late = true;
+      stop = () => { wait(); hold(); };
     };
     window.addEventListener('hashchange', keep);
     if (window.location.hash) keep();

@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {AI_SETTINGS_KEY, DEFAULT_LAUNCHER_RECORD, readLauncherRecord} from './launcher-record';
+import {AI_SETTINGS_KEY, DEFAULT_LAUNCHER_RECORD, readLauncherRecord, setupAsked} from './launcher-record';
 import {defaultAiSettings, readAiSettings, updateAiSettings} from './settings';
 import {launcherApp} from './apps';
 
@@ -31,4 +31,25 @@ describe('the launcher record (follow-up part A)', () => {
     expect(launcherApp({...DEFAULT_LAUNCHER_RECORD, enabled: false, mode: 'api', provider: 'openai'})).toBeNull();
     expect(launcherApp({...DEFAULT_LAUNCHER_RECORD, enabled: true, mode: 'api', provider: 'nope'})).toBeNull();
   });
+});
+
+describe('Session AW (D-ZIGI200, attempt 2): setupAsked, the set-up ask from the launcher\'s first paint', () => {
+  const store = (v: unknown) => ({getItem: (k: string) => k === 'zigoals:ai:v1' ? (typeof v === 'string' ? v : JSON.stringify(v)) : null});
+  it('asks only while ZIGi is on with no provider or no model; anything else, or unreadable, does not ask', () => {
+    expect(setupAsked(store({version: 1, enabled: true, provider: 'local', model: null}))).toBe(true);
+    expect(setupAsked(store({version: 1, enabled: true, provider: null, model: 'mock-chat'}))).toBe(true);
+    expect(setupAsked(store({version: 1, enabled: true, provider: 'local', model: 'mock-chat'}))).toBe(false);
+    expect(setupAsked(store({version: 1, enabled: false, provider: null, model: null}))).toBe(false);
+    expect(setupAsked(store({version: 2, enabled: true, provider: null, model: null}))).toBe(false);
+    expect(setupAsked(store('{not json'))).toBe(false);
+    expect(setupAsked({getItem: () => null})).toBe(false);
+    expect(setupAsked({getItem: () => { throw new Error('blocked'); }})).toBe(false);
+  });
+});
+it('Session AW (D-ZIGI200): setupAsked agrees with the full reader the machine uses (alive.ts watchSetup), record by record', () => {
+  for (const patch of [{}, {enabled: true}, {enabled: true, provider: 'local' as const}, {enabled: true, provider: 'local' as const, model: 'mock-chat'}, {enabled: true, model: 'mock-chat'}]) {
+    const value = JSON.stringify({...defaultAiSettings(), ...patch}), storage = {getItem: (k: string) => k === AI_SETTINGS_KEY ? value : null};
+    const {data} = readAiSettings(storage);
+    expect(setupAsked(storage), JSON.stringify(patch)).toBe(data.enabled && (!data.provider || !data.model));
+  }
 });

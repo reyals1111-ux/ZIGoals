@@ -1,5 +1,6 @@
 import {addLocalDays} from './local-date';
 import {monthDueDates, nextPayday as nextPaydayOf} from './bills/month';
+import {billTo} from './bills/ends-core';
 import type {BillsRecord} from './bills/schema';
 import {monthKey, monthView, shiftMonth} from './budgets/engine';
 import {MAX_CHALLENGES, MAX_WATCHED, type BudgetsRecord} from './budgets/schema';
@@ -141,7 +142,7 @@ export function yearRecap(entries: readonly MoneyEntry[], bills: BillsRecord | n
     for (const p of mineParts(e)) r.cats.set(p.category, (r.cats.get(p.category) ?? 0) + p.cents);
   }
   for (const b of bills?.bills ?? []) {
-    const since = b.createdAt.slice(0, 10) > `${year}-01-01` ? b.createdAt.slice(0, 10) : `${year}-01-01`, dates = since > end ? [] : monthDueDates(b.nextDue, b.cadence, since, end, addLocalDays(end, 1));
+    const since = b.createdAt.slice(0, 10) > `${year}-01-01` ? b.createdAt.slice(0, 10) : `${year}-01-01`, dates = since > end ? [] : monthDueDates(b.nextDue, b.cadence, since, billTo(b, end), addLocalDays(end, 1)); /* Session AW X7 (#462): none after a bill's last payment */
     if (!dates.length) continue;
     const r = get(b.currency); r.bills.cents += cents(b.amount) * dates.length; r.bills.count += dates.length;
   }

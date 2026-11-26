@@ -8,6 +8,26 @@ import { loadShowcase } from "../../lib/showcase";
 import { markOnboardingSeen } from "../../lib/onboarding";
 
 /**
+ * Session AW Part 3 (simplicity c): beside the setup, one tap to the daily thing each kind of person comes for (the friends'
+ * personas: Sanne's habit, Tom's spending, Lina's meal, Max's workout, Jules's journal), so the first daily action is two or
+ * three taps from a first visit, setup or not. The links open each page's own form; nothing is written until the person
+ * saves there. Inside the welcome's own card (no new card); every link a 44 px target.
+ */
+export const QUICK_STARTS: readonly [label: string, href: string][] = [
+  ["Add a habit", "/app/habits?add=habit"],
+  ["Log spending", "/app/wealth#log-spending"],
+  ["Log a meal", "/app/health?add=entry"],
+  ["Start a workout", "/app/health?view=workouts"],
+  ["Write in the Journal", "/app/journal#journal-write"],
+];
+function QuickStarts({ id }: { id: string }) {
+  return <div className="onboarding-quick" role="group" aria-labelledby={`${id}-quick`}>
+    <p id={`${id}-quick`}>Or start with one thing you do every day:</p>
+    <ul>{QUICK_STARTS.map(([label, href]) => <li key={href}><Link className="text-link" href={href}>{label}</Link></li>)}</ul>
+  </div>;
+}
+
+/**
  * Today's welcome for a brand-new device (Session E). Shown only when TodayDashboard finds no records, no account and
  * no Showcase; "Skip setup" and "Explore the demo" write only the device-only seen flag.
  */
@@ -31,6 +51,7 @@ export function WelcomeCard({ demoAvailable, onDismiss }: { demoAvailable: boole
       <button type="button" className="secondary" disabled={!demoAvailable} onClick={() => { markOnboardingSeen(window.localStorage); void loadShowcase().then(() => window.location.assign("/app"), () => undefined); }}>Explore the demo</button>
       <button type="button" className="text-link" onClick={() => { markOnboardingSeen(window.localStorage); onDismiss(); }}>{/* Session AL fifth pass (N-NB-01): "Skip …" as every setup step says it (was "Not now") */}Skip setup</button>
     </div>
+    <QuickStarts id={id}/>
   </section>
   {!inView && !barClosed && <div className="welcome-phone-bar" role="region" aria-label="Set up ZIGoals">
     <Link className="welcome-phone-start" href="/app/welcome">Set up in a minute · Start <span aria-hidden="true">›</span></Link>
@@ -52,5 +73,6 @@ export function FirstRunEntry({ demoAvailable }: { demoAvailable: boolean }) {
       <Link className="primary" href="/app/welcome">Start setup</Link>
       {demoAvailable && <button type="button" className="secondary" onClick={() => { markOnboardingSeen(window.localStorage); void loadShowcase().then(() => window.location.assign("/app"), () => undefined); }}>Explore the demo</button>}
     </div>
+    <QuickStarts id={id}/>
   </section>;
 }

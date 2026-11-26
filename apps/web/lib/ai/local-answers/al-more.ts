@@ -1,4 +1,5 @@
 import {formatNumber} from '../../visual-format';
+import {onBalanceDayWords} from '../../accounts/net-worth';
 import type {ToolEnv} from '../tools/env';
 import {text as clean} from '../tools/format';
 import {runTool} from '../tools/registry';
@@ -6,7 +7,9 @@ import type {ToolOk} from '../tools/types';
 import type {LocalReply} from './engine';
 import {amount, dayText, localQty, nlDayText} from './words';
 import {MEMORY_CATEGORIES} from '../store/records';
-import {allowHealth, novaEnvInfo, novaHealthClosed} from './nova-env';
+import {novaEnvInfo} from './nova-env';
+import {healthSharedText} from './aw-fr-health-shared';
+
 import {taskIntent} from '../../tasks/intent';
 import {addLocalDays as addDays} from '../../local-date';
 import {checklistAnswer, isChecklistAsk} from './al-fourth';
@@ -150,9 +153,7 @@ const TRUST: readonly {re: RegExp; answer: (env: ToolEnv | null, lang: Lang) => 
   {re: /\b(?:can|do|could) you (?:see|read|access|use)\b[^.?!]{0,20}\bhealth\b|\bdo you have (?:access to )?my health\b|\bis (?:my )?health shared\b/i,
     // Session AU (D-ALLOW-HEALTH): not shared, one button to where it is allowed (nova-env.ts `allowHealth`): Settings → ZIGi on
     // ZIGi's panel; on NOVA its own words, naming NOVA → Permissions (NOVA's chat makes that its button).
-    answer: (env, lang) => env?.health ? say(lang, 'Yes: Health is shared with me on this device right now, so I can read your diary, water, sleep and the rest when you ask. Settings → ZIGi → Include Health turns it off.', 'Ja: Health is nu op dit apparaat met mij gedeeld, dus ik kan je dagboek, water, slaap en de rest lezen als je het vraagt. Settings → ZIGi → Include Health zet het uit.') + open('settings', 'zigi')
-      : env && novaEnvInfo(env) ? novaHealthClosed(novaEnvInfo(env)!, lang)
-        : say(lang, 'No: Health is not shared with me now, so I don’t read your diary, water, sleep or weight. To share it, turn on Settings → ZIGi → Include Health, with Health on in Your pages.', 'Nee: Health is nu niet met mij gedeeld, dus ik lees je dagboek, water, slaap of gewicht niet. Zet Settings → ZIGi → Include Health aan om het te delen.') + allowHealth(env, lang)},
+    answer: (env, lang) => healthSharedText(env, lang)},
   {re: /\b(?:are|is) you (?:connected|using|running on|powered by)\b|\bwhich (?:ai|model|llm)\b|\bdo you use (?:an? )?(?:ai|model|llm|chatgpt)\b|\bare you (?:an? )?(?:ai|llm|chatgpt|gpt|claude|gemini)\b|\bwhat model\b/i,
     answer: (_env, lang) => say(lang, 'No AI is connected right now: this answer was made on this device from your own records, and nothing was sent anywhere. You can connect your own AI (a model on this computer, or a key of yours) in Settings → ZIGi; it then answers what the device can’t.', 'Er is nu geen AI verbonden: dit antwoord is op dit apparaat gemaakt uit je eigen gegevens, en er is niets verstuurd. Je kunt je eigen AI koppelen in Settings → ZIGi; die beantwoordt dan wat het apparaat niet kan.'), page: ['settings', 'zigi']},
   {re: /\b(?:can|could|will) you (?:delete|remove|erase|clear)\b|\bdelete (?:my|this|that|the) (?:goal|habit|task|entry|record|account)\b/i,
@@ -199,7 +200,7 @@ export function alMoreAnswer(question: string, env: ToolEnv | null, lang: Lang):
     const r = run('accounts', {}, env); if (!r.result.ok) return {kind: 'refusal', text: r.result.refusal, calls: [r.record]};
     const debts = ((dataOf(r.result).accounts ?? []) as Data[]).filter(a => a.debt);
     if (!debts.length) return {kind: 'answer', text: say(lang, 'No debt is recorded on this device. A loan, a mortgage or a credit card goes under Wealth → Accounts, debts & net worth.', 'Er is op dit apparaat geen schuld vastgelegd. Een lening, hypotheek of creditcard voeg je toe onder Wealth → Accounts, debts & net worth.') + open('wealth'), calls: [r.record]};
-    return {kind: 'answer', text: [say(lang, `Your debts on this device (${debts.length}), each in its own currency:`, `Je schulden op dit apparaat (${debts.length}), elk in zijn eigen valuta:`), ...debts.map(d => `• ${clean(String(d.name), 60)} (${d.kind}): ${money(d.latest)} ${say(lang, 'owed', 'open')}${d.asOf ? ` (${d.asOf})` : ''}${d.yourRatePercent ? `, ${d.yourRatePercent}% ${say(lang, 'rate', 'rente')}` : ''}`), say(lang, 'As Wealth → Accounts shows them; information, not advice.', 'Zoals Wealth → Accounts ze toont; informatie, geen advies.')].join('\n'), calls: [r.record]};
+    return {kind: 'answer', text: [say(lang, `Your debts on this device (${debts.length}), each in its own currency:`, `Je schulden op dit apparaat (${debts.length}), elk in zijn eigen valuta:`), ...debts.map(d => `• ${clean(String(d.name), 60)} (${d.kind}): ${money(d.owedAfterPayments ?? d.latest) /* Session AW (fr-money, FR-AW-3): as Wealth's row, payments since included */} ${say(lang, 'owed', 'open')}${d.asOf ? ` (${d.owedAfterPayments ? say(lang, `${d.asOf}, less ${d.paymentsSince === 1 ? '1 payment' : `${d.paymentsSince} payments`} since`, `${d.asOf}, min ${d.paymentsSince === 1 ? '1 betaling' : `${d.paymentsSince} betalingen`} sindsdien`) : d.asOf}${d.paymentsOnBalanceDay ? `; ${onBalanceDayWords(d.paymentsOnBalanceDay, lang)}` : ''})` : ''}${d.yourRatePercent ? `, ${d.yourRatePercent}% ${say(lang, 'rate', 'rente')}` : ''}`), say(lang, 'As Wealth → Accounts shows them; information, not advice.', 'Zoals Wealth → Accounts ze toont; informatie, geen advies.')].join('\n'), calls: [r.record]};
   }
   if (BUDGETS.test(q) && !/\b(?:advice|should)\b/i.test(q)) {
     const r = run('budgets', {}, env); if (!r.result.ok) return {kind: 'refusal', text: r.result.refusal, calls: [r.record]};

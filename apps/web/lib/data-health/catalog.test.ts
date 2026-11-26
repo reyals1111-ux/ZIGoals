@@ -1,12 +1,17 @@
 import {describe, expect, it} from 'vitest';
 import {EVERYTHING_KEYS} from '../export/everything';
-import {DEVICE_ONLY, SYNCED, recoveryCopies, recoveryCopyEntry, storedBytes} from './catalog';
+import {DEVICE_ONLY, KEPT_NOT_EXPORTED, SYNCED, recoveryCopies, recoveryCopyEntry, storedBytes} from './catalog';
 
 describe('Data health catalog (Session AA-Cloud Part 6)', () => {
   it('labels every key Export everything reads, each once, synced or this device only', () => {
     const keys = [...SYNCED, ...DEVICE_ONLY].map(e => e.key);
     expect(new Set(keys).size).toBe(keys.length);
-    expect([...keys].sort()).toEqual([...EVERYTHING_KEYS].sort());
+    // Session AW (X7, #461, deliberate): the catalogue also names Removed recently, which Export everything leaves out on
+    // purpose; exactly that one key, never an exported one, so every exported key is still labelled once.
+    // Session AW (FR-AW-1, deliberate): the Journal's unsaved draft joins Removed recently (was: Removed recently alone).
+    expect(KEPT_NOT_EXPORTED).toEqual(['zigoals:money-removed:v1', 'zigoals:journal-draft:v1']);
+    for (const key of KEPT_NOT_EXPORTED) expect(EVERYTHING_KEYS).not.toContain(key);
+    expect([...keys].sort()).toEqual([...EVERYTHING_KEYS, ...KEPT_NOT_EXPORTED].sort());
     for (const e of [...SYNCED, ...DEVICE_ONLY]) expect(e.label.length).toBeGreaterThan(3);
   });
   it('Session AB-Cloud: every key the extras sections carry is listed as synced, Health\'s under its consent; photos, recent searches and the welcome\'s setup stay device-only', async () => {

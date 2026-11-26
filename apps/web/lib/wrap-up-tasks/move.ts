@@ -2,6 +2,7 @@ import {addLocalDays} from '../local-date';
 import {openTasks, taskState} from '../tasks/engine';
 import {taskSchema, tasksSchema, type Task, type Tasks} from '../tasks/schema';
 import {isOutOfPlay} from '../tasks/focus';
+import {countMove} from '../tasks/moved';
 
 /**
  * Session AK (BUILD list 2 #14, lane G1a): "What's moving to tomorrow" in the evening wrap-up. The tasks still open on
@@ -17,10 +18,13 @@ const replace = (rec: Tasks, id: string, change: (t: Task) => Record<string, unk
   if (!rec.tasks.some(t => t.id === id)) throw new Error('That task is no longer on this device.');
   return tasksSchema.parse({...rec, tasks: rec.tasks.map(t => t.id === id ? taskSchema.parse(change(t)) : t)});
 };
-/** Moves a task's day to `tomorrow` (its time, priority and goal stay). */
+/**
+ * Moves a task's day to `tomorrow` (its time, priority and goal stay). Session AW (X2, LEDGER #433): a one-off task's day
+ * put off to a later day counts as a move (lib/tasks/moved.ts); Undo (`putTaskBack`) puts the count back with the task.
+ */
 export const moveTaskDue = (rec: Tasks, id: string, tomorrow: string): Tasks => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(tomorrow)) throw new Error('That day cannot be used.');
-  return replace(rec, id, t => ({...t, due: tomorrow}));
+  return replace(rec, id, t => { const moved = countMove(t, tomorrow); return {...t, due: tomorrow, ...(moved ? {moved} : {})}; });
 };
 /** Lets a task go for now: it stays in Tasks with no day (and so no time). */
 export const letTaskGo = (rec: Tasks, id: string): Tasks => replace(rec, id, t => { const {due: _d, time: _t, ...rest} = t; void _d; void _t; return rest; });

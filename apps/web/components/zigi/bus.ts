@@ -84,6 +84,14 @@ const idle = (): ZigiState => 'idle';
 /** ZIGi's current state, for the launcher's figure and the panel's avatar (idle until the machine says otherwise). */
 export function useZigiState(): ZigiState { return useSyncExternalStore(zigiState.subscribe, zigiState.get, idle); }
 /**
+ * Session AW (zigi-states:200): the state ZIGi rests in right now — "attention" while ZIGi is on but not set up, "offline"
+ * without a connection, else "idle". The machine (events.ts) tells it; before the machine runs it is "idle". A one-shot
+ * shown outside the machine (the push-open greeting, a reminder's knock) rests here, never on a plain "idle" that would
+ * hide the setup ask.
+ */
+let restingNow: () => ZigiState = idle;
+export const zigiResting = {get: (): ZigiState => restingNow(), set(read: () => ZigiState): void { restingNow = read; }};
+/**
  * Session X-Local Part 1: the files that show each state right now, published by the alive chunk from the manifest, the
  * chosen skin and the motion setting: a poster (the still frame, 1× and 2×), while motion is allowed the animated file
  * the browser can play, and whether the clip is the state's own (then the CSS move rests while it plays) or a worn one

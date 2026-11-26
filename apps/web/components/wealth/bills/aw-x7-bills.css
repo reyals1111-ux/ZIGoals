@@ -1,0 +1,6 @@
+/* Session AW X7 (LEDGER #462): a bill's "Ends" fields and its "3 of 24 left" line. Layout only: no new colours. */
+.bills-ends { border-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 8px 10px; align-items: end; min-width: 0; }
+.bills-ends > legend { font-weight: 600; font-size: 15px; padding: 0; margin-bottom: 4px; }
+.bills-ends select, .bills-ends input { min-height: 44px; font-size: 16px; width: 100%; box-sizing: border-box; }
+.bills-ends > p { grid-column: 1 / -1; margin: 0; }
+.bills-ends-line { display: block; font-size: 15px; }

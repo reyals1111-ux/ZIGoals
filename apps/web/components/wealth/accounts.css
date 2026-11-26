@@ -17,7 +17,9 @@
 .accounts-bars i.owe { opacity: .35; }
 .accounts-group h3 { font-size: 1rem; margin: 16px 0 6px; }
 .accounts-list { list-style: none; padding: 0; margin: 0; display: grid; }
-.accounts-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; padding: 12px 0; border-top: 1px solid #a6c1fa20; }
+/* Session AW (persona re-walk, 390): the balance column is capped at half the row (it was auto). A debt's "… after 1 payment since
+   (until your next statement)" line grew it to its full width, squeezed the name column to 0 px and drew over it. */
+.accounts-row { display: grid; grid-template-columns: minmax(0, 1fr) fit-content(50%); gap: 6px 16px; padding: 12px 0; border-top: 1px solid #a6c1fa20; }
 .accounts-row-main, .accounts-row-balance { display: grid; gap: 2px; min-width: 0; }
 .accounts-row-balance { text-align: right; }
 .accounts-row > .actions, .accounts-row > form, .accounts-row > details { grid-column: 1 / -1; margin: 0; }

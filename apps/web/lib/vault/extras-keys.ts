@@ -11,10 +11,10 @@ export const EXTRAS_CHOICE_KEY = 'zigoals:extras-sync-choice:v1';
 export const EXTRAS_OPTIONAL_SECTIONS = ['checklist', 'nova'] as const;
 /** Every device key the extras sections carry: an edit to one schedules a sync, like a module edit. */
 export const EXTRAS_DEVICE_KEYS: readonly string[] = [
-  'zigoals:goal-extras:v1', 'zigoals:average-goals:v1',
+  'zigoals:goal-extras:v1', 'zigoals:average-goals:v1', /* Session AW (#447) */ 'zigoals:goal-repeat:v1',
   'zigoals:calculator:v1', 'zigoals:life-review:v1', 'zigoals:today-cards:v1', 'zigoals:reminders-plan:v1',
   'zigoals:habit-extras:v1', 'zigoals:routine-run:v1', 'zigoals:game:v1',
-  'zigoals:health-coach:v1', 'zigoals:micro-targets:v1', 'zigoals:macro-mode:v1', 'zigoals:aisles:v1', 'zigoals:measurements-custom:v1', 'zigoals:health-vitamins:v1',
+  'zigoals:health-coach:v1', 'zigoals:micro-targets:v1', 'zigoals:macro-mode:v1', 'zigoals:aisles:v1', 'zigoals:measurements-custom:v1', 'zigoals:health-vitamins:v1', /* Session AW (1a) */ 'zigoals:activity-extras:v1',
   // Session AK (8.10, AFL8): the Checklist section.
   'zigoals:checklist:v1', 'zigoals:checklist-days:v1',
   // Session AM (ADR-038 D18): the NOVA section (of `zigoals:nova:v1` only the layout and the pinned widgets travel).

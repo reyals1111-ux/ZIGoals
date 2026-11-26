@@ -28,7 +28,7 @@ import { createAllocatedGoal } from "../../lib/wealth";
 import { localDate } from "../../lib/local-date";
 import { loadShowcase } from "../../lib/showcase";
 import { markOnboardingSeen } from "../../lib/onboarding";
-import { FOCUSES, LANDING_NOTE, ONBOARDING_SETUP, PROFILE_NAME, SAVING_HABIT, cleanProfileName, focusHabitInput, focusHabitRhythm, focusHabitTemplate, focusStarter, setupUndoable, suggestionsFor, type FocusId } from "../../lib/onboarding-setup";
+import { FOCUSES, LANDING_NOTE, ONBOARDING_SETUP, PROFILE_NAME, SAVING_HABIT, cleanProfileName, focusHabitInput, focusHabitRhythm, focusHabitTemplate, focusStarter, setupUndoable, suggestedSleepGoal, suggestionsFor, type FocusId } from "../../lib/onboarding-setup";
 import { setHabitState } from "../../lib/habits";
 import { readDeviceRecord, updateDeviceRecord } from "../../lib/device-record";
 import { WIDGET_CATALOG, removeWidget, saveWidget, type WidgetKind } from "../../lib/dashboard-settings";
@@ -182,16 +182,20 @@ export function OnboardingFlow() {
   const also = pickedHabits.length || extraHabits.length ? ["habits" as const] : [];
   const shown = pagesShownFor(pillars, currentPages, also);
   const pagesChange = pagesForPillars(pillars, new Date(0).toISOString(), currentPages, also) !== null;
-  const showGoal = !pillars.length || pillars.includes("goals-money"), showHealth = !pillars.length || pillars.includes("health-food") || pillars.includes("sleep-mind"), showSleep = !pillars.length || pillars.includes("sleep-mind");
+  const showGoal = !pillars.length || pillars.includes("goals-money"), showHealth = !pillars.length || pillars.includes("health-food") || pillars.includes("sleep-mind"), showSleep = !pillars.length || pillars.includes("sleep-mind") || focuses.includes("sleep");
   // Session AH (TO4, N-094): the targets follow the habits picked above (Walk is 8,000 steps a day, Drink water 2 L)
   // until the person chooses a target themselves.
-  const touched = useRef({steps: false, water: false});
+  // Session AW (FR-AW-7): the sleep goal likewise follows the "Sleep better" focus (8 h, said as a suggestion) until a
+  // length or "No sleep goal" is chosen by hand; it is shown with that focus even when "Sleep & mind" was not picked.
+  const touched = useRef({steps: false, water: false, sleep: false});
+  const sleepSuggestion = suggestedSleepGoal(focuses), sleepSuggested = !touched.current.sleep && sleepSuggestion !== null && sleepGoal === sleepSuggestion;
   const pickedTitles = [...pickedHabits.map(t => t.title), ...extraHabits].map(t => t.toLowerCase()).join("|");
   useEffect(() => {
     const titles = pickedTitles.split("|");
     if (!touched.current.steps) setSteps(titles.includes("walk") ? 8000 : null);
     if (!touched.current.water) setWater(titles.includes("drink water") ? 2000 : null);
   }, [pickedTitles]);
+  const pickSleep = (minutes: number | null) => { touched.current.sleep = true; setSleepGoalChoice(minutes); };
   // Session AL (P-NB-09; NB-011): the wizard's step and picks survive a reload in this tab (session storage, cleared on
   // Finish, Skip setup and Explore the demo); read after mount, so the server's first render and the client's agree.
   // Fourth pass (NB-011 en-GB): writing waits for the render that holds the restored picks. In any locale but en-US the
@@ -213,6 +217,7 @@ export function OnboardingFlow() {
     const wanted = starters.filter(t => suggested.habits.some(h => h.toLowerCase() === t.title.toLowerCase())).map(t => t.id);
     setHabitIds(list => [...new Set([...list, ...wanted])]);
     if (suggested.goal && !draft.category && showGoal) setDraft(d => ({...d, category: suggested.goal!.category, name: suggested.goal!.name}));
+    if (!touched.current.sleep) setSleepGoalChoice(sleepSuggestion);
     go("starters");
   }
   async function undoSetup() {
@@ -309,7 +314,10 @@ export function OnboardingFlow() {
       const kept = cleanProfileName(name);
       if (kept) { try { updateDeviceRecord(getAppStorage(), PROFILE_NAME, () => ({version: 1 as const, name: kept, at})); } catch { /* a name is a nicety */ } }
       // Written only when the setup made something; choosing nothing anywhere leaves only the seen flag behind.
-      if (createdHabitIds.length || goal || createdWidgetIds.length) { try { updateDeviceRecord(getAppStorage(), ONBOARDING_SETUP, () => ({version: 1 as const, at, habitIds: createdHabitIds, ...(goal ? {goalId: goal.id} : {}), widgetIds: createdWidgetIds, focuses, ...(pageFlips.length ? {pages: pageFlips} : {})})); } catch { /* the undo is a convenience */ } }
+      // Session AW Part 3 (simplicity c; local spec run): the focuses are kept even when every suggestion was skipped, so
+      // "Your first five" still puts the person's daily step first; with nothing created there is nothing to undo
+      // (setupUndoable), so the landing's Undo stays away.
+      if (createdHabitIds.length || goal || createdWidgetIds.length || focuses.length) { try { updateDeviceRecord(getAppStorage(), ONBOARDING_SETUP, () => ({version: 1 as const, at, habitIds: createdHabitIds, ...(goal ? {goalId: goal.id} : {}), widgetIds: createdWidgetIds, focuses, ...(pageFlips.length ? {pages: pageFlips} : {})})); } catch { /* the undo is a convenience */ } }
       markOnboardingSeen(window.localStorage); writeWelcomeDraft(null);
       // Session AK P4 (FR-4): Today greets the finished setup with "You're set" and moves the focus to it, once (tab only).
       if (createdHabitIds.length || goal) { try { window.sessionStorage.setItem(LANDING_NOTE, at); } catch { /* the card still shows; only the focus waits */ } }
@@ -405,7 +413,7 @@ export function OnboardingFlow() {
         </fieldset>
         {/* Session AL (P-NB-11; NB-007, NB-035): the count, and the cap said, not a silent fourth tap. */}
         <p className="onboarding-count" aria-live="polite">{focuses.length} of 3 chosen{focuses.length >= 3 ? " · that’s the most for now: untick one to pick another" : ""}</p>
-        <p className="fine onboarding-shown" aria-live="polite">{focuses.length ? `Suggested: ${[...suggested.habits, ...(suggested.goal ? [`the goal “${suggested.goal.name}”`] : [])].join(", ") || "widgets on Today"}.` : "Skip this and choose by hand on the next step."}</p>
+        <p className="fine onboarding-shown" aria-live="polite">{focuses.length ? `Suggested: ${[...suggested.habits, ...(suggested.goal ? [`the goal “${suggested.goal.name}”`] : []), ...(sleepSuggestion !== null ? [`a sleep goal of ${formatMinutes(sleepSuggestion)}`] : [])].join(", ") || "widgets on Today"}.` : "Skip this and choose by hand on the next step."}</p>
         <div className="onboarding-actions"><button type="button" className="primary" onClick={leaveFocuses}>{focuses.length ? "Continue" : "Skip this step"}</button>{back("pillars")}</div>
       </>}
 
@@ -445,10 +453,10 @@ export function OnboardingFlow() {
         </fieldset>}
         {showSleep && <fieldset className="onboarding-targets"><legend>A sleep goal (optional)</legend>
           <div className="onboarding-choices" role="radiogroup" aria-label="Sleep goal">
-            <Choice type="radio" name="onboarding-sleep" checked={sleepGoal === null} onChange={() => setSleepGoalChoice(null)} label="No sleep goal" />
-            {SLEEP_GOALS.map(m => <Choice key={m} type="radio" name="onboarding-sleep" checked={sleepGoal === m} onChange={() => setSleepGoalChoice(m)} label={`${formatMinutes(m)} asleep`} />)}
+            <Choice type="radio" name="onboarding-sleep" checked={sleepGoal === null} onChange={() => pickSleep(null)} label="No sleep goal" />
+            {SLEEP_GOALS.map(m => <Choice key={m} type="radio" name="onboarding-sleep" checked={sleepGoal === m} onChange={() => pickSleep(m)} label={`${formatMinutes(m)} asleep`} note={m === sleepSuggestion ? "Suggested for your focus “Sleep better”" : undefined} />)}
           </div>
-          <p className="fine">Your own aim for Health → Sleep, where you can add a bedtime window. Not advice.</p>
+          <p className="fine">{sleepSuggested ? "Picked as a suggestion: choose another length or “No sleep goal” if it does not fit. " : ""}Your own aim for Health → Sleep, where you can add a bedtime window. Not advice.</p>
         </fieldset>}
         {error && <p role="alert">{error}</p>}
         <div className="onboarding-actions"><button type="button" className="primary" onClick={() => { if (checkGoal()) go("tour"); }}>Continue</button>{back("focuses")}</div>

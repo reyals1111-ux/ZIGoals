@@ -16,6 +16,7 @@ import {listWords, t} from './text';
 import {periodFor, trackAnswer, type Track} from './track';
 import type {Ask, Exact, ExactWidget, Lang, Query} from './types';
 import {isFinished} from '../../../tasks/finished';
+import {averageFiguresNl, averageGoalOf, nlCountUnit} from '../aw-p5-goal-line';
 
 /**
  * Session AS (ADR-042, Part 1): the day's own records, exactly — tasks, the journal, focus, notes, the agenda, the
@@ -95,7 +96,11 @@ export function tasksAnswer(q: Query, env: ToolEnv): Exact | null {
   }
   if (q.ask === 'late' || q.ask === 'missed' || q.ask === 'not-done') return out(overdue.length ? t(lang, `${overdue.length} ${overdue.length === 1 ? 'task is' : 'tasks are'} overdue: ${listWords(overdue.map(name), 'en')}.`, `${overdue.length} ${overdue.length === 1 ? 'taak is' : 'taken zijn'} te laat: ${listWords(overdue.map(name), 'nl')}.`) : t(lang, `No task is overdue (${open.length} open).`, `Geen taak is te laat (${open.length} open).`), base, [{id: 'task-overdue', fallback: 'tasks'}, ...timeline]);
   // Due on a day or in the days ahead ("tomorrow", "this week"): open tasks by their day.
-  const ahead = /\b(?:tomorrow|morgen)\b/.test(q.read) ? [addLocalDays(today, 1), addLocalDays(today, 1), t(lang, 'tomorrow', 'morgen')] as const : /\b(?:this week|deze week|week)\b/.test(q.read) ? [today, addLocalDays(weekStart(today), 6), t(lang, 'the rest of this week', 'de rest van deze week')] as const : /\b(?:today|vandaag)\b/.test(q.read) ? [today, today, t(lang, 'today', 'vandaag')] as const : null;
+  // Session AW (fr-answers, FR-AW-6): next week and the week ahead too; a task's day is recorded today, so a day ahead is read.
+  const ahead = /\b(?:tomorrow|morgen)\b/.test(q.read) ? [addLocalDays(today, 1), addLocalDays(today, 1), t(lang, 'tomorrow', 'morgen')] as const
+    : /\b(?:next week|volgende week)\b/.test(q.read) ? [addLocalDays(weekStart(today), 7), addLocalDays(weekStart(today), 13), t(lang, 'next week', 'volgende week')] as const
+    : /\b(?:week ahead|coming week|next 7 days|next seven days|komende week|komende 7 dagen|de week die komt)\b/.test(q.read) ? [addLocalDays(today, 1), addLocalDays(today, 7), t(lang, 'in the next 7 days', 'de komende 7 dagen')] as const
+    : /\b(?:this week|deze week|week)\b/.test(q.read) ? [today, addLocalDays(weekStart(today), 6), t(lang, 'the rest of this week', 'de rest van deze week')] as const : /\b(?:today|vandaag)\b/.test(q.read) ? [today, today, t(lang, 'today', 'vandaag')] as const : null;
   if (ahead) {
     const hit = open.filter(x => x.due && x.due >= ahead[0] && x.due <= ahead[1]);
     return out(hit.length ? t(lang, `${hit.length} ${hit.length === 1 ? 'task is' : 'tasks are'} due ${ahead[2]}: ${listWords(hit.map(name), 'en')}.`, `${hit.length} ${hit.length === 1 ? 'taak staat' : 'taken staan'} gepland voor ${ahead[2]}: ${listWords(hit.map(name), 'nl')}.`) + (overdue.length && ahead[0] === today ? t(lang, ` ${overdue.length} overdue.`, ` ${overdue.length} te laat.`) : '') : t(lang, `No task is due ${ahead[2]}${overdue.length ? `; ${overdue.length} overdue: ${listWords(overdue.map(name), 'en')}` : ''}.`, `Er staat geen taak gepland voor ${ahead[2]}${overdue.length ? `; ${overdue.length} te laat: ${listWords(overdue.map(name), 'nl')}` : ''}.`), {...base, due: hit.map(x => plain(x.task)), from: ahead[0], to: ahead[1]}, timeline);
@@ -118,13 +123,14 @@ export function notesAnswer(q: Query, env: ToolEnv): Exact | null {
   return out(t(lang, `${n.total} ${n.total === 1 ? 'note' : 'notes'} in all; ${n.inbox} ${n.inbox === 1 ? 'waits' : 'wait'} in your inbox. The newest is from ${when}.`, `${n.total} ${n.total === 1 ? 'notitie' : 'notities'} in totaal; ${n.inbox} ${n.inbox === 1 ? 'wacht' : 'wachten'} in je inbox. De nieuwste is van ${when}.`), {notes: n.total, inbox: n.inbox, newest: last ? calendarDay(last.at, env.habitZone) : null}, [{id: 'notes-constellation', fallback: 'notes'}]);
 }
 
+// Session AW (p5-answers, S-10): a Dutch answer writes its times on the 24-hour clock ("19:00"), as it writes its dates; English as before.
 export function agendaAnswer(q: Query, env: ToolEnv): Exact | null {
   const lang = q.lang, today = env.habitDay, out = answer(q, ['Your agenda', 'Je agenda']), r = runTool('agenda', {}, env);
   if (!r.ok) return null;
   const items = (r.data.items as {day: string; time?: string; what: string; kind: string; state: string}[] | undefined) ?? [];
   const tomorrow = /\b(?:tomorrow|morgen)\b/.test(q.read), week = /\b(?:week)\b/.test(q.read) || q.period === 'this-week', from = tomorrow ? addLocalDays(today, 1) : today, to = week ? addLocalDays(today, 6) : from;
   const hit = items.filter(i => i.day >= from && i.day <= to), label = tomorrow ? t(lang, 'tomorrow', 'morgen') : week ? t(lang, 'the next 7 days', 'de komende 7 dagen') : t(lang, 'today', 'vandaag');
-  const name = (i: typeof items[number]) => `${i.time ? `${formatClock(i.time)} ` : ''}${plain(i.what)}`, facts = {from, to, items: hit.length, open: hit.filter(i => i.state === 'open').length, timed: hit.filter(i => i.time).length};
+  const name = (i: typeof items[number]) => `${i.time ? `${lang === 'nl' ? i.time : formatClock(i.time)} ` : ''}${plain(i.what)}`, facts = {from, to, items: hit.length, open: hit.filter(i => i.state === 'open').length, timed: hit.filter(i => i.time).length};
   const widgets: ExactWidget[] = [{id: 'day-timeline', fallback: 'hour-grid'}, {id: 'agenda-clock'}];
   if (!hit.length) return out(t(lang, `Nothing is on your agenda ${label}.`, `Er staat niets op je agenda ${label}.`), facts, widgets);
   if (q.ask === 'next') {
@@ -204,7 +210,13 @@ export function goalsAnswer(q: Query, env: ToolEnv): Exact | null {
   if (one && GOAL_ETA.test(q.read)) return goalEta(q, env, one, out);
   if (one) {
     const date = one.targetDate && one.targetDate !== 'none' ? t(lang, `; target date ${dayWords(one.targetDate, today)}`, `; streefdatum ${nlDay(one.targetDate, today)}`) : '';
-    return out(t(lang, `${one.name}: ${amountOf(one.now)} of ${amountOf(one.target)} (${pct(one)})${one.funding ? `, ${pace(one)}` : ''}; ${amountOf(one.remaining)} to go${date}.`, `${one.name}: ${amountOf(one.now)} van ${amountOf(one.target)} (${pct(one)})${one.funding ? `, ${pace(one)}` : ''}; nog ${amountOf(one.remaining)} te gaan${date}.`), {...facts, goal: one.name, percent: Math.round(progressNumber(one.progress)), funding: one.funding ?? null}, [{id: 'goal-gauge', ref: q.subject!.id, fallback: 'goal-focus'}]);
+    // Session AW (p5-answers, FR-S-13): a goal that keeps an average has no amount "to go" (it read "7.9 h a night van at
+    // least 8 h a night (99%); nog  te gaan."): its average against its target, over its window; in Dutch words and figures.
+    const average = one.type === 'Keep an average' ? averageGoalOf(env, one) : null;
+    const averageText = average ? t(lang, `${one.name}: ${one.now && one.now !== 'unknown' ? `${one.now} on average, against a target of ${one.target}${one.progress && one.progress !== 'unknown' ? ` (${pct(one)})` : ''}` : `a target of ${one.target}; its average is unknown here (never 0)`}, over the last ${average.windowDays} days.`,
+      `${one.name}: ${averageFiguresNl(average, env)}${one.now && one.now !== 'unknown' && one.progress && one.progress !== 'unknown' ? ` (${pct(one)})` : ''}, over de afgelopen ${average.windowDays} dagen.`) : null;
+    const count = (text: string | undefined) => nlCountUnit(amountOf(text));
+    return out(averageText ?? t(lang, `${one.name}: ${amountOf(one.now)} of ${amountOf(one.target)} (${pct(one)})${one.funding ? `, ${pace(one)}` : ''}; ${amountOf(one.remaining)} to go${date}.`, `${one.name}: ${count(one.now)} van ${count(one.target)} (${pct(one)})${one.funding ? `, ${pace(one)}` : ''}; nog ${count(one.remaining)} te gaan${date}.`), {...facts, goal: one.name, percent: Math.round(progressNumber(one.progress)), funding: one.funding ?? null}, [{id: 'goal-gauge', ref: q.subject!.id, fallback: 'goal-focus'}]);
   }
   if (q.ask === 'late' || q.ask === 'missed' || q.ask === 'worst' && /\b(?:behind|achter)\b/.test(q.read)) {
     const behind = active.filter(g => g.funding === 'behind');
@@ -291,12 +303,17 @@ export function novaAnswer(q: Query, env: ToolEnv): Exact | null {
  */
 export function lifeAnswer(q: Query, env: ToolEnv): Exact | null {
   const lang = q.lang, today = env.habitDay, out = answer(q, ['Your records on this device', 'Je gegevens op dit apparaat']), parts: string[] = [], facts: Record<string, unknown> = {};
-  const week = /\b(?:week)\b/.test(q.read) || q.period === 'this-week' || q.period === 'last-week', p = resolvePeriod(q.period ?? (week ? 'this-week' : 'today'), today)!, before = previousPeriod(p, today), words = periodWords(p, lang, today);
+  const week = /\b(?:week)\b/.test(q.read) || q.period === 'this-week' || q.period === 'last-week', p = resolvePeriod(q.period ?? (week ? 'this-week' : 'today'), today)!, words = periodWords(p, lang, today);
+  // Session AW (fr-answers, FR-AW-19 re-walk): on a week's (or month's) first day "this week" holds today only; asked beside
+  // the one before, it is today beside the whole of last week (last month), said plainly, never "your day so far".
+  const base = p.token.split('@')[0]!, firstDay = q.ask === 'compare' && p.days.length === 1 && (base === 'this-week' || base === 'this-month');
+  const before = firstDay ? resolvePeriod(base === 'this-month' ? 'last-month' : 'last-week', today) : previousPeriod(p, today);
+  const compare = q.ask === 'compare' && !!before && (p.days.length > 1 || firstDay);
   if (env.areas.habits !== false && env.habits.habits.length) {
     const sum = (period: Period) => { const rows = habitRows(env.habits.habits, period, today); return {done: rows.reduce((n, r) => n + r.T.done, 0), due: rows.reduce((n, r) => n + r.T.due - r.T.skipped, 0), open: rows.reduce((n, r) => n + r.T.open, 0)}; };
     const a = sum(p), b = before ? sum(before) : null;
     facts.habits = {now: a, before: b};
-    if (a.due) parts.push(t(lang, `habits ${a.done} of ${a.due} done${a.open ? `, ${a.open} still open` : ''}${b && b.due && p.days.length > 1 ? ` (${b.done} of ${b.due} the period before)` : ''}`, `gewoontes ${a.done} van ${a.due} gedaan${a.open ? `, ${a.open} nog open` : ''}${b && b.due && p.days.length > 1 ? ` (${b.done} van ${b.due} de periode ervoor)` : ''}`));
+    if (a.due) parts.push(t(lang, `habits ${a.done} of ${a.due} done${a.open ? `, ${a.open} still open` : ''}${b && b.due && (p.days.length > 1 || compare) ? ` (${b.done} of ${b.due} the period before)` : ''}`, `gewoontes ${a.done} van ${a.due} gedaan${a.open ? `, ${a.open} nog open` : ''}${b && b.due && (p.days.length > 1 || compare) ? ` (${b.done} van ${b.due} de periode ervoor)` : ''}`));
   }
   if (env.areas.today !== false && env.nova?.tasks?.tasks.length) {
     const r = runTool('tasks', {}, env), counts = r.ok ? r.data.counts as {open: number; overdue: number} | undefined : undefined;
@@ -307,11 +324,20 @@ export function lifeAnswer(q: Query, env: ToolEnv): Exact | null {
       const points = track.points(p.days).filter(x => x.value !== null), m = track.measure!;
       if (!points.length) continue;
       const total = points.reduce((n, x) => n + x.value!, 0), value = m.kind === 'sum' && p.days.length === 1 ? total : total / points.length;
-      facts[track.key] = {value, days: points.length};
-      parts.push(`${label[lang === 'nl' ? 1 : 0]} ${m.text(value, lang)}${p.days.length > 1 ? t(lang, ' a day', ' per dag') : ''}`);
+      // Session AW (fr-answers, FR-AW-19): asked beside the period before, each figure says that period's too (a day there
+      // with nothing logged is left out, never counted as 0; nothing logged at all says so).
+      const was = compare && before ? track.points(before.days).filter(x => x.value !== null) : null, then = was && was.length ? was.reduce((n, x) => n + x.value!, 0) / (m.kind === 'sum' && before!.days.length === 1 ? 1 : was.length) : null;
+      facts[track.key] = {value, days: points.length, ...(was ? {before: then, beforeDays: was.length} : {})};
+      parts.push(`${label[lang === 'nl' ? 1 : 0]} ${m.text(value, lang)}${p.days.length > 1 || compare ? t(lang, ' a day', ' per dag') : ''}${was ? ` (${then === null ? t(lang, 'nothing logged the period before', 'niets gelogd de periode ervoor') : t(lang, `${m.text(then, 'en')} the period before`, `${m.text(then, 'nl')} de periode ervoor`)})` : ''}`);
     }
   }
   if (!parts.length) return out(t(lang, 'Nothing is recorded yet. Add a habit, a task or a goal and ask me again.', 'Er is nog niets vastgelegd. Voeg een gewoonte, taak of doel toe en vraag het me opnieuw.'), {empty: true}, [{id: 'glance'}]);
-  const head = p.days.length === 1 ? t(lang, `Your day so far (${dayWords(today, today)})`, `Je dag tot nu toe (${nlDay(today, today)})`) : t(lang, `Your records ${words}`, `Je gegevens ${words}`);
-  return out(`${head}: ${parts.join('; ')}.`, {period: {token: p.token, from: p.from, to: p.to}, ...facts}, p.days.length === 1 ? [{id: 'day-scan', fallback: 'glance'}] : [{id: 'life-radar', period: p.token, fallback: 'glance'}, {id: 'habit-week'}]);
+  const dates = (x: Period) => x.from === x.to ? (lang === 'nl' ? nlDay(x.from, today) : dayWords(x.from, today)) : t(lang, `${dayWords(x.from, today)} to ${dayWords(x.to, today)}`, `${nlDay(x.from, today)} t/m ${nlDay(x.to, today)}`);
+  // Session AW (fr-answers, FR-AW-19): a comparison names both periods, so "the period before" is never a guess.
+  const head = firstDay && compare ? (base === 'this-month'
+      ? t(lang, `This month has only today so far (${dates(p)}); beside last month (${dates(before!)})`, `Deze maand heeft tot nu toe alleen vandaag (${dates(p)}); naast vorige maand (${dates(before!)})`)
+      : t(lang, `This week has only today so far (${dates(p)}); beside last week (${dates(before!)})`, `Deze week heeft tot nu toe alleen vandaag (${dates(p)}); naast vorige week (${dates(before!)})`))
+    : p.days.length === 1 ? t(lang, `Your day so far (${dayWords(today, today)})`, `Je dag tot nu toe (${nlDay(today, today)})`)
+    : compare ? t(lang, `Your records ${words} (${dates(p)}) beside the period before (${dates(before!)})`, `Je gegevens ${words} (${dates(p)}) naast de periode ervoor (${dates(before!)})`) : t(lang, `Your records ${words}`, `Je gegevens ${words}`);
+  return out(`${head}: ${parts.join('; ')}.`, {period: {token: p.token, from: p.from, to: p.to}, ...(compare ? {versus: {from: before!.from, to: before!.to}} : {}), ...facts}, p.days.length === 1 && !compare ? [{id: 'day-scan', fallback: 'glance'}] : [{id: 'life-radar', period: p.token, fallback: 'glance'}, {id: 'habit-week'}]);
 }

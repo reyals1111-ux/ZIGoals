@@ -4,9 +4,9 @@ import {showUndo} from '../../ui/undo-toast';
 import {useState, type FormEvent} from 'react';
 import {SLEEP_TAGS, type SleepNight} from '../../../lib/sleep/schema';
 import {nightDay, saveNight, setSleepGoal} from '../../../lib/sleep/engine';
-import {formatTime} from '../../../lib/visual-format';
+import {formatDate, formatTime} from '../../../lib/visual-format';
 import {formatMinutes, instantAt, wallClock} from '../../../lib/zone-time';
-import {defaultNightTimes, nightLabels, nightTimeIssues, optionalWhole, type NightField} from '../../../lib/health-sleep-form';
+import {defaultNightTimes, nightLabels, nightTimeIssues, optionalWhole, readNightDates, type NightField} from '../../../lib/health-sleep-form';
 import {FieldError, useFormErrors} from '../../primitives/field-error';
 import type {SleepStore} from './use-sleep';
 import {zigiSignals} from '../../zigi/bus';
@@ -34,7 +34,10 @@ export function NightForm({store, night, onDone, onCancel}: {store: SleepStore; 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault(); errors.clear();
     const form = new FormData(e.currentTarget), get = (name: string) => String(form.get(name) ?? '');
-    const times = {bedDate: get('bedDate'), bedTime: get('bedTime'), wakeDate: get('wakeDate'), wakeTime: get('wakeTime')}, nowMs = Date.now();
+    // Session AW (FR-AW-8): 00:30 typed with the default bed date (the evening before) is read as bed on the wake day; the
+    // date field shows what is saved (rewritten only once the save went through), and the saved line says so.
+    const read = readNightDates({bedDate: get('bedDate'), bedTime: get('bedTime'), wakeDate: get('wakeDate'), wakeTime: get('wakeTime')}, zone), times = read.times, nowMs = Date.now();
+    const bedField = e.currentTarget.elements.namedItem('bedDate');
     const latency = optionalWhole(get('latency'), 720, 'minutes'), awake = optionalWhole(get('awake'), 1440, 'minutes'), awakenings = optionalWhole(get('awakenings'), 100, 'count');
     const custom = get('otherTags').split(',').map(t => t.trim()).filter(Boolean);
     const issues = {...nightTimeIssues(times, kind, nowMs, zone, ms => formatTime(new Date(ms).toISOString(), {timeZone: zone})),
@@ -50,9 +53,12 @@ export function NightForm({store, night, onDone, onCancel}: {store: SleepStore; 
       // night, a nap or an edit is a small success. Decided on the stored nights before the write, never on words.
       const first = !night && input.kind === 'night' && !store.sleep.nights.some(n => n.end !== null && wallClock(Date.parse(n.end), zone).date === times.wakeDate);
       await store.update(s => saveNight(s, input, new Date()));
+      if (read.bedMoved && bedField instanceof HTMLInputElement) bedField.value = times.bedDate;
       if (!night) zigiSignals.emitValidated(first ? 'first_sleep_logged' : 'health_log_recorded');
       // Session AH Part 3 (DS3, L-009): a nap is called a nap when it is edited too.
-      onDone(night ? (input.kind === 'nap' ? 'Nap updated.' : 'Night updated.') : input.kind === 'nap' ? 'Nap saved.' : 'Night saved.');
+      const saved = night ? (input.kind === 'nap' ? 'Nap updated.' : 'Night updated.') : input.kind === 'nap' ? 'Nap saved.' : 'Night saved.';
+      const movedTo = formatDate(new Date(instantAt(times.bedDate, '12:00', zone)).toISOString(), {timeZone: zone});
+      onDone(read.bedMoved ? `${saved} ${input.kind === 'nap' ? `It started on ${movedTo}, the day it ended` : `Bed time read as ${movedTo}, the day you woke up`} (a night is at most 24 hours).` : saved);
     }
     // The store's own refusals (an overlap with another night) are about the whole entry: said beside Save.
     catch (err) { errors.failForm(message(err)); }

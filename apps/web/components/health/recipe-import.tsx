@@ -2,7 +2,7 @@
 import {useState} from 'react';
 import {NebulaFlow} from '../nebula-flow';
 import {fromSchemaRecipe, parseRecipeText, type ParsedIngredient, type ParsedRecipe} from '../../lib/health-aa/recipe-text';
-import {newHealthId, saveFood, saveRecipe, type HealthData, type HealthFood} from '../../lib/health';
+import {newHealthId, removeHealthItem, saveFood, saveRecipe, type HealthData, type HealthFood} from '../../lib/health';
 import {readFormNumber} from '../../lib/decimal-input';
 import type {HealthPerform} from './aa-types';
 import './health-aa.css';
@@ -15,6 +15,8 @@ import {useDeviceRecord} from '../ai/use-device-record';
 import {HEALTH_VITAMINS} from '../../lib/health-vitamins/schema';
 import {NUTRIENT_EXTRAS_RECORD} from '../../lib/health-vitamins/extras';
 import {hasLibraryExtras, keepLibraryExtras} from '../../lib/food-plus/library-extras';
+import {setStars} from '../../lib/food-plus/made';
+import type {FileRead, FileRecipe} from '../../lib/food-plus/recipe-files';
 
 // Session AK (task 4.8): each row shows its match (exact, close or none) and the person can point it at any of their foods
 // or make it a new one; a row the person pointed stays put while its name is edited, others follow the name.
@@ -33,8 +35,33 @@ export function RecipeImport({data, perform}: {data: HealthData; perform: Health
   const steps = useDeviceRecord(FOOD_PLUS); // Session AV lane 2 (food, LEDGER #200): the method, kept with the saved recipe
   // Session AV lane 2 (food, LEDGER #93): a library food keeps the vitamins and extras the library carries.
   const vitaminRecord = useDeviceRecord(HEALTH_VITAMINS), extrasRecord = useDeviceRecord(NUTRIENT_EXTRAS_RECORD);
-  const [mode, setMode] = useState<'paste' | 'url'>('paste'), [text, setText] = useState(''), [url, setUrl] = useState(''), [busy, setBusy] = useState(false), [error, setError] = useState('');
+  // Session AW (X5, LEDGER #453): a recipe file from another app (Paprika's .paprikarecipes, Markdown or text), its
+  // recipes listed first, each checked line by line as pasted text is, and the last one saved can be undone.
+  const [file, setFile] = useState<(FileRead & {fileName: string; saved: number[]}) | null>(null), [fileAt, setFileAt] = useState<number | null>(null), [lastSaved, setLastSaved] = useState<{recipeId: string; foodIds: string[]; name: string; fileIndex: number | null} | null>(null);
+  const [mode, setMode] = useState<'paste' | 'url' | 'file'>('paste'), [text, setText] = useState(''), [url, setUrl] = useState(''), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const [parsed, setParsed] = useState<ParsedRecipe | null>(null), [rows, setRows] = useState<Row[]>([]), [title, setTitle] = useState(''), [servings, setServings] = useState('4');
+  async function fromFile(chosen: File | undefined) {
+    if (!chosen) return;
+    setBusy(true); setError(''); setFile(null); setLastSaved(null);
+    try {
+      const {readRecipeFile, recipeFileKind, RECIPE_ZIP_CAPS} = await import('../../lib/food-plus/recipe-files');
+      if (!recipeFileKind(chosen.name)) { setError('Choose a .paprikarecipes export, a .paprikarecipe, or a Markdown or text recipe (.md, .txt).'); return; }
+      if (chosen.size > RECIPE_ZIP_CAPS.maxArchive) { setError(`This file is over ${Math.round(RECIPE_ZIP_CAPS.maxArchive / 1024 / 1024)} MB. Choose a smaller one.`); return; }
+      const read = await readRecipeFile(chosen.name, new Uint8Array(await chosen.arrayBuffer()));
+      if (!read.recipes.length) { setError(`No recipe could be read from ${chosen.name}.${read.skipped.length ? ` Left aside: ${read.skipped.slice(0, 5).join('; ')}.` : ''}`); return; }
+      if (read.recipes.length === 1 && !read.skipped.length) { setFile({...read, fileName: chosen.name, saved: []}); setFileAt(0); show(read.recipes[0]!); return; }
+      setFile({...read, fileName: chosen.name, saved: []});
+    } catch (e) { setError(e instanceof Error && e.message ? e.message : 'This file could not be read.'); }
+    finally { setBusy(false); }
+  }
+  function undoLast() {
+    if (!lastSaved) return;
+    const {recipeId, foodIds, name, fileIndex} = lastSaved;
+    void perform(latest => { let next = latest.recipes.some(r => r.id === recipeId) ? removeHealthItem(latest, 'recipes', recipeId) : latest; for (const f of foodIds) if (next.foods.some(x => x.id === f) && !next.recipes.some(r => r.ingredients.some(i => i.foodId === f)) && !next.diary.some(d => d.sourceId === f)) next = removeHealthItem(next, 'foods', f); return next; }, `“${name}” taken out again, with the foods it added.`, () => {
+      try { steps.update(r => setStars(setRecipeSteps(r, recipeId, []), recipeId, null)); } catch { /* the recipe is gone; its method is never read without it */ }
+      setLastSaved(null); if (fileIndex !== null) setFile(f => f ? {...f, saved: f.saved.filter(i => i !== fileIndex)} : f);
+    });
+  }
   function show(p: ParsedRecipe) {
     setParsed(p); setTitle(p.title); setServings(String(p.servings ?? 4)); setError('');
     const first: Row[] = p.ingredients.map(i => { const match = matchIngredient(i.name, data.foods), e = match.food, newId = newHealthId(); return {...i, foodId: e?.id ?? newId, newId, gramsText: i.grams !== null ? String(i.grams) : e?.servingGrams ? String(e.servingGrams) : '', existing: e, keep: true, match, chosen: false, libraryOptions: e ? null : 'loading', lib: null}; });
@@ -55,12 +82,13 @@ export function RecipeImport({data, perform}: {data: HealthData; perform: Health
   function save() {
     const kept = rows.filter(r => r.keep); if (!kept.length) { setError('Keep at least one ingredient.'); return; }
     let portions: number; try { portions = readFormNumber(servings, {min: 0.001, max: 1000}); } catch { setError('Servings: enter how many servings the recipe makes, from 0.001 to 1,000.'); return; }
-    const at = new Date().toISOString(), recipeId = newHealthId(), method = parsed?.stepLines ?? [];
+    const at = new Date().toISOString(), recipeId = newHealthId(), method = parsed?.stepLines ?? [], created: string[] = [], stars = (parsed as FileRecipe | null)?.stars, fileIndex = file ? fileAt : null, savedName = title.trim().slice(0, 80) || 'Imported recipe';
     void perform(latest => {
-      let next = latest;
+      let next = latest; created.length = 0;
       const ingredients = kept.map(r => {
         let grams: number; try { grams = r.gramsText.trim() ? readFormNumber(r.gramsText, {min: 1, max: 100_000, whole: true}) : 100; } catch { grams = 100; }
         const lib = !r.existing && r.lib !== null && Array.isArray(r.libraryOptions) ? r.libraryOptions[r.lib] ?? null : null;
+        if (!next.foods.some(f => f.id === r.foodId)) created.push(r.foodId);
         if (!next.foods.some(f => f.id === r.foodId)) next = lib
           ? saveFood(next, {id: r.foodId, name: lib.name.slice(0, 120), brand: lib.sourceName.slice(0, 80), servingGrams: 100, nutrients: lib.nutrients, createdAt: at, updatedAt: at})
           : saveFood(next, {id: r.foodId, name: r.name.slice(0, 80), brand: 'Imported recipe', servingGrams: grams, nutrients: {kcal: null, proteinMg: null, carbsMg: null, fatMg: null}, createdAt: at, updatedAt: at});
@@ -72,21 +100,31 @@ export function RecipeImport({data, perform}: {data: HealthData; perform: Health
       return next;
     }, `Recipe "${title.trim() || 'Imported recipe'}" saved with ${kept.length} ${plural(kept.length, 'ingredient')}${(() => { const fromLib = kept.filter(r => !r.existing && r.lib !== null).length; return fromLib ? `, ${fromLib} from the offline food library` : ''; })()}. Foods without a label stay unknown until you fill them in.`, () => { if (method.length) { try { steps.update(r => setRecipeSteps(r, recipeId, method)); } catch { /* the recipe is saved; only its method is not kept */ } }
       for (const r of kept) { const lib = !r.existing && r.lib !== null && Array.isArray(r.libraryOptions) ? r.libraryOptions[r.lib] : undefined; if (!lib || !hasLibraryExtras(lib.extras)) continue; try { const both = keepLibraryExtras({vitamins: vitaminRecord.data, extras: extrasRecord.data}, r.foodId, lib.extras, data.diary.map(d => d.id)); vitaminRecord.update(() => both.vitamins); extrasRecord.update(() => both.extras); } catch { /* the food keeps its label values */ } }
-      setParsed(null); setRows([]); setText(''); setUrl(''); });
+      // Session AW (X5, LEDGER #453): the file's rating becomes the recipe's stars (the person's own, changed any time).
+      if (stars) { try { steps.update(r => setStars(r, recipeId, stars)); } catch { /* the recipe is saved without its stars */ } }
+      setLastSaved({recipeId, foodIds: [...created], name: savedName, fileIndex});
+      if (fileIndex !== null) setFile(f => f ? {...f, saved: [...new Set([...f.saved, fileIndex])]} : f);
+      setFileAt(null); setParsed(null); setRows([]); setText(''); setUrl(''); });
   }
   return <section className="panel health-aa-card" aria-labelledby="recipe-import-title">
     <p className="eyebrow">From text or a page</p><h2 id="recipe-import-title"><NebulaFlow identity="recipe-import-title">Import a recipe</NebulaFlow></h2>
     {!parsed ? <>
-      <div className="health-import-tabs" role="group" aria-label="Import from"><button type="button" className="quiet" aria-pressed={mode === 'paste'} onClick={() => setMode('paste')}>Paste text</button><button type="button" className="quiet" aria-pressed={mode === 'url'} onClick={() => setMode('url')}>A web address</button></div>
-      {mode === 'paste' ? <form className="health-import-form" aria-label="Paste a recipe" onSubmit={e => { e.preventDefault(); if (text.trim()) show(parseRecipeText(text)); }}><label className="field"><span>Recipe text</span><textarea value={text} onChange={e => setText(e.target.value)} placeholder={'Lentil soup\nServes 4\n\nIngredients\n200 g red lentils\n1 onion\n…'} maxLength={20_000} /></label><div className="actions"><button type="submit" className="secondary" disabled={!text.trim()}>Read the ingredients</button></div><p className="fine">Read on this device; nothing is sent anywhere.</p></form>
+      <div className="health-import-tabs" role="group" aria-label="Import from"><button type="button" className="quiet" aria-pressed={mode === 'paste'} onClick={() => setMode('paste')}>Paste text</button><button type="button" className="quiet" aria-pressed={mode === 'url'} onClick={() => setMode('url')}>A web address</button><button type="button" className="quiet" aria-pressed={mode === 'file'} onClick={() => setMode('file')}>A recipe file</button></div>
+      {mode === 'file' ? <div className="health-import-form"><label className="field"><span>Recipe file (.paprikarecipes, .paprikarecipe, .md or .txt)</span><input type="file" accept=".paprikarecipes,.paprikarecipe,.md,.markdown,.txt,text/plain,text/markdown" disabled={busy} onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; void fromFile(f); }} /></label><p className="fine">{busy ? 'Reading the file…' : 'From Paprika (Export → Paprika Recipe Format) or a Markdown or text recipe. Read on this device; nothing in the file runs, photos inside are left out, and every ingredient is checked by you before it is saved.'}</p>
+        {file && <div className="food-plus-file"><p className="fine" role="status">{file.fileName}: {file.recipes.length} {plural(file.recipes.length, 'recipe')}{file.saved.length ? `, ${file.saved.length} saved` : ''}{file.photosLeftOut ? `; ${file.photosLeftOut} ${plural(file.photosLeftOut, 'photo')} left out` : ''}. Check and save each one you want.</p>
+          <ul className="food-plus-file-list" aria-label={`Recipes in ${file.fileName}`}>{file.recipes.map((r, i) => <li key={i}><span><strong>{r.title}</strong> <small>{r.ingredients.length} {plural(r.ingredients.length, 'ingredient')}{r.stepLines?.length ? ` · ${r.stepLines.length} ${plural(r.stepLines.length, 'step')}` : ''}{r.stars ? ` · ${r.stars} ${plural(r.stars, 'star')}` : ''}</small></span>{file.saved.includes(i) ? <small>Saved</small> : <button type="button" className="secondary" aria-label={`Check and save ${r.title}`} disabled={!r.ingredients.length} onClick={() => { setFileAt(i); show(r); }}>{r.ingredients.length ? 'Check and save' : 'No ingredients'}</button>}</li>)}</ul>
+          {file.skipped.length > 0 && <details><summary className="fine">Left aside ({file.skipped.length})</summary><ul className="fine">{file.skipped.slice(0, 50).map((s, i) => <li key={i}>{s}</li>)}</ul></details>}
+        </div>}
+      </div> : mode === 'paste' ? <form className="health-import-form" aria-label="Paste a recipe" onSubmit={e => { e.preventDefault(); if (text.trim()) show(parseRecipeText(text)); }}><label className="field"><span>Recipe text</span><textarea value={text} onChange={e => setText(e.target.value)} placeholder={'Lentil soup\nServes 4\n\nIngredients\n200 g red lentils\n1 onion\n…'} maxLength={20_000} /></label><div className="actions"><button type="submit" className="secondary" disabled={!text.trim()}>Read the ingredients</button></div><p className="fine">Read on this device; nothing is sent anywhere.</p></form>
         : <form className="health-import-form" aria-label="Import from a web address" onSubmit={e => { e.preventDefault(); if (url.trim()) void fromUrl(); }}><label className="field"><span>Address (https)</span><input type="url" inputMode="url" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://…" maxLength={2048} /></label><div className="actions"><button type="submit" className="secondary" disabled={busy || !url.trim()}>{busy ? 'Reading…' : 'Read the page'}</button></div><p className="fine">The server fetches only that page and reads its recipe data; it follows no links and keeps nothing.</p></form>}
       {error && <p role="alert">{error}</p>}
+      {lastSaved && <p className="fine" role="status">“{lastSaved.name}” is in your recipes. <button type="button" className="quiet" onClick={undoLast}>Undo this import</button></p>}
     </> : <form className="health-import-form" aria-label="Confirm the recipe" onSubmit={e => { e.preventDefault(); save(); }}>
       <label className="field"><span>Recipe name</span><input type="text" value={title} maxLength={80} onChange={e => setTitle(e.target.value)} /></label>
       <label className="field"><span>Servings</span><input type="text" inputMode="decimal" value={servings} onChange={e => setServings(e.target.value)} /></label>
       {rows.length ? <p className="fine">{rows.length} {plural(rows.length, 'ingredient')} found{parsed.stepLines?.length ? `, ${parsed.stepLines.length} ${plural(parsed.stepLines.length, 'step')} kept for the cooking view` : parsed.steps ? `, ${parsed.steps} ${plural(parsed.steps, 'step')} left aside` : ''}. Check each name and amount; an existing food of the same name is reused.</p> : <p role="alert">No ingredient lines were found. Put one ingredient on each line, with its amount (“200 g lentils” or “Lentils, 200 g”), then read it again.</p>}
       <ul className="health-import-rows">{rows.map((r, i) => <li key={i}><input type="text" aria-label={`Ingredient ${i + 1} name`} value={r.name} maxLength={80} onChange={e => setRows(rows.map((x, j) => { if (j !== i) return x; const name = e.target.value; if (x.chosen) return {...x, name}; const match = matchIngredient(name, data.foods); const next = {...x, name, match, existing: match.food, foodId: match.food?.id ?? x.newId, libraryOptions: match.food ? null : 'loading' as const, lib: null}; if (!match.food) lookUp(i, next); return next; }))} /><input type="text" inputMode="numeric" aria-label={`Ingredient ${i + 1} grams`} placeholder="g" value={r.gramsText} onChange={e => setRows(rows.map((x, j) => j === i ? {...x, gramsText: e.target.value} : x))} /><small>{r.existing ? 'known' : r.lib !== null && Array.isArray(r.libraryOptions) ? 'library' : 'new food'}</small><MatchLine row={r} index={i} foods={data.foods} onPick={id => setRows(rows.map((x, j) => { if (j !== i) return x; if (id?.startsWith('lib:')) { const k = Number(id.slice(4)), o = Array.isArray(x.libraryOptions) ? x.libraryOptions[k] : undefined; return {...x, chosen: true, existing: null, foodId: x.newId, lib: o ? k : null, gramsText: x.gramsText || (o?.portionGrams ? String(o.portionGrams) : '')}; } const food = id ? data.foods.find(f => f.id === id) ?? null : null; return {...x, chosen: true, existing: food, foodId: food?.id ?? x.newId, lib: null, gramsText: x.gramsText || (food?.servingGrams ? String(food.servingGrams) : '')}; }))} /><button type="button" className="quiet" aria-label={`${r.keep ? 'Drop' : 'Keep'} ingredient ${i + 1}`} aria-pressed={!r.keep} onClick={() => setRows(rows.map((x, j) => j === i ? {...x, keep: !x.keep} : x))}>{r.keep ? 'Drop' : 'Keep'}</button></li>)}</ul>
-      <div className="actions"><button type="submit" className="primary" disabled={!rows.some(r => r.keep)}>Save recipe</button><button type="button" className="quiet" onClick={() => { setParsed(null); setRows([]); }}>Cancel</button></div>
+      <div className="actions"><button type="submit" className="primary" disabled={!rows.some(r => r.keep)}>Save recipe</button><button type="button" className="quiet" onClick={() => { setParsed(null); setRows([]); setFileAt(null); }}>{file && file.recipes.length > 1 ? 'Back to the file' : 'Cancel'}</button></div>
       {error && <p role="alert">{error}</p>}
     </form>}
   </section>;

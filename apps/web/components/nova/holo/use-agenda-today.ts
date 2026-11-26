@@ -23,7 +23,8 @@ export function useAgendaToday(): {items: ClockInput[] | null; now: string; toda
     const day = buildAgenda(input, today, today).map(d => ({date: d.date, items: d.items.filter(i => !hidden.includes(i.source))}));
     const extra = [...(tasks.loaded && !tasks.unreadable ? taskAgendaItems(tasks.data, today, today, today, deviceDay) : []), ...(calendars.loaded && !calendars.unreadable ? eventAgendaItems(calendars.data, today, today, zone) : [])];
     const all = withExtras(day, extra, hiddenExtra)[0]?.items ?? [];
-    return all.map(i => ({id: i.id, source: i.source, pillar: i.pillar, title: i.title, time: i.time, href: i.href, state: i.state}));
+    // Session AW (fr-answers, FR-AW-19): an overdue task carries since when and its own time, so the clock says "overdue", not "any time".
+    return all.map(i => ({id: i.id, source: i.source, pillar: i.pillar, title: i.title, time: i.time, href: i.href, state: i.state, ...(i.source === 'task' && i.overdueSince && i.state === 'open' ? {overdue: {since: i.overdueSince, time: i.overdueTime ?? null}} : {})}));
   }, [loaded, input, today, record.unreadable, record.data, tasks.loaded, tasks.unreadable, tasks.data, calendars.loaded, calendars.unreadable, calendars.data, zone]);
   return {items, now, today, unreadable};
 }

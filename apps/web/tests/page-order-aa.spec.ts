@@ -35,11 +35,17 @@ test('Today: hero, Today’s focus, grouped widgets, For you, then updates and s
   await expect(today.locator('.today-group-heading')).toHaveText(['Your whole life', 'Your day', 'Goals', 'Money', 'Your widgets']);
   // Each heading opens its group's first card (it is never a movable item of its own).
   await expect(today.locator('[data-module="whole-life"] > .today-group-heading')).toHaveText('Your whole life');
-  // Session AC (deliberate, the owner's "each thing once"): Daily Habits stands down for its widget twin (the same list),
-  // which opens "Your day" in its place; the Next Goal action stands down for the focus tile's "Next step".
-  await expect(today.locator('[data-module="preset-balanced-1"] > .today-group-heading')).toHaveText('Your day');
+  // Session AC (deliberate, the owner's "each thing once"): Daily Habits stands down for its widget twin (the same list);
+  // the Next Goal action stands down for the focus tile's "Next step".
+  // Session AW (simplicity-a, deliberate; owner brief Part 3): the twin, the day's habits, leads Today's cards and stands
+  // right after the Checklist, before "What is due now" (it opened "Your day" in the grid, after the whole-life overview).
+  // As strict: its exact place is asserted (a child of the main column, between the Checklist and the focus, with no group
+  // heading of its own), "Your day" now opens on Daily Health, and the whole order below is the same list plus the Checklist.
+  await expect(today.locator('.today-primary > [data-module="preset-balanced-1"]')).toHaveCount(1);
+  await expect(today.locator('[data-module="preset-balanced-1"] > .today-group-heading')).toHaveCount(0);
+  await expect(today.locator('[data-module="health"] > .today-group-heading')).toHaveText('Your day');
   await expect(today.locator('[data-layout-item^="group:"]')).toHaveCount(0);
-  expect(await inOrder(page, ['#dashboard-title', '.today-focus', '[data-module="whole-life"]', '[data-module="preset-balanced-1"]', '[data-module="health"]', '[data-module="attention"]', '[data-module="goals"]', '[data-module="needs-attention"]', '[data-module="summary"]', 'section.for-you[aria-label="For you"]', 'section.for-you[aria-label="Updates and summaries"]', '[data-layout-item="today:week"]'])).toBe('ok');
+  expect(await inOrder(page, ['#dashboard-title', '#today-checklist', '[data-module="preset-balanced-1"]', '.today-focus', '[data-module="whole-life"]', '[data-module="health"]', '[data-module="attention"]', '[data-module="goals"]', '[data-module="needs-attention"]', '[data-module="summary"]', 'section.for-you[aria-label="For you"]', 'section.for-you[aria-label="Updates and summaries"]', '[data-layout-item="today:week"]'])).toBe('ok');
   // Three focus tiles: the next goal step, water, and sleep or fasting; the habits tile stands down beside the habits widget, which lists the due habits itself (Session AB-Design, owner request 12).
   await expect(today.locator('.today-focus .focus-tile')).toHaveCount(3);
   await expect(today.locator('.today-focus .focus-tile[data-tone="habits"]')).toHaveCount(0);
@@ -64,7 +70,10 @@ test('Today: a person’s own arrangement shows as saved, without group headings
   await showcase(page);
   // Session AC: arranging also lists the built-ins hidden by default (as "… is hidden from Today."); the order compared is
   // the shown modules', as before.
-  const modules = () => page.locator('.dashboard-layout-grid > .placed-module[data-module]:not([data-hidden="true"])').evaluateAll(list => list.map(e => e.getAttribute('data-module')));
+  // Session AW (simplicity-a, deliberate; owner brief Part 3): the shown modules are read in Today's reading order, the day's
+  // habits card included where it stands (right after the Checklist, outside the grid, when it is the first card), so the
+  // list is the same before and while arranging. As strict: every shown module, in order, and the same moves asserted.
+  const modules = () => page.locator('.today-primary > .placed-module[data-module]:not([data-hidden="true"]), .dashboard-layout-grid > .placed-module[data-module]:not([data-hidden="true"])').evaluateAll(list => list.map(e => e.getAttribute('data-module')));
   await expect(page.locator('.today-group-heading').first()).toBeVisible();
   const before = await modules();
   expect(before.length).toBeGreaterThan(2);

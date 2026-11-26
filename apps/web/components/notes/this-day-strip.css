@@ -2,6 +2,8 @@
 .note-this-day { display: grid; gap: 8px; padding: 12px; border-radius: 14px; background: color-mix(in srgb, var(--brand-violet, #826cff) 8%, transparent); box-shadow: inset 3px 0 0 color-mix(in srgb, var(--brand-violet, #826cff) 60%, transparent); }
 .note-this-day-title { margin: 0; font-size: 14px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; color: var(--text-meta, inherit); }
 .note-this-day p { margin: 0; }
+/* Session AW (simplicity-b, Part 3): a day with nothing logged yet is one plain line (no tinted box, no title). */
+.note-this-day-quiet p { margin: 0; }
 .note-this-day-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
 .note-day-chip { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; max-width: 100%; padding: 4px 14px 4px 8px; border-radius: 999px; border: 1px solid color-mix(in srgb, currentColor 22%, transparent); color: inherit; text-decoration: none; overflow-wrap: anywhere; }
 .note-day-chip:hover, .note-day-chip:focus-visible { border-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 70%, transparent); }

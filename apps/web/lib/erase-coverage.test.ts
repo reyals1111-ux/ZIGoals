@@ -5,6 +5,9 @@ import {ERASE_PREFIX, KNOWN_DATABASES, eraseEverything} from './erase-everything
 import {EVERYTHING_KEYS} from './export/everything';
 import {DEVICE_ONLY, SYNCED} from './data-health/catalog';
 import {AV2_R6_NOTES_NOT_RECORDS} from './av2-r6-notes-keys';
+import {AW_X6_NOT_RECORDS} from './aw-x6-keys';
+import {AW_X7_NOT_RECORDS} from './aw-x7-money-keys';
+import {AW_FR_JOURNAL_NOT_RECORDS} from './aw-fr-journal-keys';
 
 /**
  * Session AJ (Part 10, owner amendment A6): every ZIGoals key and IndexedDB database that the code names is accounted
@@ -67,6 +70,9 @@ const NOT_RECORDS: Record<string, string> = {
   'zigoals:wallet-session:v1': 'this tab\'s wallet connection; never exported, reconnect in your wallet',
   // Session AV lane 2 (r6-notes; LEDGER #406, deliberate): the lock's time away is listed with its reason, as the lock is (equally strict: it must still be in the code).
   ...AV2_R6_NOTES_NOT_RECORDS,
+  ...AW_X6_NOT_RECORDS, // Session AW (#460): the sleep goal's look-back, a display choice
+  ...AW_X7_NOT_RECORDS, // Session AW (#461): Removed recently, never exported or restored on purpose
+  ...AW_FR_JOURNAL_NOT_RECORDS, // Session AW (FR-AW-1): the Journal's unsaved draft, never exported or restored on purpose
   'zigoals:ai-chats:v1': 'ZIGi\'s conversations, kept in their own IndexedDB store and listed in the catalog\'s device stores; exported from ZIGi\'s own Export chats',
 };
 

@@ -1,6 +1,7 @@
 'use client';
 import {countZigi} from '../../lib/ai/store/metrics';
 import {onDeviceCard} from '../../lib/ai/actions/local-handles';
+import {cardInLanguage} from '../../lib/ai/actions/aw-p5-card-nl';
 import {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FocusEvent} from 'react';
 import {batchable, UNDO_WINDOW_MS} from '../../lib/ai/actions/batch';
 import type {Rejected} from '../../lib/ai/actions/parse';
@@ -93,9 +94,9 @@ export const UNKEPT_MEMORY = 'Not offered: this chat is not kept, so nothing fro
  * countdown. NOVA's workflow cards use it: the toast shows inside NOVA's sheet and keeps working whatever the cards' own
  * view does meanwhile, and its restore always reads the latest records (a ref, never the render that added the card).
  */
-export function ProposalList({proposals, rejected, handles, runner, onNavigate, onChange, fromPhoto = false, replaced = false, autoAccept, claimAuto, earlier = false, replyId: keptReplyId, bundle, unkept = false, undoToast = false, onDevice = false}: {/** Session AL fourth pass (L7-4b): cards made on this device with no AI (never badged "AI estimate"). */ onDevice?: boolean; replyId?: string; proposals: readonly Action[]; rejected: readonly Rejected[]; handles: readonly Handle[]; runner: ProposalRunner; onNavigate?: () => void; onChange?: (summary: string) => void; fromPhoto?: boolean; replaced?: boolean; autoAccept?: AutoAccept; claimAuto?: () => boolean; earlier?: boolean; bundle?: BundleMeta; unkept?: boolean; undoToast?: boolean}) {
+export function ProposalList({proposals, rejected, handles, runner, onNavigate, onChange, fromPhoto = false, replaced = false, autoAccept, claimAuto, earlier = false, replyId: keptReplyId, bundle, unkept = false, undoToast = false, onDevice = false, lang}: {/** Session AW (p5-answers, S-10): the language of the question these cards answer; a Dutch question gets the Life review card in Dutch. */ lang?: 'en' | 'nl'; /** Session AL fourth pass (L7-4b): cards made on this device with no AI (never badged "AI estimate"). */ onDevice?: boolean; replyId?: string; proposals: readonly Action[]; rejected: readonly Rejected[]; handles: readonly Handle[]; runner: ProposalRunner; onNavigate?: () => void; onChange?: (summary: string) => void; fromPhoto?: boolean; replaced?: boolean; autoAccept?: AutoAccept; claimAuto?: () => boolean; earlier?: boolean; bundle?: BundleMeta; unkept?: boolean; undoToast?: boolean}) {
   const replyId = unkept ? undefined : keptReplyId;
-  const planFor = useCallback((action: Action, refs_: ReturnType<typeof replyRefs>): PlanResult => { const planned = runner.plan(action, handles, refs_), result = onDevice ? onDeviceCard(planned) : planned; return unkept && result.ok && result.plan.target === 'memory' ? {ok: false, message: UNKEPT_MEMORY} : result; }, [handles, runner, unkept, onDevice]);
+  const planFor = useCallback((action: Action, refs_: ReturnType<typeof replyRefs>): PlanResult => { const planned = runner.plan(action, handles, refs_), result = cardInLanguage(onDevice ? onDeviceCard(planned) : planned, lang); return unkept && result.ok && result.plan.target === 'memory' ? {ok: false, message: UNKEPT_MEMORY} : result; }, [handles, runner, unkept, onDevice, lang]);
   const [refs] = useState(() => replyRefs(proposals));
   const [kept] = useState<ReadonlyMap<string, KeptCard>>(() => { if (!replyId) return new Map(); try { return keptCards(readDeviceRecord(getAppStorage(), ZIGI_CARDS).data, replyId); } catch { return new Map(); } });
   // A kept outcome applies only to the card it was kept for (its fingerprint, the action as the reply first gave it).

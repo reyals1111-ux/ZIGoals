@@ -52,6 +52,9 @@ test('LS-003/P-LS-02: a repeating task rolls to its next day when ticked, its oc
   await toast(page).getByRole('button', {name: 'Undo'}).click();
   await expect.poll(async () => (await storedTasks(page))!.tasks[0]!.due).toBe(DAY);
   expect((await storedTasks(page))!.tasks[0]!.completions).toBeUndefined();
+  // Session AW (simplicity-b, deliberate): on a phone Completed sits behind "More views" (Part 3, "New task" on the first
+  // screen in the Showcase): opened first and proved open by moreViews, then the same click and check.
+  await moreViews(page);
   await page.getByRole('navigation', {name: 'Task views'}).getByRole('button', {name: /^Completed/}).click();
   await expect(page.getByText('Nothing finished in the last 30 days.')).toBeVisible();
 });

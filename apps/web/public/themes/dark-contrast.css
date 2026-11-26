@@ -7695,6 +7695,14 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .goal-repeat-rows li:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .goal-repeat-rows li span:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-secondary) 25%, #fff)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
     :scope .goal-tree-tools .quiet:not(#\-):not(#\-) {
         border-color: #8fb6ff;
         background-image: none;
@@ -8372,6 +8380,46 @@
         color: color-mix(in srgb, var(--text-meta) 25%, #fff)
     }
     .guided-done-mark:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-secondary) 25%, #fff)
+    }
+    .guided-empty strong:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-strong) 25%, #fff)
+    }
+    .guided-program[data-asked]:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--brand-cyan) 40%, #fff)
+    }
+    .guided-program h3:focus:not(#\-):not(#\-) {
+        outline-color: currentcolor
+    }
+    .guided-program h3:focus-visible:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--brand-cyan) 40%, #fff)
+    }
+    .guided-showcase:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-secondary) 25%, #fff)
+    }
+    .guided-day > details:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff);
+        border-left-color: var(--pillar, var(--line))
+    }
+    .guided-day[data-done] > details:not(#\-):not(#\-) {
+        border-left-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .guided-day-title:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-strong) 25%, #fff)
+    }
+    .guided-day-count:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-secondary) 25%, #fff)
+    }
+    .guided-collections-lede:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-secondary) 25%, #fff)
+    }
+    .guided-collection > summary:focus-visible:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--brand-cyan) 40%, #fff)
+    }
+    .guided-collection-intro:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-secondary) 25%, #fff)
+    }
+    .guided-collection-item .guided-preview li:not(#\-):not(#\-) {
         color: color-mix(in srgb, var(--text-secondary) 25%, #fff)
     }
 }
@@ -10026,6 +10074,15 @@
     }
     .food-plus-extra-meals:not(#\-):not(#\-) {
         border-top-color: color-mix(in srgb, var(--line, #6a9cc3) 40%, #fff)
+    }
+    .food-plus-cook-method button[aria-current="step"]:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--pillar-health, #ff74be) 40%, #fff)
+    }
+    .food-plus-use-soon:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line, #6a9cc3) 40%, #fff)
+    }
+    .food-plus-file-list li:not(#\-):not(#\-) {
+        border-bottom-color: color-mix(in srgb, var(--line, #6a9cc3) 40%, #fff)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
@@ -11914,6 +11971,17 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .x6-list li:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff1a)
+    }
+    .x6-low:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff1a)
+    }
+    .x6-filter button[aria-pressed="true"]:not(#\-):not(#\-) {
+        box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f680)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .help-shot img:not(#\-):not(#\-) {
         border-color: #a0beff
     }
@@ -12499,6 +12567,48 @@
             border-bottom-color: currentcolor;
             box-shadow: none
         }
+    }
+    .voice-player-time:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text) 25%, #fff)
+    }
+    .voice-player-speeds button[aria-pressed="true"]:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan) 40%, #fff);
+        color: var(--text-strong,var(--text))
+    }
+    .journal-photo-tile.is-audio:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .journal-day-photo-mark[aria-pressed="true"]:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan) 40%, #fff);
+        color: var(--text-strong,var(--text))
+    }
+    .journal-day-strip-cell.is-blank:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff);
+        color: color-mix(in srgb, var(--text) 25%, #fff)
+    }
+    .journal-day-strip-open:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--brand-violet) 10%,transparent);
+        color: inherit
+    }
+    .journal-day-strip-open:focus-visible:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--cyan) 40%, #fff)
+    }
+    .journal-day-strip-n:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--bg) 78%,transparent);
+        color: color-mix(in srgb, var(--text) 25%, #fff)
+    }
+    .day-pages-parts button[aria-pressed="true"]:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan) 40%, #fff);
+        color: var(--text-strong,var(--text))
+    }
+    .day-pages-morning:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .journal-compose-extras:not(#\-):not(#\-) {
+        border-top-color: color-mix(in srgb, var(--line) 40%, #fff)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
@@ -14164,6 +14274,12 @@
     .notes-table tfoot th:not(#\-):not(#\-), .notes-table tfoot td:not(#\-):not(#\-) {
         border-top-color: color-mix(in srgb, currentColor 30%, transparent);
         border-bottom-color: currentcolor
+    }
+    .note-saved-list button[aria-pressed="true"]:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan) 40%, #fff)
+    }
+    .note-saved-manage-list li:not(#\-):not(#\-) {
+        border-bottom-color: color-mix(in srgb, var(--line) 40%, #fff)
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
@@ -22267,6 +22383,12 @@
         outline-color: #dbdbdb;
         box-shadow: 0 0 0 8px #a9e8ed33
     }
+    .onboarding-quick:not(#\-):not(#\-) {
+        border-top-color: color-mix(in srgb, var(--line, #969696) 40%, #fff)
+    }
+    .onboarding-quick > p:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-meta, #dadada) 25%, #fff)
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     :scope .orbit-card-count:not(#\-):not(#\-) {
@@ -25173,6 +25295,11 @@
     }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .read-aloud-state:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-secondary) 25%, #fff)
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .reminders-push:not(#\-):not(#\-) {
         border-color: #ffe3a1;
         background-image: linear-gradient(135deg, #00000044, #00000099);
@@ -25673,6 +25800,35 @@
     @media (forced-colors: active) {
         .settings-page .settings-fold-chevron:not(#\-):not(#\-) {
             color: CanvasText
+        }
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .settings-search > label:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text) 25%, #fff)
+    }
+    .settings-search-status:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-meta, #dadada) 25%, #fff)
+    }
+    .settings-search-results:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line, #969696) 40%, #fff)
+    }
+    .settings-search-results li + li:not(#\-):not(#\-) {
+        border-top-color: color-mix(in srgb, var(--line, #969696) 40%, #fff)
+    }
+    .settings-search-results a:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text) 25%, #fff);
+        box-shadow: none
+    }
+    .settings-search-results a:focus-visible:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--cyan, #45d8ef) 40%, #fff)
+    }
+    .settings-search-results small:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--text-meta, #dadada) 25%, #fff)
+    }
+    @media (forced-colors: active) {
+        .settings-search-results:not(#\-):not(#\-), .settings-search-results li + li:not(#\-):not(#\-) {
+            border-color: CanvasText
         }
     }
 }
@@ -26453,6 +26609,40 @@
     .task[data-cancelled] .task-title:not(#\-):not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
+    .task-dread:not(#\-):not(#\-), .task-moved:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .task-stuck:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .task-stuck-way:focus-visible:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--accent, currentColor) 40%, #fff)
+    }
+    .tasks-pick:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .tasks-day-progress:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-x2-track:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: var(--surface-2, var(--line))
+    }
+    .tasks-x2-bar:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--accent, currentColor) 30%, #000)
+    }
+    .tasks-x2-review h3 small:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-x2-list > li:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
+    .tasks-x2-what small:not(#\-):not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
 }
 @scope (:root[data-theme=dark][data-dark-style=contrast]) {
     .tasks-plan-view h3 small:not(#\-):not(#\-) {
@@ -26906,6 +27096,9 @@
         border-color: color-mix(in srgb, var(--cyan) 40%, #fff);
         background: var(--surface, var(--panel, #000000eb))
     }
+    .tasks-main > .tasks-reminders:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line) 40%, #fff)
+    }
     .tasks-completed h2 small:not(#\-):not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
@@ -27147,6 +27340,48 @@
         .timeline-mark-dot:not(#\-):not(#\-) {
             background-image: none;
             background-color: transparent
+        }
+    }
+}
+@scope (:root[data-theme=dark][data-dark-style=contrast]) {
+    .aw-timer-strip:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line, #8ca0dc) 40%, #fff);
+        background-image: none;
+        background-color: var(--surface-glass, var(--panel, #000000));
+        color: color-mix(in srgb, var(--text, #f3f3f3) 25%, #fff);
+        box-shadow: 0 10px 26px -12px #000000cc
+    }
+    .aw-timer[data-state="ended"] .aw-timer-clock:not(#\-):not(#\-) {
+        color: color-mix(in srgb, var(--cyan, #7bebfe) 25%, #fff)
+    }
+    .aw-timer-actions button:not(#\-):not(#\-), .aw-timer-open:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line, #8ca0dc) 40%, #fff);
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .aw-timer-actions button:focus-visible:not(#\-):not(#\-), .aw-timer-open:focus-visible:not(#\-):not(#\-) {
+        outline-color: color-mix(in srgb, var(--cyan, #45d8ef) 40%, #fff)
+    }
+    dialog.aw-timers-sheet:not(#\-):not(#\-) {
+        border-color: color-mix(in srgb, var(--line, #8ca0dc) 40%, #fff);
+        background-image: none;
+        background-color: var(--surface-glass, var(--panel, #000000));
+        color: color-mix(in srgb, var(--text, #f3f3f3) 25%, #fff);
+        box-shadow: 0 24px 60px -24px #000000cc
+    }
+    dialog.aw-timers-sheet:not(#\-):not(#\-)::backdrop {
+        background-image: none;
+        background-color: #0000008c
+    }
+    @media (forced-colors: active) {
+        .aw-timer-strip:not(#\-):not(#\-), dialog.aw-timers-sheet:not(#\-):not(#\-) {
+            border-color: CanvasText
+        }
+    }
+    @media (forced-colors: active) {
+        .aw-timer-actions button:not(#\-):not(#\-), .aw-timer-open:not(#\-):not(#\-) {
+            border-color: ButtonText
         }
     }
 }

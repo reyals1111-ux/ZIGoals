@@ -69,7 +69,8 @@ describe('TK-018 and P-MO-60', () => {
   test('weights.csv adds kg (exact) and lb (converted, two decimals)', () => {
     const health = {...createEmptyHealth(), weights: [{id: 'health_aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', date: '2026-10-01', grams: 80500, createdAt: '2026-10-01T08:00:00Z', updatedAt: '2026-10-01T08:00:00Z'}]};
     const rows = lines(collectEverything({[HEALTH_STORAGE_KEY]: JSON.stringify(health)}, APP).csv['weights.csv']);
-    expect(rows[0]).toMatch(/,"kg","lb_converted"$/);
-    expect(rows[1]).toMatch(/,"80\.5","177\.47"$/);
+    // Session AW (#457, deliberate): a last column, the weigh-in's note (empty here); kg and lb are checked as before.
+    expect(rows[0]).toMatch(/,"kg","lb_converted","note"$/);
+    expect(rows[1]).toMatch(/,"80\.5","177\.47",(""|)$/);
   });
 });

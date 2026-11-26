@@ -3,7 +3,8 @@ import vm from 'node:vm';
 import {describe, expect, it} from 'vitest';
 import {buildPlan, type PlanInput} from './plan';
 import {doneTaskIds} from './actions';
-import {emptyNotifyPrefs, NOTIFY_LABELS, NOTIFY_TYPES, setType, typeOn} from './prefs';
+import {emptyNotifyPrefs, NOTIFY_TYPES, setType, typeOn} from './prefs';
+import {NOTIFY_LABELS} from './labels';
 import {zonedInstant} from './zone';
 
 /**

@@ -171,6 +171,39 @@ const INJECTION: RegExp[] = [
   /\b(?:doe alsof|speel|stel je voor dat)\b[^.?!\n]{0,30}\b(?:je|jij)\b[^.?!\n]{0,40}\b(?:dan|zonder regels|zonder grenzen|geen regels|onbeperkt|ongefilterd)\b/, /\bje hebt geen regels\b/,
 ];
 
+// ---- Session AW (fr-money, FR-AW-11): borrowing, paying off and "is it smart to" money questions (EN + NL). ZIGi answered
+// "Is it smart to take a loan to pay my card?" with the task list; it gets the same no-advice line as "Should I invest?".
+// A money object is always named ("is it smart to walk after dinner?" stays ordinary), and a question about the records
+// ("how much is left on my loan?", "hoeveel heb ik afgelost?", "hoeveel moet ik nog aflossen?") has no advice ask, so it stays a lookup.
+const MONEY_OBJECTS = String.raw`(?:loans?|borrow(?:ing)?|credit(?: card)?s?|debts?|mortgages?|overdraft|invest(?:ing|ment)?|stak(?:e|ing)|savings|refinanc(?:e|ing)|consolidat(?:e|ing)|crypto|bitcoin|btc|eth|stocks?|shares|etfs?)`;
+export const LOAN_ADVICE: readonly RegExp[] = [
+  /\b(?:should|shall|must) i\b[^.?!]{0,30}\b(?:take (?:out )?|get |apply for |borrow )(?:a |an |another |some )?(?:new |personal |bank |consolidation |payday |car |student )?(?:loan|credit line|line of credit|mortgage|overdraft)\b/,
+  /\b(?:should|shall) i (?:borrow|refinance|consolidate|remortgage)\b/,
+  /\b(?:should|shall) i (?:\w+ ){0,2}(?:pay (?:off|down)|repay|clear)\b[^.?!]{0,40}\b(?:or|first|early|before|instead)\b/,
+  /\bwhich (?:debts?|loans?|cards?|credit cards?) should i\b/,
+  // Review fix (fr-money): "is it bad/better/smart to …" only with a choice in it ("take a loan", "borrow", "first", "or",
+  // "instead"): "Is it bad if I missed a loan payment?" is a worry about a record, not an ask for advice.
+  new RegExp(String.raw`\bis it (?:a |an )?(?:good|bad|smart|wise|sensible|clever|dumb|stupid|better) (?:idea |move |choice )?(?:to|if i)\b(?=[^.?!]{0,80}\b(?:instead|or|first|take|taking|borrow(?:ing)?|refinanc(?:e|ing)|consolidat(?:e|ing))\b)[^.?!]{0,60}\b${MONEY_OBJECTS}\b`),
+  /(?:^|[,;] )(?:moet|zal) ik\b[^.?!]{0,40}\b(?:lening|krediet|hypotheek|geld)\b[^.?!]{0,30}\b(?:nemen|afsluiten|aangaan|aanvragen|lenen)\b/,
+  /(?:^|[,;] )(?:moet|zal) ik (?:\w+ ){0,3}(?:aflossen|afbetalen|lenen|oversluiten)\b/, // "hoeveel moet ik nog aflossen" stays a lookup
+  /\bkan ik (?:beter|het beste)\b[^.?!]{0,40}\b(?:aflossen|afbetalen|lenen|sparen|beleggen|investeren|oversluiten)\b/,
+  /\bwelke (?:schuld|schulden|lening|leningen|kaart|creditcard)\b[^.?!]{0,15}\b(?:moet|zal) ik\b/,
+  /\bis het (?:een )?(?:slim|slimme|verstandig|goed|goede|beter|handig)e? (?:idee |zet |keuze )?om\b(?=[^.?!]{0,80}\b(?:of|eerst|in plaats van|nemen|lenen|afsluiten|oversluiten|over te sluiten|aflossen|af te lossen)\b)[^.?!]{0,60}\b(?:lening|lenen|krediet|hypotheek|beleggen|investeren|aflossen|af te lossen|af te betalen|staken|kopen|verkopen|spaargeld|over te sluiten|creditcard|schuld|schulden)\b/,
+];
+/**
+ * Review fix (fr-money): a question about the records or keeping them is never read as an ask for advice: "nog" ("Moet ik
+ * deze maand nog aflossen?", "ZIGi, moet ik nog lenen?"), and keeping track ("Is het slim om mijn schulden bij te houden?",
+ * "Is it better to log my debts weekly?"), or a payment missed ("Is it bad if I missed a loan payment?").
+ */
+const RECORD_ASK = /\b(?:nog|bijhouden|bij te houden|bijhoudt|bijhoud|noteren|vastleggen|log|logs|logging|logged|record|recording|recorded|track|tracking|tracked|missed|gemist|vergeten|forgot|forgotten)\b/;
+/** A borrowing or paying-off advice question (EN + NL), the records' own questions left out. */
+export const isLoanAdvice = (text: string): boolean => !RECORD_ASK.test(text) && LOAN_ADVICE.some(p => p.test(text));
+/** Review fix (fr-money): the no-advice line for borrowing and paying off debts, with a debt example (still no advice). */
+export const DEBT_ADVICE_REPLY: Record<GuardLanguage, string> = {
+  en: 'I can’t advise on borrowing or on which debt to pay off first: that choice is yours. I can show the facts from your records here, for example “What do I owe?” or “How much have I paid off this month?”.',
+  nl: 'Ik kan geen advies geven over lenen of over welke schuld je eerst aflost: die keuze is aan jou. Ik kan de feiten uit je gegevens laten zien, bijvoorbeeld “Hoeveel schuld heb ik?” of “Hoeveel heb ik deze maand afgelost?”.',
+};
+
 // ---- advice (fifth pass, L7-5a; #031, DVR:D-061, N-030, C-DVG-100): "should I put my savings into ZIG?", "Moet ik al mijn
 // spaargeld in ZIG steken?", "Should I stop my diet?". Not a guard topic: with an AI connected the question still goes to it
 // (its own prompt says it can't advise, lib/ai/context/specialists.ts); on the device it is answered FIRST with the app's
@@ -216,7 +249,7 @@ export const ADVICE_REPLIES: Record<AdviceTopic, Record<GuardLanguage, string>> 
 export function adviceTopic(raw: string): AdviceTopic | null {
   const text = norm(raw);
   if (!text) return null;
-  if (MONEY_ADVICE.some(p => p.test(text))) return 'money';
+  if (MONEY_ADVICE.some(p => p.test(text)) || isLoanAdvice(text)) return 'money';
   if (HEALTH_ADVICE.some(p => p.test(text))) return 'health';
   return null;
 }
@@ -298,10 +331,47 @@ export function guardTopic(raw: string): GuardTopic | null {
   if (INJECTION.some(p => p.test(text))) return 'injection';
   return null;
 }
+// ---- Session AW (fr-answers, FR-AW-22): a reflective question about one's own mood ----
+/**
+ * "Do I seem depressed?", "Lijk ik depressief?": a question about one's own mood, asked of ZIGi, got the full crisis reply.
+ * That is safe but heavy for a reflective question. The whole message must be such a question (so "I feel depressed and
+ * hopeless", any self-harm or suicide word, and any other distress words keep exactly the distress reply): its first lines
+ * are gentler (caring, no diagnosis, ZIGi can't judge it, the journal and a GP), and the same real help lines follow. The
+ * topic stays `distress`, so every path still answers it first, before any model or lookup.
+ */
+const MOOD_TAIL = String.raw`(?:\s+(?:to you|lately|these days|recently|at the moment|right now|this week|this month|from my (?:journal|entries|records|notes)|in my (?:journal|entries)|based on my (?:journal|entries|records)|de laatste tijd|tegenwoordig|op dit moment|nu|deze week|deze maand|volgens jou|volgens mijn (?:dagboek|gegevens)|in mijn dagboek|uit mijn dagboek))*\s*[?.!]*`;
+const MOOD_LEAD = String.raw`(?:(?:hey|hi|so|and|ok|okay|zigi|nova|hoi|en|dus|eerlijk gezegd),?\s+)?`;
+const SOFT = String.raw`(?:a bit |kind of |sort of |a little |rather |very |really |quite |een beetje |wat |erg |echt |nogal |best )?`;
+const REFLECTIVE_MOOD: RegExp[] = [
+  new RegExp(String.raw`^${MOOD_LEAD}(?:do|does|did|would|could|might) (?:i|my (?:journal|entries|diary|mood|notes|week|writing)) (?:seem|look|sound|come across|appear|read)(?: as| like)? ${SOFT}(?:depressed|down|low)${MOOD_TAIL}$`),
+  new RegExp(String.raw`^${MOOD_LEAD}(?:am i|could i be|might i be|would i be|do you think i(?:'m| am)|do you think i might be) ${SOFT}(?:depressed|down)${MOOD_TAIL}$`),
+  new RegExp(String.raw`^${MOOD_LEAD}(?:lijk|klink|kom|ben) ik ${SOFT}(?:depressief|somber|neerslachtig)(?: over)?${MOOD_TAIL}$`),
+  new RegExp(String.raw`^${MOOD_LEAD}(?:zou ik|denk je dat ik) ${SOFT}(?:depressief|somber|neerslachtig) (?:zijn|ben|kan zijn|zou kunnen zijn)${MOOD_TAIL}$`),
+  new RegExp(String.raw`^${MOOD_LEAD}(?:klinkt|lijkt|leest) mijn (?:dagboek|stemming|week) ${SOFT}(?:depressief|somber|neerslachtig)${MOOD_TAIL}$`),
+];
+/** The language of a message that is wholly a reflective question about one's own mood (nothing of self-harm), else null. */
+export function reflectiveMood(raw: string): GuardLanguage | null {
+  const text = norm(raw);
+  if (!text || text.length > 120 || detectRisk(text) === 'self-harm') return null;
+  const hit = REFLECTIVE_MOOD.findIndex(p => p.test(text));
+  // The first two patterns are English, the rest Dutch ("Lijk ik depressief?" holds one Dutch function word only).
+  return hit < 0 ? null : hit < 2 ? 'en' : 'nl';
+}
+const HELP_LINES = (lang: GuardLanguage) => GUARD_REPLIES.distress[lang].split('\n').filter(line => line.startsWith('- '));
+/** The gentler reply's own first lines; the help lines are the distress reply's own, word for word. */
+export const REFLECTIVE_MOOD_REPLIES: Record<GuardLanguage, string> = {
+  en: ['It is good that you ask yourself this. I can\'t tell whether you are depressed: that is not something an app can judge, and I don\'t read it from your records. Writing in your journal can help you notice how your days feel, and your GP (family doctor) is a good person to talk it through with.',
+    'If things feel heavy, or you might hurt yourself, help is there today:', ...HELP_LINES('en'), 'ZIGi is an app, not a counsellor; the people at these lines are there for exactly this.'].join('\n'),
+  nl: ['Goed dat je het jezelf afvraagt. Of je depressief bent, kan ik niet beoordelen: dat kan een app niet, en ik lees het niet uit je gegevens. Schrijven in je dagboek kan helpen om te zien hoe je dagen voelen, en je huisarts is een goede persoon om het mee te bespreken.',
+    'Voelt het zwaar, of denk je eraan jezelf iets aan te doen, dan is er vandaag hulp:', ...HELP_LINES('nl'), 'ZIGi is een app, geen hulpverlener; de mensen bij deze lijnen zijn er juist hiervoor.'].join('\n'),
+};
 /** The guard's fixed reply for the person's message, or null when the message is ordinary. */
 export function guardMessage(raw: string): GuardReply | null {
   const topic = guardTopic(raw);
   if (!topic) return null;
+  // Session AW (fr-answers, FR-AW-22): the same topic and order; a reflective question gets the gentler first lines.
+  const mood = topic === 'distress' ? reflectiveMood(raw) : null;
+  if (mood) return {topic, lang: mood, text: REFLECTIVE_MOOD_REPLIES[mood]};
   const lang = guardLanguage(raw);
   return {topic, lang, text: GUARD_REPLIES[topic][lang]};
 }
@@ -358,7 +428,8 @@ export function safetyFirst(raw: string): SafetyHit | null {
   const advice = adviceTopic(raw);
   if (!advice) return null;
   const lang = guardLanguage(raw);
-  return {kind: 'advice', topic: advice, lang, text: ADVICE_REPLIES[advice][lang]};
+  // Review fix (fr-money): a borrowing or paying-off question gets the debt line; every other money ask keeps its own.
+  return {kind: 'advice', topic: advice, lang, text: advice === 'money' && isLoanAdvice(norm(raw)) ? DEBT_ADVICE_REPLY[lang] : ADVICE_REPLIES[advice][lang]};
 }
 /** Words that read as an instruction or a fake system voice inside a record's name, a note or a file (never obeyed). */
 export function looksLikeInjection(raw: string | null | undefined): boolean {

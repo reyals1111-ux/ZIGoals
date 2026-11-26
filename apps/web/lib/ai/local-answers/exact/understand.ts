@@ -118,6 +118,12 @@ function parse(folded: string, records: Records): Query | null {
   if (!domain && ask === 'streak' && records.habits.length) domain = 'habits';
   // Nothing kept yet and the words ask what was done or not on which days: the habits' own empty state.
   if (!domain && !records.habits.length && !records.goals.length && (ask === 'missed' || ask === 'not-done' || ask === 'skipped' || ((shapeHit === 'dates' || shapeHit === 'count') && (ask === 'done' || ask === null)))) domain = 'habits';
+  // Session AW (fr-answers, FR-AW-6): "what is due tomorrow", "wat moet er morgen af": with no part of life named, what is
+  // due is on the task list (recorded today, so a day ahead is read, never "still ahead").
+  if (!domain && /\b(?:due|deadlines?|moet (?:er )?(?:\w+ ){0,3}af|af moet\w*)\b/.test(rest)) domain = 'tasks';
+  // Session AW (fr-answers, FR-AW-19): "compare this week with last week": two periods and no part of life named are the
+  // records as a whole, side by side (lifeAnswer), never a task named after the words.
+  if (!domain && ask === 'compare' && !!(token || against)) domain = 'life';
   if (!domain) return null;
   // What is still to come: a goal's pace (D-ETA), or the next due date of a bill, a task or the agenda (R-11); a goal's pace
   // never for words that name a bill, a task, a habit or a day.

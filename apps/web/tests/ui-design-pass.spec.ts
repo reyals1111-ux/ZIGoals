@@ -1,6 +1,7 @@
 import {expect,test,type Page} from '@playwright/test';
+import {showQuickCounters} from './aw-simplicity-helpers';
 import {alphaNotice} from './ab-shell';
-import {isPhone,openFold} from './phone-nav';
+import {openFold} from './phone-nav';
 import {DASHBOARD_SETTINGS_KEY,presetSettings} from '../lib/dashboard-settings';
 import {afterGoto, openSettings} from './settings-open';
 
@@ -55,11 +56,16 @@ test.describe('Part 1: readability foundation',()=>{
   if(!isMobile){
    const c=(await create.boundingBox())!,t=(await title.boundingBox())!,o=(await orbit.boundingBox())!;
    expect(c.x).toBeGreaterThan(t.x+t.width*.5);expect(c.x+c.width).toBeLessThanOrEqual(o.x+8);expect(c.y).toBeLessThan(t.y+t.height+80);
-   // First view at 1440×900: Today's rhythm and the tops of the two consistency cards.
-   for(const text of [/^Today’s rhythm$/i,/^Small returns add up$/i,/^Your week in motion$/i]){const box=(await page.getByText(text).first().boundingBox())!;expect(box.y+box.height,String(text)).toBeLessThanOrEqual(900);}
+   // Session AW (FR-TJ-7, deliberate): the owner's decision 1e puts today's habits first, so Today's rhythm and the two
+   // consistency cards follow your habits and Routines now. As strict, the first view at 1440×900 holds three boxes whole:
+   // the first time-of-day group's banner, its first card's title and that card's Complete.
+   for(const [name,part] of [['banner',page.locator('details.habit-section > summary').first()],['title',page.locator('.habit-grid > .habit-card .habit-card-heading h2').first()],['complete',page.locator('.habit-grid > .habit-card .habit-check-actions button[aria-pressed]').first()]] as const){const box=(await part.boundingBox())!;expect(box.y+box.height,name).toBeLessThanOrEqual(900);}
   }
   const zone=page.getByText('Habit journal timezone',{exact:true}),semantics=page.locator('.habit-semantics'),privacy=page.locator('.habit-privacy');
-  const z=(await zone.boundingBox())!,s=(await semantics.boundingBox())!,p=(await privacy.boundingBox())!;
+  // Session AW (local run, deliberate): the three boxes are read in one moment, so a lazy Habits block arriving between
+  // two reads (it moved the later boxes 160 px) cannot make the order look reversed. The same two comparisons.
+  await expect(zone).toBeVisible();await expect(semantics).toBeVisible();await expect(privacy).toBeVisible();
+  const {z,s,p}=await page.evaluate(()=>{const y=(el:Element|null|undefined)=>el!.getBoundingClientRect().top+scrollY;const zoneEl=[...document.querySelectorAll('.habit-timezone summary, .habit-timezone *')].find(e=>e.textContent?.trim()==='Habit journal timezone');return {z:{y:y(zoneEl)},s:{y:y(document.querySelector('.habit-semantics'))},p:{y:y(document.querySelector('.habit-privacy'))}};});
   expect(z.y).toBeGreaterThan(s.y);expect(p.y).toBeGreaterThan(s.y);
   await zone.click();await page.getByLabel('Habit timezone',{exact:true}).fill('Not/AZone');await page.getByRole('button',{name:'Save Habit timezone',exact:true}).click();
   await expect(page.locator('.habit-timezone [role=status]')).toHaveText('Choose a valid IANA timezone, such as Europe/Brussels.');
@@ -161,12 +167,12 @@ test.describe('Part 2: personal layouts',()=>{
  test('unlock, move with the keyboard, reload keeps it, reset restores it, lock hides the controls',async({page})=>{
   await showcase(page);await page.goto('/app/habits');
   await expect(page.locator('.habit-overview')).toBeVisible();
-  // A phone (Session E) starts with today's check-ins: Today's rhythm, your habits, then the charts. Moving the first card
-  // down swaps it with the second in either default order. Session AE Part 4 (deliberate, the owner's S4): Routines is its
-  // own block, right after your habits, so each order has five items.
-  const phone=await isPhone(page);
-  const initial=await order(page,'habits:body');expect(initial).toEqual(phone?['habits:overview','habits:list','habits:routines','habits:consistency','habits:rhythm']:['habits:overview','habits:consistency','habits:list','habits:routines','habits:rhythm']);
-  const moved=phone?['habits:list','habits:overview','habits:routines','habits:consistency','habits:rhythm']:['habits:consistency','habits:overview','habits:list','habits:routines','habits:rhythm'];
+  // A phone (Session E) starts with today's check-ins. Session AE Part 4 (deliberate, the owner's S4): Routines is its
+  // own block, right after your habits, so each order has five items. Session AW (FR-TJ-7, deliberate): the owner's
+  // decision 1e puts your habits first on a computer too, so both default orders are one: your habits, Routines, Today's
+  // rhythm, consistency, the weekday rhythm. As strict: moving Today's rhythm down swaps it with the card after it.
+  const initial=await order(page,'habits:body');expect(initial).toEqual(['habits:list','habits:routines','habits:overview','habits:consistency','habits:rhythm']);
+  const moved=['habits:list','habits:routines','habits:consistency','habits:overview','habits:rhythm'];
   // Locked by default: no controls, nothing marked.
   await expect(page.locator('.layout-controls')).toHaveCount(0);
   await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
@@ -175,7 +181,7 @@ test.describe('Part 2: personal layouts',()=>{
   const down=page.getByRole('button',{name:'Move Today’s rhythm down',exact:true});
   await down.focus();await page.keyboard.press('Enter');
   await expect.poll(()=>order(page,'habits:body')).toEqual(moved);
-  await expect(page.locator('[data-layout-announcer]')).toHaveText('Moved Today’s rhythm to position 2 of 5.');
+  await expect(page.locator('[data-layout-announcer]')).toHaveText('Moved Today’s rhythm to position 4 of 5.'); // Session AW (FR-TJ-7, deliberate): it starts third
   await expect(down).toBeFocused();
   expect(await page.evaluate(()=>sessionStorage.getItem('zigoals:layout:v1'))).toBe(`{"version":1,"pages":{"habits":{"body":{"order":${JSON.stringify(moved)}}}}}`);
   await page.reload();await expect(page.locator('.habit-overview')).toBeVisible();
@@ -219,11 +225,16 @@ test.describe('Part 2: personal layouts',()=>{
   // Session AC: the order is read while arranging, where the default's hidden twins (Daily Habits, the Next Goal action)
   // are listed with "Show card"; a move steps past a hidden card as past any other.
   const initial=await order(page,'today:main');
+  // Session AW (simplicity-a, deliberate; owner brief Part 3): the default order now starts with the day's habits (Daily
+  // Habits and its twin), so the Whole-life overview is no longer first; the same move is asserted at its own place: it
+  // and the card after it swap, everything else stays, and Reset restores the default exactly. As strict.
+  const life=initial.indexOf('builtin:whole-life');expect(life).toBeGreaterThanOrEqual(0);expect(life+1).toBeLessThan(initial.length);
+  const moved=[...initial.slice(0,life),initial[life+1],initial[life],...initial.slice(life+2)];
   await page.getByRole('button',{name:`Move Whole-life overview down`,exact:true}).click();
-  await expect.poll(()=>order(page,'today:main')).toEqual([initial[1],initial[0],...initial.slice(2)]);
+  await expect.poll(()=>order(page,'today:main')).toEqual(moved);
   await page.reload();await expect(page.locator('[data-layout-region="today:main"]').first()).toBeVisible();
   await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
-  await expect.poll(()=>order(page,'today:main')).toEqual([initial[1],initial[0],...initial.slice(2)]);
+  await expect.poll(()=>order(page,'today:main')).toEqual(moved);
   await page.getByRole('button',{name:'Reset this page',exact:true}).click();
   await expect.poll(()=>order(page,'today:main')).toEqual(initial);
  });
@@ -262,11 +273,11 @@ test.describe('Part 2: personal layouts',()=>{
   await showcase(page);await page.goto('/app/habits');
   const items=page.locator('[data-layout-region="habits:body"]');await expect(items.first()).toBeVisible();
   await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
-  // Carry the second card above the first (Today's rhythm), inside the viewport. On a phone (Session E) the second card
-  // is your habits; elsewhere it is consistency.
-  // The card's own handle (on a phone the second card is your habits, whose habit cards carry handles of their own).
-  const handle=items.nth(1).locator(':scope > .layout-controls .layout-handle');await handle.evaluate(e=>e.scrollIntoView({block:'center'}));
-  const h=(await handle.boundingBox())!,first=(await items.first().boundingBox())!;
+  // Session AW (FR-TJ-7, deliberate): your habits come first now (the owner's decision 1e), a block far taller than the
+  // screen, so a card can no longer be carried above it within the viewport. As strict: carry the fourth card (consistency)
+  // above the third (Today's rhythm, a short card), inside the viewport, by the card's own handle.
+  const handle=items.nth(3).locator(':scope > .layout-controls .layout-handle');await handle.evaluate(e=>e.scrollIntoView({block:'center'}));
+  const h=(await handle.boundingBox())!,first=(await items.nth(2).boundingBox())!;
   const cdp=await page.context().newCDPSession(page);
   const touch=(type:'touchStart'|'touchMove'|'touchEnd',x:number,y:number)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:type==='touchEnd'?[]:[{x,y}]});
   const x=h.x+h.width/2,y=h.y+h.height/2,to=Math.max(90,first.y+first.height*.25);
@@ -274,7 +285,7 @@ test.describe('Part 2: personal layouts',()=>{
   await expect(page.locator('.layout-ghost')).toHaveCount(1);
   for(let i=1;i<=12;i++)await touch('touchMove',x,y+(to-y)*i/12);
   await touch('touchEnd',x,to);
-  await expect.poll(()=>order(page,'habits:body')).toEqual(await isPhone(page)?['habits:list','habits:overview','habits:routines','habits:consistency','habits:rhythm']:['habits:consistency','habits:overview','habits:list','habits:routines','habits:rhythm']); // Session AE Part 4: Routines follows your habits
+  await expect.poll(()=>order(page,'habits:body')).toEqual(['habits:list','habits:routines','habits:consistency','habits:overview','habits:rhythm']); // Session AW (FR-TJ-7, deliberate): consistency carried above Today's rhythm
  });
 });
 
@@ -393,12 +404,12 @@ test.describe('Part 3: liquid glass',()=>{
   const box=(await section.boundingBox())!;await page.mouse.move(box.x+12,box.y+12);await page.mouse.move(box.x+16,box.y+16,{steps:2});
   expect(await section.getAttribute('data-glass-hover')).toBeNull();
   // Typing keeps its focus ring only; the card around the field stays where it is.
-  await page.goto('/app/health');const field=page.getByLabel('Water amount',{exact:true});await expect(field).toBeVisible();
+  // Session AW (CI run 2039, deliberate): on a card that fits the screen, Notes' Capture. Health's Water card was 1,118 px at
+  // 720 once all of its parts were drawn (1,132 on #59; it passed while its later parts were still on their way), so it is
+  // a long section, which never lifts anyway, and the typing rule proved nothing there. Every check below is the same.
+  await page.goto('/app/notes');const field=page.getByLabel('Capture a note',{exact:true});await expect(field).toBeVisible();
   // Its card fits the screen, so only the typing rule keeps it still.
   expect(await field.evaluate(e=>e.closest<HTMLElement>('.panel')!.getBoundingClientRect().height<=Math.max(900,innerHeight*1.25))).toBe(true);
-  // Session AV lane 2 (CI run 2026, both attempts): the Showcase's own drinks load in their own part and take their row between
-  // the buttons and this field a moment after the page answers; the keyboard step waits for that row, so Tab comes back here.
-  await expect(page.getByRole('group',{name:'Your drinks, one tap each'})).toBeVisible();
   await field.focus();await page.keyboard.press('Shift+Tab');await page.keyboard.press('Tab');await expect(field).toBeFocused();
   expect(await field.evaluate(e=>e.matches(':focus-visible')&&e.closest('[data-glass-hover]')===null)).toBe(true);
   const star=page.locator('.sidebar-star');
@@ -412,6 +423,8 @@ test.describe('Part 4: Health',()=>{
  const count=(page:Page,name:string)=>page.getByRole('article',{name,exact:true}).locator('.exercise-count');
  test('quick counters: +/− on today, never below zero, and they survive a reload',async({page})=>{
   await page.goto('/app/health');
+  // Session AW (simplicity-a, deliberate): on a journal that never used them, Quick counters wait behind Health's teaching line; they are opened first (showQuickCounters proves they show), then every step and assertion is as before.
+  await showQuickCounters(page);
   const counters=page.getByRole('region',{name:'Every repetition counts.'});await expect(counters).toBeVisible();
   // Above the "A little care, every day." header; on a phone (Session E) the title comes first, then the journal date and the counters.
   const c=(await counters.boundingBox())!,h=(await page.getByRole('heading',{level:1,name:'A little care, every day.'}).boundingBox())!;
@@ -436,6 +449,8 @@ test.describe('Part 4: Health',()=>{
  });
  test('a custom counter can be added, renamed and deleted after confirmation',async({page})=>{
   await page.goto('/app/health');
+  // Session AW (simplicity-a, deliberate): on a journal that never used them, Quick counters wait behind Health's teaching line; they are opened first (showQuickCounters proves they show), then every step and assertion is as before.
+  await showQuickCounters(page);
   await page.getByRole('button',{name:'+ Add counter'}).click();
   const dialog=page.getByRole('dialog',{name:'Add a counter'});await dialog.getByLabel('Counter name').fill('Planks');await dialog.getByRole('radio',{name:'Core'}).check();
   await dialog.getByRole('button',{name:'Add counter'}).click();await expect(dialog).toHaveCount(0);

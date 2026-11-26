@@ -23,10 +23,13 @@ describe('Today', () => {
     const s = showcaseAll(), tasks = s.nova!.tasks!, first = tasks.tasks.find(t => !t.doneAt)!;
     s.nova = {...s.nova, tasks: {...tasks, tasks: tasks.tasks.map(t => t.id === first.id ? {...t, due: addLocalDays(DAY, 1), time: '09:00', reminders: [{before: 30}]} : t)}};
     const en = text(zigi('which task reminders do I have', s)), nl = text(zigi('welke herinneringen heb ik voor taken', s));
-    expect(en).toContain('1 task reminder still ahead');
+    // Session AW (showcase, deliberate): the Showcase now holds one reminder of its own (the bulbs, three days ahead at
+    // 18:00, lib/showcase/aw-examples.ts), so two are ahead and this one, the sooner, still comes first; equally strict.
+    expect(en).toContain('2 task reminders still ahead. The next: Example · Book the dentist: Wed, Nov 18 at 8:30 AM (30 minutes before).');
+    expect(en).toContain('Example · Order bulbs for the balcony boxes: Fri, Nov 20 at 6:00 PM (at the time)');
     expect(en).toContain('30 minutes before');
     expect(en).not.toContain('open tasks');
-    expect(nl).toContain('1 taakherinnering nog te gaan');
+    expect(nl).toContain('2 taakherinneringen nog te gaan');
     expect(nl).toContain('wo 18 nov om 08:30 (30 minuten van tevoren)');
   });
   test('countdowns: a yearly one on its next day; on a fresh profile it says where they live, never "no habits" (q1 #44)', () => {
@@ -84,8 +87,12 @@ describe('Wealth', () => {
     expect(r).not.toContain('could not find a goal');
     expect(text(zigi('Wat zijn mijn budgetdoelen?'))).toContain('doel €\u00a0300,00'); // Session AV lane 2 (fr-answers; FR-TJ-4, deliberate): a Dutch answer writes its figures the Dutch way ("€ 950,00", "73,48 kg"); the same figures, as strictly
   });
-  test('the debt planner is named in Dutch in a Dutch answer (q2 #16)', () => {
-    expect(text(zigi('wanneer ben ik schuldenvrij'))).toContain('Vermogen → Wat je schuldig bent');
+  // Session AW (p5-answers, FR-TJ-16, deliberate): the app's labels are English, so the Dutch answer names the planner as the
+  // app shows it (as NOVA → Permissions already is), never a Dutch screen that does not exist; as strictly, the whole path.
+  test('the debt planner is named as the app shows it in a Dutch answer (q2 #16, FR-TJ-16)', () => {
+    const t = text(zigi('wanneer ben ik schuldenvrij'));
+    expect(t).toContain('Wealth → What you owe → Plan paying off your debts');
+    expect(t).not.toMatch(/Vermogen →|Wat je schuldig bent/);
     expect(text(zigi('laat mijn aflossingsschema zien'))).toContain('Nog te betalen na 3 maanden');
   });
   test('Wealth closed: nothing of it is read (each answer under its own switch)', () => {

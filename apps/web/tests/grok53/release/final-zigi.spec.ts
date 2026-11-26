@@ -97,8 +97,12 @@ test.describe('desktop (1280, en-GB, Europe/Brussels)', () => {
     expect(nv).not.toContain('Settings → ZIGi → Auto-accept');
     await seed(page, 'L1');
     const [water] = await zigiChat(page, '/app/tasks', ['how much water did i drink today']);
-    expect(water).toContain('“Health page data” and “Include Health”');
-    expect(water).toContain('They are the same two switches NOVA → Permissions shows.');
+    // Session AW (p5-answers, FR-S-16, deliberate): one sentence and one action, Allow Health in NOVA → Permissions (it turns
+    // on both switches at once), as NOVA's own reply says; as strictly, the whole sentence and no switch named one by one.
+    // Session AW (fr-answers, FR-AW-9, deliberate): the reply without the bracket about Today (the button was there anyway).
+    expect(water).toContain('Health isn’t shared with ZIGi here, so nothing from Health is read. Tap Allow Health in NOVA → Permissions: one tap opens Health to ZIGi and NOVA.');
+    expect(water).not.toContain('once Health is on your Today page');
+    expect(water).not.toContain('“Health page data” and “Include Health”');
   });
 
   test('6 (LS:#382m, NB:T3, NB:H1, NB:H2): no card the reply refuses; "the first one" and "behind" read the records', async ({page}) => {

@@ -4,6 +4,8 @@ import type {MoneyEntry} from '../money-log/schema';
 import {addMonths, CADENCE_DAYS, daysBetween, dueDatesBetween, dueOnOrAfter, stepDue} from './cadence';
 import {AMOUNT_TOLERANCE, normalisePayee} from './detect';
 import type {Bill, BillsRecord} from './schema';
+// Session AW X7 (LEDGER #462): a bill that ends has no date after its last payment.
+import {billTo} from './ends-core';
 
 /**
  * Session AV (owner follow-up 1, F-BILLS-MONTH; Copilot's "paid this month", Rocket Money's "until payday"): this month's
@@ -68,7 +70,7 @@ export function monthMatches(record: BillsRecord, entries: readonly MoneyEntry[]
   const used = new Set<string>(), lines: MonthBill[] = [], matched = new Map<string, string>();
   for (const b of record.bills) {
     const amount = cents(b.amount), payee = normalisePayee(b.title);
-    for (const due of monthDueDates(b.nextDue, b.cadence, first, last, today)) {
+    for (const due of monthDueDates(b.nextDue, b.cadence, first, billTo(b, last), today)) {
       const near = (e: MoneyEntry) => e.kind === 'expense' && !used.has(e.id) && e.currency === b.currency && Math.abs(cents(e.amount) - amount) <= amount * AMOUNT_TOLERANCE;
       const hit = entries.find(e => near(e) && Math.abs(daysBetween(due, e.date)) <= MATCH_DAYS
         && ((!!payee && payeeOf(e) === payee) || (!!b.category && e.category === b.category && payeeOf(e) === normalisePayee(e.category))))
@@ -112,7 +114,7 @@ export function nextPayday(entries: readonly MoneyEntry[], today: string): {date
 export function dueBeforePayday(record: BillsRecord, entries: readonly MoneyEntry[], today: string, payday: string): {currency: string; cents: number; count: number}[] {
   const out = new Map<string, {currency: string; cents: number; count: number}>(), end = addLocalDays(payday, -1);
   const seen = new Set(billsThisMonth(record, entries, today).lines.filter(l => l.state === 'seen').map(l => `${l.billId}|${l.due}`));
-  for (const b of record.bills) for (const due of dueDatesBetween(b.nextDue, b.cadence, today, end)) {
+  for (const b of record.bills) for (const due of dueDatesBetween(b.nextDue, b.cadence, today, billTo(b, end))) {
     if (seen.has(`${b.id}|${due}`)) continue;
     const t = out.get(b.currency) ?? {currency: b.currency, cents: 0, count: 0}; t.cents += cents(b.amount); t.count++; out.set(b.currency, t);
   }

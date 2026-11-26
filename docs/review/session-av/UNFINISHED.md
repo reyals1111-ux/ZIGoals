@@ -210,4 +210,4 @@ Status: `open` (needs work, no outside service, model or owner: the next step is
 | KL-12 | Bento and the buttons that step aside are for computers only | components/bento/bento-switch.tsx | hidden honestly | phones are one column already |
 | KL-13 | Money insights wait for history (three months, a month of income) | components/wealth/spending/spending-section.tsx | hidden honestly | they say so instead of guessing |
 
-Counts: total 150 — open 14 · hidden honestly 10 · carried 19 · needs an outside service 5 · needs a model 5 · needs the owner 40 · finished 57 (eight rows finished in Part 4b: CS-5, CS-6, CS-7, CS-8, CS-11, D20-3, D20-4, KL-2).
+Counts: total 150 — open 0 · hidden honestly 10 · carried 19 · needs an outside service 5 · needs a model 5 · needs the owner 38 · finished 73 (eight rows finished in Part 4b: CS-5, CS-6, CS-7, CS-8, CS-11, D20-3, D20-4, KL-2; the 14 open rows finished in AV lane 2, ADR-045 F1-2; CR-17 and CR-20 decided with the rules' default). Recounted in Session AW (amendment 5) from the status column; each row's AW verdict is in docs/review/session-aw/VERDICTS.md.

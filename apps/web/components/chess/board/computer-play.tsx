@@ -6,6 +6,7 @@ import {ENGINE_LEVELS, levelLabel, type EngineLevel} from '../../../lib/chess/en
 import type {Engine} from '../../../lib/chess/engine/client';
 import {CHESS_COMPUTER, recordComputerResult, saveComputerGame, tallyOf, type Tally} from '../../../lib/chess/computer-record';
 import {useDeviceRecord} from '../../ai/use-device-record';
+import {isShowcase} from '../../../lib/showcase-storage';
 import {motionAllowed} from '../../zigi/motion';
 import {ChessBoard, MoveInput, MoveList} from './chess-board';
 
@@ -16,6 +17,7 @@ import {ChessBoard, MoveInput, MoveList} from './chess-board';
  * when a game begins, so the page never waits on it; three levels by depth and time. The game in progress is kept on
  * this device and can be continued; each level counts wins, losses and draws. Take back undoes the person's last move
  * and the reply; Resign and New game end it. Lichess play is unchanged.
+ * Session AW (showcase): in the Showcase the results by level are its fictional examples, and say so.
  */
 type Played = {position: Position; move: Move; san: string};
 const sideName = (c: 'w' | 'b') => c === 'w' ? 'White' : 'Black';
@@ -117,7 +119,7 @@ export function ComputerPlay() {
           {ENGINE_LEVELS.map(l => <label key={l.id} className="checkbox"><input type="radio" name="chess-computer-level" checked={level === l.id} onChange={() => setLevel(l.id)}/><span>{l.label} · {l.note}</span></label>)}
         </fieldset>
         <button ref={startButton} type="submit" className="secondary">{kept ? 'Start a new game' : 'Start the game'}</button>
-        {tally && (tally.won + tally.lost + tally.drawn > 0) && <p className="fine">Against {levelLabel(level)}: {tallyWords(tally)}.</p>}
+        {tally && (tally.won + tally.lost + tally.drawn > 0) && <p className="fine">Against {levelLabel(level)}: {tallyWords(tally)}.{isShowcase() ? ' Showcase: fictional example results.' : ''}</p>}
       </form>
     </> : <div className="chess-game-area" ref={board}>
       <ChessBoard position={position} orientation={side === 'w' ? 'white' : 'black'} last={last ? {from: last.from, to: last.to} : null} check={inCheck(position)} canMove={canMove} onMove={play}

@@ -31,7 +31,7 @@ function Line({items, now, size}: {items: readonly ClockInput[]; now: string; si
     <CardFoot source="Your agenda" asOf={`today, ${formatClock(view.now)}`}/>
     <HoloTable caption="Today’s agenda on a line" rows={[
       ['Items left', `${view.left} of ${view.total}`], ['Done', String(view.done)], ...(view.skipped ? [['Skipped', String(view.skipped)] as const] : []), ['With a time', String(view.timed)], ['Any time today', String(view.anytime)],
-      ...items.map(i => [i.title, `${i.time ? formatClock(i.time) : 'Any time'} · ${STATE[i.state]}`] as const),
+      ...items.map(i => [i.title, `${i.overdue ? `Overdue${i.overdue.time ? `, ${formatClock(i.overdue.time)}` : ''}` : i.time ? formatClock(i.time) : 'Any time'} · ${STATE[i.state]}`] as const), // Session AW (fr-answers, FR-AW-19)
     ]}/>
   </AxBody>;
 }

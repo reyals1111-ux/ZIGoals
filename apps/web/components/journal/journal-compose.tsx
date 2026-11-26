@@ -16,7 +16,7 @@ import {MoodWordsFold} from '../mood-words/mood-words-fold';
 import {SecretGuard} from '../secret-guard/secret-guard';
 import type {PendingMedia} from './compose-media';
 // Session AK (BUILD list 2 #13, lane G1a): "Start from a prompt" (its list loads when the fold opens).
-import {ALL_TEMPLATES, onlyHeadings, startFrom, templateById, type PromptLang} from '../../lib/journal-prompts/templates';
+import {ALL_TEMPLATES, onlyHeadings, startFrom, templateById, templateText, type PromptLang} from '../../lib/journal-prompts/templates';
 import {questionIndexOfTheDay, questionOfTheDay, withQuestion} from '../../lib/journal-prompts/daily';
 // Session AV lane 2 (LEDGER #56): questions the person hid are passed over; hiding one loads its writer on the tap.
 import {mutedNow} from '../../lib/muted/rule';
@@ -29,6 +29,13 @@ import {addDream, dreamsBook} from '../../lib/journal/dreams';
 import {OPENS_WORDS, addMonths, opensOnFor, type OpensChoice} from '../../lib/journal/letters';
 import {formatDate} from '../../lib/visual-format';
 import {setQuestionLang, useQuestionLang} from './question-lang';
+// Session AW (fr-journal, FR-AW-1): the unsaved entry kept on this device while it is typed, back when the Journal opens.
+import {DRAFT_DELAY_MS, draftBackLine, draftOf, draftWorthKeeping, keepJournalDraft, readJournalDraft, savedAlready, type DraftChoices, type JournalDraft} from '../../lib/journal/draft';
+import {GUARD_MIN_CHARS} from '../../lib/secret-guard/min';
+type GuardModule = typeof import('../../lib/secret-guard/guard');
+import {getAppStorage} from '../../lib/showcase-storage';
+import {ACCOUNT_CHANGE} from '../../lib/account-session';
+import {showUndo} from '../ui/undo-toast';
 import {addOwnTemplate, asJournalTemplate, editOwnTemplate, removeOwnTemplate, withDefault} from '../../lib/journal-prompts/own';
 const PromptPicker = lazy(() => import('../journal-prompts/prompt-picker'));
 // Session AV lane 2 (journal; LEDGER #38, Day One's Prompt Packs): the packs, their list loaded when the fold opens.
@@ -69,7 +76,9 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
   const [dream, setDream] = useState<string | null>(null);
   // Session AV lane 2 (r3-notes; LEDGER #279, Stoic): a letter to open later — when it opens ('' not a letter).
   const [opens, setOpens] = useState<'' | OpensChoice | 'day'>(''), [opensDay, setOpensDay] = useState(''), [asLetter, setAsLetter] = useState(false);
-  useEffect(() => { if (compact) return; try { const d = new URLSearchParams(window.location.search).get('dream'); if (d && /^\d{4}-\d{2}-\d{2}$/.test(d) && d <= today) setDream(d); } catch { /* no address */ } }, [compact, today]);
+  // Session AW (fr-journal): set once a kept draft came back (the address's ?dream= and ?quote= then fill nothing).
+  const fromDraft = useRef(false);
+  useEffect(() => { if (compact || fromDraft.current) return; try { const d = new URLSearchParams(window.location.search).get('dream'); if (d && /^\d{4}-\d{2}-\d{2}$/.test(d) && d <= today) setDream(d); } catch { /* no address */ } }, [compact, today]);
   const words = useRef<HTMLTextAreaElement>(null);
   const [text, setText] = useState(''), [problem, setProblem] = useState(''), [status, setStatus] = useState(''), [asked, setAsked] = useState<string | null>(null), [answer, setAnswer] = useState('');
   const todayEnergy = energy.data.days[today]?.energy ?? null;
@@ -77,17 +86,39 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
   // opening and after each save (clearing the words leaves it empty until the next entry).
   const [fillDefault, setFillDefault] = useState(true);
   const defaultTemplate = useMemo(() => { const d = journal.data.defaultTemplate; if (!d) return null; const own = (journal.data.templates ?? []).find(t => t.id === d); return own ? asJournalTemplate(own) : templateById(d); }, [journal.data.defaultTemplate, journal.data.templates]);
+  // Session AW (fr-journal, FR-AW-1): the unsaved draft comes back once, when the journal has loaded (before the default
+  // template would fill the box: a draft wins). Per account: an account change empties the box and reads that account's.
+  function applyChoices(c: DraftChoices) {
+    setPeriod(c.period ?? ''); setOpens(c.opens ?? ''); setOpensDay(c.opensDay ?? ''); setAsLetter(!!c.opens);
+    setChosenBook(c.book); setDream(c.dream ?? null);
+  }
+  const draftRead = useRef(false), skipWrite = useRef(false), [draftBack, setDraftBack] = useState<JournalDraft | null>(null), [accountTick, setAccountTick] = useState(0);
+  useEffect(() => {
+    if (compact || !journal.loaded || draftRead.current) return;
+    draftRead.current = true;
+    let kept: JournalDraft | null = null;
+    try { kept = readJournalDraft(getAppStorage()); } catch { /* storage locked or refused: nothing comes back */ }
+    if (!kept) return;
+    // Review fix (two tabs): words another tab saved since are not brought back (and their draft goes).
+    if (savedAlready(journal.data.entries, kept, today)) { try { keepJournalDraft(getAppStorage(), null); } catch { /* removed with the next write */ } return; }
+    fromDraft.current = true; skipWrite.current = true;
+    setText(kept.text); if (kept.tags) setTagText(kept.tags); if (kept.template) setPrompt(kept.template); setDraftBack(kept);
+    // Review fix: the entry's choices come back with its words (a letter stays a letter, a dream a dream).
+    applyChoices(kept);
+    // On loading (and after an account change) only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [compact, journal.loaded, accountTick]);
   useEffect(() => {
     if (compact || !fillDefault || !journal.loaded) return;
     setFillDefault(false);
-    if (!defaultTemplate || text.trim()) return;
+    if (!defaultTemplate || text.trim() || fromDraft.current) return;
     setText(startFrom('', defaultTemplate, qLang)); setPrompt({id: defaultTemplate.id, lang: qLang});
     if (defaultTemplate.tags?.length) setTagText(defaultTemplate.tags.join(', '));
   }, [compact, fillDefault, journal.loaded, defaultTemplate, text, qLang]);
   // Session AV lane 2 (r3-notes; LEDGER #277): "Write about this" on Today's quote opens the Journal with ?quote=<id>; the
   // entry starts with the quote and its writer (its words load on that visit only).
   useEffect(() => {
-    if (compact || !journal.loaded) return;
+    if (compact || !journal.loaded || fromDraft.current) return; // Session AW (fr-journal): a draft that came back wins
     let id: string | null = null;
     try { id = new URLSearchParams(window.location.search).get('quote'); } catch { /* no address */ }
     if (!id || !/^[a-z0-9-]{1,20}$/.test(id)) return;
@@ -141,6 +172,7 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
     const dreamOf = dream;
     try { journal.update(current => { const full = {...entry, ...(question ? {followUp: {question, from: 'device' as const}} : {})}; if (dreamOf) return addDream(current, full, dreamOf).journal; return {...current, entries: [...current.entries, full].slice(-5000)}; }); }
     catch { if (photos.length || audio.length) void import('../../lib/journal/keep-media').then(k => k.forgetJournalMedia([...photos, ...audio.map(a => a.id)])); return setProblem('This could not be saved on this device. Nothing was changed.'); }
+    if (!compact) forgetDraft(); // Session AW (fr-journal): saved, so the draft goes
     setText(''); setTagText(''); setPrompt(null); setGridOn(null); setPeriod(''); setDream(null); setOpens(''); setOpensDay(''); setAsLetter(false); setFillDefault(true); setMedia(NO_MEDIA); setMediaOpen(false); setStatus(opensOn ? `Your letter is folded away until ${formatDate(opensOn)}. That day it opens on Today.` : 'Saved in your journal, on this device.'); setAsked(question ? entry.id : null); setAnswer('');
     if (question) zigiSignals.emit('journal_reflecting'); // Session AK Part 12: ZIGi asks its one question (a Studio-4 reaction once its art lands)
   };
@@ -155,15 +187,90 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
   const promptTemplate = prompt ? (() => { const own = (journal.data.templates ?? []).find(t => t.id === prompt.id); return own ? asJournalTemplate(own) : templateById(prompt.id); })() : null;
   const canGrid = !compact && !!promptTemplate && !promptTemplate.body && promptTemplate.headings[prompt!.lang].length >= 2;
   const asGrid = canGrid && (gridOn ?? promptTemplate!.grid === 'mandala');
+  // Session AW (fr-journal, FR-AW-1): the box is kept as a draft on this device a moment after typing rests, and at once
+  // when the page is left (an in-app link unmounts this; a reload, closing or the phone hiding the app fires pagehide or
+  // visibilitychange). Only the person's own words: an empty box, a template's headings or the default template's words
+  // remove it. Nothing is sent or logged.
+  const pendingDraft = useRef<{draft: JournalDraft | null} | null>(null), live = useRef(true), [draftKept, setDraftKept] = useState(true);
+  // One function for the page's life (it reads only refs and a state setter), so the listeners below stay put.
+  const [flushDraft] = useState(() => () => {
+    const p = pendingDraft.current; if (!p) return;
+    pendingDraft.current = null;
+    let kept = true;
+    try { keepJournalDraft(getAppStorage(), p.draft); } catch { kept = !p.draft; }
+    if (live.current) setDraftKept(kept);
+  });
+  const forgetDraft = () => { pendingDraft.current = null; fromDraft.current = false; setDraftBack(null); try { keepJournalDraft(getAppStorage(), null); } catch { /* removed with the next write */ } };
+  const started = [defaultTemplate ? templateText(defaultTemplate, qLang) : null, promptTemplate && prompt ? templateText(promptTemplate, prompt.lang) : null];
+  const worth = !compact && draftWorthKeeping(text, started, onlyHeadings);
+  // Review fix (privacy): the secret guard reads the box before any draft is written; text it flags (recovery words, a
+  // private key) is never kept, and a draft kept before is removed. Its code and the Latin word list load once the
+  // Journal is open (a lazy chunk, after the page), so an ordinary sentence is read exactly; until then nothing is
+  // written for text long enough to hold a secret.
+  const [guard, setGuard] = useState<GuardModule | null>(null), [guardTick, setGuardTick] = useState(0);
+  useEffect(() => {
+    if (compact || guard || !journal.loaded) return;
+    let on = true;
+    void Promise.all([import('../../lib/secret-guard/guard'), import('../../lib/secret-guard/word-lists').then(w => w.loadWordLists(['latin']))]).then(([m]) => { if (on) setGuard(m); }, () => undefined);
+    return () => { on = false; };
+  }, [compact, guard, journal.loaded]);
+  const choices: DraftChoices = {period: period || undefined, opens: opens || undefined, opensDay: opensDay || undefined, book: chosenBook, dream};
+  const choicesKey = JSON.stringify(choices);
+  // Review fix (two tabs): the box's words are already saved (another tab saved them); kept no longer, and said.
+  const savedHere = !compact && worth && savedAlready(journal.data.entries, {day: today, text}, today);
+  useEffect(() => {
+    if (compact || !draftRead.current) return;
+    if (skipWrite.current) { skipWrite.current = false; return; } // the draft just read is the one stored
+    const long = text.length >= GUARD_MIN_CHARS;
+    if (long && !guard) return; // not read by the guard yet: nothing new is written
+    const secret = long && !!guard && guard.looksSecret(text);
+    // A cautious answer while a word list this text needs is still loading is read again once it is here.
+    if (secret && guard) void guard.guardTextReady(text).then(found => { if (!found && live.current) setGuardTick(n => n + 1); }, () => undefined);
+    pendingDraft.current = {draft: draftOf({day: today, text, tags: tagText, template: prompt, now: new Date(), worth: worth && !savedHere, secret, choices: JSON.parse(choicesKey) as DraftChoices})};
+    const timer = window.setTimeout(flushDraft, DRAFT_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [compact, today, text, tagText, prompt, worth, savedHere, guard, guardTick, choicesKey, flushDraft]);
+  useEffect(() => {
+    if (compact) return;
+    live.current = true;
+    const onHide = () => flushDraft(), onVisibility = () => { if (document.visibilityState === 'hidden') flushDraft(); };
+    window.addEventListener('pagehide', onHide); document.addEventListener('visibilitychange', onVisibility);
+    return () => { window.removeEventListener('pagehide', onHide); document.removeEventListener('visibilitychange', onVisibility); live.current = false; flushDraft(); };
+  }, [compact, flushDraft]);
+  // A reload or closing the tab asks first only when the words could not be kept (this device refused the draft); an
+  // in-app link never asks (the draft is kept when this unmounts).
+  useEffect(() => {
+    if (compact || draftKept) return;
+    const onLeave = (event: BeforeUnloadEvent) => { flushDraft(); event.preventDefault(); event.returnValue = ''; };
+    window.addEventListener('beforeunload', onLeave);
+    return () => window.removeEventListener('beforeunload', onLeave);
+  }, [compact, draftKept, flushDraft]);
+  useEffect(() => {
+    if (compact) return;
+    const onAccount = () => { pendingDraft.current = null; draftRead.current = false; fromDraft.current = false; setText(''); setTagText(''); setPrompt(null); applyChoices({}); setDraftBack(null); setDraftKept(true); setAccountTick(n => n + 1); };
+    window.addEventListener(ACCOUNT_CHANGE, onAccount);
+    return () => window.removeEventListener(ACCOUNT_CHANGE, onAccount);
+  }, [compact]);
+  const discardDraft = () => {
+    const back = {text, tags: tagText, prompt, choices};
+    forgetDraft(); setText(''); setTagText(''); setPrompt(null); setGridOn(null); applyChoices({}); setStatus('');
+    showUndo({message: 'Draft discarded.', undoLabel: 'Undo discarding the draft', restore: () => {
+      try { keepJournalDraft(getAppStorage(), draftOf({day: today, text: back.text, tags: back.tags, template: back.prompt, now: new Date(), worth: true, choices: back.choices})); } catch { /* the box still gets it back */ }
+      setText(back.text); setTagText(back.tags); setPrompt(back.prompt); applyChoices(back.choices);
+      return {undone: 'The draft is back in the box.'};
+    }});
+    words.current?.focus();
+  };
   if (!journal.loaded || !energy.loaded) return <p className="fine">Loading your journal…</p>;
   return <div className={`journal-compose${compact ? ' journal-compose-compact' : ''}`}>
     <fieldset className="journal-energy"><legend>Energy today</legend>
       {[1, 2, 3, 4, 5].map(n => <label key={n} className="journal-energy-dot" title={ENERGY_WORDS.en[n - 1]}><input type="radio" name={`${id}-energy`} checked={todayEnergy === n} onChange={() => rate(n)}/><span aria-hidden="true">{n}</span><span className="sr-only">{n} of 5, {ENERGY_WORDS.en[n - 1]}</span></label>)}
       <span className="fine journal-energy-word">{todayEnergy ? ENERGY_WORDS.en[todayEnergy - 1] : '1 drained · 5 full of energy'}</span>
     </fieldset>
-    {todayEnergy !== null && <MoodWordsFold day={today}/>}
-    {/* Session AV (1c, q4 #4, fresh-agent review; Day One, Finch): "Three good things" at the top of Write, one step (folded since fr-layout, FR-TJ-9). */}
-    {!compact && !pending && <Suspense fallback={null}><ThreeGoodThings/></Suspense>}
+    {/* Session AW (simplicity-b, Part 3): on the Journal page the feeling word and "Three good things" follow the entry's form
+        (Today's card keeps the feeling word here). Above it they put "Today's entry" at y 733 on a phone in the Showcase,
+        its box running under the tab bar; the energy scale stays, one row. */}
+    {compact && todayEnergy !== null && <MoodWordsFold day={today}/>}
     {!pending && <form onSubmit={e => void save(e)} aria-label="Write in your journal">
       {canGrid && <button type="button" className="quiet journal-grid-toggle" aria-pressed={asGrid} onClick={() => setGridOn(!asGrid)}>{asGrid ? 'Write as one text' : 'Write as a grid'}</button>}
       {asGrid ? <Suspense fallback={<p className="fine">Opening the grid…</p>}><ComposeGrid key={`${prompt!.id}-${prompt!.lang}`} template={promptTemplate!} lang={prompt!.lang} text={text} onChange={setText}/></Suspense>
@@ -172,42 +279,50 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
       {!compact && journal.data.wordGoal && <Suspense fallback={null}><WordGoalLine entries={journal.data.entries} goal={journal.data.wordGoal} today={today} draft={text}/></Suspense>}
       {dream && <p className="fine journal-dream-line" role="status">A dream from the night ending {formatDate(dream, {weekday: true})}. It goes in your {dreamsBook(journal.data)?.name ?? 'Dreams'} journal{dreamsBook(journal.data) ? '' : ' (made when you save)'}, and shows on that night in your sleep log. <button type="button" className="text-link" onClick={() => setDream(null)}>Not a dream</button></p>}
       {prompt && templateById(prompt.id)?.note && <p className="fine">{templateById(prompt.id)!.note![prompt.lang]}</p>}
+      {/* Session AW (fr-journal, FR-AW-1): the draft kept on this device came back; one line, and a way to throw it away. */}
+      {savedHere && <p className="fine journal-draft-line" role="status">These words are already saved in your journal (perhaps in another tab), so no draft of them is kept.</p>}
+      {!compact && draftBack && text.trim() && !savedHere && <p className="fine journal-draft-line" role="status">{draftBackLine(draftBack, today)} <button type="button" className="text-link" onClick={discardDraft}>Discard draft</button></p>}
+      {!compact && !draftKept && text.trim() && <p className="fine journal-draft-line" role="status">This device did not keep a draft of these words. Save entry to keep them.</p>}
       {/* Session AV Part 7 (ADR-045 F-PROMPT): one question a day (lib/journal-prompts/daily.ts); using it only writes it into the text. Session AV lane 2 (fr-layout, FR-TJ-9): under the entry box, not above it — there it pushed "Today’s entry" 336 px down on a phone. */}
       {!compact && !text.trim() && <div className="journal-today-question" role="group" aria-label="Today’s question"><p><span className="fine">Today’s question{todayQ.pack ? <> · <span lang={qLang}>{todayQ.pack.title[qLang]}</span> pack</> : null}</span> <strong lang={qLang}>{todayQ.question}</strong></p>
         <div className="journal-today-question-actions"><button type="button" className="secondary" onClick={() => setText(current => withQuestion(current, todayQ.question))}>Use this question</button><button type="button" className="quiet" onClick={() => setStep(n => n + 1)}>Another question</button>{/* Session AV lane 2 (#56): a pack's own question is chosen in Prompt packs, so only the daily one hides here. */}{!todayQ.pack && <button type="button" className="quiet" onClick={() => { const i = questionIndexOfTheDay(today, step, qLang, mutedQ); void import('../../lib/muted/write').then(m => { m.setMuted('questions', i, true); setHidden(n => n + 1); setHiddenSaid('Hidden: it will not be asked again. Journal → Start from a prompt → Hidden lists it.'); }).catch(() => setHiddenSaid('This could not be hidden on this device.')); }}>Don’t ask this again</button>}<button type="button" className="quiet" lang={qLang === 'en' ? 'nl' : 'en'} onClick={() => setQuestionLang(qLang === 'en' ? 'nl' : 'en')}>{qLang === 'en' ? 'In het Nederlands' : 'In English'}</button></div>{hiddenSaid && <p className="fine" role="status">{hiddenSaid}</p>}</div>}
-      {/* Session AV lane 2 (journal; LEDGER #35, Day One's links to other entries): a day's entries, or a note, goal or habit, by [[name]]. */}
-      {!compact && <details className="prompt-fold journal-link-fold"><summary>Link another day <span className="fine">· or type [[a note, goal or habit]]</span></summary>
-        <div className="journal-link-day"><label className="field"><span>Day to link</span><input type="date" max={today} value={linkDay} onChange={e => setLinkDay(e.target.value)}/></label>
-          <button type="button" className="secondary" disabled={!/^\d{4}-\d{2}-\d{2}$/.test(linkDay)} onClick={() => { setText(current => `${current.replace(/\s+$/, '')}${current.trim() ? ' ' : ''}[[${linkDay}]]`); setStatus(`A link to ${linkDay} is in your entry; it opens that day's entries.`); }}>Add the link</button></div>
-      </details>}
       <SecretGuard text={text} onRemove={() => setText('')}/>
-      {/* Session AV (1c, q4 #5; Day One suggests tags): the tags already in use, offered after what is typed so far. */}
-      {!compact && <label className="field journal-compose-tags"><span>Tags — optional</span><input maxLength={200} autoComplete="off" list={tagOffers.length ? `${id}-known-tags` : undefined} value={tagText} onChange={e => setTagText(e.target.value)} placeholder="work, family" aria-describedby={`${id}-tags-hint`}/><small id={`${id}-tags-hint`} className="fine">Separate tags with commas; up to 8.</small></label>}
-      {!compact && !dream && (prompt?.id === 'letter-future-you' || asLetter || opens ? <fieldset className="journal-letter">
-        <legend>Open it later, as a letter</legend>
-        <label className="field"><span>Open this entry</span><select value={opens} onChange={e => setOpens(e.target.value as typeof opens)}><option value="">Now: not a letter</option>{(['month', 'half', 'year'] as const).map(c => <option key={c} value={c}>{OPENS_WORDS[c]} ({formatDate(opensOnFor(c, today))})</option>)}<option value="day">On a day I choose</option></select></label>
-        {opens === 'day' && <label className="field"><span>The day it opens</span><input type="date" min={addLocalDays(today, 1)} max={addMonths(today, 120)} value={opensDay} onChange={e => setOpensDay(e.target.value)}/></label>}
-        <p className="fine">Until then it stays folded away in your journal, its words hidden. On its day it opens on Today, and the Journal&rsquo;s reminder tells you that morning (if notifications are on).</p>
-      </fieldset> : <button type="button" className="quiet journal-letter-open" onClick={() => { setAsLetter(true); requestAnimationFrame(() => document.querySelector<HTMLElement>('.journal-letter select')?.focus()); }}>Open it later, as a letter…</button>)}
-      {!compact && (() => { const choices = periodChoices(today), lookBack = period ? ALL_TEMPLATES.find(t => t.period === (period.includes('-W') ? 'week' : period.length === 7 ? 'month' : 'year')) : null;
-        const word = (c: (typeof choices)[number]) => !c.kind ? 'This day' : `${c.which === 'this' ? 'This' : 'Last'} ${c.kind} · ${periodWords(c.value)}`;
-        return <div className="journal-compose-period">
-          <label className="field"><span>This entry is about</span><select value={period} onChange={e => setPeriod(e.target.value)}>{choices.map(c => <option key={c.value || 'day'} value={c.value}>{word(c)}</option>)}</select></label>
-          {lookBack && prompt?.id !== lookBack.id && onlyHeadings(text) && <button type="button" className="quiet" onClick={() => { setText(current => startFrom(current, lookBack, qLang)); setPrompt({id: lookBack.id, lang: qLang}); setGridOn(null); setStatus(`Started from “${lookBack.title[qLang]}”. Write under each heading, or change anything.`); }}>Start from the {lookBack.title.en.toLowerCase()}</button>}
-        </div>; })()}
-      {!compact && !dream && books.length > 0 && <label className="field journal-compose-book"><span>Journal</span><select value={inBook ?? ''} onChange={e => setChosenBook(e.target.value || null)}><option value="">Journal (main)</option>{books.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}</select></label>}
-      {!compact && tagOffers.length > 0 && <datalist id={`${id}-known-tags`}>{tagOffers.map(o => <option key={o} value={o}/>)}</datalist>}
-      {!compact && <details className="prompt-fold" open={prompts || undefined} onToggle={e => setPrompts((e.currentTarget as HTMLDetailsElement).open)}><summary>Start from a prompt</summary>
-        {prompts && <Suspense fallback={<p className="fine">Opening…</p>}><PromptPicker startLang={qLang} own={journal.data.templates ?? []} onEditOwn={(ownId, title, headingsText) => { journal.update(current => editOwnTemplate(current, ownId, {title, headingsText})); setStatus(`Your template “${title}” is saved.`); }} onAddOwn={(title, headingsText, newId) => journal.update(current => addOwnTemplate(current, {title, headingsText}, newId))} onRemoveOwn={ownId => journal.update(current => removeOwnTemplate(current, ownId))} defaultId={journal.data.defaultTemplate ?? null} onDefault={(templateId, title) => { try { journal.update(c => withDefault(c, templateId)); setStatus(templateId ? `A new entry starts from “${title}”.` : 'A new entry starts empty.'); } catch { setStatus('This choice could not be kept on this device.'); } }} onPick={(t, lang) => { setText(current => startFrom(current, t, lang)); setPrompt({id: t.id, lang}); setGridOn(null); setPrompts(false); if (t.tags?.length) setTagText(current => current.trim() ? current : t.tags!.join(', ')); setStatus(`Started from “${t.title[lang]}”. Write under each heading, or change anything.`); }}/></Suspense>}
-      </details>}
-      {!compact && <details className="prompt-fold journal-media-fold" open={mediaOpen || hasMedia || undefined} onToggle={e => setMediaOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Photos and a voice note <span className="fine">· {hasMedia ? [media.photos.length ? `${media.photos.length} ${media.photos.length === 1 ? 'photo' : 'photos'}` : '', media.audio ? 'a voice note' : ''].filter(Boolean).join(' and ') : 'on this device only'}</span></summary>
-        {(mediaOpen || hasMedia) && <Suspense fallback={<p className="fine">Opening…</p>}><ComposeMedia value={media} onChange={setMedia}/></Suspense>}
-      </details>}
-      {!compact && <details className="prompt-fold prompt-packs-fold" open={packsOpen || undefined} onToggle={e => setPacksOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Prompt packs <span className="fine">· {(journal.data.packs ?? []).length ? `${(journal.data.packs ?? []).length} on` : 'sleep, training and more'}</span></summary>
-        {packsOpen && <Suspense fallback={<p className="fine">Opening…</p>}><PromptPacks on={journal.data.packs ?? []} lang={qLang} onToggle={(packId, on, m) => { /* Session AV lane 2 (fixb1): kept in the same tap, so the box never springs back first */ setPacks(m); try { journal.update(c => ({...c, packs: m.withPack(c.packs, packId, on)})); setStatus(on ? 'Pack on: its questions join today’s question.' : 'Pack off.'); } catch { setStatus('This choice could not be kept on this device.'); } }} onUse={q => { setText(current => withQuestion(current, q)); setStatus('The question is in your entry. Write under it, or change anything.'); }}/></Suspense>}
-      </details>}
       {problem && <p role="alert">{problem}</p>}
+      {/* Session AW (fr-journal, FR-AW-1): Save entry right under the words (it was ~770 px below the box on a phone, under
+          every optional extra); the extras follow it, each still part of this entry and saved with it. */}
       <div className="journal-actions"><button type="submit" className="primary" disabled={saving}>{saving ? 'Saving…' : 'Save entry'}</button>{compact && <Link className="text-link" href="/app/journal">Open your journal</Link>}{compact && <Link className="text-link" href="/app/journal#good-things">Three good things</Link>}</div>
+      {!compact && <div className="journal-compose-extras" role="group" aria-label="More for this entry (optional)">
+        {/* Session AV lane 2 (journal; LEDGER #35, Day One's links to other entries): a day's entries, or a note, goal or habit, by [[name]]. */}
+        {!compact && <details className="prompt-fold journal-link-fold"><summary>Link another day <span className="fine">· or type [[a note, goal or habit]]</span></summary>
+          <div className="journal-link-day"><label className="field"><span>Day to link</span><input type="date" max={today} value={linkDay} onChange={e => setLinkDay(e.target.value)}/></label>
+            <button type="button" className="secondary" disabled={!/^\d{4}-\d{2}-\d{2}$/.test(linkDay)} onClick={() => { setText(current => `${current.replace(/\s+$/, '')}${current.trim() ? ' ' : ''}[[${linkDay}]]`); setStatus(`A link to ${linkDay} is in your entry; it opens that day's entries.`); }}>Add the link</button></div>
+        </details>}
+        {/* Session AV (1c, q4 #5; Day One suggests tags): the tags already in use, offered after what is typed so far. */}
+        {!compact && <label className="field journal-compose-tags"><span>Tags — optional</span><input maxLength={200} autoComplete="off" list={tagOffers.length ? `${id}-known-tags` : undefined} value={tagText} onChange={e => setTagText(e.target.value)} placeholder="work, family" aria-describedby={`${id}-tags-hint`}/><small id={`${id}-tags-hint`} className="fine">Separate tags with commas; up to 8.</small></label>}
+        {!compact && !dream && (prompt?.id === 'letter-future-you' || asLetter || opens ? <fieldset className="journal-letter">
+          <legend>Open it later, as a letter</legend>
+          <label className="field"><span>Open this entry</span><select value={opens} onChange={e => setOpens(e.target.value as typeof opens)}><option value="">Now: not a letter</option>{(['month', 'half', 'year'] as const).map(c => <option key={c} value={c}>{OPENS_WORDS[c]} ({formatDate(opensOnFor(c, today))})</option>)}<option value="day">On a day I choose</option></select></label>
+          {opens === 'day' && <label className="field"><span>The day it opens</span><input type="date" min={addLocalDays(today, 1)} max={addMonths(today, 120)} value={opensDay} onChange={e => setOpensDay(e.target.value)}/></label>}
+          <p className="fine">Until then it stays folded away in your journal, its words hidden. On its day it opens on Today, and the Journal&rsquo;s reminder tells you that morning (if notifications are on).</p>
+        </fieldset> : <button type="button" className="quiet journal-letter-open" onClick={() => { setAsLetter(true); requestAnimationFrame(() => document.querySelector<HTMLElement>('.journal-letter select')?.focus()); }}>Open it later, as a letter…</button>)}
+        {!compact && (() => { const choices = periodChoices(today), lookBack = period ? ALL_TEMPLATES.find(t => t.period === (period.includes('-W') ? 'week' : period.length === 7 ? 'month' : 'year')) : null;
+          const word = (c: (typeof choices)[number]) => !c.kind ? 'This day' : `${c.which === 'this' ? 'This' : 'Last'} ${c.kind} · ${periodWords(c.value)}`;
+          return <div className="journal-compose-period">
+            <label className="field"><span>This entry is about</span><select value={period} onChange={e => setPeriod(e.target.value)}>{choices.map(c => <option key={c.value || 'day'} value={c.value}>{word(c)}</option>)}</select></label>
+            {lookBack && prompt?.id !== lookBack.id && onlyHeadings(text) && <button type="button" className="quiet" onClick={() => { setText(current => startFrom(current, lookBack, qLang)); setPrompt({id: lookBack.id, lang: qLang}); setGridOn(null); setStatus(`Started from “${lookBack.title[qLang]}”. Write under each heading, or change anything.`); }}>Start from the {lookBack.title.en.toLowerCase()}</button>}
+          </div>; })()}
+        {!compact && !dream && books.length > 0 && <label className="field journal-compose-book"><span>Journal</span><select value={inBook ?? ''} onChange={e => setChosenBook(e.target.value || null)}><option value="">Journal (main)</option>{books.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}</select></label>}
+        {!compact && tagOffers.length > 0 && <datalist id={`${id}-known-tags`}>{tagOffers.map(o => <option key={o} value={o}/>)}</datalist>}
+        {!compact && <details className="prompt-fold" open={prompts || undefined} onToggle={e => setPrompts((e.currentTarget as HTMLDetailsElement).open)}><summary>Start from a prompt</summary>
+          {prompts && <Suspense fallback={<p className="fine">Opening…</p>}><PromptPicker startLang={qLang} own={journal.data.templates ?? []} onEditOwn={(ownId, title, headingsText) => { journal.update(current => editOwnTemplate(current, ownId, {title, headingsText})); setStatus(`Your template “${title}” is saved.`); }} onAddOwn={(title, headingsText, newId) => journal.update(current => addOwnTemplate(current, {title, headingsText}, newId))} onRemoveOwn={ownId => journal.update(current => removeOwnTemplate(current, ownId))} defaultId={journal.data.defaultTemplate ?? null} onDefault={(templateId, title) => { try { journal.update(c => withDefault(c, templateId)); setStatus(templateId ? `A new entry starts from “${title}”.` : 'A new entry starts empty.'); } catch { setStatus('This choice could not be kept on this device.'); } }} onPick={(t, lang) => { setText(current => startFrom(current, t, lang)); setPrompt({id: t.id, lang}); setGridOn(null); setPrompts(false); if (t.tags?.length) setTagText(current => current.trim() ? current : t.tags!.join(', ')); setStatus(`Started from “${t.title[lang]}”. Write under each heading, or change anything.`); }}/></Suspense>}
+        </details>}
+        {!compact && <details className="prompt-fold journal-media-fold" open={mediaOpen || hasMedia || undefined} onToggle={e => setMediaOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Photos and a voice note <span className="fine">· {hasMedia ? [media.photos.length ? `${media.photos.length} ${media.photos.length === 1 ? 'photo' : 'photos'}` : '', media.audio ? 'a voice note' : ''].filter(Boolean).join(' and ') : 'on this device only'}</span></summary>
+          {(mediaOpen || hasMedia) && <Suspense fallback={<p className="fine">Opening…</p>}><ComposeMedia value={media} onChange={setMedia}/></Suspense>}
+        </details>}
+        {!compact && <details className="prompt-fold prompt-packs-fold" open={packsOpen || undefined} onToggle={e => setPacksOpen((e.currentTarget as HTMLDetailsElement).open)}><summary>Prompt packs <span className="fine">· {(journal.data.packs ?? []).length ? `${(journal.data.packs ?? []).length} on` : 'sleep, training and more'}</span></summary>
+          {packsOpen && <Suspense fallback={<p className="fine">Opening…</p>}><PromptPacks on={journal.data.packs ?? []} lang={qLang} onToggle={(packId, on, m) => { /* Session AV lane 2 (fixb1): kept in the same tap, so the box never springs back first */ setPacks(m); try { journal.update(c => ({...c, packs: m.withPack(c.packs, packId, on)})); setStatus(on ? 'Pack on: its questions join today’s question.' : 'Pack off.'); } catch { setStatus('This choice could not be kept on this device.'); } }} onUse={q => { setText(current => withQuestion(current, q)); setStatus('The question is in your entry. Write under it, or change anything.'); }}/></Suspense>}
+        </details>}
+      </div>}
     </form>}
     {pending?.followUp && <form className="journal-followup" onSubmit={saveAnswer} aria-label="ZIGi's question">
       {/* Session AL fourth pass (DV-190b): the same words as the saved entry ("Question for later"); it is made on this device, not by an AI chat. */}
@@ -218,6 +333,9 @@ export function JournalCompose({compact = false, book = null}: {compact?: boolea
       <div className="journal-actions"><button type="submit" className="primary" disabled={!answer.trim()}>Save answer</button><button type="button" className="text-link" onClick={() => setAsked(null)}>Not now</button></div>
     </form>}
     <p className="journal-status" role="status" aria-live="polite">{status}</p>
+    {!compact && todayEnergy !== null && <MoodWordsFold day={today}/>}
+    {/* Session AV (1c, q4 #4, fresh-agent review; Day One, Finch): "Three good things", one step (folded since fr-layout, FR-TJ-9); after the entry since Session AW (simplicity-b). */}
+    {!compact && !pending && <Suspense fallback={null}><ThreeGoodThings/></Suspense>}
     {pattern && <p className="journal-pattern"><span className="eyebrow">A pattern</span> {pattern}</p>}
   </div>;
 }

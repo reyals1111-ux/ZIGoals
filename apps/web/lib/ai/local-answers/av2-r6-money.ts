@@ -41,7 +41,7 @@ const logOf = (env: ToolEnv): MoneyLog | null => env.moneyLog ?? null;
 const entriesOf = (env: ToolEnv): readonly MoneyEntry[] => env.moneyLog?.entries ?? [];
 const novaOf = (env: ToolEnv) => (env.nova ?? null) as {budgets?: BudgetsRecord | null; budgetPeriods?: BudgetPeriods | null} | null;
 const call = (tool: string, args: Record<string, unknown>, label: string) => [{tool, args, label}];
-const SPENDING = {en: 'Wealth → Spending', nl: 'Vermogen → Uitgaven'}, BUDGETS = {en: 'Wealth → Budgets', nl: 'Vermogen → Budgetten'};
+const SPENDING = {en: 'Wealth → Spending', nl: 'Wealth → Spending'}, BUDGETS = {en: 'Wealth → Budgets', nl: 'Wealth → Budgets'};
 
 // ── A refund that lowers its category (#425) ───────────────────────────────────────────────────────────────────────
 /** "How much did I get refunded this month", "do refunds count as income", "hoeveel geld heb ik terug gekregen". */

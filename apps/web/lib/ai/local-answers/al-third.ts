@@ -90,14 +90,19 @@ const WEEK_EN = /^(?:how (?:was|is|did|has|went) (?:my|the|this) week(?: been| g
 const WEEK_NL = /^(?:hoe (?:was|is|ging|gaat|verliep) (?:mijn|m'n|deze|de) week(?: tot nu toe)?|(?:geef me |toon )?(?:mijn |een |de )?week ?(?:samenvatting|recap)|vat (?:mijn|deze|de) week samen|wat heb ik deze week gedaan)$/i;
 const isWeekAsk = (raw: string) => { const q = norm(raw).replace(LEAD, '').replace(/[?.!]+$/, '').replace(/\s+please$/i, '').trim(); return WEEK_EN.test(q) || WEEK_NL.test(q); };
 /** The weekly review's health lines in Dutch (the engine words them in English). */
-const nlHealth = (line: string) => line.replace(/^(\d+) days? with meals logged$/, (_, d: string) => `${d} ${d === '1' ? 'dag' : 'dagen'} met maaltijden gelogd`).replace(/ steps · /, ' stappen · ').replace(/ min movement$/, ' min beweging').replace(/^(\d+) days? with water$/, (_, d: string) => `${d} ${d === '1' ? 'dag' : 'dagen'} met water`).replace(/^latest weight (.+) on (.+)$/, 'laatste gewicht $1 op $2');
+const nlHealth = (line: string) => line.replace(/^(\d+) days? with meals logged$/, (_, d: string) => `${d} ${d === '1' ? 'dag' : 'dagen'} met maaltijden gelogd`).replace(/ steps · /, ' stappen · ').replace(/ min movement$/, ' min beweging').replace(/^(\d+) days? with water$/, (_, d: string) => `${d} ${d === '1' ? 'dag' : 'dagen'} met water`).replace(/^latest weight (.+) on (.+)$/, (_, w: string, on: string) => `laatste gewicht ${w} op ${nlOn(on)}`);
+/** Session AW (p5-answers, S-10): the weekly review's English date ("Nov 12, 2026") the Dutch way ("12 nov 2026"); anything else as it is. */
+const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], MONTHS_NL = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+const nlOn = (on: string) => on.replace(/^(?:(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun), )?(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{1,2})(?:, (\d{4}))?$/, (_m, mo: string, day: string, year?: string) => `${day} ${MONTHS_NL[MONTHS_EN.indexOf(mo)]}${year ? ` ${year}` : ''}`);
 /** P14-B: "How was my week?", "Weekly recap" with no model: the weekly review's figures, then the Life review to compare. */
 export function weeklyRecapReply(text: string, env: ToolEnv | null, lang: Lang): LocalReply | null {
   if (!isWeekAsk(text)) return null;
   const card = block({kind: 'open-review', period: 'week'});
   if (!env) return null;
   const r = run('weekly_review', {}, env);
-  if (!r.result.ok) return {kind: 'answer', calls: [r.record], text: `${r.result.refusal} ${say(lang, 'The Life review shows the week from your records too.', 'Het Life review toont de week ook uit je gegevens.')}` + card};
+  // Session AW (p5-answers, S-10): the tool's English reason in a Dutch answer ("The weekly review is not available on this
+  // device yet. Het Life review toont…") is said in Dutch; any other reason as the tool gives it.
+  if (!r.result.ok) return {kind: 'answer', calls: [r.record], text: `${lang === 'nl' && /^The weekly review is not available on this device yet\.$/.test(r.result.refusal) ? 'Het weekoverzicht is nog niet beschikbaar op dit apparaat.' : r.result.refusal} ${say(lang, 'The Life review shows the week from your records too.', 'Het Life review toont de week ook uit je gegevens.')}` + card};
   const d = (r.result as ToolOk).data as Data, year = env.habitDay.slice(0, 4);
   const w = env.weekly ? reviewWindow(env.weekly.weekday, env.habitDay) : null;
   const head = w ? say(lang, `Your week, ${dayText(w.weekStart, year)} to ${dayText(w.weekEnd, year)} (your weekly review's week), from your records on this device:`, `Je week, ${nlDayText(w.weekStart, year)} tot ${nlDayText(w.weekEnd, year)} (de week van je weekoverzicht), uit je gegevens op dit apparaat:`)

@@ -196,7 +196,9 @@ test('R2-2 (release review 2): with no model, NOVA answers the natural questions
   await expect(last()).toContainText('Habits still open');
   await sendInNova(page, 'How did I sleep?');
   // Session AV lane 2 (fr-answers; deliberate, FR-TJ-1): the reply names the one button that opens Health, the whole sentence as before.
-  await expect(last()).toContainText('Health is off for NOVA, so nothing from Health is read here. Tap Allow Health in NOVA → Permissions: one tap opens Health (the button is there once Health is on your Today page).');
+  // Session AW (fr-answers, FR-AW-9, deliberate): the reply without the bracket about Today (the button was there anyway).
+  await expect(last()).toContainText('Health is off for NOVA, so nothing from Health is read here. Tap Allow Health in NOVA → Permissions: one tap opens Health.');
+  await expect(last()).not.toContainText('once Health is on your Today page');
   await expect(last()).not.toContainText('Settings → ZIGi');
   // One tap to the switch the answer names; turned on there, the same question is answered from the logged nights.
   await last().getByRole('button', {name: 'Open NOVA → Permissions'}).click();

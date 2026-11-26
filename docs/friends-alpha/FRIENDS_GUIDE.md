@@ -136,7 +136,7 @@ All optional. Help explains each one.
 - **A habit's everyday time.** In the Day timeline, "Every day, on all my devices" gives a habit one time on every device you sync.
 - **Swiss food search** (once we switch the food lookup on): when a barcode isn't found, search the Swiss Food Composition Database instead. Only the words you type are sent, through ZIGoals' food service.
 - **Customize** in Settings → Appearance: the font (System or Inter), text size, density and glow, on this device.
-- **Erase everything on this device** at the end of Settings → Backup & restore. Type ERASE and every ZIGoals record leaves this browser. Make Export everything first if you want a copy.
+- **Erase everything on this device** at the end of Settings → Backup & restore on a computer; on a phone, Settings → Data & privacy → Erase everything (the last row there). Type ERASE and every ZIGoals record leaves this browser. Make Export everything first if you want a copy.
 - **The Guide** has two new notes: a habit that is back after a few missed days, and a goal close to its target. With your own AI connected, "Ask ZIGi about this" opens ZIGi with a question about the note. Nothing is sent until you send it.
 
 ## 8e. New in this release (Session AK, "Number One")
@@ -272,6 +272,28 @@ A two-minute start: [First week with ZIGoals](FIRST_WEEK.md).
   a money line on Today when something asks for a look.
 - **Journal and Today:** three good things, tags, a line on Today, an entry's whole day, your own templates and the
   daily question in Dutch; countdowns that come back every year, with a reminder.
+
+## 8k. New in this release (Session AW, "Finish line")
+
+Each line has its own answer in Help → What's new, which also says where to find it.
+
+- **Calmer first screens.** Every page opens with what you came to do: Today with your Checklist and today's habits,
+  Tasks with "New task", the Journal with today's entry, Notes with "New note". Cards with nothing to show yet wait
+  behind one line that says how to start. Nothing was removed: Help says where each moved tool is, and Settings has a
+  search (in English or Dutch).
+- **Health:** five written programmes (beginner strength, 0 to 5 km, a habit starter, a sleep reset, a meditation
+  starter) and Collections in Guided journeys, with seven short sleep lessons; Read aloud uses your device's own voice
+  only, so nothing is sent. An activity keeps the distance, the effort and the calories you typed (ZIGoals no longer
+  estimates calories burned). A cooking view with timers from the method; recipe files from Paprika or Markdown; the
+  weight trend on a day you name; your sleep goal over two weeks or a month.
+- **Tasks:** reminders that come back until you tick Done, your own snooze times, named timers, and help with a task you
+  keep putting off.
+- **Journal and Notes:** a morning and an evening page, a photo of the day, voice notes faster or 15 seconds either way,
+  saved note searches.
+- **Money:** an entry you remove waits 30 days in Removed recently; copy an entry; a bill that ends; a credit card's next
+  payment from your own entries.
+- **ZIGi and NOVA** answer in Dutch with Dutch dates, the 24-hour clock and the app's own screen names.
+- **Offline:** a page you opened once keeps what it opens on a tap, so it works without a connection.
 
 ## 9. What the Alpha can't do yet
 

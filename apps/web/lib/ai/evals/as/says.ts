@@ -1,4 +1,5 @@
 import {monthIn, nlDate} from '../../local-answers/exact/period';
+import {SAYS_AW_P5} from './cases-aw-p5';
 
 /**
  * Session AS (ADR-042 Part 1, approval item 7): the facts every phrasing of a question must state, written by hand from
@@ -28,12 +29,12 @@ export const SAYS: Readonly<Record<string, readonly string[]>> = {
   // (lib/showcase/au-examples.ts), so 176.40 became 190.39; au-r6-bill-price names that bill's step from €12.99 to €13.99.
   'spend-month': ['435.59'], 'spend-lastmonth': ['190.39'], 'spend-week': ['55.60'], 'spend-yesterday': ['51.40'], 'spend-top-month': ['Groceries', '187.10'], 'spend-top-lastmonth': ['Groceries', '80.90'],
   'spend-groceries-month': ['187.10'], 'spend-biggest-expense': ['120.00', 'Nov 8'], 'spend-compare-months': ['435.59', '190.39'], 'spend-days-month': ['13'], 'spend-none-days-lastweek': ['Nov 11'],
-  'spend-average-month': ['25.62'], 'income-month': ['2,550.00'], 'income-lastmonth': [], 'budgets-over': [], 'budgets-status': ['Groceries', '187.10'], 'budget-fun-left': ['24.00', '60.00'],
+  'spend-average-month': ['25.62'], 'income-month': ['2,550.00'], 'income-lastmonth': [], 'budgets-over': [], 'budgets-status': ['Groceries', '187.10'], 'budget-fun-left': ['24.00', '27.50'] /* Session AW (showcase, deliberate): the Fun budget's near-limit example */,
   'bills-next': ['Rent', '950.00'], 'bills-overdue': ['Rent'], 'bills-week': ['Rent'], 'bills-list': ['Rent', 'Energy'], 'bills-total': ['1,094.99'], 'networth-now': ['531,029.00'], 'coin-btc': ['0.45 BTC', 'Wealth', 'Portfolio'], 'coin-eth': ['4 ETH', 'Wealth', 'Portfolio'],
   'goals-status': ['Emergency fund', '45%'], 'goals-behind': ['Japan adventure'], 'goals-closest': ['First home deposit', '65%'], 'goals-furthest': ['Japan adventure'], 'goals-reached': ['My first 0.1 BTC'],
   'goals-next-date': ['Apr 16, 2027', 'Japan adventure'], 'goals-milestones': ['Launch my creative studio', '2', '4', 'Find the first client', 'Emergency fund', 'Sleep 8 hours a night'], 'goal-japan': ['2,500', '6,000'], 'goal-emergency': ['9,000', '20,000'], 'goal-emergency-eta': ['Jan 31, 2028', 'Nov 16, 2028', '11,000.00', '—'], 'goal-japan-eta': ['Japan adventure', 'Apr 16, 2027', '3,500.00'], 'networth-year': ['531,029.00', '8,000.00'],
   // The day, the journal, focus and NOVA itself
-  'tasks-overdue': ['Sketch the garden bed', 'Book the dentist'], 'tasks-open': ['5'], 'tasks-tomorrow': ['2'], 'tasks-week': ['Compare two savings accounts', 'Draft the trip budget'],
+  'tasks-overdue': ['Sketch the garden bed', 'Book the dentist'], 'tasks-open': ['6'] /* Session AW (showcase, deliberate): one more open example task */, 'tasks-tomorrow': ['2'], 'tasks-week': ['Compare two savings accounts', 'Draft the trip budget'],
   'tasks-done-week': ['Renew the library card'], 'tasks-done-lastweek': [], 'tasks-priority': ['Book the dentist'], 'tasks-next': ['Sketch the garden bed'], 'tasks-deadlines': ['Draft the trip budget', 'deadline'], 'tasks-minutes': ['Book the dentist', '15 min'],
   'journal-today': [], 'journal-notdone-month': ['Nov 1', 'Nov 13'], 'journal-days-month': ['10'], 'journal-lastweek': ['5'], 'journal-streak': ['4'], 'journal-last': ['Nov 17'], 'notes-count': [],
   'agenda-today': ['Meditate'], 'agenda-tomorrow': ['Upper body session'], 'agenda-next': ['Meditate'], 'checklist-today': [],
@@ -65,6 +66,24 @@ export const SAYS: Readonly<Record<string, readonly string[]>> = {
   'av-bench-best': ['Bench press', '62.5 kg × 8'], 'av-supplements': ['Vitamin D', 'Magnesium', 'Eye drops'], 'av-symptoms': ['Symptoms and factors'],
   'av-good-things': ['3'], 'av-journal-tag': ['“work”'], 'av-journal-count': ['1'], 'av-journal-templates': ['8', 'Run diary'], 'av-journal-question': ['Journal → Another question'],
   'av-yesterday-open': [], 'av-focus-habit': ['Make it today’s focus'] /* the Showcase sets no focus (D-028) */,
+  // Session AW (batch 1; cases-aw-*.ts): calories burned only as entered, the written programmes, round 7 X2 and X3.
+  'awkcal-burned-today': ['180 kcal', 'Showcase walk'], 'awkcal-burned-week': ['180 kcal', 'Showcase walk'],
+  'aw-programme-which': ['0 to 5 km in 8 weeks', 'run 4'], 'aw-programme-today': ['0 to 5 km in 8 weeks', 'run 4'],
+  'awx2-dread': ['Example · Sketch the garden bed'], 'awx2-moved': ['Example · Sketch the garden bed', '3'], 'awx2-long-open': ['Example · Sort the photo folder', '75'],
+  'awx2-day': ['0', '2'], 'awx2-target': ['@admin', '3 h'], 'awx2-stuck': ['•'],
+  'awx3-this-morning': ['What would make today great?'], 'awx3-photo-a-day': ['A photo a day'], 'awx3-saved-searches': ['Example · Travel being planned', 'Example · Reading'],
+  'awx3-voice-faster': ['2×', '15'], 'awx3-day-pages': ['Morning and evening'],
+  'awx1-timers': ['Tasks → More views → Timers'], 'awx1-timer-end': ['Tasks → More views → Timers'], 'awx1-again': ['Remind again', '30'], 'awx1-snooze': ['15 min', 'Tomorrow (09:00)'],
+  'awx4-year': ['2026', '202', '217', 'Walk'], 'awx4-repeat-reached': ['Starts again'],
+  'awx5-use-soon': ['Showcase yoghurt', 'Showcase spinach'], 'awx5-last-made': ['Showcase pea soup', '2', '4'], 'awx5-menu-next-week': ['Soup week (Showcase)', '5'],
+  'awx6-weigh-on': ['71.8 kg', '73.6 kg'], 'awx6-weight-week': ['3', '2'], 'awx6-sleep-goal-period': ['8 h 00 min'], // its two phrasings read 14 and 30 days
+  ...SAYS_AW_P5, // Session AW Part 5 (p5-answers)
+  'awx7-money-removed': ['Phone case', '19'], 'awx7-money-bill-ends': ['Music', '3', '24'], 'awx7-money-card-payment': ['Credit card'],
+  // Session AW (fr-money, persona walks FR-AW-3/4/11): a payment recorded on a debt, never spending; what is owed after it.
+  'awfr-money-paid-month': ['300', 'Car loan'], 'awfr-money-paid-week': [], 'awfr-money-owed': ['Car loan', 'Credit card', '640'], 'awfr-money-loan-advice': [],
+  // Session AW (fr-answers, persona walks FR-AW-5/6/9/10/17/19/22).
+  'awfr-average-kcal': ['kcal'], 'awfr-due-ahead': [], /* each phrasing names its own period's tasks */ 'awfr-health-shared': ['Settings → ZIGi'], 'awfr-sleep-nl': ['7 h 17 min'],
+  'awfr-eating-healthy': ['Berry overnight oats'], 'awfr-compare-weeks': ['11', '14'], 'awfr-mood-reflective': ['113'],
 };
 
 // Session AV lane 2 (Dutch dates, deliberate): a Dutch answer now writes its dates the Dutch way (exact/period.ts nlDay,

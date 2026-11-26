@@ -26,3 +26,18 @@ export function readLauncherRecord(storage: Pick<Storage, 'getItem'>): LauncherR
     };
   } catch { return DEFAULT_LAUNCHER_RECORD; }
 }
+/**
+ * Session AW (D-ZIGI200, attempt 2): whether ZIGi is on but not set up (no provider or no model chosen), read with the same
+ * plain checks, so the launcher shows the set-up ask (attention) from its first paint. Before, it waited for the alive chunk
+ * (components/zigi/alive.ts watchSetup), which on a slow device came seconds after the page. The machine stays the authority
+ * once it runs: it asks again, or rests ZIGi if this read was wrong. Unreadable or malformed reads as "not asking".
+ */
+export function setupAsked(storage: Pick<Storage, 'getItem'>): boolean {
+  try {
+    const raw = storage.getItem(AI_SETTINGS_KEY); if (raw === null) return false;
+    const v: unknown = JSON.parse(raw);
+    if (!v || typeof v !== 'object' || (v as {version?: unknown}).version !== 1) return false;
+    const o = v as Record<string, unknown>;
+    return o.enabled === true && (!str(o.provider) || !str(o.model));
+  } catch { return false; }
+}

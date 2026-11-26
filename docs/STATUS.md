@@ -1,3 +1,86 @@
+# Session AW — "FINISH LINE" (ADR-046) (2026-11-25/26, `feature/session-aw-finish-line`, Draft [PR #110](https://github.com/reyals1111-ux/ZIGoals/pull/110) "Session AW — Finish line"; complete, not merged, not deployed)
+
+**Base:** `main` `8fa8aa1d` (PR #109 merged). **Rules (owner):** the brief, the plan and the approval, verbatim in `docs/architecture/ADR-046-session-aw.md`. Resume: `docs/handoff/AW_RESUME.md`.
+
+## Part 0 — records (25 Nov)
+- **PR #109** merged into `main` as `8fa8aa1d` (parents `1c1b5953` and `534c75a8`). **PR #103** is closed.
+- **Alpha #59** = Manual Alpha deployment run 62 (24 Nov), source `8fa8aa1ddc4edd6243c87621b4775f7897410964`: version `3a68c327-91c0-490a-b909-c04912b3695e`, rollback `f2729d28-e9db-436f-a66a-67922cf5d924` (#58); **VERIFIED** after 3 reads, live prices **VERIFIED** (owner); market policy period ends 2026-11-30T16:00:00Z (the owner's separate task); build archive SHA-256 `29d0a5f2f2548b4a932419f29920413afa1d99a48ddfa5f45c23eb384cac1925`.
+- **Frozen readers** are #37–#59 from now on (`scripts/frozen-readers.mjs`: #59 = `8fa8aa1d`).
+
+| Alpha | Manual Alpha run | source | version | rollback to | verified |
+|---|---|---|---|---|---|
+| #59 | 62 (24 Nov) | `8fa8aa1d` | `3a68c327-91c0-490a-b909-c04912b3695e` | `f2729d28-e9db-436f-a66a-67922cf5d924` (#58) | yes, 3 reads; live prices yes |
+| #58 | 61 (22 Nov) | `1c1b5953` | `f2729d28-e9db-436f-a66a-67922cf5d924` | `e0bc17f3-27c0-4900-aa55-416f20ece6f6` (#57) | yes, 3 reads; live prices yes |
+
+## Parts, commits and evidence (`git log 8fa8aa1d..HEAD`; merge commits only, never rebased)
+| Part | What | Commits / merges |
+|---|---|---|
+| 0 | Records: Alpha #59, frozen readers #37–#59, ADR-046 with the brief, plan, approval and the 12 amendments verbatim | `485bd80b` |
+| 1 | Owner decisions: 1a kcal (no estimated burn; distance, effort, calories you entered), 1d five written programmes + Read aloud (on-device voices only), 1e FR-TJ-7 inside the Habits baseline | merges `e3ce1d61`, `dcc035c4`, `5ec74fbc` |
+| 2 | Speed attempts 1 and 2 (D-SPEED: targets Carried, 2 failed attempts); WebKit 4 → 6 shards and two repacks (`48eb8149`, `c1eb7a1d`); intermittents fixed at their cause (D-EARN54, D-ZIGI200, D-CI2038–2043) | merge `0a301f33`; `3998d8a9`, `bf16e24a`, `91d2c134`, `8a11410e` |
+| 3 | Simplicity: first screens, Settings search EN/NL, Help aliases; SIMPLICITY.md before/after (first-screen cards 51 → 49, zero-state 19 → 18) | merges `ed31424e`, `eee91a91`, `31544abd` |
+| 4 | Round 7 (#432–#464): 32 built, 1 Carried (#443) | merges `acaf0f01`, `0d728306`, `de957513`, `ef9e5ffb`, `2313bfa1`, `1e2f6921`, `df868ad3` |
+| 5 | Everything Carried once more: VERDICTS.md (every row, allowed causes only), p5-fixes, p5-answers, content (#82, #278), showcase | merges `71f66cbe`, `c11559e4`, `54979da8`, `6bbc591b` |
+| 6 | Round trip (every record kind), offline specs, privacy audit (app + landing), SWEEP.md (360 views), persona walks → FRIEND_READINESS (1 Blocker, 5 Majors, 21 Minors: all fixed or given a verdict; fresh re-walk confirmed) | merges `60789ff1`, `9560f44c`, `3c8a7da2`, `50fc2c24`, `e17cfcc5`, `a9b60f60`, `798e69d3` and their review fixes |
+| 7 | OWNER_STEPS.md as one ordered checklist, ending with what friends receive | `b1e27d13` |
+| 8 | Docs: FRIENDS_GUIDE, UNFINISHED's counts line, ADR-046 closing table, this entry | `ec7b2665` |
+
+## Tier 3, in plain words (risk → rollback)
+- **Stored formats** (26 commits): every change is additive and optional. New device records include X1's timers, X2's task
+  fields, X7's Removed recently and the Journal's unsaved draft (never exported or restored). The frozen readers #37–#59 pass.
+  Rollback: revert the commit; older records still read.
+- **AI tools** (13): Read aloud uses on-device voices only; the money answers read one balance; loan questions get the no-advice
+  line; the Health-closed replies name their real reason. Rollback: revert.
+- **PWA** (5): each page's later parts kept offline; prefs read through a dynamic import. **CSP** (1): `media-src 'self' blob:`
+  (journal voice notes never played in production before). **Sync** (2) and **CI** (2): shard lists and WebKit 6. Rollback: revert.
+
+## Tests and assertions changed (deliberate; none weakened)
+Every changed assertion is marked "Session AW (…, deliberate)" in its spec, with the reason and an equally strict
+replacement. Many were spec reads that came before a lazily loaded part (now waited for), or Showcase figures that moved
+with the new labelled examples (corpus re-recorded deliberately). The fresh reviews found no weakened assertion.
+
+## Evidence
+- Production builds 8–12 of this branch (`PUBLIC_ALPHA_UNDEPLOYED`, Chromium, 2 workers): every touched spec green on its
+  last build (build-11: 196 of 196; build-12: 79 of 79). Every route within budget with ≥ 5 kB headroom (tightest: Journal
+  444.9 of 458 kB).
+- Unit suite 16,662 passed; typecheck and lint clean. The one local failure, `pre-run11-setup`, is sandbox-only (the
+  machine's pnpm).
+- Frozen readers #37–#59: 102 passed.
+
+## Carried (each with its cause in ADR-046 and VERDICTS.md)
+- Amendment 2's speed targets: 2 failed attempts.
+- Worker-minutes below 1,300: not met (the suite's own size).
+- Ledger: 16 whole rows (9 against a named rule, 4 dependencies declined, 3 needing an outside service) and #124 in part.
+- FR-AW-20 and FR-AW-24: protected areas.
+- The re-walk's USD-start Minor: against ADR-023 C25.
+
+## Owner list
+1. Merge PR #110 (merge commit).
+2. Then OWNER_STEPS.md from step 1, in order: the deploy of #60 from `main`, private-sync, verifier, landing, food Worker,
+   Reown, the optional switches, the acceptance redeploy and Stage 8, hardening, friends.
+3. The market price policy before 30 Nov 16:00 UTC (OWNER_STEPS.md, the dated task).
+4. The open decisions in ADR-046's closing table.
+
+## CI on the final head
+**Safe to merge now: yes (CI runs 2043 and 2044).** Run 2043 on `c1eb7a1d` and run 2044 on `54de2c88` (the same code
+plus one docs file) were green in every job, with 0 failed tests and no job re-run. One test in 2043 and four in 2044
+passed on Playwright's in-job retry; each is a first sighting, none is in both runs, and each is in CI_INTERMITTENTS.md.
+The head after them adds docs only (ADR-046, CI_INTERMITTENTS, AW_RESUME and this entry). Its own run confirms it; if
+it is red, this line is wrong and AW_RESUME says what to do.
+
+## Known CI intermittents (this session)
+- **Registered:** `nova-dashboard:210` (D36).
+- **Fixed at the cause:**
+  - `earn-guide-zigi:54`
+  - `zigi-states:200` (WebKit)
+  - `j06-data-safety:43`
+  - `aw-p5-fixes:119`
+- **First sightings, recorded** (a second red means investigate):
+  - `scripts/run11/market-status.test.mjs` (Miniflare loopback reset)
+  - `theme-parity-af:15`
+  - `aw-x2-marvin:51`
+- **Carried:** D-SYNC, 2 failed attempts (AV).
+
 # Session AV lane 2 (continued) — "ALPHA QUALITY", finished (ADR-045) (2026-11-22/23, `feature/session-av-2`, Draft [PR #109](https://github.com/reyals1111-ux/ZIGoals/pull/109) "Session AV (continued)"; complete, not merged, not deployed)
 
 **Base:** `main` `1c1b5953` ([PR #108](https://github.com/reyals1111-ux/ZIGoals/pull/108) merged; merged into this branch with a merge commit, `76217a38`). **Rules (owner):** follow-ups 4–8, verbatim in `docs/architecture/ADR-045-session-av.md`; the decisions and the lane 2 closing table are there too.

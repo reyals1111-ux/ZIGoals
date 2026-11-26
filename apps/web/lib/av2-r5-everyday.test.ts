@@ -1,5 +1,7 @@
 import {describe, expect, test} from 'vitest';
-import {activityKcalEstimate, activityTypeOf, ACTIVITY_TYPES} from './health-activity-types';
+import * as activityTypes from './health-activity-types';
+import {activityTypeOf, ACTIVITY_TYPES} from './health-activity-types';
+import {emptyActivityExtras, extraOf, extraParts} from './aw-kcal/activity-extras';
 import {EVERYDAY_MOVE_NAMES, EVERYDAY_MOVES} from './health-everyday-moves';
 import {createEmptyHealth, saveActivity} from './health';
 
@@ -17,8 +19,13 @@ describe('everyday movement', () => {
     for (const name of EVERYDAY_MOVE_NAMES) {
       expect(activityTypeOf(name), name).toBeNull();
       expect(activityTypeOf(`${name} with Sam`), name).toBeNull();
-      expect(activityKcalEstimate(name, 60, 80_000), name).toBeNull();
+      // Session AW (1a, deliberate): the estimator this asserted null for is removed (owner decision 1a, no estimated
+      // calorie burn anywhere). Equally strict: an hour of it with nothing typed shows no figure in its row.
+      expect(extraParts(extraOf(emptyActivityExtras(), `health_${name.toLowerCase().replace(/[^a-z]+/g, '-')}-0001`), 'km'), name).toEqual([]);
     }
+    // …and no activity, one of the twelve types included, gets a worked-out figure any more: there is no estimator.
+    expect('activityKcalEstimate' in activityTypes).toBe(false);
+    expect('ACTIVITY_MET' in activityTypes).toBe(false);
   });
   test('their minutes are kept as active minutes, like any activity', () => {
     const h = saveActivity(createEmptyHealth(), {id: 'health_garden-0001', date: '2026-11-20', name: 'Tuinieren', steps: 0, minutes: 45}, '2026-11-20T18:00:00.000Z');

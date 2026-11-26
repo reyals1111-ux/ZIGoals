@@ -84,7 +84,14 @@ export type Recur = z.infer<typeof recurSchema>;
  * `before` stays (0 for such a reminder), so an older build still reads the reminder as "at the time" of a dated task.
  */
 export const REMINDER_AT = /^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d$/;
-export const reminderSchema = z.looseObject({before: z.number().int().min(0).max(40_320), at: z.string().regex(REMINDER_AT).optional().catch(undefined)});
+/**
+ * Session AW (X1, LEDGER #438; Due's "remind again"; TIER 3 (stored format), additive and optional): `again` repeats a
+ * reminder that has gone off every 5, 10, 15 or 30 minutes, 2 to 10 times, until the task is done or the reminder snoozed
+ * (lib/tasks/remind-again.ts); `false` keeps this reminder from following the device's default. A value this build cannot
+ * read is dropped on read; older builds keep it untouched (the object is loose) and remind once, as before.
+ */
+export const reminderAgainSchema = z.union([z.literal(false), z.looseObject({every: z.union([z.literal(5), z.literal(10), z.literal(15), z.literal(30)]), times: z.number().int().min(2).max(10)})]);
+export const reminderSchema = z.looseObject({before: z.number().int().min(0).max(40_320), at: z.string().regex(REMINDER_AT).optional().catch(undefined), again: reminderAgainSchema.optional().catch(undefined)});
 export type TaskReminder = z.infer<typeof reminderSchema>;
 
 /**
@@ -100,6 +107,8 @@ export const MIN_CHUNK = 15, MAX_CHUNK = 240, MAX_AFTER = 3;
 /** Session AV lane 2 (r5-plan, LEDGER #350, #353, #354): a task's states, the longest travel before it, the longest place. */
 export const TASK_STATES = ['doing', 'cancelled'] as const;
 export const MAX_TRAVEL = 600, PLACE_MAX = 200;
+/** Session AW (X2, LEDGER #432, #433): the most a task can be dreaded (1–3), and the highest move count kept. */
+export const MAX_DREAD = 3, MAX_MOVED = 999;
 const ID = /^[A-Za-z0-9_-]{1,80}$/;
 export const taskSchema = z.looseObject({
   id,
@@ -213,6 +222,18 @@ export const taskSchema = z.looseObject({
    * (lib/tasks/engine.ts orderAhead). An older build keeps it untouched and shows every subtask as before.
    */
   inOrder: z.literal(true).optional().catch(undefined),
+  /**
+   * Session AW (X2, LEDGER #432, #433; Amazing Marvin; TIER 3 (stored format), additive and optional, each dropped on read
+   * when it cannot be read; older builds keep them untouched (the object is loose, as in every build since #50) and do not
+   * show them):
+   * `dread` (#432, Marvin's "dread" mark) how much the person is dreading the task, 1 a little to 3 a lot, set only by the
+   * person; never counted against them (lib/tasks/dread.ts);
+   * `moved` (#433, Marvin's procrastination count) how many times its day was put off: moved by hand (or by the wrap-up's
+   * "Move to tomorrow") to a later day that is after today. A repeat's next day, a snooze, a day moved earlier and an overdue
+   * task taken into today do not count (lib/tasks/moved.ts `countMove`). Said as a count, never a warning.
+   */
+  dread: z.number().int().min(1).max(MAX_DREAD).optional().catch(undefined),
+  moved: z.number().int().min(1).max(MAX_MOVED).optional().catch(undefined),
 });
 /**
  * Session AV lane 2 (tasks-r2, LEDGER #228; Any.do's automations; TIER 3 (stored format), additive and optional): a rule on a

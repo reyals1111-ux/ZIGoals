@@ -105,6 +105,8 @@ export function assertHtml(response, html, route="/app", { baseline = false } = 
   assert.deepEqual(directives.get("img-src"), reviewed.get("img-src"), "CSP img-src changed");
   assert.deepEqual((directives.get("img-src") ?? []).slice(0, 3), ["'self'", "data:", "blob:"], "CSP img-src changed");
   assert((directives.get("img-src") ?? []).slice(3).every(source => /^https:\/\/[a-z0-9.-]+$/.test(source)), "CSP img-src allows more than exact https origins");
+  // Session AW (TIER 3 CSP): a voice note plays from a blob: URL made on the device; nothing else.
+  assert.deepEqual(directives.get("media-src"), ["'self'", "blob:"], "CSP media-src changed");
   assert.deepEqual(directives.get("font-src"), ["'self'"], "CSP font-src changed");
   assert.deepEqual(directives.get("form-action"), ["'self'"], "CSP form-action changed");
   assert.deepEqual(directives.get("connect-src"), reviewed.get("connect-src"), "CSP connect-src egress changed");

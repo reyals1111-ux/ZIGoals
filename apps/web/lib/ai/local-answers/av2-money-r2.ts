@@ -43,8 +43,8 @@ export const addR2Answers = (...more: Answer[]) => { ANSWERS.push(...more); };
 export const entriesOf = (env: ToolEnv): readonly MoneyEntry[] => env.moneyLog?.entries ?? [];
 /** The money extras record, when the lead has added it to the tool sources (`moneyMore`, beside `moneyLog`). */
 export const moreOf = (env: ToolEnv): MoneyMore | null => (env as ToolEnv & {moneyMore?: MoneyMore | null}).moneyMore ?? ((env.ak as {moneyMore?: MoneyMore | null} | null | undefined)?.moneyMore ?? null);
-export const SPENDING = {en: 'Wealth → Spending', nl: 'Vermogen → Uitgaven'} as const;
-export const BUDGETS_PLACE = {en: 'Wealth → Budgets', nl: 'Vermogen → Budgetten'} as const;
+export const SPENDING = {en: 'Wealth → Spending', nl: 'Wealth → Spending'} as const;
+export const BUDGETS_PLACE = {en: 'Wealth → Budgets', nl: 'Wealth → Budgets'} as const;
 const thisMonth = (a: Asked) => monthOf(a.today);
 const call = (tool: string, args: Record<string, unknown>, label: string) => [{tool, args, label}];
 
@@ -149,7 +149,7 @@ function balanceLines(a: Asked): LocalReply | null {
   const sheet = sheetOf(a.env), states = limitStates(a.env.accounts, sheet, a.today), calls = call('accounts', {limits: true}, 'Accounts · your balance lines');
   const set = Object.keys(sheet?.limits ?? {}).length;
   if (!states.length) return answer(say(a.lang, set ? `Every account with a line of yours is within it (${count(set, 'en', ['account', 'accounts'], ['', ''])} with a line).` : 'No account has a balance line yet. On Wealth, open an account’s Sheet and fill in “Tell me when it is below” (or above).',
-    set ? `Elke rekening met een eigen grens zit erbinnen (${count(set, 'nl', ['', ''], ['rekening', 'rekeningen'])} met een grens).` : 'Nog geen rekening heeft een saldogrens. Open op Vermogen de Sheet van een rekening en vul “Tell me when it is below” (of above) in.'), calls);
+    set ? `Elke rekening met een eigen grens zit erbinnen (${count(set, 'nl', ['', ''], ['rekening', 'rekeningen'])} met een grens).` : 'Nog geen rekening heeft een saldogrens. Open op Wealth de Sheet van een rekening en vul “Tell me when it is below” (of above) in.'), calls);
   const line = (lang: 'en' | 'nl', s: (typeof states)[number]) => `${s.name} ${money(Math.round(Number(s.balance) * 100), s.currency)} (${dayIn(lang, s.date, a.today)}), ${s.side === 'below' ? say(lang, 'below', 'onder') : say(lang, 'above', 'boven')} ${money(Math.round(Number(s.line) * 100), s.currency)}`;
   return answer(say(a.lang, `${list(states.map(s => line('en', s)), 'en')}. From the latest balance you entered.`, `${list(states.map(s => line('nl', s)), 'nl')}. Uit het laatste saldo dat je invoerde.`), calls);
 }
@@ -162,7 +162,7 @@ function toRecord(a: Asked): LocalReply | null {
     'Geen rekening van de afgelopen drie dagen ontbreekt in je geldlog. Als er een is, biedt Upcoming bills “Record it” aan: één tik, nooit vanzelf.'), calls);
   const line = (lang: 'en' | 'nl', l: (typeof due)[number]) => `${l.title} ${money(l.cents, l.currency)} (${dayIn(lang, l.due, a.today)})`;
   return answer(say(a.lang, `Due and not in your money log yet: ${list(due.map(l => line('en', l)), 'en')}. Wealth → Upcoming bills → Record it puts one in, with Undo.`,
-    `Verlopen en nog niet in je geldlog: ${list(due.map(l => line('nl', l)), 'nl')}. Vermogen → Upcoming bills → Record it zet er een in, met Ongedaan maken.`), calls);
+    `Verlopen en nog niet in je geldlog: ${list(due.map(l => line('nl', l)), 'nl')}. Wealth → Upcoming bills → Record it zet er een in, met Ongedaan maken.`), calls);
 }
 addR2Answers(unusual, balanceLines, toRecord);
 

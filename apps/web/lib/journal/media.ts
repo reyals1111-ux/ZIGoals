@@ -1,4 +1,5 @@
 import * as z from 'zod';
+import {isShowcaseJournalPhoto} from './showcase-photo-ids';
 
 /**
  * Session AV lane 2 (journal; Day One's photos and audio in an entry; TIER 3 (stored format), a new IndexedDB database):
@@ -54,7 +55,15 @@ export async function journalMediaIds(scope: string): Promise<string[]> {
 }
 export async function getJournalMedia(scope: string, mediaId: string): Promise<JournalMedia | null> {
   const parsed = journalMediaSchema.safeParse(await run<unknown>('readonly', s => s.get(mediaKey(scope, mediaId))));
-  return parsed.success ? parsed.data : null;
+  if (parsed.success) return parsed.data;
+  // Session AW (showcase): the Showcase journal's example photo is made in the Showcase's own scope the first time it is
+  // shown (its photos are deleted whenever a Showcase starts or ends); never in any other scope, never another id.
+  if (isShowcaseJournalPhoto(scope, mediaId)) {
+    const media = (await import('./showcase-photo')).showcasePhotoMedia(new Date().toISOString());
+    await run('readwrite', s => s.put(media, mediaKey(scope, mediaId)));
+    return media;
+  }
+  return null;
 }
 /** Keeps one photo or audio note; refuses the 401st of a scope. */
 export async function putJournalMedia(scope: string, mediaId: string, media: JournalMedia): Promise<void> {
