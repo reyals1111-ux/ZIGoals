@@ -40,6 +40,7 @@ import {av2RoadmapAnswer} from './av2-roadmap';
 import {av2MoneyAnswer} from './av2-money';
 import {av2FoodAnswer, readFoodSources} from './av2-food';
 import {mealWordsAnswer} from './fr-meal-words';
+import {awFrAnswer} from './aw-fr-answers';
 import {frAnswer} from './fr-answers';
 import {watchedHoldings, watchedWords} from './fr-wallets';
 import {av2BodyAnswer} from './av2-body';
@@ -285,6 +286,10 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   // typed on an activity or a file brought in, with its source, or honestly says ZIGoals does not work it out — before the
   // food answers, which read it as the calories eaten (aw-kcal.ts).
   if (!subject) { const own = awKcalAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
+  // Session AW (fr-answers; FR-AW-5, FR-AW-17): the average calories leave out a day whose total is unknown (a meal in words,
+  // an entry without calories) and say so; "am I eating healthy" is answered from the food diary, with no judgement
+  // (aw-fr-answers.ts), before the exact layer reads it as Health's overview.
+  if (!subject) { const own = awFrAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AW (programmes): which programme or journey is going, and today's day and step (aw-programmes.ts), before
   // the AV answers, so "today's run" on a programme is its programme day, not a planned workout or the step count.
   if (!subject) { const own = awProgrammesAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
