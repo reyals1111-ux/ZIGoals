@@ -154,3 +154,20 @@ Not counted (environment, not the app):
   shared" gets the Health summary instead, and the Dutch "kun je mijn gezondheid zien?" opens Health with an English
   line. One attempt (answering the trust question first, in `alFirst`) did not reach them, because earlier layers answer
   first. It was reverted. Open: the next attempt is in the local-answers order (`lib/ai/local-answers/no-model.ts`).
+
+## Re-walk by a fresh helper (26 Nov, production build of `fa4d3002`, 390 and 1440)
+- **FR-AW-1 to FR-AW-6 (the Blocker and the five Majors): Fixed**, each checked as a person would.
+  - Journal: the draft comes back after Today and after a reload, with its letter and journal choices. Save entry is
+    371 px under the box's top at 390. Recovery words are never kept.
+  - Wealth: a debt starts in €, and Wealth, NOVA and ZIGi all read €2,250.00 after a payment.
+  - Answers: "paid off" counts payments only; the average leaves out a day with a meal in words, and says so;
+    "due tomorrow" lists tomorrow's tasks.
+- **Minors 7, 8, 9, 10, 11, 13, 15, 17, 18, 22: Fixed.**
+- Every screen it walked: no console or page errors, no NaN or undefined, no sideways scroll at 390, changed labels
+  ≥ 14 px.
+- **New, found by the re-walk:**
+  - **Major, fixed** (`a0820f3c`): at 390 a debt row with a payment squeezed its name to 0 px. The cause dates from AV.
+  - Minor: a payment on the debt's own first day is not shown. Sent to the money builder.
+  - Minor: with no spending yet, a new debt still starts in USD. Sent to the money builder.
+  - Minor (FR-AW-19 on a Monday): "Compare this week with last week" answers with the day so far. Sent to the answers
+    builder.
