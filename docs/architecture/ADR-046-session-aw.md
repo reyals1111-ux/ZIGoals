@@ -431,3 +431,24 @@ and the scripts' transfer size. Each figure is the median of 3 runs. A/B runs al
 - The twenty main lists are repacked from run 2031's JSON per-file durations, about 62 worker-min each (AV's lists
   measured 45–85).
 - The 60-min limit, the two workers and every test stay.
+
+### D-CI2038 — run 2038 on `8314213f`, each red fixed at its cause
+Run 2038: every WebKit shard and the a11y shards green; six main shards red. Each cause, reproduced locally on a
+production build of the same code before the fix:
+- **The task editor never opened** (`av-task-minutes:12`, `av-deadlines:12`, `l5-fourth-pass` ×6 incl. the row drag).
+  A real bug from this session's own a10-life fix (`1ed8efa1`): Tasks' syntax hint hid when the add form lost focus. A
+  press on a row's Edit right after adding a task moved the focus at pointerdown, the hint went, the rows moved up under
+  the pointer, and pointerup and click landed on `.tasks-main` (captured in a probe). The hint now shows while the line
+  has words (`:placeholder-shown`), so it never changes on a press elsewhere (`e984ce51`, layout only).
+- **Two specs read a part before its chunk arrived** (`av2-r5-everyday:12`: the Activity view, lazy since speed attempt 2;
+  `polish2-af:150`: Earn's wider sections). Each now waits for the part, then checks everything as before (`e5d49be9`,
+  deliberate).
+- **`aw-content:47`**: fixed before the run finished (`310a5c97`, waits for the Collections chunk).
+
+### D-ZIGI200 — `zigi-states:200` on WebKit desktop (attempt 1)
+Red on both attempts in runs 2033 and 2035: after the Showcase seed with no model chosen, ZIGi read `idle`, not
+`attention`. The once-a-day hello is ruled out (it never plays under automation). Two one-shots set outside the state
+machine ended at a plain `idle`, past the machine's rest state: a reminder's knock (`knock.tsx`, after its ripple) and
+the push-open greeting (`ai-launcher.tsx`). The likely trigger is a Showcase reminder due at the runner's hour. Both now
+rest where the machine rests (`zigiResting` in `bus.ts`, told by `events.ts`; `3998d8a9`, unit test). WebKit does not
+run in this sandbox, so the next CI runs are the check. A third red means attempt 2.

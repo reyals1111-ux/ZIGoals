@@ -4,30 +4,31 @@ Read this first after a pause, a limit or a model switch; continue from "Next" w
 `feature/session-aw-finish-line` from `main` `8fa8aa1d` (Alpha #59), Draft PR "Session AW — Finish line". Rules:
 CLAUDE.md, the owner's brief, the plan and the approval, all verbatim in `docs/architecture/ADR-046-session-aw.md`.
 
-**Safe to merge now: no — run 2035 on `1856442f` red; its failures are fixed at their cause on the branch or being fixed;
-run 2036 on `16ac3c53` queued; later commits wait for it.**
+**Safe to merge now: no — run 2038 on `8314213f` red (6 main shards: spec reads before a lazily loaded part arrives,
+and the task editor not opening; being fixed at the cause); the next push waits for 2038 to finish.**
 
 ## Done
 - Part 0; ADR-046 with the plan and the owner's 12 amendments verbatim.
-- Batches 1–3 merged and wired: kcal, programmes + Read aloud, FR-TJ-7, X1–X7, simplicity a/b/c, p5-fixes, p5-answers
-  (corpus: Dutch fields only moved), offline spec (aw-offline.spec, list 12).
-- Reviews: b1 (0 Blockers, 2 Majors fixed), b2 (0 Blockers, 3 Majors fixed: recipe ZIP budget, card payment, Help
-  paths); QUALITY-b2.md. Help: 150 "Where" sentences, then 23 corrected after two read-only checks (HELP_WHERE_FIXES.json).
-- Part 6 privacy: audit (PRIVACY_AUDIT.md); Read aloud local voices only in every mode (TIER 3 AI tools `4509a812`);
-  app, Help and landing/privacy.html texts match what the app sends.
-- Real bugs found by specs: CSP had no media-src, so journal voice notes never played in production (`305431f5`);
-  Settings jumps to lazily drawn targets; X2's progress line pushed Tasks' first task below the screen at 768.
-- Part 7: OWNER_STEPS.md rewritten as one ordered checklist (`b1e27d13`).
+- Batches 1–3 merged and wired: kcal, programmes + Read aloud, FR-TJ-7, X1–X7, simplicity a/b/c, p5-fixes, p5-answers,
+  offline (aw-offline.spec, list 12), round trip (`lib/aw-round-trip.test.ts`), content (#82 collections, #278 sleep
+  lessons), showcase (labelled examples, corpus re-recorded deliberately).
+- Reviews b1 and b2 (QUALITY-b2.md), every Blocker and Major fixed. Help: 150 "Where" sentences (HELP_WHERE_FIXES.json).
+- Part 2: speed attempt 2 merged (ADR-046 D-SPEED: targets Carried, 2 failed attempts; every route lighter but Tasks
+  +1.1 kB and Agenda +0.6 kB).
+- Part 3: SIMPLICITY.md with before and after walks. Part 5: VERDICTS.md with integrator resolutions.
+- Part 6: privacy audit and texts; SWEEP.md (360 views); offline specs green on build-8; frozen readers 102 passed.
+- Part 7: OWNER_STEPS.md as one ordered checklist. Part 8 started: FRIENDS_GUIDE section "Session AW".
 
 ## In progress
-- Builders: offline (fixing aw-offline's 9 failures; may touch public/sw.js in a TIER 3 PWA commit), round-trip (the
-  export → erase → restore unit test), content (#82 written collections, #278 sleep lessons), showcase (QUALITY b1 #13
-  and the Showcase-examples row).
-- Integrator: build of the current head (build-7), then speed attempt 2 (Today, Settings, NOVA, Help), the re-runs of
-  2035's failures, SWEEP.md, persona walks; the verdict table (scratchpad VERDICTS.md draft) into docs.
+- Persona walks (fresh agent, E4) → FRIEND_READINESS.md; its `tests/zz-persona-*` files are never committed.
+- CI 2038's failures: av2-r5-everyday and polish2-af:150 (spec reads before a chunk arrives: fixed in the spec,
+  deliberate); av-task-minutes, av-deadlines, l5-fourth-pass (the task editor: local repro first).
+- zigi-states:200 (WebKit) attempt 1: the reminder knock and the push-open greeting rested ZIGi at a plain idle over
+  the set-up ask; they now rest where the machine rests (`zigiResting`, bus.ts).
 
 ## Next
-- Push when 2036 finishes; CI intermittents' verdicts; Part 8 docs, ADR-046 closing table, STATUS final entry.
+- Push when 2038 finishes; two green runs on the final head (E1); CI rows' verdicts with run evidence; ADR-046 closing
+  table; STATUS final entry; ≤12-line report.
 
 ## Team
 - Builders as above; review/research: review b2 and the privacy audit. Hand-backs: scratchpad registry-<group>.md.
