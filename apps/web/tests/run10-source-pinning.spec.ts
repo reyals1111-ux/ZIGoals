@@ -66,18 +66,20 @@ test('source-card pinning keeps Goal, Habit, asset and research bindings distinc
  await page.goto('/app');
  // Session AK RB (RELEASE_REVIEW_2 R2-9, deliberate): the overview no longer repeats the widgets that are cards on Today;
  // the eight are counted as cards, and the research shortcut's card links to its project.
- const summary=page.getByRole('region',{name:'Your Today widgets'}).locator('article.dashboard-widget:not([data-hidden])');
- await expect(summary).toHaveCount(8);
+ const summary=page.getByRole('region',{name:'Your Today widgets'}).locator('article.dashboard-widget:not([data-hidden])'), onToday=page.locator('.personalized-today article.dashboard-widget:not([data-hidden])');
+ // Session AW (simplicity-a, deliberate): the day's habits card stands above "What is due now" when it is Today's first card,
+ // outside the widget grid, so the eight are counted on Today as a whole; the research card's link is still in the grid.
+ await expect(onToday).toHaveCount(8);
  await expect(summary.locator('a.text-link[href^="/app/ecosystem#project-"]')).toHaveCount(1);
  await page.reload();
- await expect(summary).toHaveCount(8);
+ await expect(onToday).toHaveCount(8);
  await page.goto('/app/goals');
  await goal.getByRole('button',{name:/Options for/}).click();
  // Session AO (DV-040g, deliberate): items are menuitems now
  await goal.getByRole('menuitem',{name:/Add .* progress to Today/}).click();
  await expect(goal.getByRole('status')).toContainText('already on Today');
  await page.goto('/app');
- await expect(summary).toHaveCount(8);
+ await expect(onToday).toHaveCount(8);
 });
 
 test('a bound Habit updates its Today summary and card after the source changes',async({page})=>{

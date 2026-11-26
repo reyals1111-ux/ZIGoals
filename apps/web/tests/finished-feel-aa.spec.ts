@@ -35,8 +35,11 @@ test('Settings → Your data: where each part lives, what this device holds, wha
   // Session AM (D18, deliberate): NOVA's stage record and, of NOVA's own record, the layout and the pinned widgets travel
   // as the encrypted `nova` extras section, so both are synced rows now: 4 modules + 21 device records (was 23 rows),
   // each named below; NOVA's own record says in its label what stays on this device.
-  await expect(synced.getByRole('listitem')).toHaveCount(25);
-  expect(SYNCED).toHaveLength(25);
+  // Session AW (review b1 M1, M2; TIER 3 sync; deliberate): an activity's extras travel with Health (under its consent) and
+  // a goal's repeat with the goals, so both are synced rows now: 4 modules + 23 device records, each named below.
+  await expect(synced.getByRole('listitem')).toHaveCount(27);
+  expect(SYNCED).toHaveLength(27);
+  for (const label of ['Health activity: the distance, effort and calories you typed on an activity', 'Goals: which goals start again each week, month or year, and a project’s earlier results']) await expect(synced).toContainText(label);
   for (const label of ['NOVA: your requests, the widgets it made and the dock', 'NOVA: layout and pinned widgets (quick access, persona, names, instructions and side bars stay on this device)']) await expect(synced).toContainText(label);
   await expect(synced.getByRole('listitem').filter({hasText: 'Habits and check-ins'})).toContainText(/\d+(\.\d)? (B|kB|MB)/);
   for (const label of ['Goal plans, life areas, visions and sub-goals', 'Accounts and debts', 'Micronutrient targets', 'Checklist favourites and custom items', 'Checklist day history']) await expect(synced).toContainText(label);
