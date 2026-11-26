@@ -469,7 +469,7 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
       <TurnKind cards={proposals.length > 0}/>
       {!quiet && <SafeText className="ai-local-answer" text={shown}/>}
       {proposals.length > 0 && <ProposalList onDevice lang={questionLanguage(question) === 'nl' ? 'nl' : 'en'} proposals={proposals} rejected={parsed?.rejected ?? []} handles={localHandles} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed?.bundle}/>}
-      <DataViz results={info?.results}/>
+      <DataViz results={info?.results} lang={questionLanguage(question) === 'nl' ? 'nl' : 'en'}/>
       {/* Gate C (persona round): an earlier reply keeps its examples as plain words, so its "For example:" never ends empty. */}
       {!isLast && reply?.kind === 'examples' && reply.examples.length > 0 && <ul className="ai-local-examples" aria-label="Questions ZIGi answers here">{reply.examples.map(e => <li key={e}>{e}</li>)}</ul>}
       {chips.length > 0 && !quiet && <div className="ai-chips" role="group" aria-label={reply?.kind === 'examples' ? 'Questions ZIGi answers here' : 'Which one?'}>{chips.map(c => <button key={c.label} type="button" className="ai-chip" title={c.label} onClick={c.run}>{c.label}</button>)}</div>}
@@ -482,7 +482,7 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
         <p className="ai-note">Your question, these records{attach ? ' and this page’s data' : ''}, sent to your AI only when you choose “Ask my AI for more”.</p>
         {preview && <pre>{preview}</pre>}
       </details>}
-      {isLast && calls.length > 0 && <FollowupChips calls={calls} asked={question} onAsk={onAsk}/>}
+      {isLast && calls.length > 0 && <FollowupChips calls={calls} asked={question} onAsk={onAsk} lang={questionLanguage(question) === 'nl' ? 'nl' : 'en'}/>}
       <SourceLine short={turn.source === 'on-device' ? 'Chrome’s on-device model' : 'On your device · no AI'} full={label}/>
       {turn.records && turn.records.length > 0 && <p className="ai-turn-records" title="Which records went with your question; never their values">Records sent: {turn.records.join(' · ')}</p>}
       <div className={`ai-reply-row${isLast ? ' ai-reply-row-latest' : ''}`}>
@@ -556,10 +556,10 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
       {(parsed.text || parsed.proposals.length > 0) && <TurnKind cards={parsed.proposals.length > 0}/>}
       {parsed.text && <SafeText text={parsed.text}/>}
       <LookedAt turn={turn} session={session} context={context}/>
-      <DataViz results={session.lookupsFor(turn.id)?.map(l => l.result)}/>
+      <DataViz results={session.lookupsFor(turn.id)?.map(l => l.result)} lang={questionLanguage(asked) === 'nl' ? 'nl' : 'en'}/>
       {repeated > 0 && <p className="ai-note">{`${repeated} of these cards were also in an earlier reply. Add only what you still want.`}</p>}
       {(cards.length > 0 || parsed.rejected.length > 0) && <ProposalList proposals={cards} rejected={parsed.rejected} handles={session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} fromPhoto={fromPhoto} replaced={replaced} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} unkept={!session.kept} bundle={parsed.bundle}/>}
-      {isLast && turn.tools && turn.tools.length > 0 && <FollowupChips calls={turn.tools} asked={asked} onAsk={onAsk}/>}
+      {isLast && turn.tools && turn.tools.length > 0 && <FollowupChips calls={turn.tools} asked={asked} onAsk={onAsk} lang={questionLanguage(asked) === 'nl' ? 'nl' : 'en'}/>}
       <MoneyNote text={parsed.text}/>
       {/* Panel polish round 2: the source as one short line; the full sentence for screen readers and in its tooltip. */}
       <SourceLine short={shortLabel} full={label} extra={turn.mode === 'deep' ? <span className="ai-turn-deep ai-sr-only">Thought deeper with {turn.model}</span> : null} deeper={turn.mode === 'deep'} time={<TurnTime at={turn.at}/>}/>

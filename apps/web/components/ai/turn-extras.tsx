@@ -63,8 +63,9 @@ export function TurnKind({cards}: {cards: boolean}) {
   // copies, reads aloud and specs take from the reply alone).
   return <p className="ai-turn-kind" data-kind={cards ? 'change' : 'answer'} data-label={cards ? 'Proposed change · saved only when you add it' : 'Answer'}/>;
 }
-export function FollowupChips({calls, asked, onAsk}: {calls: readonly FollowupCall[]; asked: string; onAsk: (question: string) => void}) {
-  const questions = followupsFor(calls, asked);
+/** Session AW (fr-answers, FR-AW-10): `lang` is the question's language, so a Dutch conversation gets Dutch chips. */
+export function FollowupChips({calls, asked, onAsk, lang = 'en'}: {calls: readonly FollowupCall[]; asked: string; onAsk: (question: string) => void; lang?: 'en' | 'nl'}) {
+  const questions = followupsFor(calls, asked, 3, lang);
   if (!questions.length) return null;
   return <div className="ai-chips ai-followups" role="group" aria-label="Follow-up questions">{questions.map(q => <button key={q} type="button" className="ai-chip" title={q} onClick={() => onAsk(q)}>{q}</button>)}</div>;
 }
