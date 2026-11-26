@@ -6,6 +6,7 @@ import {setDisplayLocale} from '../../visual-format';
 import type {ToolSources} from '../tools/env';
 import {awFrAnswer, calorieDays} from './aw-fr-answers';
 import {exactQuery, strictClaim} from './exact';
+import {showcaseSources} from '../tools/fixtures';
 
 /**
  * Session AW (fr-answers): the fresh-eyes persona walks' NOVA and ZIGi answers (FRIEND_READINESS-aw FR-AW-5, -6, -17, -19),
@@ -126,5 +127,28 @@ describe('FR-AW-19: "compare this week with last week" is the week beside the on
     const q = exactQuery('Compare this week with last week', env)!;
     expect([q.domain, q.ask, strictClaim(q)]).toEqual(['life', 'compare', true]);
     expect(strictClaim({...exactQuery('How was my week?', env)!})).toBe(false);
+  });
+});
+describe('FR-AW-19 (re-walk): on a week\'s first day, this week (today so far) beside the whole of last week', () => {
+  const monday = (): ToolSources => ({...showcaseSources('2026-11-30'), now: new Date('2026-11-30T19:00:00Z')});
+  test('Mon 30 Nov: both periods named, each figure beside last week\'s, EN and NL, NOVA and ZIGi; never "your day so far"', () => {
+    for (const [who, env] of both(monday)) {
+      for (const q of ['Compare this week with last week', 'This week vs last week']) {
+        const a = ask(q, env);
+        expect(a.tools, `${who} ${q}`).toEqual(['life_facts']);
+        expect(a.text, `${who} ${q}`).toMatch(/^This week has only today so far \(Mon, Nov 30\); beside last week \(Mon, Nov 23 to Sun, Nov 29\): /);
+        expect(a.text, `${who} ${q}`).toMatch(/the period before\)/);
+        expect(a.text, `${who} ${q}`).not.toMatch(/Your day so far|zigoals-action/);
+        expect(a.facts, `${who} ${q}`).toMatchObject({period: {from: '2026-11-30', to: '2026-11-30'}, versus: {from: '2026-11-23', to: '2026-11-29'}});
+      }
+      const nl = ask('Vergelijk deze week met vorige week', env).text;
+      expect(nl, who).toMatch(/^Deze week heeft tot nu toe alleen vandaag \(ma 30 nov\); naast vorige week \(ma 23 nov t\/m zo 29 nov\): /);
+      expect(nl, who).toMatch(/de periode ervoor\)/);
+    }
+  });
+  test('any other day keeps the same days of last week; "how is my day" keeps its own answer', () => {
+    const tuesday = novaEnv({...showcaseSources('2026-12-01'), now: new Date('2026-12-01T19:00:00Z')});
+    expect(ask('Compare this week with last week', tuesday).text).toMatch(/^Your records this week \(Mon, Nov 30 to Tue, Dec 1\) beside the period before \(Mon, Nov 23 to Tue, Nov 24\): /);
+    expect(ask('How is my day going?', novaEnv(monday())).text).toMatch(/^Your day so far \(Mon, Nov 30\): /);
   });
 });

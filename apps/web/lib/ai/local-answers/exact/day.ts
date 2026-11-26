@@ -303,13 +303,17 @@ export function novaAnswer(q: Query, env: ToolEnv): Exact | null {
  */
 export function lifeAnswer(q: Query, env: ToolEnv): Exact | null {
   const lang = q.lang, today = env.habitDay, out = answer(q, ['Your records on this device', 'Je gegevens op dit apparaat']), parts: string[] = [], facts: Record<string, unknown> = {};
-  const week = /\b(?:week)\b/.test(q.read) || q.period === 'this-week' || q.period === 'last-week', p = resolvePeriod(q.period ?? (week ? 'this-week' : 'today'), today)!, before = previousPeriod(p, today), words = periodWords(p, lang, today);
-  const compare = q.ask === 'compare' && !!before && p.days.length > 1;
+  const week = /\b(?:week)\b/.test(q.read) || q.period === 'this-week' || q.period === 'last-week', p = resolvePeriod(q.period ?? (week ? 'this-week' : 'today'), today)!, words = periodWords(p, lang, today);
+  // Session AW (fr-answers, FR-AW-19 re-walk): on a week's (or month's) first day "this week" holds today only; asked beside
+  // the one before, it is today beside the whole of last week (last month), said plainly, never "your day so far".
+  const base = p.token.split('@')[0]!, firstDay = q.ask === 'compare' && p.days.length === 1 && (base === 'this-week' || base === 'this-month');
+  const before = firstDay ? resolvePeriod(base === 'this-month' ? 'last-month' : 'last-week', today) : previousPeriod(p, today);
+  const compare = q.ask === 'compare' && !!before && (p.days.length > 1 || firstDay);
   if (env.areas.habits !== false && env.habits.habits.length) {
     const sum = (period: Period) => { const rows = habitRows(env.habits.habits, period, today); return {done: rows.reduce((n, r) => n + r.T.done, 0), due: rows.reduce((n, r) => n + r.T.due - r.T.skipped, 0), open: rows.reduce((n, r) => n + r.T.open, 0)}; };
     const a = sum(p), b = before ? sum(before) : null;
     facts.habits = {now: a, before: b};
-    if (a.due) parts.push(t(lang, `habits ${a.done} of ${a.due} done${a.open ? `, ${a.open} still open` : ''}${b && b.due && p.days.length > 1 ? ` (${b.done} of ${b.due} the period before)` : ''}`, `gewoontes ${a.done} van ${a.due} gedaan${a.open ? `, ${a.open} nog open` : ''}${b && b.due && p.days.length > 1 ? ` (${b.done} van ${b.due} de periode ervoor)` : ''}`));
+    if (a.due) parts.push(t(lang, `habits ${a.done} of ${a.due} done${a.open ? `, ${a.open} still open` : ''}${b && b.due && (p.days.length > 1 || compare) ? ` (${b.done} of ${b.due} the period before)` : ''}`, `gewoontes ${a.done} van ${a.due} gedaan${a.open ? `, ${a.open} nog open` : ''}${b && b.due && (p.days.length > 1 || compare) ? ` (${b.done} van ${b.due} de periode ervoor)` : ''}`));
   }
   if (env.areas.today !== false && env.nova?.tasks?.tasks.length) {
     const r = runTool('tasks', {}, env), counts = r.ok ? r.data.counts as {open: number; overdue: number} | undefined : undefined;
@@ -324,13 +328,16 @@ export function lifeAnswer(q: Query, env: ToolEnv): Exact | null {
       // with nothing logged is left out, never counted as 0; nothing logged at all says so).
       const was = compare && before ? track.points(before.days).filter(x => x.value !== null) : null, then = was && was.length ? was.reduce((n, x) => n + x.value!, 0) / (m.kind === 'sum' && before!.days.length === 1 ? 1 : was.length) : null;
       facts[track.key] = {value, days: points.length, ...(was ? {before: then, beforeDays: was.length} : {})};
-      parts.push(`${label[lang === 'nl' ? 1 : 0]} ${m.text(value, lang)}${p.days.length > 1 ? t(lang, ' a day', ' per dag') : ''}${was ? ` (${then === null ? t(lang, 'nothing logged the period before', 'niets gelogd de periode ervoor') : t(lang, `${m.text(then, 'en')} the period before`, `${m.text(then, 'nl')} de periode ervoor`)})` : ''}`);
+      parts.push(`${label[lang === 'nl' ? 1 : 0]} ${m.text(value, lang)}${p.days.length > 1 || compare ? t(lang, ' a day', ' per dag') : ''}${was ? ` (${then === null ? t(lang, 'nothing logged the period before', 'niets gelogd de periode ervoor') : t(lang, `${m.text(then, 'en')} the period before`, `${m.text(then, 'nl')} de periode ervoor`)})` : ''}`);
     }
   }
   if (!parts.length) return out(t(lang, 'Nothing is recorded yet. Add a habit, a task or a goal and ask me again.', 'Er is nog niets vastgelegd. Voeg een gewoonte, taak of doel toe en vraag het me opnieuw.'), {empty: true}, [{id: 'glance'}]);
   const dates = (x: Period) => x.from === x.to ? (lang === 'nl' ? nlDay(x.from, today) : dayWords(x.from, today)) : t(lang, `${dayWords(x.from, today)} to ${dayWords(x.to, today)}`, `${nlDay(x.from, today)} t/m ${nlDay(x.to, today)}`);
   // Session AW (fr-answers, FR-AW-19): a comparison names both periods, so "the period before" is never a guess.
-  const head = p.days.length === 1 ? t(lang, `Your day so far (${dayWords(today, today)})`, `Je dag tot nu toe (${nlDay(today, today)})`)
+  const head = firstDay && compare ? (base === 'this-month'
+      ? t(lang, `This month has only today so far (${dates(p)}); beside last month (${dates(before!)})`, `Deze maand heeft tot nu toe alleen vandaag (${dates(p)}); naast vorige maand (${dates(before!)})`)
+      : t(lang, `This week has only today so far (${dates(p)}); beside last week (${dates(before!)})`, `Deze week heeft tot nu toe alleen vandaag (${dates(p)}); naast vorige week (${dates(before!)})`))
+    : p.days.length === 1 ? t(lang, `Your day so far (${dayWords(today, today)})`, `Je dag tot nu toe (${nlDay(today, today)})`)
     : compare ? t(lang, `Your records ${words} (${dates(p)}) beside the period before (${dates(before!)})`, `Je gegevens ${words} (${dates(p)}) naast de periode ervoor (${dates(before!)})`) : t(lang, `Your records ${words}`, `Je gegevens ${words}`);
-  return out(`${head}: ${parts.join('; ')}.`, {period: {token: p.token, from: p.from, to: p.to}, ...(compare ? {versus: {from: before!.from, to: before!.to}} : {}), ...facts}, p.days.length === 1 ? [{id: 'day-scan', fallback: 'glance'}] : [{id: 'life-radar', period: p.token, fallback: 'glance'}, {id: 'habit-week'}]);
+  return out(`${head}: ${parts.join('; ')}.`, {period: {token: p.token, from: p.from, to: p.to}, ...(compare ? {versus: {from: before!.from, to: before!.to}} : {}), ...facts}, p.days.length === 1 && !compare ? [{id: 'day-scan', fallback: 'glance'}] : [{id: 'life-radar', period: p.token, fallback: 'glance'}, {id: 'habit-week'}]);
 }
