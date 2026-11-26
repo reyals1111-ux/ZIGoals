@@ -484,3 +484,16 @@ Every red is fixed at its cause, each reproduced locally first:
   connection (`ECONNRESET` in `dispatchFetch`). Nothing is sent to a network. The test is unchanged since Session U, and it
   passes 3 of 3 locally. It is recorded here; a second red means investigate.
 - `webkit-smoke:94` was flaky (green on its retry): the registered WebKit slow-load class.
+
+### D-CI2041 — run 2041 on `fa4d3002`: every job green; 3 tests green only on their retry
+- 8,308 passed, 3 flaky, 0 failed across the 29 browser jobs. Every WebKit shard was green on the first attempt,
+  `zigi-states:200` included (D-ZIGI200 attempt 2). 1,884 worker-minutes.
+- **`j06-data-safety:43`** (flaky in 2040 and 2041): the Notifications card stayed at "Checking…". Its status is asked only
+  once the card comes near the screen, and after a #notifications jump the groups above it opened from their own chunk
+  and pushed it down first. A #notifications address now counts as near (`91d2c134`, attempt 1; j05, j06, bn-114 and
+  pwa-ak green on build-12).
+- **`aw-p5-fixes:119`** (flaky in 2039 and 2041): the test never turned Motion Off. It seeded the display record, which has
+  no motion field. It now seeds `zigoals:motion:v1` and checks `data-app-motion=off` (`8a11410e`, deliberate; 10 of 10).
+- **`theme-parity-af:15`** (desktop, Showcase): first sighting. Recorded; a second red means investigate.
+- **Shards:** four main shards ran 48–51 min (aim ≤ 45). The twenty lists were repacked from 2041's measured per-file
+  minutes, 62.0 worker-min each (`c1eb7a1d`, TIER 3 CI).
