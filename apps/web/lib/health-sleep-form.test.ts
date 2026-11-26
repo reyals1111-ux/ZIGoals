@@ -88,8 +88,19 @@ describe('FR-AW-8: a bed time after midnight with the default bed date is read a
     expect(read).toEqual({bedMoved: true, times: {bedDate: '2026-12-03', bedTime: '00:30', wakeDate: '2026-12-03', wakeTime: '07:00'}});
     expect(nightTimeIssues(read.times, 'night', now, BXL, clock)).toEqual({});
   });
-  it('a nap typed 13:00 → 14:30 with the default dates is read the same way', () => {
-    expect(readNightDates({bedDate: '2026-12-02', bedTime: '13:00', wakeDate: '2026-12-03', wakeTime: '14:30'}, BXL)).toEqual({bedMoved: true, times: {bedDate: '2026-12-03', bedTime: '13:00', wakeDate: '2026-12-03', wakeTime: '14:30'}});
+  it('an after-midnight bed time is 00:00 up to 05:59: 05:59 → 07:00 moves, 06:00 → 07:00 does not', () => {
+    expect(readNightDates({bedDate: '2026-12-02', bedTime: '00:00', wakeDate: '2026-12-03', wakeTime: '07:00'}, BXL).bedMoved).toBe(true);
+    expect(readNightDates({bedDate: '2026-12-02', bedTime: '05:59', wakeDate: '2026-12-03', wakeTime: '07:00'}, BXL).bedMoved).toBe(true);
+    const six = {bedDate: '2026-12-02', bedTime: '06:00', wakeDate: '2026-12-03', wakeTime: '07:00'};
+    expect(readNightDates(six, BXL)).toEqual({times: six, bedMoved: false});
+  });
+  it('review fix: bed 22:00 the day before with a mistyped wake at 23:00 stays as typed and is refused, not saved as 1 hour', () => {
+    const typed = {bedDate: '2026-12-02', bedTime: '22:00', wakeDate: '2026-12-03', wakeTime: '23:00'};
+    expect(readNightDates(typed, BXL)).toEqual({times: typed, bedMoved: false});
+    expect(nightTimeIssues(typed, 'night', at('2026-12-04', '09:00'), BXL, clock)).toEqual({wakeDate: 'The night can last at most 24 hours: check the dates.'});
+    // A daytime nap typed with the default dates is not an after-midnight bedtime either.
+    const nap = {bedDate: '2026-12-02', bedTime: '13:00', wakeDate: '2026-12-03', wakeTime: '14:30'};
+    expect(readNightDates(nap, BXL)).toEqual({times: nap, bedMoved: false});
   });
   it('leaves every other night as typed: an evening bed time, exactly 24 hours, dates two days apart, the same day, a missing field', () => {
     for (const t of [

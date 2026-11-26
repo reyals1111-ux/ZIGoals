@@ -51,15 +51,19 @@ export function nightTimeIssues(times: NightTimes, kind: 'night' | 'nap', nowMs:
   return out;
 }
 
+/** The latest bed time read as "after midnight" (FR-AW-8): 00:00 up to, not including, 06:00. */
+export const AFTER_MIDNIGHT_UNTIL = '06:00';
 /**
  * Session AW (FR-AW-8): a bed time typed after midnight with the form's default bed date (the evening before) and before
  * the wake time, as 00:30 → 07:00, is a night of more than 24 hours that nobody meant: it is read as bed on the wake day.
  * Only when the typed dates are one day apart, the night as typed is longer than 24 hours and the moved one is not
  * (so a real 24-hour span, and every other mistake, still reaches nightTimeIssues unchanged). `bedMoved` says it moved.
+ * Review fix: only a bed time from 00:00 to before 06:00 is an after-midnight bedtime; 22:00 the day before with a wake
+ * at 23:00 (a mistyped wake) stays as typed and is refused as longer than 24 hours.
  */
 export function readNightDates(times: NightTimes, zone: string): {times: NightTimes; bedMoved: boolean} {
   const {bedDate, bedTime, wakeDate, wakeTime} = times;
-  if (!bedDate || !bedTime || !wakeDate || !wakeTime || bedDate < JOURNAL_MIN_DAY || bedDate !== addDays(wakeDate, -1) || bedTime >= wakeTime) return {times, bedMoved: false};
+  if (!bedDate || !bedTime || !wakeDate || !wakeTime || bedDate < JOURNAL_MIN_DAY || bedDate !== addDays(wakeDate, -1) || bedTime >= AFTER_MIDNIGHT_UNTIL || bedTime >= wakeTime) return {times, bedMoved: false};
   const end = instantAt(wakeDate, wakeTime, zone);
   if ((end - instantAt(bedDate, bedTime, zone)) / MINUTE <= MAX_MINUTES) return {times, bedMoved: false};
   const moved = instantAt(wakeDate, bedTime, zone);

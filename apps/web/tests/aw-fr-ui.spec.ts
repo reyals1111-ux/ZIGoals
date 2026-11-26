@@ -10,7 +10,8 @@ import {emptyTasks} from '../lib/tasks/schema';
  * -26), at 390 (the phone project, measured on a 390 × 844 screen as the walks were) and 1440, in Nebula, Light and Dark,
  * axe-clean, no sideways scroll at 320. Nothing here moves, so there is no Motion Off check. Fictional data; offline.
  * - FR-AW-7: the "Sleep better" focus picks a sleep goal of 8 h on the starters step, said as a suggestion, changeable;
- * - FR-AW-8: bed 00:30 with the default bed date (the evening before) and wake 07:00 saves as 00:30 → 07:00 on the wake day;
+ * - FR-AW-8: bed 00:30 with the default bed date (the evening before) and wake 07:00 saves as 00:30 → 07:00 on the wake day
+ *   (the bed date field changes only once the save went through);
  * - FR-AW-15: once a reminder has gone off, "New task" stays on the first phone screen (the reminders come under it);
  * - FR-AW-18: "Start an empty workout" comes before the week figures and the 12-week chart;
  * - FR-AW-21: Habits' empty-card idea notes are at least 14 px;
@@ -73,6 +74,12 @@ for (const theme of THEMES) test.describe(`${theme}`, () => {
     await expect(form.getByLabel('Woke up (date)')).toHaveValue('2026-12-03');
     await expect(form.getByLabel('Woke up (time)')).toHaveValue('07:00');
     await form.getByLabel('Went to bed (time)').fill('00:30');
+    // Review fix: a save another field stops leaves the bed date as typed (a wake time later than now, 09:00).
+    await form.getByLabel('Woke up (time)').fill('10:00');
+    await form.getByRole('button', {name: 'Save', exact: true}).click();
+    await expect(form.getByRole('alert')).toHaveText('The night cannot end later than now (9:00 AM).');
+    await expect(form.getByLabel('Went to bed (date)')).toHaveValue('2026-12-02');
+    await form.getByLabel('Woke up (time)').fill('07:00');
     await form.getByRole('button', {name: 'Save', exact: true}).click();
     await expect(page.locator('.sleep-note')).toHaveText('Night saved. Bed time read as Dec 3, 2026, the day you woke up (a night is at most 24 hours).');
     await expect.poll(async () => page.evaluate(k => { const s = JSON.parse(localStorage.getItem(k) ?? 'null')?.sleep; return s?.nights?.map((n: {start: string; end: string}) => [n.start, n.end]) ?? null; }, HEALTH_STORAGE_KEY))

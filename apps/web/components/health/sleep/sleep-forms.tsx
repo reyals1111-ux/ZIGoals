@@ -35,10 +35,9 @@ export function NightForm({store, night, onDone, onCancel}: {store: SleepStore; 
     e.preventDefault(); errors.clear();
     const form = new FormData(e.currentTarget), get = (name: string) => String(form.get(name) ?? '');
     // Session AW (FR-AW-8): 00:30 typed with the default bed date (the evening before) is read as bed on the wake day; the
-    // date field shows what is saved, and the saved line says so.
+    // date field shows what is saved (rewritten only once the save went through), and the saved line says so.
     const read = readNightDates({bedDate: get('bedDate'), bedTime: get('bedTime'), wakeDate: get('wakeDate'), wakeTime: get('wakeTime')}, zone), times = read.times, nowMs = Date.now();
     const bedField = e.currentTarget.elements.namedItem('bedDate');
-    if (read.bedMoved && bedField instanceof HTMLInputElement) bedField.value = times.bedDate;
     const latency = optionalWhole(get('latency'), 720, 'minutes'), awake = optionalWhole(get('awake'), 1440, 'minutes'), awakenings = optionalWhole(get('awakenings'), 100, 'count');
     const custom = get('otherTags').split(',').map(t => t.trim()).filter(Boolean);
     const issues = {...nightTimeIssues(times, kind, nowMs, zone, ms => formatTime(new Date(ms).toISOString(), {timeZone: zone})),
@@ -54,6 +53,7 @@ export function NightForm({store, night, onDone, onCancel}: {store: SleepStore; 
       // night, a nap or an edit is a small success. Decided on the stored nights before the write, never on words.
       const first = !night && input.kind === 'night' && !store.sleep.nights.some(n => n.end !== null && wallClock(Date.parse(n.end), zone).date === times.wakeDate);
       await store.update(s => saveNight(s, input, new Date()));
+      if (read.bedMoved && bedField instanceof HTMLInputElement) bedField.value = times.bedDate;
       if (!night) zigiSignals.emitValidated(first ? 'first_sleep_logged' : 'health_log_recorded');
       // Session AH Part 3 (DS3, L-009): a nap is called a nap when it is edited too.
       const saved = night ? (input.kind === 'nap' ? 'Nap updated.' : 'Night updated.') : input.kind === 'nap' ? 'Nap saved.' : 'Night saved.';
