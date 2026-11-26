@@ -202,6 +202,9 @@
 /* Session AV lane 2 (r6-plan, LEDGER #391): any day, and a label added or taken off, kept together as small groups. */
 .tasks-bulk-group { display: inline-flex; flex-wrap: wrap; align-items: end; gap: 6px 8px; max-width: 100%; }
 .tasks-bulk-group input { min-height: 44px; max-width: 100%; }
+/* Session AW (FR-AW-15): the reminders sit in the list's panel under "New task", framed by the panel's own line. */
+.tasks-main > .tasks-reminders { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; min-width: 0; }
+.tasks-main > .tasks-reminders .fine { margin: 4px 0 0; }
 .tasks-reminders ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .tasks-reminders li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; overflow-wrap: anywhere; }
 .tasks-reminders .text-link { min-height: 44px; }
