@@ -118,8 +118,12 @@ test.describe('FR-S-15 and FR-TJ-20: Health\'s Log food and Portions', () => {
   });
   test('Motion Off: the sheet Log food opens is still', async ({page, isMobile}) => {
     test.skip(!isMobile, 'the phone sheet');
-    await start(page, 'nebula', isMobile, {'zigoals:ui-prefs:v1': JSON.stringify({version: 1, motion: 'off'})});
+    // Session AW (CI runs 2039 and 2041, flaky, deliberate): Motion Off is the device's own record, zigoals:motion:v1
+    // (components/use-entrance.ts), not a field of the display record. Seeded there before, Motion stayed Full, and the check
+    // passed only when the sheet's 280 ms slide had already ended. Now Motion is Off, and the same check holds every time.
+    await start(page, 'nebula', isMobile, {'zigoals:motion:v1': 'off'});
     await page.goto('/app/health'); await hydrated(page);
+    await expect(page.locator('html')).toHaveAttribute('data-app-motion', 'off');
     await page.locator('.health-heading').getByRole('button', {name: 'Log food', exact: true}).click();
     const sheet = page.getByRole('dialog', {name: 'Log a meal'});
     await expect(sheet).toBeVisible();
