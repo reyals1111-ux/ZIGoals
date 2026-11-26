@@ -4,9 +4,9 @@ Read this first after a pause, a limit or a model switch; continue from "Next" w
 `feature/session-aw-finish-line` from `main` `8fa8aa1d` (Alpha #59), Draft PR "Session AW — Finish line". Rules:
 CLAUDE.md, the owner's brief, the plan and the approval, all verbatim in `docs/architecture/ADR-046-session-aw.md`.
 
-**Safe to merge now: no — run 2040 on `f27009c3` red (zigi-states:200 on WebKit, attempt 2 now on the branch; a
-first-sighting Miniflare reset in web checks). The persona walks' review fixes are merged locally; the next push waits for
-2040 to finish and the head's checks.**
+**Safe to merge now: set by run 2044** (on `54de2c88`, the same code as `c1eb7a1d`). Run 2043 on `c1eb7a1d` was green in
+every job: 0 failed, and 1 test green only on its retry (`aw-x2-marvin:51`, first sighting). The STATUS final entry
+records 2044's result.
 
 ## Done
 - Part 0; ADR-046 with the plan and the owner's 12 amendments verbatim.
@@ -21,14 +21,12 @@ first-sighting Miniflare reset in web checks). The persona walks' review fixes a
 - Part 7: OWNER_STEPS.md as one ordered checklist. Part 8 started: FRIENDS_GUIDE section "Session AW".
 
 ## In progress
-- Persona walks (E4): FRIEND_READINESS.md committed (1 Blocker, 5 Majors, 21 Minors). Builders fr-journal, fr-money,
-  fr-answers and fr-ui have built them, a fresh review found no Blocker and 1 Major, and every finding is fixed and merged.
-  Next: build-11, the new specs (aw-fr-*), then the walk re-checked by a fresh helper.
-- zigi-states:200: attempt 2 (`bf16e24a`), the set-up ask from the launcher's first paint (ADR-046 D-ZIGI200).
+- Part 8: the ADR-046 closing table is committed (`ec7b2665`). The STATUS final entry comes once run 2044 finishes; it is
+  the final commit.
 
 ## Next
-- Push when 2038 finishes; two green runs on the final head (E1); CI rows' verdicts with run evidence; ADR-046 closing
-  table; STATUS final entry; ≤12-line report.
+- When run 2044 ends: the STATUS final entry (last commit), push, the PR description, the ≤ 12-line report. If 2044 is
+  red: fix at the cause (at most 2 attempts), then push again.
 
 ## Team
 - Builders as above; review/research: review b2 and the privacy audit. Hand-backs: scratchpad registry-<group>.md.
