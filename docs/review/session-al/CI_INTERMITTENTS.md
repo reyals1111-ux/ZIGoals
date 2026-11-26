@@ -204,3 +204,21 @@ both attempts still fails the job. No assertion, timeout or test was changed for
 | account-browser b-first (CI **2000**, `97d86a8c`, docs-only head after run 1999 green) | The D-SYNC stall again: "L56 A: waist measurement" made no progress for 20 s on /app/health; no account request in flight; the last automatic sync (after the meal, +8.5 s) ended 4 s before. Carried (two attempts, ADR-045 D-FU2-1b); run 2001 follows on the next head |
 | account-browser, local repeat (21 Nov, 21:53–22:20 UTC) | Five back-to-back runs of `scripts/run10/account-browser.test.mjs` on a production build of `d0df34f4` (Miniflare, port 3101): **5 of 5 passed** (2 of 2 cases each). The stall did not reproduce locally; it stays Carried (ADR-045 D-FU2-1b). The mechanism still suspected: an account announcement (`zigoals:account-change`) re-reads the Health store, which unmounts the Measurements form and resets its type to weight |
 | CI **2001** (`fbc0bdd2`, docs-only head): main shard 2 `nova-stage-am2:301` (desktop) and main shard 13 `grok53/ai/l7-fifth-answers:144` (desktop), each on both attempts | `nova-stage-am2:301`: the opening still `play` at 5 s, ADR-041 D36's signature (the known intermittent). `l7-fifth-answers:144`: the 45 s test timeout on both attempts; the test opens NOVA twice (D36's opening) on a runner where the file took 5.4 min. On a production build of the same code here: **8 of 8 passed** (both tests, four repeats, two workers). Every other job of 2001 green, account-browser included. Recorded; run 2002 follows on the next docs-only head |
+
+## Session AW (ADR-046 D-CI2038 – D-CI2043) — every test that failed, or passed only on its retry, in runs 2038–2044
+
+| failure | runs | outcome |
+|---|---|---|
+| `zigi-states:200` (WebKit desktop) | 2033, 2035, 2040 (both attempts) | fixed at the cause in attempt 2 (`bf16e24a`): the set-up ask shows from the launcher's first paint; green in 2041, 2043 and 2044 |
+| `j06-data-safety:43` (desktop) | 2040 and 2041 flaky; 2042 both attempts (a head without the fix) | fixed at the cause (`91d2c134`): a #notifications address asks the card's status at once; green in 2043 and 2044 |
+| `aw-p5-fixes:119` (mobile) | 2039 and 2041 flaky | the test never turned Motion Off; fixed (`8a11410e`, deliberate) |
+| task editor not opening, `av2-r5-everyday`, `polish2-af:150`, `aw-content`, `aw-showcase`, `export-everything:84`, `ui-design-pass:396`, `a10-life` A10-11 | 2038–2040 | each fixed at the cause (ADR-046 D-CI2038 – D-CI2040) |
+| `scripts/run11/market-status.test.mjs` (Miniflare loopback `ECONNRESET`) | 2040 | first sighting; 3 of 3 locally; not seen in 2041–2044 |
+| `webkit-smoke:94` (WebKit) | 2040 flaky | the registered WebKit slow-load class |
+| `theme-parity-af:15` (desktop, Showcase) | 2041 flaky | first sighting; not seen in 2043 or 2044 |
+| `aw-x2-marvin:51` (desktop, Nebula) | 2043 flaky | first sighting: "Split it into steps" present and enabled, never "stable" (something kept moving it); not seen in 2044 |
+| `zigi-alive:296`, `zigi-memory-page:40` (WebKit desktop) | 2044 flaky | first sightings; the WebKit slow-load class |
+| `earn-plain-words:110` (desktop), `logo-fold:166` (mobile) | 2044 flaky | first sightings; not seen in 2041 or 2043 |
+
+A second red for any first sighting means investigate. Runs 2043 and 2044 (the same code): every job green, no job
+re-run; 1 and 4 tests green only on Playwright's in-job retry, each named above, none in both runs.
