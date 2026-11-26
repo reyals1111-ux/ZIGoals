@@ -167,7 +167,11 @@ Not counted (environment, not the app):
   ≥ 14 px.
 - **New, found by the re-walk:**
   - **Major, fixed** (`a0820f3c`): at 390 a debt row with a payment squeezed its name to 0 px. The cause dates from AV.
-  - Minor: a payment on the debt's own first day is not shown. Sent to the money builder.
-  - Minor: with no spending yet, a new debt still starts in USD. Sent to the money builder.
-  - Minor (FR-AW-19 on a Monday): "Compare this week with last week" answers with the day so far. Sent to the answers
-    builder.
+  - Minor, fixed (`5a4fc824`): a payment on the balance's own day is kept and said ("1 payment on the balance's day,
+    not taken off") in Wealth, NOVA and ZIGi alike. The two entries have no times, so they cannot be ordered.
+  - Minor, Carried, against a named rule (ADR-023 C25: the browser's region sets the first currency, and a stored choice
+    always wins): with no spending yet, en-GB in Amsterdam still starts a debt in USD. Once there is spending, a new
+    debt follows it (FR-AW-2). A time-zone fallback was tried and reverted, because eight specs pin C25's dollars for
+    en-GB.
+  - Minor, fixed (`a522ab78`): on a week's or month's first day, "Compare this week with last week" sets today beside the
+    whole of the period before.
