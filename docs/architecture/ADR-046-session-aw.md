@@ -497,3 +497,63 @@ Every red is fixed at its cause, each reproduced locally first:
 - **`theme-parity-af:15`** (desktop, Showcase): first sighting. Recorded; a second red means investigate.
 - **Shards:** four main shards ran 48–51 min (aim ≤ 45). The twenty lists were repacked from 2041's measured per-file
   minutes, 62.0 worker-min each (`c1eb7a1d`, TIER 3 CI).
+
+### D-CI2042/2043 — runs 2042 (`ec2da3af`) and 2043 (`c1eb7a1d`)
+- **2042:** one red job, main shard 20, `j06-data-safety:43` on both attempts. This is the cause D-CI2041 names; its fix
+  (`91d2c134`) came after `ec2da3af`. 1,876 worker-minutes.
+- **2043**, on the head with every fix: every job green, 8,310 passed, 0 failed, 1 flaky. 1,959 worker-minutes; the longest
+  main shard took 47.0 min, after the repack (it was 51.0).
+- **`aw-x2-marvin:51`** (desktop, Nebula), flaky, first sighting. Its snapshot shows the "Split it into steps" button
+  present and enabled, but Playwright's "stable" check never settled, so something kept moving it. Recorded; a second red
+  means investigate.
+
+## Closing table (26 Nov 2026)
+
+### Exit criteria
+| | criterion | result |
+|---|---|---|
+| E1 | two consecutive full CI runs on the final head, green on the first attempt (fallback: registered intermittents passing on their one re-run) | Run 2043 on `c1eb7a1d`: every job green, 0 failed; 1 test green only on its retry (`aw-x2-marvin:51`, first sighting, recorded). Run 2044 on `54de2c88` (2043's code plus one docs file): see the STATUS entry. The final docs commits add no code. |
+| E2 | every row has a verdict with an allowed cause only | `docs/review/session-aw/VERDICTS.md`: round 7, LEDGER Carried, Carried parts of built rows, UNFINISHED, QUALITY, FRIEND_READINESS and the CI rows (with run evidence). Each verdict is built, already have, or Carried with an E2 cause. |
+| E3 | a fresh-agent review of each batch, every Blocker and Major fixed | b1: 0 Blockers, 2 Majors, fixed. b2: 0 Blockers, 3 Majors, fixed (QUALITY-b2.md). Persona-fix batch: 0 Blockers, 1 Major (the draft lost the entry's choices), fixed. The follow-up review of the rest-state and Tasks commits found none. |
+| E4 | persona walks pass at 390 and 1440 | FRIEND_READINESS.md: 1 Blocker, 5 Majors and 21 Minors found and fixed or given a verdict. A fresh re-walk confirmed all six Blocker and Major rows fixed. It found one new Major (a debt row at 390), fixed. |
+| E5 | records and docs | ADR-046 (brief, plan, approval and amendments verbatim; decisions), VERDICTS, SIMPLICITY, SWEEP, PRIVACY_AUDIT, FRIEND_READINESS, OWNER_STEPS, FRIENDS_GUIDE, UNFINISHED's counts line, and the STATUS entry as the final commit. |
+
+### Ledger (`docs/review/session-av/LEDGER.md`, `docs/review/session-aw/VERDICTS.md`)
+| | rows | built | built in part | Carried |
+|---|---|---|---|---|
+| round 7 (#432–#464) | 33 | 32 (#442's transcript part Carried: needs a model) | 0 | 1 (#443, a dependency the owner declined) |
+| AV + AW (#1–#464) | 464 | **447** (407 at AV's end, + 32 round 7, + 8 Carried rows built in AW) | **1** (#124) | **16**: 9 against a named rule, 4 dependencies declined, 3 needing an outside service |
+
+### Speed (D-SPEED; production build, Chromium, CPU 4×, 390×844, A/B against #59 on the same machine)
+| route | hydrated, base → head (ms) | blocking, base → head (ms) |
+|---|---|---|
+| Today | 4,634 → 3,616 | 2,214 → 1,785 (−19 %) |
+| Journal | 3,656 → 3,153 | 1,548 → 1,333 (−14 %) |
+| Settings | 4,878 → 4,600 | 2,082 → 2,308 |
+| NOVA | 3,258 → 3,275 | 2,049 → 2,051 |
+| others | within ±10 % (machine noise) | |
+
+First-load weight: shell −1.3 kB, Settings −63.8 kB, Guided −21.7 kB. Tasks is +1.1 kB, Agenda +0.6 kB and Journal +2.1 kB
+(the draft, FR-AW-1). Every route has ≥ 5 kB headroom under an unchanged budget. Amendment 2's targets are **Carried: 2
+failed attempts**.
+
+### CI
+- WebKit runs in 6 shards. The main lists were repacked from measured minutes twice (runs 2031 and 2041).
+- **Worker-minutes per run** (job minutes × 2 workers): 2035 ≈ 1,808 · 2036 ≈ 1,760 · 2037 ≈ 1,888 · 2038 1,791 ·
+  2039 1,849 · 2040 1,861 · 2041 1,884 · 2042 1,876 · 2043 1,959. The aim (below 1,300) is **not met**. The minutes are
+  the suite's own: 8,311 tests on two projects, and no test was removed or narrowed. The longest shard went from 53.6 min
+  (2031) to 47.0 min (2043). The 45-min aim is met by 19 of 20 main shards.
+- **Intermittents this session:**
+  - `earn-guide-zigi:54`: fixed (D-EARN54).
+  - `zigi-states:200`: fixed in attempt 2 (D-ZIGI200), green in 2041 and 2043.
+  - `j06-data-safety:43`: fixed (D-CI2041).
+  - `aw-p5-fixes:119`: its test fixed (D-CI2041).
+  - `nova-dashboard:210`: registered (D36).
+  - First sightings recorded: `market-status` (Miniflare reset), `theme-parity-af:15`, `aw-x2-marvin:51`.
+  - D-SYNC: Carried, 2 failed attempts (AV).
+
+### Open owner decisions
+- CR-22's 13 px phone notice: owner decision T-069, in tension with the ≥ 14 px label rule.
+- Today's tab-stop limit (≤ 90) holds two Showcase examples back.
+- The account erase's scope note.
+- OWNER_STEPS gaps named in VERDICTS (PK-21, PK-14, PK-13, KL-5, KL-6, PK-5/7/9).
