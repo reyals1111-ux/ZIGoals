@@ -61,6 +61,7 @@ import {awProgrammesAnswer} from './aw-programmes';
 import {av2R6MoneyAnswer} from './av2-r6-money';
 import {awX7MoneyAnswer} from './aw-x7-money';
 import {awFrMoneyAnswer} from './aw-fr-money';
+import {onBalanceDayWords} from '../../accounts/net-worth';
 import {av2R6NotesAnswer} from './av2-r6-notes';
 import {awX3Answer} from './aw-x3';
 import {av2R6PlanAnswer} from './av2-r6-plan';
@@ -1102,12 +1103,14 @@ function devicesAnswer(env: ToolEnv): LocalReply {
 }
 function accountsAnswer(env: ToolEnv, q: string): LocalReply {
   const r = call(env, 'accounts', {}), refused = refusalOf([r]); if (refused) return refused;
-  const d = dataOf(r.result), accounts = d.accounts as {name: string; debt: boolean; currency: string; latest: string; asOf?: string; owedAfterPayments?: string; paymentsSince?: number}[];
+  const d = dataOf(r.result), accounts = d.accounts as {name: string; debt: boolean; currency: string; latest: string; asOf?: string; owedAfterPayments?: string; paymentsSince?: number; paymentsOnBalanceDay?: number}[];
   if (!accounts.length) return {kind: 'answer', text: d.note, calls: [r.record]};
   // Session AW (fr-money, FR-AW-3): a debt with payments recorded since its balance answers with what Wealth's row shows
   // (the tool's owedAfterPayments, from lib/accounts/net-worth.ts owedAfterPayments), and says so.
   const owes = (a: (typeof accounts)[number]) => a.debt && a.owedAfterPayments ? a.owedAfterPayments : a.latest;
-  const row = (a: (typeof accounts)[number]) => `${a.name}: ${a.asOf ? a.debt && a.owedAfterPayments ? `${money(a.owedAfterPayments)} owed after ${plural(a.paymentsSince ?? 1, 'payment')} since your balance of ${money(a.latest)} on ${dayText(a.asOf, env.habitDay.slice(0, 4))}` : `${money(a.latest)}${a.debt ? ' owed' : ''} on ${dayText(a.asOf, env.habitDay.slice(0, 4))}` : a.latest}`;
+  // Session AW (fr-money, re-walk): a payment on the balance's own day is said, not taken off (owedAfterPayments).
+  const row = (a: (typeof accounts)[number]) => `${a.name}: ${a.asOf ? a.debt && a.paymentsOnBalanceDay ? `${rowFigure(a)} (${onBalanceDayWords(a.paymentsOnBalanceDay)})` : rowFigure(a) : a.latest}`;
+  const rowFigure = (a: (typeof accounts)[number]) => `${a.asOf ? a.debt && a.owedAfterPayments ? `${money(a.owedAfterPayments)} owed after ${plural(a.paymentsSince ?? 1, 'payment')} since your balance of ${money(a.latest)} on ${dayText(a.asOf, env.habitDay.slice(0, 4))}` : `${money(a.latest)}${a.debt ? ' owed' : ''} on ${dayText(a.asOf, env.habitDay.slice(0, 4))}` : a.latest}`;
   const owned = accounts.filter(a => !a.debt), owed = accounts.filter(a => a.debt);
   // "What do I owe?": the debts' latest balances, one total per currency; a debt without a balance is named, never zero.
   if (/\b(owe|debts?|loans?|mortgage|credit cards?)\b/.test(q) && !/\baccounts?\b/.test(q)) {

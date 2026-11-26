@@ -24,14 +24,22 @@ export function balanceOn(account: Account, day?: string): (Money & {date: strin
  * to the day), never below zero. Read for the tracked payoff plan only; nothing is stored or changed. Null without a
  * balance. `payments` is how many payments were taken off (0: the balance as recorded).
  */
-export function owedAfterPayments(account: Account, day: string): (Money & {date: string; payments: number}) | null {
+export function owedAfterPayments(account: Account, day: string): (Money & {date: string; payments: number; onBalanceDay?: number}) | null {
   const b = balanceOn(account, day);
   if (!b) return null;
   const later = account.payments.filter(p => p.date > b.date && p.date <= day);
   let owed: Money = {value: b.value, decimals: b.decimals};
   for (const p of later) owed = sub(owed, {value: BigInt(p.value), decimals: p.decimals});
-  return {...(owed.value < 0n ? {value: 0n, decimals: owed.decimals} : owed), date: b.date, payments: later.length};
+  // Session AW (fr-money, re-walk): a payment dated the balance's own day cannot be ordered against it (neither entry keeps
+  // a time, and they are stored in two lists), so it is not taken off, and `onBalanceDay` counts it for the words to say so
+  // ("1 payment on the balance's day, not taken off") in Wealth, NOVA and ZIGi alike. Absent when there is none.
+  const same = account.payments.filter(p => p.date === b.date).length;
+  return {...(owed.value < 0n ? {value: 0n, decimals: owed.decimals} : owed), date: b.date, payments: later.length, ...(same ? {onBalanceDay: same} : {})};
 }
+/** The words for payments on a balance's own day (owedAfterPayments `onBalanceDay`), or ''. */
+export const onBalanceDayWords = (n: number | undefined, lang: 'en' | 'nl' = 'en'): string => !n ? '' : lang === 'nl'
+  ? `${n} ${n === 1 ? 'betaling' : 'betalingen'} op de dag van het saldo, niet afgetrokken`
+  : `${n} ${n === 1 ? 'payment' : 'payments'} on the balance's day, not taken off`;
 export type CurrencyWorth = {currency: string; assets: Money; debts: Money; net: Money; holdings: Money; accounts: number; noBalance: number};
 /** Net worth per currency on a day: the accounts' latest balances, and Wealth's valued holdings as their own line. */
 export function netWorth(accounts: Accounts, day: string, positions: readonly Position[] = []): {rows: CurrencyWorth[]; unvaluedHoldings: number} {

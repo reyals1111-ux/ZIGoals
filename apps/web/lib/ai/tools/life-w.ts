@@ -39,6 +39,7 @@ export const accountsTool: ToolDefinition<{include_archived?: boolean}> = {
       const o = b && isDebtKind(a.kind) ? owedAfterPayments(a, localDate(env.now)) : null, after = o && o.payments > 0 && o.date === b!.date ? o : null;
       return {kind: KIND_WORDS[a.kind], debt: isDebtKind(a.kind), name: text(a.name, 60), currency: a.currency, ...(b ? {latest: `${moneyText(b)} ${a.currency}`, asOf: b.date} : {latest: 'no balance yet'}),
         ...(after ? {owedAfterPayments: `${moneyText(after)} ${a.currency}`, paymentsSince: after.payments} : {}),
+        ...(o && o.onBalanceDay && o.date === b!.date ? {paymentsOnBalanceDay: o.onBalanceDay} : {}), // re-walk: kept, not taken off
         ...(a.ratePercent ? {yourRatePercent: a.ratePercent} : {}), ...(a.archivedAt ? {archived: true} : {})};
     });
     const capped = capRows(rows, env, false);

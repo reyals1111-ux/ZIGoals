@@ -9,6 +9,7 @@ import {ADVICE_REPLIES, DEBT_ADVICE_REPLY, isLoanAdvice, safetyFirst} from '../s
 import {noModelReply} from './no-model';
 import {runTool} from '../tools/registry';
 import type {Account, Accounts} from '../../accounts/schema';
+import {onBalanceDayWords, owedAfterPayments} from '../../accounts/net-worth';
 
 /**
  * Session AW (fr-money; persona Tom): FR-AW-3 (a debt answer reads the figure Wealth's row shows, payments included),
@@ -54,6 +55,19 @@ describe('FR-AW-3: what is owed is what Wealth\'s row shows, payments since the 
     const env = zigiEnv(tom()), lateNight = {...env, habitDay: '2026-11-16'}; // after midnight on 17 Nov, the habit day still the 16th
     const r = runTool('accounts', {}, lateNight);
     expect(r.ok && (r.data as {accounts: unknown[]}).accounts[0]).toMatchObject({owedAfterPayments: '2250.00 EUR', paymentsSince: 1});
+  });
+  test('re-walk: a payment on the balance\'s own day is kept and said, not taken off, in Wealth\'s function, ZIGi and NOVA', () => {
+    const sameDay = tomCard([{id: '00000000-0000-4000-8000-00000000f004', date: '2026-11-16', value: '15000', decimals: 2}]);
+    expect(owedAfterPayments(sameDay, DAY)).toEqual({value: 240000n, decimals: 2, date: '2026-11-16', payments: 0, onBalanceDay: 1});
+    expect(owedAfterPayments(tomCard([]), DAY)).not.toHaveProperty('onBalanceDay');
+    const r = runTool('accounts', {}, zigiEnv(tom(sameDay)));
+    expect(r.ok && (r.data as {accounts: unknown[]}).accounts[0]).toMatchObject({latest: '2400.00 EUR', paymentsOnBalanceDay: 1});
+    expect(r.ok && (r.data as {accounts: Record<string, unknown>[]}).accounts[0]).not.toHaveProperty('owedAfterPayments');
+    for (const ask of [zigi, nova]) {
+      expect(text(ask('How much do I owe?', tom(sameDay)))).toMatch(/^You owe 2,400\.00 EUR across 1 debt, as entered on this device:\n- Credit card: 2,400\.00 EUR owed on [^\n]+ \(1 payment on the balance's day, not taken off\)$/);
+      expect(text(ask('Hoeveel schuld heb ik?', tom(sameDay)))).toMatch(/^Je hebt € 2\.400,00 schuld, over 1 schuld, zoals ingevoerd op dit apparaat:\n- Credit card: € 2\.400,00 op ma 16 nov \(1 betaling op de dag van het saldo, niet afgetrokken\)$/);
+    }
+    expect(onBalanceDayWords(2)).toBe("2 payments on the balance's day, not taken off");
   });
   test('the Showcase (no payment after its balances) answers exactly as before', () => {
     expect(text(localAnswer('What do I owe?', zigiEnv(showcaseAll())))).toMatch(/^You owe /);
