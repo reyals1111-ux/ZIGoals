@@ -400,7 +400,27 @@ and the scripts' transfer size. Each figure is the median of 3 runs. A/B runs al
   200 ms a frame unthrottled (dev profile, `StarSystem…prove`). It now runs 120 ms later, on the same frames, with the
   same "two empty frames mean empty" rule. The probe's CPU throttle does not slow the GPU process, so this sandbox shows
   no change (blocking 2,047 → 2,072 ms, noise). The fix is aimed at CI's loaded runners.
-- To be continued (attempt 2), with the numbers in the closing table.
+- **Attempt 2, every route** (merged in `0a301f33`; aw/speed2 `7b72d65f` … `42407da7`): Session AW's code out of each
+  route's first scripts — Guided journeys' body in its own chunk asked for as the page starts; Health's Activity view
+  lazy (preloaded on idle) and the Water card's taps without own-drinks; Tasks' reminder repeats and own snooze buttons in
+  their own chunks; light modules for the Journal's day-page line and a bill's end; and, for the shell, the notification
+  prefs read through a dynamic import (TIER 3 PWA, `2a845394`) and the notification labels, task-again setters and
+  X4's habit outcomes out of always-loaded modules.
+- **First-load weight, base `8fa8aa1d` → `0a301f33`** (`scripts/check-weight-budget.mjs`, gzip): shell 391.4 → 390.1
+  (−1.3); Settings 521.7 → 457.9 (−63.8); Guided 416.4 → 394.7 (−21.7); Today 533.9 → 533.0; Health 504.9 → 503.5;
+  every other route −0.7 to −1.4, except **Tasks 442.0 → 443.1 (+1.1)** and **Agenda 459.9 → 460.5 (+0.6)**. Every
+  route has at least 5 kB of headroom under its budget.
+- **Speed, interleaved A/B on the same machine** (median of 3; the three closest re-run with 5): hydrated / blocking,
+  base → head: Today 4,634 → 3,616 ms / 2,214 → 1,785 ms (−19 %); Journal 3,656 → 3,153 / 1,548 → 1,333 (−14 %); Settings
+  4,878 → 4,600 / 2,082 → 2,308; NOVA 3,258 → 3,275 / 2,049 → 2,051; Habits 2,924 → 2,902 / 1,349 → 1,414; Wealth
+  3,995 → 3,925 / 1,934 → 1,825; with 5 runs Health 4,229 → 4,090 / 2,190 → 2,064, Tasks 3,494 → 3,492 / 1,520 → 1,620, Help
+  5,307 → 5,043 / 2,236 → 2,412. Between runs on this shared machine a route moves by ±10 %.
+- **Against amendment 2's targets after two attempts:** "hydrated ≤ 3000 ms on every route" — not met (Habits only);
+  "blocking −30 % on Today, Settings and NOVA" — not met (Today −19 %, Settings and NOVA unchanged); "NOVA blocking
+  ≤ 1500 ms" — not met (≈ 2,050 ms); "no route's JS grows" — met but for Tasks (+1.1 kB) and Agenda (+0.6 kB). Each is
+  Carried: **2 failed attempts** (E2). The remaining cost is React's hydration of each page's server HTML (one 1–1.6 s
+  task on Settings, Today and NOVA) and NOVA's own scripts (1.15 MB), which AR's protected composition draws on its first
+  frame; neither yields to moving Session AW's code.
 
 ### D-CI-WEBKIT6 and D-CI-SHARDS-AW — TIER 3 CI (`48eb8149`)
 - WebKit runs in six shards, not four (owner amendment 9). The lists are packed from run 2031's WebKit logs (each test
