@@ -136,7 +136,7 @@ All optional. Help explains each one.
 - **A habit's everyday time.** In the Day timeline, "Every day, on all my devices" gives a habit one time on every device you sync.
 - **Swiss food search** (once we switch the food lookup on): when a barcode isn't found, search the Swiss Food Composition Database instead. Only the words you type are sent, through ZIGoals' food service.
 - **Customize** in Settings → Appearance: the font (System or Inter), text size, density and glow, on this device.
-- **Erase everything on this device** at the end of Settings → Backup & restore. Type ERASE and every ZIGoals record leaves this browser. Make Export everything first if you want a copy.
+- **Erase everything on this device** at the end of Settings → Backup & restore on a computer; on a phone, Settings → Data & privacy → Erase everything (the last row there). Type ERASE and every ZIGoals record leaves this browser. Make Export everything first if you want a copy.
 - **The Guide** has two new notes: a habit that is back after a few missed days, and a goal close to its target. With your own AI connected, "Ask ZIGi about this" opens ZIGi with a question about the note. Nothing is sent until you send it.
 
 ## 8e. New in this release (Session AK, "Number One")
