@@ -33,6 +33,12 @@ export const emptyOnboardingSetup = (): OnboardingSetup => ({version: 1, at: '19
 export const ONBOARDING_SETUP: DeviceRecordSpec<OnboardingSetup> = {key: ONBOARDING_SETUP_KEY, schema: onboardingSetupSchema, empty: emptyOnboardingSetup};
 export const UNDO_SETUP_HOURS = 24;
 export const setupUndoable = (s: OnboardingSetup, now: Date) => !s.undone && (s.habitIds.length > 0 || !!s.goalId || s.widgetIds.length > 0) && now.getTime() - Date.parse(s.at) < UNDO_SETUP_HOURS * 3_600_000;
+/**
+ * Session AW (FR-AW-7): "Sleep better" suggests a sleep goal of 8 h on the starters step (one of SLEEP_GOALS), shown as a
+ * suggestion and still changeable to another length or "No sleep goal". Null when the focus is not picked.
+ */
+export const SUGGESTED_SLEEP_MINUTES = 480;
+export const suggestedSleepGoal = (focuses: readonly FocusId[]): number | null => focuses.includes('sleep') ? SUGGESTED_SLEEP_MINUTES : null;
 /** The focuses' suggestions for the chosen pillars: habit titles and the goal, in order, without twins. */
 export function suggestionsFor(focuses: readonly FocusId[]): {habits: string[]; goal: Focus['goal'] | null; widgets: Focus['widgets']} {
   const picked = FOCUSES.filter(f => focuses.includes(f.id));
