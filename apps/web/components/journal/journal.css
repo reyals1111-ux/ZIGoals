@@ -333,3 +333,9 @@
 .day-pages-settings button{min-height:44px;justify-self:start}
 .day-pages-time{max-width:12rem}
 .day-pages-time input{min-height:44px;font-size:16px}
+
+/* Session AW (fr-journal, FR-AW-1): the draft's line (as the dream's: a 44 px Discard), and the optional extras after Save
+   entry, set apart by the theme's own line colour (no new colours). */
+.journal-draft-line { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 6px 0; font-size: 15px; }
+.journal-draft-line .text-link { min-height: 44px; }
+.journal-compose-extras { margin-top: 14px; padding-top: 6px; border-top: 1px solid var(--line); }
