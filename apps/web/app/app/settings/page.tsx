@@ -86,7 +86,9 @@ const PrivateBackups = later("PrivateBackups");
 const ExportEverything = later("ExportEverything");
 const SwitchImport = later("SwitchImport");
 const EraseEverything = later("EraseEverything");
-function Later({children}: {children: ReactNode}) { return <Suspense fallback={null}>{children}</Suspense>; }
+// Session AW Part 6 (aw-offline.spec): a lower group's chunk that is not on this device (offline) says so in its place; the
+// rest of Settings keeps working (without the boundary the whole page gave way to "This page could not be shown").
+function Later({children}: {children: ReactNode}) { return <LoadBoundary label="This part of Settings"><Suspense fallback={null}>{children}</Suspense></LoadBoundary>; }
 // Session AL (BN-112): its own chunk, loaded only once the chain is chosen and the wallet group shows.
 const TrackedWallets = lazy(() => import("../../../components/staking/tracked-wallets"));
 const AfEarnSection = lazy(() => import("../../../components/settings/af-earn-section").then(m => ({default: m.AfEarnSection})));

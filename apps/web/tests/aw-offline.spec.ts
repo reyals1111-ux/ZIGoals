@@ -52,7 +52,8 @@ import {BRING_UP_KEY} from '../lib/clinician-report/bring-up';
  * Session AW Part 6 (owner amendment 7): the new records and screens of Sessions AV (lanes 1 and 2) and AW, offline. A
  * person has installed the app (this build's service worker controls the page; it has kept the parts the app's pages
  * load after their first paint, `/__zigoals-warm-done`) and opened each page once while online — only the page, no fold,
- * sheet or form of it. Then the connection goes, and each page opens from the device: no "This page could not be shown",
+ * sheet or form of it — until it settled (the page asked the worker to keep what it opens on a tap: public/sw.js
+ * warmPage, its marker `/__zigoals-warm-done?page=<address>`). Then the connection goes, and each page opens from the device: no "This page could not be shown",
  * no "… needs a connection to open", the new feature's control is there, one thing is written with it, and after a reload
  * (still offline) the record is on the device. The same steps as tests/av-offline-later-parts.spec.ts (the worker
  * allowed, every /api call answered 503, the controller and the warm-done marker waited for, then the context offline).
@@ -67,6 +68,8 @@ const orEmpty = <T>(value: T | null | undefined): T => value ?? ({} as T);
 /** Installed, the clock at `at`: the worker controls the page and has kept this version's later parts. */
 async function installed(page: Page, context: BrowserContext, isMobile: boolean, at: string) {
   if (!isMobile) await page.setViewportSize({width: 1440, height: 900});
+  // A step that cannot act says which step it was (rather than the test's 120 s).
+  page.setDefaultTimeout(20_000); page.setDefaultNavigationTimeout(45_000);
   await context.route(url => url.pathname.startsWith('/api/'), route => route.fulfill({status: 503, json: {error: 'LOCAL_FIXTURE_ONLY'}}));
   await page.clock.install({time: new Date(at)});
   await page.addInitScript(() => { if (!localStorage.getItem('zigoals:onboarding:v1')) localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); });
@@ -82,12 +85,17 @@ async function installed(page: Page, context: BrowserContext, isMobile: boolean,
 async function seed(page: Page, records: Record<string, unknown>) {
   await page.evaluate(list => { for (const [k, v] of list) localStorage.setItem(k, v); }, Object.entries(records).map(([k, v]) => [k, typeof v === 'string' ? v : JSON.stringify(v)] as [string, string]));
 }
-/** Each page opened once while online, as a person would: the page only. */
+/** Each page opened once while online, as a person would: the page only, until it settled (its worker marker is there). */
 async function openedOnline(page: Page, paths: readonly string[]) {
   for (const path of paths) {
     await page.goto(path);
     await hydrated(page);
     await expect(page.locator('main').first()).toBeVisible();
+    await expect.poll(() => page.evaluate(async () => {
+      const marker = '/__zigoals-warm-done?page=' + encodeURIComponent(location.pathname + location.search);
+      for (const key of await caches.keys()) if (key.startsWith('zigoals-lazy-') && await (await caches.open(key)).match(marker)) return true;
+      return false;
+    }), {timeout: 45_000, intervals: [1000], message: `${path}: the worker kept what the page opens on a tap`}).toBe(true);
   }
 }
 /** The page drew from the device: not the worker's "You are offline" page, not the app's error page. */
@@ -294,7 +302,7 @@ test('Health and Guided offline: a weigh-in note and a day you name, the sleep g
     await page.locator('summary').filter({hasText: 'A day you name'}).click();
     const named = page.getByRole('region', {name: 'A day you name'});
     await named.getByRole('textbox', {name: 'Name of the day'}).fill('The fictional trip');
-    await named.getByLabel('The day').fill('2026-12-18');
+    await named.getByLabel('The day', {exact: true}).fill('2026-12-18');
     await named.getByRole('button', {name: 'Keep this day'}).click();
     await expect(named.getByRole('listitem').filter({hasText: 'The fictional trip'})).toContainText('an estimate');
     await kept(page);
