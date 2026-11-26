@@ -68,7 +68,9 @@
 /* The same for an asset card's value: one line, its usual size (32 px, 20 px on phones) unless its length needs less. */
 :root .owned-value { container-type: inline-size; }
 :root .wealth-product .owned-value > strong { white-space: nowrap; overflow-wrap: normal; font-size: min(var(--owned-size, 32px), calc(100cqi / (var(--chars, 12) * .6))); }
-:root .wealth-split .split-figure { white-space: nowrap; font-size: min(1em, calc(55cqi / (var(--chars, 12) * .6))); }
+/* Session AW (FR-AW-26): never under 14 px, the readability floor ("US$437,700.00" read 13.7 px in the Showcase at 1440);
+   at 14 px a 17-character figure (US$1,234,567,890.12) is about 143 px, inside the narrowest two-column box. */
+:root .wealth-split .split-figure { white-space: nowrap; font-size: max(14px, min(1em, calc(55cqi / (var(--chars, 12) * .6)))); }
 /* Stress audit (40+ character Goal names): an "Allocate to …" button wraps its long name inside itself. */
 :root .asset-detail-actions a.secondary { white-space: normal; text-align: left; max-width: 100%; overflow-wrap: anywhere; height: auto; }
 

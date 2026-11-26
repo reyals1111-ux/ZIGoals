@@ -455,13 +455,6 @@ export function TasksPage() {
     {!ready ? <ZgSkeleton label="Opening your tasks…" className="tasks-skeleton" block lines={3} /> : <>
       {showcase && <p className="fine tasks-showcase" role="note">Showcase · fictional. These example tasks are not yours.</p>}
       {tasks.unreadable && <LoadBoundary quiet><Suspense fallback={null}><Salvage salvage={salvage} onKeep={() => { if (salvage) { keepSalvaged(salvage.readable); showStatus(`Kept ${plural(salvage.readable.tasks.length, 'task')} that could be read.`); } }} /></Suspense></LoadBoundary>}
-      {reminders.length > 0 && <section className="panel tasks-reminders" aria-label="Reminders">
-        <h2>Reminders</h2>
-        {/* Session AV (1c, q1 #1): Done, Snooze (15 min, 1 h, tomorrow) and Dismiss on every reminder. */}
-        <ReminderRows reminders={reminders} className="tasks-reminder-list" label="Reminders that have gone off" change={list.change} onDone={t => list.toggle(t, true)} onDismiss={key => setDismissed(s => new Set(s).add(key))} onFocus={setFocus} fallback={() => addField.current}
-          line={r => <span><span dir="auto">{r.task.title}</span> · {r.task.time ? `${formatClock(r.task.time)}` : 'today'}{r.task.due && r.task.due !== today ? ` · ${formatDate(r.task.due, {weekday: true, year: false})}` : ''}{r.round ? ` · again, ${r.round} of ${r.times}` : ''}</span>} />
-        <p className="fine">Reminders show here and on Today while the app is open; one set to remind again comes back until you tick Done or Snooze (Tasks → This week → Reminders). On your device’s notifications only when notifications are switched on in Settings.</p>
-      </section>}
       {filesOpen && <section className="panel tasks-files-panel" aria-labelledby="tasks-files-title"><h2 id="tasks-files-title"><NebulaFlow identity="tasks-files-title">Files</NebulaFlow></h2>
         <LoadBoundary label="Files"><Suspense fallback={<p className="fine">Opening…</p>}><FilesView titles={new Map(record.tasks.map(t => [t.id, t.title]))} onOpenTask={openTaskFromFiles}/></Suspense></LoadBoundary>
         <button type="button" className="quiet" onClick={() => setFilesOpen(false)}>Close</button></section>}
@@ -476,6 +469,15 @@ export function TasksPage() {
           {/* Session AW (simplicity-b, Part 3): "New task" opens the list, above its heading line, Select and Filter. Under
               them it stood at y 949 on a phone in the Showcase, under the tab bar; the heading still names the list. */}
           {view.kind !== 'completed' && view.kind !== 'filter' && !own && <SmartAdd record={record} today={today} onAdd={addFromLine} onAddMany={addManyFromLines} defaults={defaults} inputRef={addField} makeProject={makeProject} goals={goals.open} />}
+          {/* Session AW (FR-AW-15): reminders that have gone off come under "New task", in the list's own panel. Above the
+              views they pushed "New task" to y 989 on a 390 × 844 phone (fold 844); the rows and their buttons are unchanged. */}
+          {reminders.length > 0 && <section className="tasks-reminders" aria-label="Reminders">
+            <h2>Reminders</h2>
+            {/* Session AV (1c, q1 #1): Done, Snooze (15 min, 1 h, tomorrow) and Dismiss on every reminder. */}
+            <ReminderRows reminders={reminders} className="tasks-reminder-list" label="Reminders that have gone off" change={list.change} onDone={t => list.toggle(t, true)} onDismiss={key => setDismissed(s => new Set(s).add(key))} onFocus={setFocus} fallback={() => addField.current}
+              line={r => <span><span dir="auto">{r.task.title}</span> · {r.task.time ? `${formatClock(r.task.time)}` : 'today'}{r.task.due && r.task.due !== today ? ` · ${formatDate(r.task.due, {weekday: true, year: false})}` : ''}{r.round ? ` · again, ${r.round} of ${r.times}` : ''}</span>} />
+            <p className="fine">Reminders show here and on Today while the app is open; one set to remind again comes back until you tick Done or Snooze (Tasks → This week → Reminders). On your device’s notifications only when notifications are switched on in Settings.</p>
+          </section>}
           <header className="tasks-view-head">
             <h2 id="tasks-view-title">{title} <small>{view.kind === 'completed' || own ? '' : shown.length ? plural(shown.length, 'task') : 'none open'}{view.kind !== 'completed' && counts.overdue && view.kind !== 'overdue' ? ` · ${formatNumber(counts.overdue)} overdue in all` : ''}</small></h2>
             {project && <ProjectTools project={project} board={board} setup={setupFor === project.id} onSetup={() => setSetupFor(setupFor === project.id ? null : project.id)} onBoard={b => go(view, b)} onEdit={patch => list.change(r => editProject(r, project.id, patch), patch.archived ? `Archived “${project.name}”.` : `Saved “${patch.name ?? project.name}”.`)} onRemove={() => { list.change(r => removeProject(r, project.id), `Removed the project “${project.name}”; its tasks are in the Inbox.`, 'The project is back.'); go({kind: 'inbox'}); }} />}
