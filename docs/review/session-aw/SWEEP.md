@@ -35,3 +35,10 @@ probe (not a suite): its results are summarised here.
 
 Each appears in one view only, at the foot of the first screen: axe reads the page from its top, where the phone and
 200 % views' fixed bars cover the lower edge of the window. The verdict per finding is recorded after the probe below.
+
+### Verdicts (probed on build `0a301f33`)
+- **Reminder switches** (`/app/settings/reminders`): each switch's box measured 22 × 22 px, under WCAG 2.5.8's 24 px. Fixed:
+  24 × 24 px (`components/reminders/reminders-plan.css`); the row around it stays 44 px tall.
+- **Goal ideas** (`/app/goals/new`, 390 px): each idea is 324 × 69 px and more. At the top of the page the third sits under
+  the creator's sticky action bar and the fourth under the phone's tab bar, so axe measured them as covered; scrolled,
+  each is whole. Not a defect (as `tests/p6-helpers.ts` notes for controls under the phone's bars).
