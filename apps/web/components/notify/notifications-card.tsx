@@ -50,9 +50,15 @@ export function NotificationsCard() {
   useEffect(() => {
     const node = card.current;
     if (!node || typeof IntersectionObserver !== 'function') { setNear(true); return; }
+    // Session AW (CI runs 2040 and 2041, j06-data-safety:43): an address that names this card (#notifications) is the
+    // person on their way here. Its status is asked at once, so the card never stays at "Checking…" when the groups above
+    // it open (later, from their own chunk) and push it below the screen before the observer saw it near.
+    if (window.location.hash === '#notifications') { setNear(true); return; }
+    const onHash = () => { if (window.location.hash === '#notifications') setNear(true); };
+    window.addEventListener('hashchange', onHash);
     const observer = new IntersectionObserver(entries => { if (entries.some(e => e.isIntersecting)) { setNear(true); observer.disconnect(); } }, {rootMargin: '200px 0px'});
     observer.observe(node);
-    return () => observer.disconnect();
+    return () => { observer.disconnect(); window.removeEventListener('hashchange', onHash); };
   }, []);
   // Session AW (Part 2; bn-114 under load): what this device can know without a request (the Showcase, an iPhone tab that
   // must be on the Home Screen first, a browser without web push) is said as soon as the card mounts, not when it comes
