@@ -512,7 +512,7 @@ Every red is fixed at its cause, each reproduced locally first:
 ### Exit criteria
 | | criterion | result |
 |---|---|---|
-| E1 | two consecutive full CI runs on the final head, green on the first attempt (fallback: registered intermittents passing on their one re-run) | Run 2043 on `c1eb7a1d`: every job green, 0 failed; 1 test green only on its retry (`aw-x2-marvin:51`, first sighting, recorded). Run 2044 on `54de2c88` (2043's code plus one docs file): see the STATUS entry. The final docs commits add no code. |
+| E1 | two consecutive full CI runs on the final head, green on the first attempt (fallback: registered intermittents passing on their one re-run) | Run 2043 on `c1eb7a1d`: every job green, 0 failed; 1 test green only on its retry (`aw-x2-marvin:51`, first sighting, recorded). Run 2044 on `54de2c88` (2043's code plus one docs file): every job green, 0 failed; 4 tests green only on their retry (each a first sighting, none in 2043). **Met at job level, twice in a row, with no job re-run.** At test level, 5 different tests passed on Playwright's in-job retry, none in both runs, each written up in CI_INTERMITTENTS.md. The final docs commits add no code. |
 | E2 | every row has a verdict with an allowed cause only | `docs/review/session-aw/VERDICTS.md`: round 7, LEDGER Carried, Carried parts of built rows, UNFINISHED, QUALITY, FRIEND_READINESS and the CI rows (with run evidence). Each verdict is built, already have, or Carried with an E2 cause. |
 | E3 | a fresh-agent review of each batch, every Blocker and Major fixed | b1: 0 Blockers, 2 Majors, fixed. b2: 0 Blockers, 3 Majors, fixed (QUALITY-b2.md). Persona-fix batch: 0 Blockers, 1 Major (the draft lost the entry's choices), fixed. The follow-up review of the rest-state and Tasks commits found none. |
 | E4 | persona walks pass at 390 and 1440 | FRIEND_READINESS.md: 1 Blocker, 5 Majors and 21 Minors found and fixed or given a verdict. A fresh re-walk confirmed all six Blocker and Major rows fixed. It found one new Major (a debt row at 390), fixed. |
@@ -540,9 +540,10 @@ failed attempts**.
 ### CI
 - WebKit runs in 6 shards. The main lists were repacked from measured minutes twice (runs 2031 and 2041).
 - **Worker-minutes per run** (job minutes × 2 workers): 2035 ≈ 1,808 · 2036 ≈ 1,760 · 2037 ≈ 1,888 · 2038 1,791 ·
-  2039 1,849 · 2040 1,861 · 2041 1,884 · 2042 1,876 · 2043 1,959. The aim (below 1,300) is **not met**. The minutes are
+  2039 1,849 · 2040 1,861 · 2041 1,884 · 2042 1,876 · 2043 1,959 · 2044 1,907. The aim (below 1,300) is **not met**. The minutes are
   the suite's own: 8,311 tests on two projects, and no test was removed or narrowed. The longest shard went from 53.6 min
-  (2031) to 47.0 min (2043). The 45-min aim is met by 19 of 20 main shards.
+  (2031) to 47.0 min (2043) and 51.8 min (2044). The same list took 35.9 min in 2043, so the runner varies. The 45-min aim
+  is met by 19 of 20 main shards in 2043 and 18 of 20 in 2044: **not met in every run**.
 - **Intermittents this session:**
   - `earn-guide-zigi:54`: fixed (D-EARN54).
   - `zigi-states:200`: fixed in attempt 2 (D-ZIGI200), green in 2041 and 2043.
