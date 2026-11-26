@@ -34,6 +34,12 @@ export type Gates = {
   /** The person's own notes may go with a question (Part 8): connected, on a page that attaches data, nothing private on screen. "Use my notes" decides the rest. */
   notes: boolean;
   reasons: string[];
+  /**
+   * Session AW (fr-answers review): why Health stays closed when the one button cannot open it — an account is open and its
+   * Health permission is not on for this device ('account'), or Health is not on this device's Today ('layout'). Absent:
+   * Health is open, or Allow Health in NOVA → Permissions opens it. The replies say only what is true from this.
+   */
+  healthBlock?: 'account' | 'layout';
 };
 const NONE: AreaFlags = {today: false, goals: false, habits: false, health: false, wealth: false, help: false};
 export type GatesInput = Omit<ConsentInput, 'area'> & {area: PageArea; sensitive: boolean};
@@ -56,7 +62,8 @@ export function aiGates(input: GatesInput): Gates {
   // streaks. Wealth too (integrator, reading Q14): Settings says these switches decide which pages the answers may read,
   // with or without an AI, so a person who turned off "Wealth page data" gets no money line on the device either.
   const local: AreaFlags = {today: share.today, goals: share.goals, habits: share.habits, health, wealth: share.wealth, help: share.help};
-  return {connected, paused: false, page, areas, health: connected && attaches && health, local, localHealth: health, notes: connected && attaches, reasons: page.reasons};
+  const block = health ? undefined : input.accountActive && input.accountHealthPermitted !== true ? 'account' as const : !input.layoutHasHealth ? 'layout' as const : undefined;
+  return {connected, paused: false, page, areas, health: connected && attaches && health, local, localHealth: health, notes: connected && attaches, reasons: page.reasons, ...(block ? {healthBlock: block} : {})};
 }
 /** The defaults before anything was chosen, for tests and for the shell: nothing shared, nothing paused. */
 export const closedGates = (settings: AiSettings): Gates => aiGates({settings, area: 'help', pathname: '/app/help', layoutHasHealth: false, accountActive: false, accountHealthPermitted: null, sensitive: false});

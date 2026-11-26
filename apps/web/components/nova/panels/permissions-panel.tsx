@@ -56,6 +56,9 @@ export default function PermissionsPanel() {
     {/* Session AW (fr-answers, FR-AW-9): the replies no longer say "(the button is there once Health is on your Today page)";
         the one layout case the button cannot show, Health off this device's Today, is said here, where the button would be. */}
     {!(scopes.health && gateOpen) && dashboard.loaded && !dashboard.error && !layoutHasHealth && <p className="ai-note" data-testid="nova-allow-health-later">Allow Health shows here once Health is on your Today page. It is not on your Today layout on this device, so nothing from Health can be shared yet: add it to Today first.</p>}
+    {/* Session AW (fr-answers review): the other case the button is hidden: an account is open and its Health permission is
+        not on for this device (the replies say the same, lib/ai/tools/format.ts HEALTH_CLOSED_BY.account). */}
+    {!(scopes.health && gateOpen) && layoutHasHealth && consent.accountActive && consent.accountHealthPermitted !== true && <p className="ai-note" data-testid="nova-allow-health-account">Allow Health shows here once your account’s Health permission is on for this device. With your account open, Health is read only with it, and here it is off or not confirmed yet: Settings → Account &amp; sync.</p>}
     <div className="ai-switch-list">
       {/* Session AL (DV-065, P-DV-99): Earn is read only once a chain is chosen (context-pack scopeOpen); until then its switch
           says so instead of a plain "On" that NOVA does not act on. */}

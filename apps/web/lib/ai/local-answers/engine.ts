@@ -41,6 +41,7 @@ import {av2MoneyAnswer} from './av2-money';
 import {av2FoodAnswer, readFoodSources} from './av2-food';
 import {mealWordsAnswer} from './fr-meal-words';
 import {awFrAnswer} from './aw-fr-answers';
+import {healthSharedAnswer} from './aw-fr-health-shared';
 import {frAnswer} from './fr-answers';
 import {watchedHoldings, watchedWords} from './fr-wallets';
 import {av2BodyAnswer} from './av2-body';
@@ -275,6 +276,9 @@ function deviceAnswer(question: string, env: ToolEnv, subject?: Subject): LocalR
   // Session AL fourth pass (L7-4a): the safety guard first. Its words are never read as a lookup or a card ("sleeping
   // pills" is not the sleep log); the guard's own reply comes from the chat (`guarded`) or no-model.ts.
   if (safetyFirst(question)) return NONE;
+  // Session AW (fr-answers review): "is my health shared", "kun je mijn gezondheid zien?" — whether Health is shared with
+  // this answer — before the exact layer reads it as Health's summary and navigation reads "zien" as "open Health" (al-more.ts).
+  if (!subject) { const own = healthSharedAnswer(question, env); if (own) { const info = novaEnvInfo(env); return info ? novaWording(own, info, questionLanguage(question) === 'nl' ? 'nl' : 'en') : own; } }
   // Session AS (ADR-042 Part 1; the owner's findings of 17 Nov): the exact layer answers the question asked, before the
   // layers below, for the classes they answered with something else (what was missed, skipped, not done or late; which
   // days; a weekday; a log's own day; a named period they did not keep to), in English and Dutch, ZIGi and NOVA alike (A1).

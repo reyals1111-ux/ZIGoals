@@ -61,7 +61,7 @@ const fmt = (n: number) => formatNumber(Number(n.toFixed(1)), {maximumFractionDi
  */
 export type VizLang = 'en' | 'nl';
 const TITLE_NL: readonly [RegExp, string][] = [[/^Water per day$/, 'Water per dag'], [/^Steps per day$/, 'Stappen per dag'], [/^Weight readings$/, 'Gewichtsmetingen'], [/^Check-ins per day$/, 'Check-ins per dag'], [/^Counts per day$/, 'Aantallen per dag'], [/^(.+) per day$/, '$1 per dag']];
-const UNIT_NL: Record<string, string> = {steps: 'stappen', times: 'keer'};
+const UNIT_NL: Record<string, string> = {steps: 'stappen', step: 'stap', times: 'keer', time: 'keer', minutes: 'minuten', minute: 'minuut', hours: 'uur', hour: 'uur', glasses: 'glazen', glass: 'glas', pages: 'pagina’s', page: 'pagina', sessions: 'sessies', session: 'sessie', liters: 'liter', liter: 'liter', 'check-ins': 'check-ins', 'check-in': 'check-in', days: 'dagen', day: 'dag', weeks: 'weken', week: 'week', months: 'maanden', month: 'maand'};
 export const vizTitle = (title: string, lang: VizLang) => { if (lang !== 'nl') return title; for (const [re, nl] of TITLE_NL) if (re.test(title)) return title.replace(re, nl); return title; };
 export const vizUnit = (unit: string, lang: VizLang) => lang === 'nl' ? UNIT_NL[unit] ?? unit : unit;
 /** A day as the caption writes it: the app's date format in English ("Nov 30, 2026"), "30 nov 2026" in Dutch. */
@@ -91,6 +91,14 @@ export type Stat = {value: string; label: string; detail: string | null; source:
 const plainCount = (n: unknown) => typeof n === 'number' && Number.isFinite(n) ? formatNumber(n) : null;
 const LABEL_NL: readonly [RegExp, string][] = [[/^Steps\b/, 'Stappen'], [/^Weight\b/, 'Gewicht'], [/\btoday$/, 'vandaag'], [/\byesterday$/, 'gisteren'], [/\bthis week$/, 'deze week'], [/\blast week$/, 'vorige week'], [/\bthis month$/, 'deze maand'], [/\blast month$/, 'vorige maand'], [/\bthe last (\d+) days$/, 'de afgelopen $1 dagen']];
 const labelIn = (label: string, lang: VizLang) => lang === 'nl' ? LABEL_NL.reduce((s, [re, nl]) => s.replace(re, nl), label) : label;
+/** A tool's "45 minutes", "3.5 glasses", "12 times" in Dutch ("45 minuten"); any other text as it is. */
+const valueIn = (value: string, lang: VizLang) => {
+  if (lang !== 'nl') return value;
+  const run = /^(\d+) (\S+) now, best (\d+) (\S+)$/.exec(value.trim());
+  if (run && UNIT_NL[run[2]!] && UNIT_NL[run[4]!]) return `nu ${vizNumber(Number(run[1]), 'nl')} ${UNIT_NL[run[2]!]}, beste ${vizNumber(Number(run[3]), 'nl')} ${UNIT_NL[run[4]!]}`;
+  const m = /^(-?\d+(?:\.\d+)?) (\S+)$/.exec(value.trim().replace(/,/g, ''));
+  return m && UNIT_NL[m[2]!] ? `${vizNumber(Number(m[1]), 'nl')} ${UNIT_NL[m[2]!]}` : value;
+};
 export function statOf(result: ToolResult, lang: VizLang = 'en'): Stat | null {
   if (!result.ok) return null;
   const d = result.data as Record<string, unknown>, days = (n: unknown, of: unknown) => typeof n === 'number' && typeof of === 'number' ? (lang === 'nl' ? `${n} van ${of} ${of === 1 ? 'dag' : 'dagen'} met een registratie` : `${n} of ${plural(of, 'day')} with a record`) : null;
@@ -98,15 +106,18 @@ export function statOf(result: ToolResult, lang: VizLang = 'en'): Stat | null {
     case 'habit_stats': {
       const value = typeof d.valueText === 'string' ? d.valueText : null, range = d.days as Record<string, unknown> | undefined;
       if (!value || /^(unknown|mixed)/.test(value)) return null;
-      return {value, label: result.label, detail: typeof d.checkIns === 'number' && typeof range?.inRange === 'number' ? `${plural(d.checkIns, 'check-in')} over ${plural(range.inRange, 'day')}` : null, source: result.provenance};
+      // Session AW (fr-answers review): the figure, its label and "N check-ins over N days" in Dutch for a Dutch question.
+      const detail = typeof d.checkIns === 'number' && typeof range?.inRange === 'number' ? (lang === 'nl' ? `${vizNumber(d.checkIns, 'nl')} ${d.checkIns === 1 ? 'check-in' : 'check-ins'} in ${vizNumber(range.inRange, 'nl')} ${range.inRange === 1 ? 'dag' : 'dagen'}` : `${plural(d.checkIns, 'check-in')} over ${plural(range.inRange, 'day')}`) : null;
+      return {value: valueIn(value, lang), label: labelIn(result.label, lang), detail, source: result.provenance};
     }
     case 'water': { const ml = lang === 'nl' && typeof d.totalMl === 'number' ? vizNumber(d.totalMl, 'nl') : plainCount(d.totalMl); return ml ? {value: `${ml} mL`, label: labelIn(result.label, lang), detail: days(d.daysWithWater, d.daysInRange), source: result.provenance} : null; }
     case 'steps': { const steps = lang === 'nl' && typeof d.totalSteps === 'number' ? vizNumber(d.totalSteps, 'nl') : plainCount(d.totalSteps); return steps ? {value: `${steps} ${lang === 'nl' ? 'stappen' : 'steps'}`, label: labelIn(result.label, lang), detail: days(d.daysWithActivity, d.daysInRange), source: result.provenance} : null; }
     case 'counters': {
       const list = Array.isArray(d.counters) ? d.counters as Record<string, unknown>[] : [];
       if (list.length !== 1) return null;
-      const total = plainCount(list[0]!.total);
-      return total ? {value: `${total} times`, label: result.label, detail: typeof list[0]!.daysWithEntry === 'number' ? `on ${plural(list[0]!.daysWithEntry, 'day')}` : null, source: result.provenance} : null;
+      const total = lang === 'nl' && typeof list[0]!.total === 'number' ? vizNumber(list[0]!.total, 'nl') : plainCount(list[0]!.total), on = list[0]!.daysWithEntry;
+      // Session AW (fr-answers review): "N keer", "op N dagen" for a Dutch question.
+      return total ? {value: `${total} ${lang === 'nl' ? 'keer' : 'times'}`, label: labelIn(result.label, lang), detail: typeof on === 'number' ? (lang === 'nl' ? `op ${vizNumber(on, 'nl')} ${on === 1 ? 'dag' : 'dagen'}` : `on ${plural(on, 'day')}`) : null, source: result.provenance} : null;
     }
     default: return null;
   }
