@@ -1,4 +1,5 @@
 import {readFileSync} from 'node:fs';
+import {AW_MOOD_DAYS} from './aw-examples';
 import {describe, expect, it} from 'vitest';
 import {buildShowcase} from '../showcase-data';
 import {healthSchema, HEALTH_STORAGE_KEY} from '../health';
@@ -58,16 +59,21 @@ describe('minor 7: the Showcase has labelled examples of symptoms and run splits
 describe('Session AU (D8, deliberate): the Showcase has labelled example mood tags and a bill price change', () => {
   it('moods: twelve of the last fourteen days, none today; mood tags: three labelled tags on eight of those days', () => {
     const moods = parse(HEALTH_STORAGE_KEY, healthSchema).moods!, tags = parse(MOOD_TAGS_KEY, moodTagsSchema);
-    expect(Object.keys(moods.days).sort()).toEqual(['2026-10-18', '2026-10-19', '2026-10-20', '2026-10-21', '2026-10-22', '2026-10-23', '2026-10-24', '2026-10-26', '2026-10-27', '2026-10-28', '2026-10-29', '2026-10-30']);
+    // Session AW (showcase, deliberate): the older moods for "your usual" (31 to 325 days back, lib/showcase/aw-examples.ts)
+    // sit outside these two weeks; the two weeks hold exactly the twelve, and nothing else is added.
+    expect(Object.keys(moods.days).length).toBe(12 + AW_MOOD_DAYS.length);
+    expect(Object.keys(moods.days).filter(d => d >= '2026-10-18').sort()).toEqual(['2026-10-18', '2026-10-19', '2026-10-20', '2026-10-21', '2026-10-22', '2026-10-23', '2026-10-24', '2026-10-26', '2026-10-27', '2026-10-28', '2026-10-29', '2026-10-30']);
     expect(moods.days[DAY]).toBeUndefined();
     expect(Object.values(moods.days).every(d => d.note === undefined)).toBe(true);
+    expect(Object.keys(moods.days).filter(d => d < '2026-10-18' && d > '2026-09-30')).toEqual([]); // none in the last 30 days but those twelve
     expect(tags.entries).toEqual({
       '2026-10-18': ['Example · walk'], '2026-10-19': ['Example · late screen'], '2026-10-20': ['Example · walk', 'Example · friends'], '2026-10-21': ['Example · late screen'],
       '2026-10-23': ['Example · walk', 'Example · friends'], '2026-10-26': ['Example · walk'], '2026-10-27': ['Example · late screen'], '2026-10-29': ['Example · walk', 'Example · friends'],
     });
     for (const d of Object.keys(tags.entries)) expect(moods.days[d], d).toBeDefined();
     const found = goodDayTags(moods.days, tags, DAY);
-    expect(found.ready.map(f => [f.tag, f.withDays, f.withGood, f.otherDays, f.otherGood])).toEqual([['Example · walk', 5, 4, 7, 1]]);
+    // Session AW (showcase, deliberate): the older moods (50 days without a tag) join the days without the walk: 57, 16 good.
+    expect(found.ready.map(f => [f.tag, f.withDays, f.withGood, f.otherDays, f.otherGood])).toEqual([['Example · walk', 5, 4, 57, 16]]);
     expect(found.pending).toEqual([{tag: 'Example · friends', days: 3, need: 5}, {tag: 'Example · late screen', days: 3, need: 5}]);
   });
   it('a streaming bill: €12.99 once, then €13.99 three times, monthly; found in the spending, its rise under Price changes', () => {

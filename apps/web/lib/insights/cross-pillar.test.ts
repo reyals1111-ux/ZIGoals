@@ -97,7 +97,9 @@ describe('crossPillarInsights (Session AA-Cloud Part 5)', () => {
     // Session AU (D8, deliberate): the Showcase's twelve example moods (the last two weeks but one day, lib/showcase/au-examples.ts)
     // start the three mood pairings, each still collecting.
     expect(pending).toEqual([{id: 'water-habits', title: 'Water and habits', withA: 47, withoutA: 13, need: 14}, {id: 'late-food-sleep', title: 'Food after 9 pm and sleep', withA: 7, withoutA: 19, need: 14},
-      {id: 'habits-mood', title: 'Habits and mood', withA: 12, withoutA: 0, need: 14}, {id: 'steps-mood', title: 'Steps and mood', withA: 4, withoutA: 8, need: 14}, {id: 'meditation-mood', title: 'Meditation and mood', withA: 10, withoutA: 2, need: 14}]);
+      {id: 'habits-mood', title: 'Habits and mood', withA: 12, withoutA: 0, need: 14}, {id: 'steps-mood', title: 'Steps and mood', withA: 4, withoutA: 8, need: 14}, {id: 'meditation-mood', title: 'Meditation and mood', withA: 10, withoutA: 12, need: 14}]);
+    // Session AW (showcase, deliberate): the Showcase's older moods (31–58 days back, lib/showcase/aw-examples.ts) are days
+    // without a meditation, so Meditation and mood counts 12 such days (was 2), still collecting; every other count stays.
     // The season's one habit: 30 days within the season, archived since the day after it.
     const stretch = habits.habits.find(h => h.id === EARLIER_HABIT_ID)!;
     expect(stretch.entries.map(e => e.date)).toEqual(Array.from({length: 30}, (_, k) => addLocalDays(day, EARLIER_FIRST + k)));

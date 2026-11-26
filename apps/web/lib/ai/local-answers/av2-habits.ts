@@ -19,6 +19,7 @@ import {DAILY_QUESTIONS, DAILY_QUESTIONS_NL} from '../../journal-prompts/daily';
 import {JOURNAL_TEMPLATES} from '../../journal-prompts/templates';
 import {PATTERNS, type BreathingPattern} from '../../meditation/breathing';
 import type {ToolEnv} from '../tools/env';
+import {formatNumber} from '../../visual-format';
 import {text as clean} from '../tools/format';
 import {answer, asked, closed, count, dayIn, isQuestion, list, MIXED, monthIn, say, type Asked} from './av-words';
 import type {LocalReply} from './engine';
@@ -182,7 +183,9 @@ function usualFeeling(a: Asked): LocalReply | null {
   const lang = a.lang, {ready, pending} = feelingTrends({health: a.env.health, energy: a.env.energy ?? null}, a.today);
   const DIR = {up: ['up', 'hoger'], down: ['down', 'lager'], same: ['about the same', 'ongeveer gelijk']} as const;
   const NAME: Record<string, [string, string]> = {mood: ['Mood', 'Stemming'], energy: ['Energy', 'Energie']};
-  const n = (v: number) => (Math.round(v * 10) / 10).toLocaleString(lang === 'nl' ? 'nl-NL' : 'en-US');
+  // Session AW (showcase): the English answer writes its figures in the display locale (FR-TJ-4: "3,5" in en-NL), as every
+  // answer does; the Showcase's mood and energy now reach the comparison, which first showed the en-US "3.5" there.
+  const n = (v: number) => lang === 'nl' ? (Math.round(v * 10) / 10).toLocaleString('nl-NL') : formatNumber(Math.round(v * 10) / 10, {maximumFractionDigits: 1});
   const rows = ready.filter(t => t.id === 'mood' || t.id === 'energy').map(t => say(lang, `${NAME[t.id]![0]}: ${DIR[t.direction][0]} — last 90 days ${n(t.recent.value)} of 5 (${t.recent.days} days), your usual ${n(t.usual.value)} (${t.usual.days} days)`, `${NAME[t.id]![1]}: ${DIR[t.direction][1]} — laatste 90 dagen ${n(t.recent.value)} van 5 (${t.recent.days} dagen), je gewoonlijke ${n(t.usual.value)} (${t.usual.days} dagen)`));
   const waiting = pending.filter(p => p.id === 'mood' || p.id === 'energy').map(p => say(lang, `${NAME[p.id]![0]}: ${p.recentDays} of ${p.needRecent} days in the last 90, ${p.yearDays} of ${p.needYear} in the year`, `${NAME[p.id]![1]}: ${p.recentDays} van ${p.needRecent} dagen in de laatste 90, ${p.yearDays} van ${p.needYear} in het jaar`));
   if (!rows.length && !waiting.length) return answer(say(lang, 'No mood or energy is answered yet, so there is no usual to compare with. The day’s mood in Health → Diary and the energy rating fill it in.', 'Er is nog geen stemming of energie ingevuld, dus er is geen gewoonlijke waarde om mee te vergelijken. De stemming van de dag in Health → Diary en de energiescore vullen het in.'));

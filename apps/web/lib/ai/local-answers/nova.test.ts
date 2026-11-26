@@ -39,7 +39,9 @@ test('focus, workouts and budgets from the Showcase\'s own records; workouts onl
   expect(localAnswer('How many workouts did I do this week?', env(sources(), false))).toMatchObject({kind: 'refusal'});
   const b = text('Am I over any budget?')!;
   expect(b).toContain('• Groceries: 268.00 EUR of 250.00 EUR — over'); expect(b.split('\n').at(-1)).toBe('1 budget over.');
-  expect(text('How much is left in my fun budget?')).toContain('• Fun: 24.00 EUR of 60.00 EUR, 36.00 EUR left');
+  // Session AW (showcase, deliberate): the Showcase's Fun budget is €27.50 a month (was €60.00), its near-limit example
+  // (lib/showcase/aw-examples.ts); equally strict.
+  expect(text('How much is left in my fun budget?')).toContain('• Fun: 24.00 EUR of 27.50 EUR, 3.50 EUR left');
 });
 test('advice, a change, or a Dutch question stays the model\'s', () => {
   for (const q of ['Which tasks should I do first?', 'How much did I focus this week and log a session', 'Am I over budget? What should I cut?', 'Welke taken heb ik vandaag?']) expect(localAnswer(q, env()).kind, q).toBe('none');

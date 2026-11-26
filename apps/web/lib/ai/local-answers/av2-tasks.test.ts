@@ -29,8 +29,10 @@ describe('every corpus question gets an answer of its own, in its language', () 
 describe('answers read the features', () => {
   test('week objectives with their tasks', () => {
     const s = withTasks(r => { const first = r.tasks.find(t => !t.doneAt)!; return linkObjective(addObjective(r, {week: DAY, title: 'Fictional report done'}, 'o1'), first.id, 'o1'); });
-    expect(text(av2TasksAnswer('what are my objectives this week', zigiEnv(s)))).toMatch(/1 objective for this week, 0 reached:\n• Fictional report done — 0 of 1 tasks done/);
-    expect(text(av2TasksAnswer('wat zijn mijn weekdoelen', zigiEnv(s)))).toContain('1 weekdoel voor deze week');
+    // Session AW (showcase, deliberate): the Showcase now has two objectives of its own this week (lib/showcase/aw-examples.ts),
+    // each with one of its two tasks done; the one added here follows them (equally strict: every line, in order).
+    expect(text(av2TasksAnswer('what are my objectives this week', zigiEnv(s)))).toMatch(/^3 objectives for this week, 0 reached:\n• Example · Balcony ready for winter — 1 of 2 tasks done\n• Example · Savings accounts sorted — 1 of 2 tasks done\n• Fictional report done — 0 of 1 tasks done/);
+    expect(text(av2TasksAnswer('wat zijn mijn weekdoelen', zigiEnv(s)))).toContain('3 weekdoelen voor deze week');
   });
   test('daily goal and streak, timers and the day limit from the planning record', () => {
     const s = withTasks(r => addTask(r, {title: 'Fictional long job', due: DAY, minutes: 600}, {id: 'long', at, today: DAY, allowPast: true}));
@@ -50,7 +52,9 @@ describe('answers read the features', () => {
       return p ? setProjectArea(x, p, 'a1') : x;
     });
     expect(text(av2TasksAnswer('which tasks start early', zigiEnv(s)))).toContain('Fictional packing');
-    expect(text(av2TasksAnswer('welke gebieden heb ik', zigiEnv(s)))).toContain('1 gebied');
+    // Session AW (showcase, deliberate): the Showcase now has two areas, each with a project (lib/showcase/aw-examples.ts); the
+    // first project is the one moved to the area added here, so its own area is left without one (equally strict).
+    expect(text(av2TasksAnswer('welke gebieden heb ik', zigiEnv(s)))).toBe('3 gebieden:\n• Example · Home (nog geen projecten)\n• Example · Money: Example · Money admin\n• Work: Example · Balcony garden');
   });
   test('the Today switch off refuses; a fresh profile teaches where each lives', () => {
     const env = zigiEnv(showcaseAll());

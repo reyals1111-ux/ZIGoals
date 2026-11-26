@@ -26,7 +26,11 @@ describe('habit options', () => {
   test('with nothing set, each answer teaches where the option is', () => {
     expect(text(zigi('which habits have no schedule'))).toContain('No habit is set to Whenever');
     expect(text(zigi('welke gewoontes hebben geen vaste dagen'))).toContain('Geen gewoonte staat op Whenever');
-    expect(text(zigi('which habits have never miss twice on'))).toContain('Details → Habit options → “Never miss twice”');
+    // Session AW (showcase, deliberate): the Showcase now keeps one option (Meditate's 2-day rule, lib/showcase/aw-examples.ts),
+    // so "nothing set" is the Showcase with its options taken away; the Showcase itself names Meditate (equally strict).
+    const none = withOptions(x => ({...x, options: {}}));
+    expect(text(zigi('which habits have never miss twice on', none))).toContain('Details → Habit options → “Never miss twice”');
+    expect(text(zigi('which habits have never miss twice on'))).toBe('Never miss twice is on for Meditate: one missed day keeps the streak, two in a row end it.');
     expect(text(zigi('how much xp does a hard habit give'))).toContain('Hard 20');
   });
   test('the chosen options are named, per habit', () => {

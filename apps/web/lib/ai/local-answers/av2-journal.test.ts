@@ -73,12 +73,17 @@ describe('several journals and what was written on a day (LEDGER #43)', () => {
 
 describe('prompt packs (LEDGER #38)', () => {
   test('none on: where they are; on: their names; today’s question names its pack, and with none on is left to av-life', () => {
-    expect(text(zigi('which prompt packs are on'))).toContain('No prompt pack is on. Journal → Write → Prompt packs has Sleep, Training');
+    // Session AW (showcase, deliberate): the Showcase now has two packs on (Sleep and Gratitude, lib/showcase/aw-examples.ts),
+    // so "none on" is the Showcase with its packs taken away, and the Showcase itself names its two (equally strict).
+    const none = withJournal(showcaseAll(), j => ({...j, packs: []}));
+    expect(text(zigi('which prompt packs are on', none))).toContain('No prompt pack is on. Journal → Write → Prompt packs has Sleep, Training');
+    expect(text(zigi('which prompt packs are on'))).toBe('2 prompt packs are on: Sleep and Gratitude. Their questions take turns with the everyday one as today’s question.');
     const s = withJournal(showcaseAll(), j => ({...j, packs: ['sleep', 'training']}));
     expect(text(zigi('which prompt packs are on', s))).toBe('2 prompt packs are on: Sleep and Training. Their questions take turns with the everyday one as today’s question.');
     expect(text(zigi('welke vragenpakketten staan aan', s))).toBe('2 vragenpakketten staan aan: Slaap en Training. Hun vragen wisselen af met de gewone vraag van de dag.');
     expect(text(zigi('what is today\'s journal question', s))).toMatch(/^Today’s journal question( \((?:Sleep|Training) pack\))?: “.+\?” Journal → Another question shows the next one\.$/);
-    expect(zigi('what is today\'s journal question')).toBeNull();
+    expect(zigi('what is today\'s journal question', none)).toBeNull();
+    expect(text(zigi('what is today\'s journal question'))).toMatch(/^Today’s journal question( \((?:Sleep|Gratitude) pack\))?: “.+\?” Journal → Another question shows the next one\.$/);
   });
 });
 
@@ -165,8 +170,12 @@ describe('imported entries (LEDGER #44)', () => {
 
 describe('photos and voice notes in entries (LEDGER #35, #42)', () => {
   test('none yet: where to add them; with media: the counts and the minutes, in English and Dutch', () => {
-    expect(text(zigi('how many photos are in my journal'))).toContain('No photo or voice note in your journal yet.');
-    const s = withJournal(showcaseAll(), j => ({...j, entries: j.entries.map((e, i) => i === 0 ? {...e, photos: ['m-photo00001', 'm-photo00002'], audio: [{id: 'm-audio00001', seconds: 150}]} : e)}));
+    // Session AW (showcase, deliberate): the Showcase journal now holds two example photos (lib/showcase/aw-examples.ts), so
+    // "none yet" is the Showcase without them, and the Showcase itself counts its two (equally strict).
+    const bare = withJournal(showcaseAll(), j => ({...j, entries: j.entries.map(e => { const {photos: _p, ...rest} = e; void _p; return rest; })}));
+    expect(text(zigi('how many photos are in my journal', bare))).toContain('No photo or voice note in your journal yet.');
+    expect(text(zigi('how many photos are in my journal'))).toBe('2 photos and 0 voice notes in 2 entries, kept on this device only.');
+    const s = withJournal(bare, j => ({...j, entries: j.entries.map((e, i) => i === 0 ? {...e, photos: ['m-photo00001', 'm-photo00002'], audio: [{id: 'm-audio00001', seconds: 150}]} : e)}));
     expect(text(zigi('do I have voice notes in my journal', s))).toBe('2 photos and 1 voice note (about 3 minutes) in 1 entry, kept on this device only.');
     expect(text(zigi('hoeveel foto’s staan er in mijn dagboek', s))).toBe('2 foto’s en 1 spraakmemo (ongeveer 3 minuten) in 1 stuk, alleen op dit apparaat bewaard.');
   });

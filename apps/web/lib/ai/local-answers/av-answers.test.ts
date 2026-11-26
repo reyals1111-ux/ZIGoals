@@ -23,10 +23,13 @@ describe('Today', () => {
     const s = showcaseAll(), tasks = s.nova!.tasks!, first = tasks.tasks.find(t => !t.doneAt)!;
     s.nova = {...s.nova, tasks: {...tasks, tasks: tasks.tasks.map(t => t.id === first.id ? {...t, due: addLocalDays(DAY, 1), time: '09:00', reminders: [{before: 30}]} : t)}};
     const en = text(zigi('which task reminders do I have', s)), nl = text(zigi('welke herinneringen heb ik voor taken', s));
-    expect(en).toContain('1 task reminder still ahead');
+    // Session AW (showcase, deliberate): the Showcase now holds one reminder of its own (the bulbs, three days ahead at
+    // 18:00, lib/showcase/aw-examples.ts), so two are ahead and this one, the sooner, still comes first; equally strict.
+    expect(en).toContain('2 task reminders still ahead. The next: Example · Book the dentist: Wed, Nov 18 at 8:30 AM (30 minutes before).');
+    expect(en).toContain('Example · Order bulbs for the balcony boxes: Fri, Nov 20 at 6:00 PM (at the time)');
     expect(en).toContain('30 minutes before');
     expect(en).not.toContain('open tasks');
-    expect(nl).toContain('1 taakherinnering nog te gaan');
+    expect(nl).toContain('2 taakherinneringen nog te gaan');
     expect(nl).toContain('wo 18 nov om 08:30 (30 minuten van tevoren)');
   });
   test('countdowns: a yearly one on its next day; on a fresh profile it says where they live, never "no habits" (q1 #44)', () => {
