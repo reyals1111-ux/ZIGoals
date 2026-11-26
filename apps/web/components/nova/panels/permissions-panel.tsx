@@ -53,6 +53,9 @@ export default function PermissionsPanel() {
       <p className="ai-note">Let NOVA and ZIGi read your Health records (meals, water, sleep, weight, workouts) to answer you. They stay on this device; without a model nothing is sent. Close it here any time.</p>
       <div className="ai-card-actions"><button type="button" className="secondary" onClick={() => { try { setup.update(r => setScope(r, 'health', true)); settings.update(s => ({...s, includeHealth: true, pageShare: {...s.pageShare, health: true}})); setMessage({text: 'Health is open to NOVA and ZIGi now. Close it with the switches below.'}); } catch (error) { fail(error); } }}>Allow Health</button></div>
     </div>}
+    {/* Session AW (fr-answers, FR-AW-9): the replies no longer say "(the button is there once Health is on your Today page)";
+        the one layout case the button cannot show, Health off this device's Today, is said here, where the button would be. */}
+    {!(scopes.health && gateOpen) && dashboard.loaded && !dashboard.error && !layoutHasHealth && <p className="ai-note" data-testid="nova-allow-health-later">Allow Health shows here once Health is on your Today page. It is not on your Today layout on this device, so nothing from Health can be shared yet: add it to Today first.</p>}
     <div className="ai-switch-list">
       {/* Session AL (DV-065, P-DV-99): Earn is read only once a chain is chosen (context-pack scopeOpen); until then its switch
           says so instead of a plain "On" that NOVA does not act on. */}

@@ -255,8 +255,9 @@ describe('FR-TJ-5: a watched Bitcoin address is read (view only), never "no BTC"
 describe('FR-TJ-1: NOVA\'s Health-off reply names the one button, Allow Health', () => {
   test('English and Dutch, scope off and sharing off', () => {
     const off = novaEnv(sanneAll(), {...DEFAULT_NOVA_SCOPES, health: false, journal: true, notes: true});
-    expect(ask('How did I sleep?', off).text).toBe('Health is off for NOVA, so nothing from Health is read here. Tap Allow Health in NOVA → Permissions: one tap opens Health (the button is there once Health is on your Today page).');
-    expect(ask('Hoe heb ik geslapen?', off).text).toBe('Health staat uit voor NOVA, dus er wordt niets uit Health gelezen. Tik op Allow Health in NOVA → Permissions: één tik opent Health (de knop staat er zodra Health op je Today-pagina staat).');
+    // Session AW (fr-answers, FR-AW-9, deliberate): without the bracket about Today, which made friends doubt the button.
+    expect(ask('How did I sleep?', off).text).toBe('Health is off for NOVA, so nothing from Health is read here. Tap Allow Health in NOVA → Permissions: one tap opens Health.');
+    expect(ask('Hoe heb ik geslapen?', off).text).toBe('Health staat uit voor NOVA, dus er wordt niets uit Health gelezen. Tik op Allow Health in NOVA → Permissions: één tik opent Health.');
     const gate = novaEnv(sanneAll(), undefined, false);
     expect(ask('How did I sleep?', gate).text).toBe('Health answers are off on this device, so nothing from Health is read here; turn them on with Allow Health in NOVA → Permissions.');
     for (const t of [ask('How did I sleep?', off).text, ask('How did I sleep?', gate).text]) expect(t).not.toMatch(/Health page data|Include Health/);

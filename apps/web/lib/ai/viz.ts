@@ -1,5 +1,6 @@
 import {plural} from './tools/format';
-import {formatDate, formatNumber} from '../visual-format';
+import {formatDate, formatNumber, withNumberLocale} from '../visual-format';
+import {nlDate} from './local-answers/exact/period';
 import type {ToolResult} from './tools/types';
 
 /**
@@ -53,10 +54,30 @@ export function firstSeries(results: readonly ToolResult[]): Series | null {
 // Session AV lane 2 (fr-recheck, FR-TJ-4): the caption and the stat card write figures in the display locale (lib/visual-format.ts
 // numberLocale), as the answer above them does: "5.750 mL in all" in nl-NL or en-NL, never en-US's "5,750" there.
 const fmt = (n: number) => formatNumber(Number(n.toFixed(1)), {maximumFractionDigits: 1});
+/**
+ * Session AW (fr-answers, FR-AW-10): the caption, its figures' table and the stat card in the conversation's language. A
+ * Dutch conversation read "Water per day: 4 days with a record from 30 Nov 2026…" under a Dutch answer; now "Water per
+ * dag: 4 dagen met een registratie van 30 nov 2026…", with Dutch figures ("3.000 mL"), whatever the display locale.
+ */
+export type VizLang = 'en' | 'nl';
+const TITLE_NL: readonly [RegExp, string][] = [[/^Water per day$/, 'Water per dag'], [/^Steps per day$/, 'Stappen per dag'], [/^Weight readings$/, 'Gewichtsmetingen'], [/^Check-ins per day$/, 'Check-ins per dag'], [/^Counts per day$/, 'Aantallen per dag'], [/^(.+) per day$/, '$1 per dag']];
+const UNIT_NL: Record<string, string> = {steps: 'stappen', times: 'keer'};
+export const vizTitle = (title: string, lang: VizLang) => { if (lang !== 'nl') return title; for (const [re, nl] of TITLE_NL) if (re.test(title)) return title.replace(re, nl); return title; };
+export const vizUnit = (unit: string, lang: VizLang) => lang === 'nl' ? UNIT_NL[unit] ?? unit : unit;
+/** A day as the caption writes it: the app's date format in English ("Nov 30, 2026"), "30 nov 2026" in Dutch. */
+export const vizDate = (iso: string, lang: VizLang) => lang === 'nl' ? nlDate(iso, null) : formatDate(iso);
+/** A figure as the caption writes it: the display locale in English, the Dutch way in Dutch. */
+export const vizNumber = (n: number, lang: VizLang) => lang === 'nl' ? withNumberLocale('nl-NL', () => fmt(n)) : fmt(n);
 /** One plain sentence about a series, for the chart's caption and its accessible name. */
-export function seriesSummary(series: Series): string {
-  const p = series.points, first = p[0]!, last = p.at(-1)!, unit = series.unit ? ` ${series.unit}` : '';
+export function seriesSummary(series: Series, lang: VizLang = 'en'): string {
+  const p = series.points, first = p[0]!, last = p.at(-1)!, u = vizUnit(series.unit, lang), unit = u ? ` ${u}` : '';
   const high = p.reduce((a, b) => b.value > a.value ? b : a), low = p.reduce((a, b) => b.value < a.value ? b : a);
+  const f = (v: number) => vizNumber(v, lang), d = (iso: string) => vizDate(iso, lang), title = vizTitle(series.title, lang);
+  if (lang === 'nl') {
+    const days = `${f(p.length)} ${p.length === 1 ? 'dag' : 'dagen'} met een registratie van ${d(first.date)} tot ${d(last.date)}`;
+    if (series.shape === 'line') return `${title}: ${days}, van ${f(first.value)}${unit} naar ${f(last.value)}${unit}; laagste ${f(low.value)}${unit} op ${d(low.date)}, hoogste ${f(high.value)}${unit} op ${d(high.date)}.`;
+    return `${title}: ${days}, ${f(p.reduce((a, b) => a + b.value, 0))}${unit} in totaal, het meest ${f(high.value)}${unit} op ${d(high.date)}.`;
+  }
   const days = `${plural(p.length, 'day')} with a record from ${formatDate(first.date)} to ${formatDate(last.date)}`;
   if (series.shape === 'line') return `${series.title}: ${days}, from ${fmt(first.value)}${unit} to ${fmt(last.value)}${unit}; lowest ${fmt(low.value)}${unit} on ${formatDate(low.date)}, highest ${fmt(high.value)}${unit} on ${formatDate(high.date)}.`;
   const total = p.reduce((a, b) => a + b.value, 0);
@@ -68,17 +89,19 @@ export function seriesSummary(series: Series): string {
  */
 export type Stat = {value: string; label: string; detail: string | null; source: string};
 const plainCount = (n: unknown) => typeof n === 'number' && Number.isFinite(n) ? formatNumber(n) : null;
-export function statOf(result: ToolResult): Stat | null {
+const LABEL_NL: readonly [RegExp, string][] = [[/^Steps\b/, 'Stappen'], [/^Weight\b/, 'Gewicht'], [/\btoday$/, 'vandaag'], [/\byesterday$/, 'gisteren'], [/\bthis week$/, 'deze week'], [/\blast week$/, 'vorige week'], [/\bthis month$/, 'deze maand'], [/\blast month$/, 'vorige maand'], [/\bthe last (\d+) days$/, 'de afgelopen $1 dagen']];
+const labelIn = (label: string, lang: VizLang) => lang === 'nl' ? LABEL_NL.reduce((s, [re, nl]) => s.replace(re, nl), label) : label;
+export function statOf(result: ToolResult, lang: VizLang = 'en'): Stat | null {
   if (!result.ok) return null;
-  const d = result.data as Record<string, unknown>, days = (n: unknown, of: unknown) => typeof n === 'number' && typeof of === 'number' ? `${n} of ${plural(of, 'day')} with a record` : null;
+  const d = result.data as Record<string, unknown>, days = (n: unknown, of: unknown) => typeof n === 'number' && typeof of === 'number' ? (lang === 'nl' ? `${n} van ${of} ${of === 1 ? 'dag' : 'dagen'} met een registratie` : `${n} of ${plural(of, 'day')} with a record`) : null;
   switch (result.tool) {
     case 'habit_stats': {
       const value = typeof d.valueText === 'string' ? d.valueText : null, range = d.days as Record<string, unknown> | undefined;
       if (!value || /^(unknown|mixed)/.test(value)) return null;
       return {value, label: result.label, detail: typeof d.checkIns === 'number' && typeof range?.inRange === 'number' ? `${plural(d.checkIns, 'check-in')} over ${plural(range.inRange, 'day')}` : null, source: result.provenance};
     }
-    case 'water': { const ml = plainCount(d.totalMl); return ml ? {value: `${ml} mL`, label: result.label, detail: days(d.daysWithWater, d.daysInRange), source: result.provenance} : null; }
-    case 'steps': { const steps = plainCount(d.totalSteps); return steps ? {value: `${steps} steps`, label: result.label, detail: days(d.daysWithActivity, d.daysInRange), source: result.provenance} : null; }
+    case 'water': { const ml = lang === 'nl' && typeof d.totalMl === 'number' ? vizNumber(d.totalMl, 'nl') : plainCount(d.totalMl); return ml ? {value: `${ml} mL`, label: labelIn(result.label, lang), detail: days(d.daysWithWater, d.daysInRange), source: result.provenance} : null; }
+    case 'steps': { const steps = lang === 'nl' && typeof d.totalSteps === 'number' ? vizNumber(d.totalSteps, 'nl') : plainCount(d.totalSteps); return steps ? {value: `${steps} ${lang === 'nl' ? 'stappen' : 'steps'}`, label: labelIn(result.label, lang), detail: days(d.daysWithActivity, d.daysInRange), source: result.provenance} : null; }
     case 'counters': {
       const list = Array.isArray(d.counters) ? d.counters as Record<string, unknown>[] : [];
       if (list.length !== 1) return null;
@@ -89,7 +112,7 @@ export function statOf(result: ToolResult): Stat | null {
   }
 }
 /** The first result with a headline figure. */
-export function firstStat(results: readonly ToolResult[]): Stat | null {
-  for (const result of results) { const stat = statOf(result); if (stat) return stat; }
+export function firstStat(results: readonly ToolResult[], lang: VizLang = 'en'): Stat | null {
+  for (const result of results) { const stat = statOf(result, lang); if (stat) return stat; }
   return null;
 }

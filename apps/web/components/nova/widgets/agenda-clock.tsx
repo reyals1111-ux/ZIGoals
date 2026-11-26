@@ -4,7 +4,7 @@ import type {CSSProperties} from 'react';
 import type {WidgetSize} from '../../../lib/nova/store';
 import {clockAngle, polar, tickPath} from '../../../lib/nova/holo/geometry';
 import {clockItems, dayCounts, nextItems} from '../../../lib/nova/holo/agenda';
-import {formatClock} from '../../../lib/visual-format';
+import {formatClock, formatDate} from '../../../lib/visual-format';
 import {moreWords} from '../../../lib/nova/cards/whole-rows';
 import {WholeRows} from '../cards/whole-rows';
 import {GradArc, HoloFigure, HoloReading, HoloTable, Orn, OrnMarks} from '../holo/parts';
@@ -22,13 +22,15 @@ import '../holo/holo-parts.css';
  * longer, hairline rings and a cross inside — sized to its panel; the part of the day already behind you is a soft
  * gradient arc up to the hand's lit tip; each coming item is a row with its lit node in its pillar's colour.
  */
-const WHEN = {next: 'next', later: 'later', earlier: 'earlier', anytime: 'any time'} as const;
+const WHEN = {next: 'next', later: 'later', earlier: 'earlier', anytime: 'any time', overdue: 'overdue'} as const;
+/** Session AW (fr-answers, FR-AW-19): an overdue task in the table: since when, with its own time. */
+const overdueWords = (o: {since: string; time: string | null}) => `Overdue since ${formatDate(o.since, {year: false})}${o.time ? `, ${formatClock(o.time)}` : ''}`;
 const HOURS = [['00', 0], ['06', 90], ['12', 180], ['18', 270]] as const;
 export default function AgendaClockWidget({size}: {size: WidgetSize}) {
   const {items, now} = useAgendaToday();
   if (!items) return <HoloReading/>;
   // Session AM-2 (whole rows only): the rows that fit beside the dial, then "+N more on your agenda" (N: every open item not shown).
-  const marks = clockItems(items).filter(i => i.angle !== null), counts = dayCounts(items), coming = nextItems(items, now, items.length), next = coming.slice(0, size === 'S' ? 1 : size === 'L' ? 6 : 3);
+  const marks = clockItems(items).filter(i => i.angle !== null), counts = dayCounts(items), overdue = items.filter(i => i.overdue && i.state === 'open').length, coming = nextItems(items, now, items.length), next = coming.slice(0, size === 'S' ? 1 : size === 'L' ? 6 : 3);
   // Second review m3 (lane L8f): the hand stops short of the hour words (r 30) and a bright tip marks the time on the track,
   // so the line never runs through "06" like a strike-through.
   const angle = clockAngle(now) ?? 0, hand = polar(0, 0, 19, angle), tipIn = polar(0, 0, 37, angle), tipOut = polar(0, 0, 47, angle), dial = size === 'S' ? 64 : undefined;
@@ -62,7 +64,7 @@ export default function AgendaClockWidget({size}: {size: WidgetSize}) {
     {size === 'S' && next.length > 0 && <div className="holo-agenda-side">{rows}</div>}
     {size !== 'S' && <div className="holo-agenda-side">
       {items.length ? <>
-        <p className="holo-agenda-count"><HoloFigure text={`${counts.done}/${counts.total}`}/> done{counts.anytime ? ` · ${counts.anytime} any time` : ''}<span className="sr-only"> today</span></p>
+        <p className="holo-agenda-count"><HoloFigure text={`${counts.done}/${counts.total}`}/> done{overdue ? ` · ${overdue} overdue` : ''}{counts.anytime ? ` · ${counts.anytime} any time` : ''}<span className="sr-only"> today</span></p>
         {rows}
         {!next.length && <p className="holo-note holo-note-line">Everything on today’s clock is done.</p>}
       </> : <>
@@ -70,6 +72,6 @@ export default function AgendaClockWidget({size}: {size: WidgetSize}) {
         <Link className="nova-link holo-empty-action" href="/app/habits?add=habit" prefetch={false}>Add a habit <span aria-hidden="true">→</span></Link>
       </>}
     </div>}
-    <HoloTable caption="Today’s agenda" rows={items.length ? items.map(i => [i.title, `${i.time ? formatClock(i.time) : 'Any time'} · ${i.state === 'done' ? 'done' : i.state === 'skipped' ? 'skipped' : 'open'}`] as const) : [['Today', 'Nothing on the clock yet']]}/>
+    <HoloTable caption="Today’s agenda" rows={items.length ? items.map(i => [i.title, `${i.overdue ? overdueWords(i.overdue) : i.time ? formatClock(i.time) : 'Any time'} · ${i.state === 'done' ? 'done' : i.state === 'skipped' ? 'skipped' : 'open'}`] as const) : [['Today', 'Nothing on the clock yet']]}/>
   </div>;
 }

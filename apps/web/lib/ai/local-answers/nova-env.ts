@@ -36,10 +36,10 @@ type Lang = 'en' | 'nl';
  */
 export function novaHealthClosed(info: NovaEnvInfo, lang: Lang = 'en'): string {
   if (lang === 'nl') {
-    if (!info.healthScope) return `Health staat uit voor NOVA, dus er wordt niets uit Health gelezen. Tik op Allow Health in ${NOVA_PERMISSIONS_NL}: één tik opent Health (de knop staat er zodra Health op je Today-pagina staat).`;
+    if (!info.healthScope) return `Health staat uit voor NOVA, dus er wordt niets uit Health gelezen. Tik op Allow Health in ${NOVA_PERMISSIONS_NL}: één tik opent Health.`;
     return `Health-antwoorden staan uit op dit apparaat, dus er wordt hier niets uit Health gelezen; zet ze aan met Allow Health in ${NOVA_PERMISSIONS_NL}.`;
   }
-  if (!info.healthScope) return `Health is off for NOVA, so nothing from Health is read here. Tap Allow Health in ${NOVA_PERMISSIONS}: one tap opens Health (the button is there once Health is on your Today page).`;
+  if (!info.healthScope) return `Health is off for NOVA, so nothing from Health is read here. Tap Allow Health in ${NOVA_PERMISSIONS}: one tap opens Health.`;
   return `Health answers are off on this device, so nothing from Health is read here; turn them on with Allow Health in ${NOVA_PERMISSIONS}.`;
 }
 const AREA_WORDS: Record<string, string> = {Today: 'Today (your agenda, tasks, focus and Checklist)', Goals: 'Goals', Habits: 'Habits', Wealth: 'Wealth'};

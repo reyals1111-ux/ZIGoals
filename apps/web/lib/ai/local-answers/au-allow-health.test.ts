@@ -113,16 +113,19 @@ test('ZIGi’s Health-closed reply follows the question’s language, with one b
   expect(habit.text).toBe('Drink water: geen gemiste dag deze maand (zo 1 nov t/m di 17 nov). Overgeslagen (telt niet als gemist): zo 1 nov en di 10 nov. Vandaag staat nog open.');
   expect(habit.text).not.toMatch(/\bml\b|\bmL\b|Health/);
   // Session AW (p5-answers, FR-S-16, deliberate): one sentence and the one action, as NOVA's reply (FR-TJ-1), never the switches.
-  expect(HEALTH_CLOSED_NL).toBe('Health wordt hier niet met ZIGi gedeeld, dus er wordt niets uit Health gelezen. Tik op Allow Health in NOVA → Permissions: één tik opent Health voor ZIGi en NOVA (de knop staat er zodra Health op je Today-pagina staat).');
-  expect(HEALTH_CLOSED).toBe('Health isn’t shared with ZIGi here, so nothing from Health is read. Tap Allow Health in NOVA → Permissions: one tap opens Health to ZIGi and NOVA (the button is there once Health is on your Today page).');
+  // Session AW (fr-answers, FR-AW-9, deliberate): without the doubt-inducing bracket about Today (the button was there).
+  expect(HEALTH_CLOSED_NL).toBe('Health wordt hier niet met ZIGi gedeeld, dus er wordt niets uit Health gelezen. Tik op Allow Health in NOVA → Permissions: één tik opent Health voor ZIGi en NOVA.');
+  expect(HEALTH_CLOSED).toBe('Health isn’t shared with ZIGi here, so nothing from Health is read. Tap Allow Health in NOVA → Permissions: one tap opens Health to ZIGi and NOVA.');
   for (const t of [HEALTH_CLOSED, HEALTH_CLOSED_NL]) expect(t).not.toMatch(/Health page data|Include Health|Privacy & data/);
 });
 test('NOVA: the same replies name NOVA → Permissions (its chat makes that the one button) and carry no card of their own', () => {
   // Session AU (R-12, deliberate): the water log's own target ("mijn waterdoel") for the habit's own word, as above.
   // Session AV lane 2 (fr-answers; deliberate, FR-TJ-1): the reply names the one button, Allow Health, in the same place, as strictly.
-  for (const [q, says] of [['Welke dag heb ik mijn waterdoel gemist?', 'Tik op Allow Health in NOVA → Permissions: één tik opent Health (de knop'], ['How much water did I drink yesterday?', 'Tap Allow Health in NOVA → Permissions: one tap opens Health (the button'], ['can you see my health', 'Tap Allow Health in NOVA → Permissions: one tap opens Health (the button'], ['how was my week', 'Health is allowed in NOVA → Permissions.']] as const) {
+  // Session AW (fr-answers, FR-AW-9, deliberate): the reply ends at "one tap opens Health." (the bracket about Today is gone).
+  for (const [q, says] of [['Welke dag heb ik mijn waterdoel gemist?', 'Tik op Allow Health in NOVA → Permissions: één tik opent Health.'], ['How much water did I drink yesterday?', 'Tap Allow Health in NOVA → Permissions: one tap opens Health.'], ['can you see my health', 'Tap Allow Health in NOVA → Permissions: one tap opens Health.'], ['how was my week', 'Health is allowed in NOVA → Permissions.']] as const) {
     const a = ask(q, NOVA_NO_HEALTH()), parsed = parseReply(a.text);
     expect(a.text, q).toContain(says);
+    expect(a.text, q).not.toMatch(/once Health is on your Today page|zodra Health op je Today-pagina staat/);
     expect(parsed.proposals.filter(p => p.kind === 'open-page'), q).toEqual([]);
   }
 });

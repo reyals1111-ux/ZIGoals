@@ -163,7 +163,7 @@ function sleepAnswer(env: ToolEnv, info: NovaEnvInfo, lang: Lang, lastNight: boo
     const r = run('sleep_nights', {range: 'today'}, env);
     if (!r.result.ok) return {kind: 'refusal', text: r.result.refusal, calls: [r.record]};
     const night = ((dataOf(r.result).nights ?? []) as Data[]).at(-1);
-    return {kind: 'answer', text: night ? `Afgelopen nacht: ${night.asleep} geslapen, ${night.inBed} in bed, van ${night.bedtime} tot ${night.wake}. Cijfers uit je gelogde nacht; geen medisch advies.` : 'Voor afgelopen nacht is geen nacht gelogd, dus dat is onbekend (niet nul).', calls: [r.record]};
+    return {kind: 'answer', text: night ? `Afgelopen nacht: ${String(night.asleep).replace(' (estimated)', ' (geschat)') /* Session AW (fr-answers, FR-AW-10) */} geslapen, ${night.inBed} in bed, van ${night.bedtime} tot ${night.wake}. Cijfers uit je gelogde nacht; geen medisch advies.` : 'Voor afgelopen nacht is geen nacht gelogd, dus dat is onbekend (niet nul).', calls: [r.record]};
   }
   const r = run('sleep_summary', {}, env);
   if (!r.result.ok) return {kind: 'refusal', text: r.result.refusal, calls: [r.record]};
