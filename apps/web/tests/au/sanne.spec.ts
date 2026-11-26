@@ -69,7 +69,9 @@ test('Sanne at 1440: ZIGi answers a Dutch Health question in Dutch, with one but
   await openZigi(page);
   await sendToZigi(page, 'Hoeveel water heb ik vandaag gedronken?');
   const reply = zigiPanel(page).locator('.ai-turn-local').last();
-  await expect(reply).toContainText('Health wordt niet met ZIGi gedeeld', {timeout: 20_000});
+  // Session AW (FR-S-16, p5-answers, deliberate): the Dutch closed-Health line names its one switch, Allow Health in NOVA → Permissions,
+  // with one card to it.
+  await expect(reply).toContainText('Health wordt hier niet met ZIGi gedeeld, dus er wordt niets uit Health gelezen. Tik op Allow Health in NOVA → Permissions', {timeout: 20_000});
   await expect(reply).not.toContainText('Health isn’t shared with ZIGi');
-  await expect(reply.getByRole('link').or(reply.getByRole('button')).filter({hasText: /Settings|Instellingen/})).toHaveCount(1);
+  await expect(reply.getByRole('link').or(reply.getByRole('button')).filter({hasText: /Permissions|Machtigingen/})).toHaveCount(1);
 });
