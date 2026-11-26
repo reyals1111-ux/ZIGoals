@@ -4231,7 +4231,7 @@
   "freshNl": "Nog geen inkomsten gelogd."
  },
  "budgets-over": {
-  "en": "This month, from your own entries (per currency, never converted):\n• Groceries: 187.10 EUR of 250.00 EUR, 62.90 EUR left; target 300.00 EUR by 2026-12: 62.90 EUR set aside, 237.10 EUR a month from next month (on track)\n• Food & drink: 49.10 EUR of 120.00 EUR, 70.90 EUR left\n• Fun: 24.00 EUR of 60.00 EUR, 36.00 EUR left\nNone is over.",
+  "en": "This month, from your own entries (per currency, never converted):\n• Groceries: 187.10 EUR of 250.00 EUR, 62.90 EUR left; target 300.00 EUR by 2026-12: 62.90 EUR set aside, 237.10 EUR a month from next month (on track)\n• Food & drink: 49.10 EUR of 120.00 EUR, 70.90 EUR left\n• Fun: 24.00 EUR of 27.50 EUR, 3.50 EUR left\nNone is over.",
   "nl": "Geen budget is deze maand overschreden: alle 3 zitten binnen plan.",
   "facts": null,
   "widgets": [],
@@ -4239,16 +4239,16 @@
   "freshNl": "Je hebt nog geen budgetten."
  },
  "budgets-status": {
-  "en": "This month, from your own entries (per currency, never converted):\n• Groceries: 187.10 EUR of 250.00 EUR, 62.90 EUR left; target 300.00 EUR by 2026-12: 62.90 EUR set aside, 237.10 EUR a month from next month (on track)\n• Food & drink: 49.10 EUR of 120.00 EUR, 70.90 EUR left\n• Fun: 24.00 EUR of 60.00 EUR, 36.00 EUR left\nNone is over.",
-  "nl": "3 van 3 budgetten binnen plan deze maand: Groceries € 187,10 van € 250,00, Food & drink € 49,10 van € 120,00 en Fun € 24,00 van € 60,00.",
+  "en": "This month, from your own entries (per currency, never converted):\n• Groceries: 187.10 EUR of 250.00 EUR, 62.90 EUR left; target 300.00 EUR by 2026-12: 62.90 EUR set aside, 237.10 EUR a month from next month (on track)\n• Food & drink: 49.10 EUR of 120.00 EUR, 70.90 EUR left\n• Fun: 24.00 EUR of 27.50 EUR, 3.50 EUR left\nNone is over.",
+  "nl": "3 van 3 budgetten binnen plan deze maand: Fun € 24,00 van € 27,50, Groceries € 187,10 van € 250,00 en Food & drink € 49,10 van € 120,00.",
   "facts": null,
   "widgets": [],
   "fresh": "No budget is set yet (Wealth → Spending → Budgets).",
   "freshNl": "Je hebt nog geen budgetten."
  },
  "budget-fun-left": {
-  "en": "This month, from your own entries (per currency, never converted):\n• Fun: 24.00 EUR of 60.00 EUR, 36.00 EUR left",
-  "nl": "Fun: € 24,00 van € 60,00 deze maand, nog € 36,00 over.",
+  "en": "This month, from your own entries (per currency, never converted):\n• Fun: 24.00 EUR of 27.50 EUR, 3.50 EUR left",
+  "nl": "Fun: € 24,00 van € 27,50 deze maand, nog € 3,50 over.",
   "facts": null,
   "widgets": [],
   "fresh": "No budget is set yet (Wealth → Spending → Budgets).",
@@ -5086,7 +5086,7 @@
   "facts": {
    "about": "tasks",
    "ask": "late",
-   "open": 5,
+   "open": 6,
    "overdue": [
     "Sketch the garden bed",
     "Book the dentist"
@@ -5100,8 +5100,8 @@
   "freshNl": "Nog geen taken."
  },
  "tasks-open": {
-  "en": "5 open tasks: 0 due today, 2 overdue.\n• Example · Sketch the garden bed — overdue since Nov 16, 2026, for First home deposit\n• Example · Book the dentist — due Nov 17, 2026 at 10:30 AM, late (high)\n• Example · Compare two savings accounts — due Nov 19, 2026, for Emergency fund\n• Example · Draft the trip budget — due Nov 22, 2026, for Emergency fund\n• Example · Sort the photo folder",
-  "nl": "5 open taken, 2 te laat: Sketch the garden bed (gepland ma 16 nov), Book the dentist (gepland vandaag 10:30), Compare two savings accounts (gepland do 19 nov), Draft the trip budget (gepland zo 22 nov) en Sort the photo folder.",
+  "en": "6 open tasks: 0 due today, 2 overdue.\n• Example · Sketch the garden bed — overdue since Nov 16, 2026, for First home deposit\n• Example · Book the dentist — due Nov 17, 2026 at 10:30 AM, late (high)\n• Example · Compare two savings accounts — due Nov 19, 2026, for Emergency fund\n• Example · Draft the trip budget — due Nov 22, 2026, for Emergency fund\n• Example · Order bulbs for the balcony boxes\n• Example · Sort the photo folder",
+  "nl": "6 open taken, 2 te laat: Sketch the garden bed (gepland ma 16 nov), Book the dentist (gepland vandaag 10:30), Compare two savings accounts (gepland do 19 nov), Draft the trip budget (gepland zo 22 nov), Order bulbs for the balcony boxes en Sort the photo folder.",
   "facts": null,
   "widgets": [],
   "fresh": "No task is kept on this device yet.",
@@ -5113,7 +5113,7 @@
   "facts": {
    "about": "tasks",
    "ask": "open",
-   "open": 5,
+   "open": 6,
    "overdue": [
     "Sketch the garden bed",
     "Book the dentist"
@@ -5134,7 +5134,7 @@
   "facts": {
    "about": "tasks",
    "ask": "open",
-   "open": 5,
+   "open": 6,
    "overdue": [
     "Sketch the garden bed",
     "Book the dentist"
@@ -5159,7 +5159,7 @@
   "facts": {
    "about": "tasks",
    "ask": "done",
-   "open": 5,
+   "open": 6,
    "overdue": [
     "Sketch the garden bed",
     "Book the dentist"
@@ -5176,18 +5176,22 @@
   "freshNl": "Nog geen taken."
  },
  "tasks-done-lastweek": {
-  "en": "No task done last week (Mon, Nov 9 to Sun, Nov 15).",
-  "nl": "Geen taak gedaan vorige week (ma 9 nov t/m zo 15 nov).",
+  "en": "3 tasks done last week (Mon, Nov 9 to Sun, Nov 15): Clear the old flower pots, Move the savings standing order and Return the library books.",
+  "nl": "3 taken gedaan vorige week (ma 9 nov t/m zo 15 nov): Clear the old flower pots, Move the savings standing order en Return the library books.",
   "facts": {
    "about": "tasks",
    "ask": "done",
-   "open": 5,
+   "open": 6,
    "overdue": [
     "Sketch the garden bed",
     "Book the dentist"
    ],
-   "done": 0,
-   "tasks": []
+   "done": 3,
+   "tasks": [
+    "Clear the old flower pots",
+    "Move the savings standing order",
+    "Return the library books"
+   ]
   },
   "widgets": [
    "task-timeline"
@@ -6000,8 +6004,8 @@
   "freshNl": "Vraag me wat je hebt gedaan, gemist of overgeslagen, op welke dagen en hoeveel: gewoontes, slaap, stappen, water, gewicht, workouts, doelen, uitgaven, budgetten, rekeningen, taken, dagboek, agenda en focus. Bijvoorbeeld: \"Welke dagen heb ik deze maand niet gemediteerd?\" of \"Hoeveel heb ik vorige week uitgegeven?\""
  },
  "life-doing": {
-  "en": "Your day so far (Tue, Nov 17): habits 4 of 7 done, 3 still open; 5 open tasks, 2 overdue; steps 8,800 steps; water 1,000 mL; sleep 7 h 17 min.",
-  "nl": "Je dag tot nu toe (di 17 nov): gewoontes 4 van 7 gedaan, 3 nog open; 5 open taken, 2 te laat; stappen 8.800 stappen; water 1.000 mL; slaap 7 h 17 min.",
+  "en": "Your day so far (Tue, Nov 17): habits 4 of 7 done, 3 still open; 6 open tasks, 2 overdue; steps 8,800 steps; water 1,000 mL; sleep 7 h 17 min.",
+  "nl": "Je dag tot nu toe (di 17 nov): gewoontes 4 van 7 gedaan, 3 nog open; 6 open taken, 2 te laat; stappen 8.800 stappen; water 1.000 mL; slaap 7 h 17 min.",
   "facts": {
    "about": "life",
    "ask": "status",
@@ -6023,7 +6027,7 @@
     }
    },
    "tasks": {
-    "open": 5,
+    "open": 6,
     "overdue": 2,
     "today": 0
    },
@@ -6048,7 +6052,7 @@
  },
  "life-week": {
   "en": "The last 7 days (2026-11-11 to 2026-11-17), from your Habits journal:\n• Read: 6 of 7 planned days (100%)\n• Exercise: 5 of 7 planned days (83%)\n• Walk: 6 of 7 planned days (100%)\n• Meditate: 5 of 7 planned days (83%)\n• Contribute: 6 of 7 planned days (100%)\n• Drink water: 6 of 7 planned days (86%)\n• Late-night snacks (Showcase): 5 of 7 planned days (83%)",
-  "nl": "Je gegevens deze week: gewoontes 11 van 14 gedaan, 3 nog open (12 van 12 de periode ervoor); 5 open taken, 2 te laat; stappen 8.450 stappen per dag; water 1.550 mL per dag; slaap 6 h 57 min per dag.",
+  "nl": "Je gegevens deze week: gewoontes 11 van 14 gedaan, 3 nog open (12 van 12 de periode ervoor); 6 open taken, 2 te laat; stappen 8.450 stappen per dag; water 1.550 mL per dag; slaap 6 h 57 min per dag.",
   "facts": null,
   "widgets": [],
   "fresh": "No habit is kept yet, so there is no consistency to show.",
@@ -6266,8 +6270,8 @@
   "freshNl": "Het is dinsdag 17 nov."
  },
  "av-task-reminders": {
-  "en": "No open task has a reminder yet. In Tasks, open a task with a day and choose a Reminder (at the time, or a while before).",
-  "nl": "Nog geen open taak heeft een herinnering. Open in Tasks een taak met een dag en kies een Reminder (op het moment zelf, of wat eerder).",
+  "en": "1 task reminder still ahead. The next: Example · Order bulbs for the balcony boxes: Fri, Nov 20 at 6:00 PM (at the time).",
+  "nl": "1 taakherinnering nog te gaan. De volgende: Example · Order bulbs for the balcony boxes: vr 20 nov om 18:00 (op het moment zelf).",
   "facts": null,
   "widgets": [],
   "fresh": "No open task has a reminder yet. In Tasks, open a task with a day and choose a Reminder (at the time, or a while before).",
@@ -6331,15 +6335,15 @@
  },
  "av-budget-targets": {
   "en": "Groceries: target €300.00 by Dec 2026: €62.90 set aside, €237.10 a month from next month, on track.",
-  "nl": "Groceries: doel € 300,00 uiterlijk december 2026: € 62,90 opzij, € 237,10 per maand vanaf volgende maand, op schema. Food & drink en Fun hebben geen doel.",
+  "nl": "Groceries: doel € 300,00 uiterlijk december 2026: € 62,90 opzij, € 237,10 per maand vanaf volgende maand, op schema. Fun en Food & drink hebben geen doel.",
   "facts": null,
   "widgets": [],
   "fresh": "You have no goals yet.",
   "freshNl": "Er is nog geen budget, dus ook geen doel. Wealth → Budgets stelt ze in."
  },
  "av-budget-near": {
-  "en": "No budget is near its limit (80%) this month. The fullest: Groceries 75% spent, with 57% of the month gone: faster than the month.",
-  "nl": "Geen budget zit deze maand bijna aan de limiet (80%). Het volste: Groceries 75% uitgegeven, met 57% van de maand voorbij: sneller dan de maand.",
+  "en": "Near the limit (80% or more spent): Fun 87%. Faster than the month (57% of it gone): Groceries 75%.",
+  "nl": "Bijna aan de limiet (80% of meer uitgegeven): Fun 87%. Sneller dan de maand (57% ervan voorbij): Groceries 75%.",
   "facts": null,
   "widgets": [],
   "fresh": "No budget is set yet. Wealth → Budgets sets them.",
@@ -6370,8 +6374,8 @@
   "freshNl": "Er staat op dit apparaat geen schuld met een saldo, dus er is geen aflosschema. Een lening, hypotheek of creditcard zet je onder Wealth → Accounts, debts & net worth."
  },
  "av-money-look": {
-  "en": "In your money today: 3 imported entries to review. From your own records; nothing is judged.",
-  "nl": "In je geld vandaag: 3 geïmporteerde invoeren na te kijken. Uit je eigen gegevens; er wordt niets beoordeeld.",
+  "en": "In your money today: 3 imported entries to review and Fun near its limit. From your own records; nothing is judged.",
+  "nl": "In je geld vandaag: 3 geïmporteerde invoeren na te kijken en Fun bijna aan de limiet. Uit je eigen gegevens; er wordt niets beoordeeld.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing in your money asks for a look today: no imported entry waiting for review, no budget over or near its limit, no bill due in the next 3 days.",
@@ -6570,8 +6574,8 @@
   "freshNl": "8 vaste sjablonen (Ochtendintentie, Drie goede dingen, Zorg, en dan één volgende stap, Dankbaarheid, Terugblik op de week, Voor een moeilijk gesprek, Er anders naar kijken en Een brief aan je toekomstige zelf); nog geen eigen. Journal → Start from a prompt toont ze."
  },
  "av-journal-question": {
-  "en": "Today’s journal question: “What made today different from yesterday?” Journal → Another question shows the next one.",
-  "nl": "De dagboekvraag van vandaag: “Wat maakte vandaag anders dan gisteren?” Journal → Another question toont de volgende.",
+  "en": "Today’s journal question (Gratitude pack): “What in your home are you thankful for?” Journal → Another question shows the next one.",
+  "nl": "De dagboekvraag van vandaag (pakket Dankbaarheid): “Waar in je huis ben je dankbaar voor?” Journal → Another question toont de volgende.",
   "facts": null,
   "widgets": [],
   "fresh": "Today’s journal question: “What made today different from yesterday?” Journal → Another question shows the next one.",
@@ -6594,8 +6598,8 @@
   "freshNl": "Er is voor vandaag geen focusgewoonte gekozen. Op Habits kiest “Make it today’s focus” op de kaart van een gewoonte er een voor vandaag."
  },
  "av2-week-objectives": {
-  "en": "No objectives for this week yet. Add them in Tasks → This week, then link the tasks that move them on.",
-  "nl": "Nog geen weekdoelen voor deze week. Voeg ze toe in Tasks → This week en koppel de taken die ze vooruit helpen.",
+  "en": "2 objectives for this week, 0 reached:\n• Example · Balcony ready for winter — 1 of 2 tasks done\n• Example · Savings accounts sorted — 1 of 2 tasks done",
+  "nl": "2 weekdoelen voor deze week, 0 gehaald:\n• Example · Balcony ready for winter — 1 van 2 taken klaar\n• Example · Savings accounts sorted — 1 van 2 taken klaar",
   "facts": null,
   "widgets": [],
   "fresh": "No objectives for this week yet. Add them in Tasks → This week, then link the tasks that move them on.",
@@ -6642,8 +6646,8 @@
   "freshNl": "Geen taak begint eerder. In de editor van een taak zet “Start early” hem een paar dagen voor zijn dag al in Today."
  },
  "av2-areas": {
-  "en": "No areas yet. In Tasks → Areas and templates, add one (Work, Home) and put projects in it.",
-  "nl": "Nog geen gebieden. Voeg er in Tasks → Areas and templates een toe (Werk, Thuis) en zet er projecten in.",
+  "en": "2 areas:\n• Example · Home: Example · Balcony garden\n• Example · Money: Example · Money admin",
+  "nl": "2 gebieden:\n• Example · Home: Example · Balcony garden\n• Example · Money: Example · Money admin",
   "facts": null,
   "widgets": [],
   "fresh": "No areas yet. In Tasks → Areas and templates, add one (Work, Home) and put projects in it.",
@@ -6658,8 +6662,8 @@
   "freshNl": "4 sjablonen voor een nieuw project: Moving house, A trip, A new job en Weekly reset. Gebruik er een in Tasks → Areas and templates; daar bewaar je ook een project als sjabloon."
  },
  "av2-pay-period": {
-  "en": "Left in each budget, in its own period:\n• Groceries: €62.90 of €250.00 (Sun, Nov 1 – Mon, Nov 30)\n• Food & drink: €70.90 of €120.00 (Sun, Nov 1 – Mon, Nov 30)\n• Fun: €36.00 of €60.00 (Sun, Nov 1 – Mon, Nov 30)",
-  "nl": "Over in elk budget, in zijn eigen periode:\n• Groceries: € 62,90 van € 250,00 (zo 1 nov – ma 30 nov)\n• Food & drink: € 70,90 van € 120,00 (zo 1 nov – ma 30 nov)\n• Fun: € 36,00 van € 60,00 (zo 1 nov – ma 30 nov)",
+  "en": "Left in each budget, in its own period:\n• Groceries: €62.90 of €250.00 (Sun, Nov 1 – Mon, Nov 30)\n• Food & drink: €70.90 of €120.00 (Sun, Nov 1 – Mon, Nov 30)\n• Fun: €3.50 of €27.50 (Sun, Nov 1 – Mon, Nov 30)",
+  "nl": "Over in elk budget, in zijn eigen periode:\n• Groceries: € 62,90 van € 250,00 (zo 1 nov – ma 30 nov)\n• Food & drink: € 70,90 van € 120,00 (zo 1 nov – ma 30 nov)\n• Fun: € 3,50 van € 27,50 (zo 1 nov – ma 30 nov)",
   "facts": null,
   "widgets": [],
   "fresh": "No budgets yet. Add one in Wealth → Budgets; under “Pay periods and fills” choose the day your budget month starts.",
@@ -6682,8 +6686,8 @@
   "freshNl": "Geen gewoonte staat op Whenever. Op Habits maakt Details → Habit options → “Whenever, no set days” van een dagelijkse gewoonte er een: log hem op elke dag, nooit gepland of gemist."
  },
  "av2-habits-never-twice": {
-  "en": "No habit’s streak keeps a missed day yet: a missed day ends the streak, and “Never missed twice” shows beside it. Details → Habit options → “Never miss twice” turns it on for one habit.",
-  "nl": "Bij geen enkele gewoonte houdt de reeks een gemiste dag: een gemiste dag beëindigt de reeks, en “Never missed twice” staat ernaast. Details → Habit options → “Never miss twice” zet het aan voor één gewoonte.",
+  "en": "Never miss twice is on for Meditate: one missed day keeps the streak, two in a row end it.",
+  "nl": "Nooit twee keer missen staat aan voor Meditate: één gemiste dag houdt de reeks, twee op rij beëindigen hem.",
   "facts": null,
   "widgets": [],
   "fresh": "No habit’s streak keeps a missed day yet: a missed day ends the streak, and “Never missed twice” shows beside it. Details → Habit options → “Never miss twice” turns it on for one habit.",
@@ -6746,8 +6750,8 @@
   "freshNl": "Je hebt nog geen eigen gevoelswoord toegevoegd. Open in het raster met gevoelswoorden een hoek en gebruik “Your own word”."
  },
  "av2-habits-usual-mood": {
-  "en": "Not enough days yet: Mood: 12 of 20 days in the last 90, 12 of 60 in the year; Energy: 14 of 20 days in the last 90, 14 of 60 in the year. Up or down describes your own answers, not whether that is good.",
-  "nl": "Nog niet genoeg dagen: Stemming: 12 van 20 dagen in de laatste 90, 12 van 60 in het jaar; Energie: 14 van 20 dagen in de laatste 90, 14 van 60 in het jaar. Hoger of lager beschrijft je eigen antwoorden, niet of dat goed is.",
+  "en": "Mood: up — last 90 days 3.5 of 5 (22 days), your usual 3.2 (62 days). Energy: about the same — last 90 days 3.4 of 5 (22 days), your usual 3.3 (62 days). Up or down describes your own answers, not whether that is good.",
+  "nl": "Stemming: hoger — laatste 90 dagen 3,5 van 5 (22 dagen), je gewoonlijke 3,2 (62 dagen). Energie: ongeveer gelijk — laatste 90 dagen 3,4 van 5 (22 dagen), je gewoonlijke 3,3 (62 dagen). Hoger of lager beschrijft je eigen antwoorden, niet of dat goed is.",
   "facts": null,
   "widgets": [],
   "fresh": "No mood or energy is answered yet, so there is no usual to compare with. The day’s mood in Health → Diary and the energy rating fill it in.",
@@ -6850,8 +6854,8 @@
   "freshNl": "Geen dagboekstuk op za 14 nov. De kalender onder Journal → Search by date toont de dagen waarop je schreef."
  },
  "av2-journal-packs": {
-  "en": "No prompt pack is on. Journal → Write → Prompt packs has Sleep, Training, Gratitude, Creativity, Work and life and The year; a pack you switch on takes turns with the everyday question.",
-  "nl": "Er staat geen vragenpakket aan. Journal → Write → Prompt packs heeft Slaap, Training, Dankbaarheid, Creativiteit, Werk en leven en Het jaar; een pakket dat je aanzet wisselt af met de gewone vraag.",
+  "en": "2 prompt packs are on: Sleep and Gratitude. Their questions take turns with the everyday one as today’s question.",
+  "nl": "2 vragenpakketten staan aan: Slaap en Dankbaarheid. Hun vragen wisselen af met de gewone vraag van de dag.",
   "facts": null,
   "widgets": [],
   "fresh": "No prompt pack is on. Journal → Write → Prompt packs has Sleep, Training, Gratitude, Creativity, Work and life and The year; a pack you switch on takes turns with the everyday question.",
@@ -6874,8 +6878,8 @@
   "freshNl": "Geen dagboekstuk is veranderd, dus er zijn geen eerdere versies. More → Edit the words bij een stuk bewaart de woorden die het had, tot tien versies."
  },
  "av2-journal-media": {
-  "en": "No photo or voice note in your journal yet. Under Write, “Photos and a voice note” adds them; they stay on this device.",
-  "nl": "Nog geen foto of spraakmemo in je dagboek. Onder Write voegt “Photos and a voice note” ze toe; ze blijven op dit apparaat.",
+  "en": "2 photos and 0 voice notes in 2 entries, kept on this device only.",
+  "nl": "2 foto’s en 0 spraakmemo’s in 2 stukken, alleen op dit apparaat bewaard.",
   "facts": null,
   "widgets": [],
   "fresh": "No photo or voice note in your journal yet. Under Write, “Photos and a voice note” adds them; they stay on this device.",
@@ -6930,8 +6934,8 @@
   "freshNl": "De affirmatie van vandaag: “Ik zie wat goed ging, hoe klein ook.” Wil je er elke dag een op Today zien, zet het dan aan in Journal → Privacy."
  },
  "av2-chess-results": {
-  "en": "No finished games against the computer yet. Chess → Play has ZIGoals’ own engine at three levels (Easy, Medium, Hard), on this device.",
-  "nl": "Nog geen uitgespeelde partijen tegen de computer. Chess → Play heeft de eigen schaakengine van ZIGoals op drie niveaus (Easy, Medium, Hard), op dit apparaat.",
+  "en": "Against the computer: 5 won, 4 lost, 1 drawn.\n• Easy: 4 won, 1 lost, 1 drawn\n• Medium: 1 won, 3 lost, 0 drawn",
+  "nl": "Tegen de computer: 5 gewonnen, 4 verloren, 1 remise.\n• Easy: 4 gewonnen, 1 verloren, 1 remise\n• Medium: 1 gewonnen, 3 verloren, 0 remise",
   "facts": null,
   "widgets": [],
   "fresh": "No finished games against the computer yet. Chess → Play has ZIGoals’ own engine at three levels (Easy, Medium, Hard), on this device.",
@@ -7538,8 +7542,8 @@
   "freshNl": "Geen uitgave deze maand heeft een subcategorie. In Wealth → Spending → Log spending open je “Add a subcategory” onder een categorie (Food & drink › Coffee); totalen en budgetten tellen hem gewoon in de hoofdcategorie."
  },
  "av2r2-money-day-left": {
-  "en": "About this much a day is left for the 14 days to go: Groceries €4.49, Food & drink €5.06 and Fun €2.57. What is left divided by the days; a fact, not advice.",
-  "nl": "Ongeveer zoveel per dag is er over voor de 14 dagen die nog komen: Groceries € 4,49, Food & drink € 5,06 en Fun € 2,57. Wat over is gedeeld door de dagen; een feit, geen advies.",
+  "en": "About this much a day is left for the 14 days to go: Groceries €4.49, Food & drink €5.06 and Fun €0.25. What is left divided by the days; a fact, not advice.",
+  "nl": "Ongeveer zoveel per dag is er over voor de 14 dagen die nog komen: Groceries € 4,49, Food & drink € 5,06 en Fun € 0,25. Wat over is gedeeld door de dagen; een feit, geen advies.",
   "facts": null,
   "widgets": [],
   "fresh": "You have no budgets yet. Set one in Wealth → Budgets; each row then says about how much a day is left.",
@@ -7818,8 +7822,8 @@
   "freshNl": "Ja: Settings → Appearance → Customize → Font → Reading-friendly. Die gebruikt Atkinson Hyperlegible of OpenDyslexic als dit apparaat er een heeft (anders Verdana of Tahoma), met meer ruimte tussen letters, woorden en regels. Large text staat ernaast. Alleen op dit apparaat."
  },
  "av2r3-money-left-month": {
-  "en": "Left this month in EUR: €1,944.61 — €2,550.00 income logged, less €435.59 spent and €169.80 still in your budgets. Left this month in USD: $3,000.00 more than came in — $0.00 income logged, less $0.00 spent and $3,000.00 in Goal plans. From your own records; a figure, not advice.",
-  "nl": "Deze maand over in EUR: € 1.944,61 — € 2.550,00 inkomen gelogd, min € 435,59 uitgegeven en € 169,80 nog in je budgetten. Deze maand over in USD: US$ 3.000,00 meer dan er binnenkwam — US$ 0,00 inkomen gelogd, min US$ 0,00 uitgegeven en US$ 3.000,00 aan doelplannen. Uit je eigen gegevens; een bedrag, geen advies.",
+  "en": "Left this month in EUR: €1,977.11 — €2,550.00 income logged, less €435.59 spent and €137.30 still in your budgets. Left this month in USD: $3,000.00 more than came in — $0.00 income logged, less $0.00 spent and $3,000.00 in Goal plans. From your own records; a figure, not advice.",
+  "nl": "Deze maand over in EUR: € 1.977,11 — € 2.550,00 inkomen gelogd, min € 435,59 uitgegeven en € 137,30 nog in je budgetten. Deze maand over in USD: US$ 3.000,00 meer dan er binnenkwam — US$ 0,00 inkomen gelogd, min US$ 0,00 uitgegeven en US$ 3.000,00 aan doelplannen. Uit je eigen gegevens; een bedrag, geen advies.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing to work out for this month yet. Log your income and spending in Wealth → Spending; Wealth → Budgets → Left this month then says what is left after your budgets, bills, Goal plans and planned costs.",
@@ -8050,8 +8054,8 @@
   "freshNl": "Kant-en-klare routines van 30 minuten of minder: Lichaamsgewicht thuis, Buik in tien minuten, Kracht voor hardlopers en Rustig bewegen. Health → Workouts → Ready-made routines → Find a routine filtert ook op spiergroep en plek."
  },
  "av2r4-plan-week": {
-  "en": "Nothing to place this week: Plan my week places open tasks that have minutes and no time yet. Give a task its length (“Takes” in its editor), and it finds the task a day inside your working hours, the earliest deadline first.",
-  "nl": "Deze week valt er niets in te plannen: Plan my week plant open taken met minuten en nog zonder tijd. Geef een taak zijn duur (“Takes” in de editor), dan zoekt het een dag binnen je werkuren, de vroegste deadline eerst.",
+  "en": "A plan for the next 7 days would place 1 task: Wed, Nov 18 1. Nothing moves until you keep it: Tasks → This week (or Today) → Plan my week, with Undo.",
+  "nl": "Een plan voor de komende 7 dagen zet 1 taak neer: wo 18 nov 1. Er verschuift niets tot je het bewaart: Tasks → This week (of Today) → Plan my week, met Undo.",
   "facts": null,
   "widgets": [],
   "fresh": "Nothing to place this week: Plan my week places open tasks that have minutes and no time yet. Give a task its length (“Takes” in its editor), and it finds the task a day inside your working hours, the earliest deadline first.",
@@ -8650,8 +8654,8 @@
   "freshNl": "Voor ma 16 nov is niets gelogd. Wealth → Spending → Yesterday’s money kan het elke ochtend sturen, of op Vandaag tonen."
  },
  "av2r5-money-year-budgets": {
-  "en": "2026 so far: €260.20 spent against €430.00 budgeted, €169.80 under so far. By budget: Fun €36.00 under, Groceries €62.90 under and Food & drink €70.90 under. Each month's budget beside what was spent, counted as your budgets count it; it is in Wealth → Budgets → \"2026 so far against your budgets\".",
-  "nl": "2026 tot nu toe: € 260,20 uitgegeven tegenover € 430,00 gebudgetteerd, tot nu toe € 169,80 onder budget. Per budget: Fun € 36,00 onder budget, Groceries € 62,90 onder budget en Food & drink € 70,90 onder budget. Het budget van elke maand naast wat je uitgaf, geteld zoals je budgetten tellen; het staat in Wealth → Budgets → \"2026 so far against your budgets\".",
+  "en": "2026 so far: €260.20 spent against €397.50 budgeted, €137.30 under so far. By budget: Fun €3.50 under, Groceries €62.90 under and Food & drink €70.90 under. Each month's budget beside what was spent, counted as your budgets count it; it is in Wealth → Budgets → \"2026 so far against your budgets\".",
+  "nl": "2026 tot nu toe: € 260,20 uitgegeven tegenover € 397,50 gebudgetteerd, tot nu toe € 137,30 onder budget. Per budget: Fun € 3,50 onder budget, Groceries € 62,90 onder budget en Food & drink € 70,90 onder budget. Het budget van elke maand naast wat je uitgaf, geteld zoals je budgetten tellen; het staat in Wealth → Budgets → \"2026 so far against your budgets\".",
   "facts": null,
   "widgets": [],
   "fresh": "No budgets yet. Once you set one in Wealth → Budgets, each month of 2026 adds up beside what you spent, under \"2026 so far against your budgets\".",
@@ -8882,8 +8886,8 @@
   "freshNl": "In het Journal heeft On this day pijlen: de dag ervoor en de dag erna tonen die datum in de jaren ervoor. Een dag die je kiest op de kalender onder Search by date opent daar ook; Back to today gaat terug. Stukken die je opzij legde en brieven die nog dicht zijn blijven eruit."
  },
  "av2r6-photos": {
-  "en": "No photo or voice note in your journal yet. Under Write, “Photos and a voice note” adds them; they stay on this device.",
-  "nl": "Nog geen foto of spraakmemo in je dagboek. Onder Write voegt “Photos and a voice note” ze toe; ze blijven op dit apparaat.",
+  "en": "2 photos and 0 voice notes in 2 entries, kept on this device only.",
+  "nl": "2 foto’s en 0 spraakmemo’s in 2 stukken, alleen op dit apparaat bewaard.",
   "facts": null,
   "widgets": [],
   "fresh": "No photo or voice note in your journal yet. Under Write, “Photos and a voice note” adds them; they stay on this device.",
@@ -9170,8 +9174,8 @@
   "freshNl": "Vanochtend is er niets in je dagboek geschreven. Journal → Write → Morning and evening kan elke dag splitsen in een ochtendpagina en een avondpagina, elk met een eigen herinnering."
  },
  "awx3-photo-a-day": {
-  "en": "No photo in your journal in November yet. Add one to an entry under Write; the day’s first photo stands for it, or press Photo of the day on the one you like best. Journal → Entries → Photos and voice notes → A photo a day shows the month as a strip.",
-  "nl": "Nog geen foto in je dagboek in november. Voeg er een toe aan een stuk onder Write; de eerste foto van de dag staat ervoor, of druk op Photo of the day bij de foto die je het mooist vindt. Journal → Entries → Photos and voice notes → A photo a day toont de maand als strook.",
+  "en": "Not every day: a photo on 2 days of the 17 in November so far. A day without one simply stays blank; it is never counted against you. Journal → Entries → Photos and voice notes → A photo a day shows the month as a strip.",
+  "nl": "Niet elke dag: een foto op 2 dagen van de 17 in november tot nu toe. Een dag zonder foto blijft gewoon leeg; die telt nooit tegen je. Journal → Entries → Photos and voice notes → A photo a day toont de maand als strook.",
   "facts": null,
   "widgets": [],
   "fresh": "No photo in your journal in November yet. Add one to an entry under Write; the day’s first photo stands for it, or press Photo of the day on the one you like best. Journal → Entries → Photos and voice notes → A photo a day shows the month as a strip.",
