@@ -6,7 +6,8 @@ import {emptyHealthExtras, healthExtrasSchema} from '../health-extras';
 import {setMealReminders} from '../meal-reminders';
 import {mealWakes} from '../food-plus/meal-notify';
 import {buildPlan, type PlanInput} from './plan';
-import {emptyNotifyPrefs, NOTIFY_LABELS, NOTIFY_TYPES, setType, typeOn} from './prefs';
+import {emptyNotifyPrefs, NOTIFY_TYPES, setType, typeOn} from './prefs';
+import {NOTIFY_LABELS} from './labels';
 import {zonedInstant} from './zone';
 
 /**

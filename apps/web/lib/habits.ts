@@ -257,7 +257,7 @@ function periodBounds(date: string, period: "day" | "week" | "month" | "year") {
   if (period === "month") { const start = `${date.slice(0, 7)}-01`; const next = new Date(`${start}T12:00:00Z`); next.setUTCMonth(next.getUTCMonth() + 1); return { start, end: addLocalDays(next.toISOString().slice(0, 10), -1) }; }
   return { start: `${date.slice(0, 4)}-01-01`, end: `${date.slice(0, 4)}-12-31` };
 }
-function aggregatePeriod(rule: HabitRule): "week" | "month" | "year" | undefined { return rule.schedule.kind === "frequency" ? rule.schedule.period : rule.targetPeriod === "day" ? undefined : rule.targetPeriod; }
+export function aggregatePeriod(rule: HabitRule): "week" | "month" | "year" | undefined { return rule.schedule.kind === "frequency" ? rule.schedule.period : rule.targetPeriod === "day" ? undefined : rule.targetPeriod; }
 export function habitTargetPeriod(rule: HabitRule): "day" | "week" | "month" | "year" { return rule.schedule.kind === "frequency" ? rule.schedule.period : rule.targetPeriod; }
 function ruleOutcomeKey(rule: HabitRule): string {
   return JSON.stringify({ schedule: rule.schedule, type: rule.type, measurement: rule.measurement, target: rule.target, targetPeriod: rule.targetPeriod, endCondition: rule.endCondition });
@@ -285,7 +285,7 @@ function memoized<T>(habit: Habit, key: string, compute: () => T): T {
 function entryOn(habit: Habit, date: string) {
   return memoized(habit, "entries-by-date", () => new Map(habit.entries.map((entry) => [entry.date, entry]))).get(date);
 }
-function rawAggregateOutcomes(habit: Habit, today: string): AggregateOutcome[] { return memoized(habit, `aggregate:${today}`, () => computeAggregateOutcomes(habit, today)); }
+export function rawAggregateOutcomes(habit: Habit, today: string): AggregateOutcome[] { return memoized(habit, `aggregate:${today}`, () => computeAggregateOutcomes(habit, today)); }
 function computeAggregateOutcomes(habit: Habit, today: string): AggregateOutcome[] {
   type Group = { start: string; end: string; period: "week" | "month" | "year"; latestRule: HabitRule; signatures: Set<string>; scheduledDates: string[] };
   const groups = new Map<string, Group>();
@@ -334,7 +334,7 @@ function countCompletedOutcomesBefore(habit: Habit, date: string): number {
   }).length;
   return dayCompletions + rawAggregateOutcomes(habit, cutoff).filter((outcome) => outcome.complete).length;
 }
-function endAllows(habit: Habit, rule: HabitRule, date: string): boolean {
+export function endAllows(habit: Habit, rule: HabitRule, date: string): boolean {
   const end = rule.endCondition;
   if (end.kind === "date") return date <= end.date;
   if (end.kind === "completions") return completedOutcomesBefore(habit, date) < end.count;
@@ -552,25 +552,6 @@ export function upcomingVacation(data: HabitData, today: string): VacationRun[] 
     else runs.push({ from: date, to: date, habitIds: [...ids], kind });
   }
   return runs;
-}
-/**
- * Session AW (X4, LEDGER #446; Strides' year report): the scheduled outcomes habitStats counts — a day, or a week, month
- * or year for a habit counted per period — whose start falls from `from` to `to`, oldest first. Derived; nothing stored.
- */
-export function habitOutcomesBetween(habit: Habit, from: string, to: string, today = localDate()): { start: string; unit: "days" | "weeks" | "months" | "years"; status: "complete" | "failed" | "skipped" | "open" }[] {
-  const out: { start: string; unit: "days" | "weeks" | "months" | "years"; status: "complete" | "failed" | "skipped" | "open" }[] = [];
-  const last = to < today ? to : today;
-  for (let date = habit.startDate > from ? habit.startDate : from; date <= last; date = addLocalDays(date, 1)) {
-    const rule = habitRuleOn(habit, date); if (!rule || rule.state !== "active" || !endAllows(habit, rule, date) || aggregatePeriod(rule)) continue;
-    const day = habitDay(habit, date, today); if (!day.scheduled || day.status === "not-scheduled") continue;
-    out.push({ start: date, unit: "days", status: day.status === "complete" ? "complete" : day.status === "failed" ? "failed" : day.status === "skipped" ? "skipped" : "open" });
-  }
-  for (const result of rawAggregateOutcomes(habit, today)) {
-    if (result.start < from || result.start > to) continue;
-    if (!result.scheduledDates.some((date) => { const rule = habitRuleOn(habit, date); return !!rule && endAllows(habit, rule, date); })) continue;
-    out.push({ start: result.start, unit: result.unit, status: result.status });
-  }
-  return out.sort((a, b) => a.start.localeCompare(b.start));
 }
 export function habitStats(habit: Habit, today = localDate()) { return memoized(habit, `stats:${today}`, () => computeHabitStats(habit, today)); }
 function computeHabitStats(habit: Habit, today: string) {

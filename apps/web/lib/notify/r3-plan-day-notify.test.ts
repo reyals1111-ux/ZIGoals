@@ -2,7 +2,8 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {describe, expect, it} from 'vitest';
 import {buildPlan, type PlanInput} from './plan';
-import {DEFAULT_ON, emptyNotifyPrefs, NOTIFY_LABELS, NOTIFY_TYPES, setType, typeOn} from './prefs';
+import {DEFAULT_ON, emptyNotifyPrefs, NOTIFY_TYPES, setType, typeOn} from './prefs';
+import {NOTIFY_LABELS} from './labels';
 import {zonedInstant} from './zone';
 
 /**
