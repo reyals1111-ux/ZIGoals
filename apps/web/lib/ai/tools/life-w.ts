@@ -1,6 +1,7 @@
 import * as z from 'zod';
 import {balanceOn, holdingsOf, moneyText, netWorthTotal, owedAfterPayments} from '../../accounts/net-worth';
 import {wealthOverview} from '../../wealth';
+import {localDate} from '../../local-date';
 import {emptyAccounts, isDebtKind, type AccountKind} from '../../accounts/schema';
 import {milestoneDateOf, milestoneState} from '../../goals/milestones';
 import {challengeOf} from '../../habits-v2/challenge';
@@ -33,8 +34,9 @@ export const accountsTool: ToolDefinition<{include_archived?: boolean}> = {
       const b = balanceOn(a);
       // Session AW (fr-money, FR-AW-3; TIER 3, AI tools; additive): a debt with payments recorded after its latest balance
       // also says what it owes after them, from the same function Wealth's row reads (owedAfterPayments), so ZIGi, NOVA and
-      // a model answer with the figure Wealth shows ("US$2,250.00 after 1 payment since"), not the statement's.
-      const o = b && isDebtKind(a.kind) ? owedAfterPayments(a, env.habitDay) : null, after = o && o.payments > 0 && o.date === b!.date ? o : null;
+      // a model answer with the figure Wealth shows ("US$2,250.00 after 1 payment since"), not the statement's. Review fix:
+      // on the calendar day Wealth's row uses (localDate), not the habit day, so a payment dated today counts after midnight too.
+      const o = b && isDebtKind(a.kind) ? owedAfterPayments(a, localDate(env.now)) : null, after = o && o.payments > 0 && o.date === b!.date ? o : null;
       return {kind: KIND_WORDS[a.kind], debt: isDebtKind(a.kind), name: text(a.name, 60), currency: a.currency, ...(b ? {latest: `${moneyText(b)} ${a.currency}`, asOf: b.date} : {latest: 'no balance yet'}),
         ...(after ? {owedAfterPayments: `${moneyText(after)} ${a.currency}`, paymentsSince: after.payments} : {}),
         ...(a.ratePercent ? {yourRatePercent: a.ratePercent} : {}), ...(a.archivedAt ? {archived: true} : {})};

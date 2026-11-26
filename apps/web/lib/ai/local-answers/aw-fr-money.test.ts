@@ -5,7 +5,8 @@ import {AW_FR_MONEY} from '../evals/as/cases-aw-fr-money';
 import {CORPUS} from '../evals/as/cases';
 import {awFrMoneyAnswer} from './aw-fr-money';
 import {localAnswer, type LocalReply} from './engine';
-import {ADVICE_REPLIES, LOAN_ADVICE, safetyFirst} from '../safety-guard';
+import {ADVICE_REPLIES, DEBT_ADVICE_REPLY, isLoanAdvice, safetyFirst} from '../safety-guard';
+import {noModelReply} from './no-model';
 import {runTool} from '../tools/registry';
 import type {Account, Accounts} from '../../accounts/schema';
 
@@ -49,6 +50,11 @@ describe('FR-AW-3: what is owed is what Wealth\'s row shows, payments since the 
     expect(before.ok && (before.data as {accounts: Record<string, unknown>[]}).accounts[0]).not.toHaveProperty('owedAfterPayments');
     expect(text(zigi('How much do I owe?', tom(tomCard([]))))).toMatch(/^You owe 2,400\.00 EUR across 1 debt/);
   });
+  test('review fix: the tool reads the calendar day Wealth\'s row uses, so a payment dated today counts before a late day end', () => {
+    const env = zigiEnv(tom()), lateNight = {...env, habitDay: '2026-11-16'}; // after midnight on 17 Nov, the habit day still the 16th
+    const r = runTool('accounts', {}, lateNight);
+    expect(r.ok && (r.data as {accounts: unknown[]}).accounts[0]).toMatchObject({owedAfterPayments: '2250.00 EUR', paymentsSince: 1});
+  });
   test('the Showcase (no payment after its balances) answers exactly as before', () => {
     expect(text(localAnswer('What do I owe?', zigiEnv(showcaseAll())))).toMatch(/^You owe /);
     expect(text(localAnswer('What do I owe?', zigiEnv(showcaseAll())))).not.toContain('after 1 payment');
@@ -88,12 +94,22 @@ describe('FR-AW-11: a loan or "is it smart" money question gets the no-advice li
   test('ZIGi and NOVA, EN and NL, never the task list', () => {
     const asks = {en: ['Is it smart to take a loan to pay my card?', 'Should I take out a loan to pay off my credit card?', 'Should I pay off my card first or my loan?', 'Which debt should I pay off first?'], nl: ['Is het slim om een lening te nemen voor mijn creditcard?', 'Moet ik een lening afsluiten om mijn creditcard af te lossen?', 'Kan ik beter aflossen of beleggen?']} as const;
     for (const lang of ['en', 'nl'] as const) for (const q of asks[lang]) {
-      expect(safetyFirst(q), q).toMatchObject({kind: 'advice', topic: 'money', text: ADVICE_REPLIES.money[lang]});
+      expect(safetyFirst(q), q).toMatchObject({kind: 'advice', topic: 'money', text: DEBT_ADVICE_REPLY[lang]});
+      expect(text(noModelReply(q, zigiEnv(tom()))), q).toBe(DEBT_ADVICE_REPLY[lang]);
       expect(localAnswer(q, zigiEnv(tom())).kind, q).toBe('none'); // the device reads nothing; the chat gives the line (no-model.ts)
     }
   });
-  test('record questions stay lookups', () => {
-    for (const q of ['How much is left on my loan?', 'How much have I paid off this week?', 'Hoeveel moet ik nog aflossen?', 'Hoeveel heb ik afgelost?', 'Is it smart to walk after dinner?', 'When is my loan paid off?', 'What is my credit card balance?'])
+  test('the debt line names debts, not coins, and gives a debt example; other money asks keep their own line', () => {
+    expect(DEBT_ADVICE_REPLY.en).toContain('“What do I owe?”');
+    expect(DEBT_ADVICE_REPLY.nl).toContain('“Hoeveel schuld heb ik?”');
+    for (const line of Object.values(DEBT_ADVICE_REPLY)) expect(line).not.toMatch(/BTC|staking|staken|beleggen|investing/);
+    expect(safetyFirst('Should I buy BTC now?')?.text).toBe(ADVICE_REPLIES.money.en);
+    expect(safetyFirst('Moet ik nu ETH kopen?')?.text).toBe(ADVICE_REPLIES.money.nl);
+    expect(safetyFirst('Should I stop my diet?')?.text).toBe(ADVICE_REPLIES.health.en);
+  });
+  test('record questions stay lookups (the review\'s cases among them)', () => {
+    for (const q of ['How much is left on my loan?', 'How much have I paid off this week?', 'Hoeveel moet ik nog aflossen?', 'Hoeveel heb ik afgelost?', 'Is it smart to walk after dinner?', 'When is my loan paid off?', 'What is my credit card balance?',
+      'Moet ik deze maand nog aflossen?', 'Moet ik nog iets aflossen?', 'ZIGi, moet ik nog lenen?', 'Is het slim om mijn schulden bij te houden?', 'Is it bad if I missed a loan payment?', 'Is it better to log my debts weekly?', 'Is it smart to track my credit card?', 'Is het verstandig om mijn lening te noteren?'])
       expect(safetyFirst(q), q).toBeNull();
   });
 });
@@ -114,7 +130,7 @@ describe('the corpus', () => {
     for (const intent of CORPUS) if (!own.has(intent.id)) for (const q of [...intent.en, ...intent.nl]) {
       expect(awFrMoneyAnswer(q, env), `${intent.id}: ${q}`).toBeNull();
       const folded = q.toLowerCase().normalize('NFKC').replace(/[’‘ʼ`´]/g, "'").replace(/\s+/g, ' ').trim();
-      expect(LOAN_ADVICE.some(p => p.test(folded)), `${intent.id}: ${q}`).toBe(false);
+      expect(isLoanAdvice(folded), `${intent.id}: ${q}`).toBe(false);
     }
   }, 120_000);
 });
