@@ -1,14 +1,17 @@
 import * as z from 'zod';
 import {readDeviceRecord, type DeviceRecordSpec} from '../device-record';
-import {MAX_TEXT} from './schema';
+import {JOURNAL_ID, MAX_TEXT, PERIOD} from './schema';
 import {formatDate} from '../visual-format';
 
 /**
  * Session AW (fr-journal, FR-AW-1; TIER 3 (stored formats), a new device-only key, additive): the Journal page's unsaved
  * entry, kept on this device while it is typed, so leaving the page (a tap on Today, a reload, the phone closing the app)
  * never loses it. It comes back when the Journal opens again, with one line and "Discard draft"; Save entry removes it,
- * and so does emptying the box. One draft at a time: its words, its tags as typed and the template it started from.
- * Photos and a voice note still wait in the page only (they are files, kept on Save).
+ * and so does emptying the box. One draft at a time: its words, its tags as typed, the template it started from, and
+ * (review fix, Session AW fr-journal) what the entry is about (`period`), whether it is a letter to open later (`opens`,
+ * `opensDay`), the journal it goes in (`book`, null for the main Journal) and the night of a dream (`dream`); each of
+ * these is optional and dropped alone when unreadable. Photos and a voice note still wait in the page only (they are
+ * files, kept on Save). Text the secret guard flags (recovery words, a private key) is never kept as a draft.
  *
  * Device only and never synced, never read by ZIGi or NOVA, never sent anywhere and never logged. Deliberately not in
  * Export everything and never restored from a backup: it is unfinished writing, and a restore must not put words in the
@@ -24,7 +27,14 @@ export const journalDraftSchema = z.looseObject({
   day, text: z.string().max(MAX_TEXT), at: z.iso.datetime({offset: true}),
   tags: z.string().max(DRAFT_TAGS_MAX).optional().catch(undefined),
   template: z.looseObject({id: z.string().regex(/^[a-z0-9-]{1,40}$/), lang: z.enum(['en', 'nl'])}).optional().catch(undefined),
+  period: z.string().regex(PERIOD).optional().catch(undefined),
+  opens: z.enum(['month', 'half', 'year', 'day']).optional().catch(undefined),
+  opensDay: day.optional().catch(undefined),
+  book: z.string().regex(JOURNAL_ID).nullable().optional().catch(undefined),
+  dream: day.optional().catch(undefined),
 });
+/** The entry's choices beside its words that a draft keeps (each optional). */
+export type DraftChoices = {period?: string; opens?: 'month' | 'half' | 'year' | 'day'; opensDay?: string; book?: string | null; dream?: string | null};
 export type JournalDraft = z.infer<typeof journalDraftSchema>;
 const recordSchema = z.looseObject({version: z.literal(1), draft: journalDraftSchema.nullable()});
 export type JournalDraftRecord = z.infer<typeof recordSchema>;
@@ -50,9 +60,19 @@ export function draftWorthKeeping(text: string, started: readonly (string | null
   return !!t && !onlyHeadings(t) && !started.some(s => !!s && s.trim() === t);
 }
 /** What is kept for the box as it is now, or null when there is nothing worth keeping. */
-export function draftOf({day, text, tags, template, now, worth}: {day: string; text: string; tags: string; template: {id: string; lang: 'en' | 'nl'} | null; now: Date; worth: boolean}): JournalDraft | null {
-  if (!worth) return null;
-  return {day, text: text.slice(0, MAX_TEXT), at: now.toISOString(), ...(tags.trim() ? {tags: tags.slice(0, DRAFT_TAGS_MAX)} : {}), ...(template ? {template} : {})};
+export function draftOf({day, text, tags, template, now, worth, secret = false, choices = {}}: {day: string; text: string; tags: string; template: {id: string; lang: 'en' | 'nl'} | null; now: Date; worth: boolean; /** The secret guard flags the text: never kept. */ secret?: boolean; choices?: DraftChoices}): JournalDraft | null {
+  if (!worth || secret) return null;
+  const {period, opens, opensDay, book, dream} = choices;
+  return {day, text: text.slice(0, MAX_TEXT), at: now.toISOString(), ...(tags.trim() ? {tags: tags.slice(0, DRAFT_TAGS_MAX)} : {}), ...(template ? {template} : {}),
+    ...(period ? {period} : {}), ...(opens ? {opens} : {}), ...(opens === 'day' && opensDay ? {opensDay} : {}), ...(book !== undefined ? {book} : {}), ...(dream ? {dream} : {})};
+}
+/**
+ * Review fix (two open Journal tabs): the draft's words are already an entry of its day or of today (saved in another
+ * tab, whose draft removal this tab then wrote over), so it is not kept or brought back again.
+ */
+export function savedAlready(entries: readonly {date: string; text: string}[], draft: Pick<JournalDraft, 'day' | 'text'>, today: string): boolean {
+  const words = draft.text.trim().slice(0, MAX_TEXT);
+  return !!words && entries.some(e => (e.date === draft.day || e.date === today) && e.text === words);
 }
 /** The one line shown when a draft comes back: today's says so plainly; an older one names its day and where it saves. */
 export function draftBackLine(draft: Pick<JournalDraft, 'day'>, today: string): string {
