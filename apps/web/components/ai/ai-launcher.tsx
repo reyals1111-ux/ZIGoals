@@ -6,7 +6,7 @@ import {launcherApp} from '../../lib/ai/apps';
 import {useCompactShell, usePhoneActive} from '../phone/use-phone-layout';
 import {firstScreenControls, restLift} from './launcher-rest';
 import {ZigiFigure} from '../zigi/zigi-figure';
-import {useZigiState, zigiSignals, zigiState} from '../zigi/bus';
+import {useZigiState, zigiResting, zigiSignals, zigiState} from '../zigi/bus';
 import {useAccountCleanup, useLauncherRecord, useZigiLook} from './use-launcher-record';
 import {SENSITIVE_SELECTOR, isSensitiveScreen, useSensitiveScreen} from './use-sensitive-screen';
 import {ZIGI_OPEN_EVENT} from '../zigi-door';
@@ -82,7 +82,7 @@ function useStandingSensitive(sensitive: boolean): boolean {
 }
 function greetOnce(): void {
   zigiState.set('greeting');
-  window.setTimeout(() => { if (zigiState.get() === 'greeting') zigiState.set('idle'); }, 2500);
+  window.setTimeout(() => { if (zigiState.get() === 'greeting') zigiState.set(zigiResting.get()); }, 2500);
 }
 export function AiLauncher() {
   const [mounted, setMounted] = useState(false), [open, setOpen] = useState(false), [loaded, setLoaded] = useState(false);

@@ -1,6 +1,6 @@
 'use client';
 import {useEffect} from 'react';
-import {zigiEvents, zigiSignals, zigiState, type ZigiEvent} from './bus';
+import {zigiEvents, zigiResting, zigiSignals, zigiState, type ZigiEvent} from './bus';
 import {oneShotMs, ZIGI_MANIFEST, type ZigiState} from './manifest';
 
 export {zigiEvents, type ZigiEvent} from './bus';
@@ -107,6 +107,7 @@ let runners = 0, signalledOnline: boolean | null = null;
 export function startZigiMachine(): () => void {
   runners++;
   const off = zigiEvents.on(handle);
+  zigiResting.set(() => restState(context()));
   // Session AK Part 13: the device's own connection change is also the controller's host fact (connection_lost /
   // connection_restored: Studio-4's R011 / R012), told first so it decides with the state as it was; the machine event
   // follows as before (a no-op when the controller's own already moved it).
