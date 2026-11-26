@@ -21,8 +21,8 @@ All commands run from the repository root of a clean checkout of the release SHA
 
 ---
 
-### ☐ 1. Alpha #60: merge PR #110 and deploy it · 10 min (+ about 45 min of workflow) · GitHub
-- Merge [PR #110](https://github.com/reyals1111-ux/ZIGoals/pull/110) ("Session AW — Finish line") with a merge commit
+### ☐ 1. Alpha #60: merge PR #111 and deploy it · 10 min (+ about 45 min of workflow) · GitHub
+- PR #110 (Session AW) is merged (`36bd987f`). Merge [PR #111](https://github.com/reyals1111-ux/ZIGoals/pull/111) ("Session AX — Professional review & polish") with a merge commit
   once its description says **Safe to merge now: yes**. Wait for "Milestone quality" on `main` to be green, then
   Actions → **Manual Alpha deployment** → Run workflow on `main`, `expected_commit` = the new `main` SHA, tick
   `owner_approval`, read the summary, approve `alpha`. Runbook: [MANUAL_ALPHA_WORKFLOW.md](../deployment/MANUAL_ALPHA_WORKFLOW.md),
@@ -186,6 +186,29 @@ curl -sSI https://www.zigoals.app/
   device's voice), Wealth (spending, bills, budgets, accounts), Tasks with named timers, the Journal and Notes, NOVA and
   ZIGi answering on the device, Help with a search, and "Load Showcase Demo" to see it all with example data. Their
   records stay on their device; Settings → Your data → Export everything keeps a copy.
+
+---
+
+## Optional / later (not needed for friends)
+Session AX (owner decision 26 Nov): the rows that had no step. None of them is needed for the friends Alpha; each one
+is something you may do later, on your own day.
+- **PK-21, pre-filled Ramp / Banxa hand-offs.** Later: get each provider's public partner ID from their dashboard and
+  send it to a session, which adds it to the hand-off links. Not needed: friends put in no real money, and Add money
+  already works without pre-filled fields.
+- **PK-14, OroSwap LP and USDC vault shares on Earn.** Later: send a session the real contract addresses once they are
+  deployed on the chain the Alpha reads. Not needed: Earn is a module friends choose, and nobody in the Alpha puts in real
+  money, so there are no real shares to read.
+- **PK-13, the Fineli food table.** Later: download Fineli's raw open-data files yourself and send them to a session,
+  which imports them as a local table. Not needed: the built-in foods, your own foods and the food Worker (step 5) cover
+  friends' logging.
+- **KL-5, Oura, Withings, Polar and Strava.** Later: register a developer app with each vendor (their own programmes,
+  with your details) and send a session the public client IDs. Not needed: friends import files from these services
+  (FIT, GPX, Strava and Apple Health exports) without any account link.
+- **KL-6, Spotify app approval.** Later: ask Spotify for the app's extended access in its developer dashboard. Not
+  needed: Music works without Spotify, and the Spotify page says it is limited while the app is unapproved.
+- **PK-5, PK-7 and PK-9, the owner art files (ZIGi idle clips re-encoded, the smoother hide move, a sharp 2× brand
+  mark).** Later: make them on your Mac, compare them with the current ones, and send the files to a session. Not
+  needed: the current art is the locked ZIGi look and works on every device friends use.
 
 ---
 
