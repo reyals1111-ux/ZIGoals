@@ -27,7 +27,9 @@ const RAISED: [file: string, selector: string][] = [
 
 describe('CR-22: notice and chip labels are at least 14 px', () => {
   for (const [file, selector] of RAISED) test(`${selector} (${file})`, () => {
-    const sizes = rulesFor(file, selector).flatMap(r => r.decls['font-size'] ? [px(r.decls['font-size'])] : []);
+    // The phone notice's own rules (owner decision T-069) are checked apart, in the next test.
+    const phoneNotice = (media: string) => selector === '.alpha-notice strong' && /max-width: (767\.98|359\.98)px/.test(media);
+    const sizes = rulesFor(file, selector).flatMap(r => r.decls['font-size'] && !phoneNotice(r.media) ? [px(r.decls['font-size'])] : []);
     expect(sizes.length, `${selector} sets a size`).toBeGreaterThan(0);
     for (const size of sizes) expect(size, selector).toBeGreaterThanOrEqual(14);
   });

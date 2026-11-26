@@ -11,9 +11,10 @@ describe('b1 #9: the calendar\'s day buttons are 44 × 44 below 390 px', () => {
   test('the table bleeds into the card padding and the gutter, with no cell padding, only below 390 px', () => {
     const [grid] = rulesFor(FILE, ':root main .panel .journal-calendar-grid');
     expect(grid?.media).toBe(Q);
-    expect(grid?.decls['--journal-bleed']).toBe('calc(16px + 1px + var(--phone-gutter,16px) - 4px)');
-    expect(grid?.decls.width).toBe('calc(100% + 2 * var(--journal-bleed))');
-    expect(grid?.decls['margin-inline']).toBe('calc(-1 * var(--journal-bleed))');
+    // 13 px = the card's 16 px padding + its 1 px border − the 4 px kept free at the screen edge (no custom property, so
+    // the theme generator sees nothing to carry into the theme sheets).
+    expect(grid?.decls.width).toBe('calc(100% + 2 * (13px + var(--phone-gutter,16px)))');
+    expect(grid?.decls['margin-inline']).toBe('calc(-1 * (13px + var(--phone-gutter,16px)))');
     expect(rulesFor(FILE, ':root main .panel .journal-calendar-grid td')[0]?.decls.padding).toBe('0');
     const day = rulesFor(FILE, ':root main .panel .journal-calendar-day')[0];
     expect(day?.media).toBe(Q);
