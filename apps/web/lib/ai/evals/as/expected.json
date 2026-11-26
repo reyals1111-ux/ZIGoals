@@ -9629,5 +9629,124 @@
   "widgets": [],
   "fresh": "I can’t advise on buying, selling, staking or investing: that choice is yours. I can show the facts from your records here, for example “What is the price of BTC?” or “What is my net worth?”.",
   "freshNl": "Ik kan geen advies geven over kopen, verkopen, staken of beleggen: die keuze is aan jou. Ik kan de feiten uit je gegevens laten zien, bijvoorbeeld “Wat is mijn nettovermogen?”."
+ },
+ "awfr-average-kcal": {
+  "en": "On average 2,019.5 kcal of energy a day this week (Mon, Nov 16 to Tue, Nov 17), over the 2 days whose entries all say.",
+  "nl": "Calorieën: gemiddeld 2.020 kcal per dag deze week (ma 16 nov t/m di 17 nov) (2 dagen gelogd).",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No day this week (Mon, Nov 16 to Tue, Nov 17) has a complete energy total.",
+  "freshNl": "Nog geen eten gelogd."
+ },
+ "awfr-due-ahead": {
+  "en": "No task is due tomorrow; 2 overdue: Sketch the garden bed (due Mon, Nov 16) and Book the dentist (due today 10:30 AM).",
+  "nl": "Er staat geen taak gepland voor morgen; 2 te laat: Sketch the garden bed (gepland ma 16 nov) en Book the dentist (gepland vandaag 10:30).",
+  "facts": {
+   "about": "tasks",
+   "ask": "open",
+   "open": 6,
+   "overdue": [
+    "Sketch the garden bed",
+    "Book the dentist"
+   ],
+   "due": [],
+   "from": "2026-11-18",
+   "to": "2026-11-18"
+  },
+  "widgets": [
+   "task-timeline"
+  ],
+  "fresh": "No tasks yet.",
+  "freshNl": "Nog geen taken."
+ },
+ "awfr-health-shared": {
+  "en": "Yes: Health is shared with me on this device right now, so I can read your diary, water, sleep and the rest when you ask. Settings → ZIGi → Include Health turns it off.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"settings\",\"view\":\"zigi\"}\n```",
+  "nl": "Opening Health.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"health\"}\n```",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Yes: Health is shared with me on this device right now, so I can read your diary, water, sleep and the rest when you ask. Settings → ZIGi → Include Health turns it off.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"settings\",\"view\":\"zigi\"}\n```",
+  "freshNl": "Opening Health.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"health\"}\n```"
+ },
+ "awfr-sleep-nl": {
+  "en": "Last night: 7 h 17 min asleep, 8 h 00 min in bed, from 23:20 to 07:20.\n- You rated it 3 of 5",
+  "nl": "Afgelopen nacht: 7 h 17 min geslapen, 8 h 00 min in bed, van 23:20 tot 07:20. Cijfers uit je gelogde nacht; geen medisch advies.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "No night is logged that ended today.",
+  "freshNl": "Voor afgelopen nacht is geen nacht gelogd, dus dat is onbekend (niet nul)."
+ },
+ "awfr-eating-healthy": {
+  "en": "What your food diary holds the last 7 days (Wed, Nov 11 to Tue, Nov 17): 30 entries on 7 days (breakfast 9, lunch 7, dinner 7, snacks 7).\n- Logged most: Berry overnight oats (7), Chicken and quinoa bowl (7), Salmon, rice and greens (7)\n- Energy on the 7 days whose entries all say: on average 2,039 kcal a day\nWhether that is healthy is not something I judge, and I give no diet or medical advice; a GP or a dietitian can help with that.",
+  "nl": "Wat je eetdagboek bevat de afgelopen 7 dagen (wo 11 nov t/m di 17 nov): 30 regels op 7 dagen (ontbijt 9, lunch 7, avondeten 7, tussendoor 7).\n- Het vaakst gelogd: Berry overnight oats (7), Chicken and quinoa bowl (7), Salmon, rice and greens (7)\n- Energie op de 7 dagen waarop alle regels het zeggen: gemiddeld 2.039 kcal per dag\nOf dat gezond is, beoordeel ik niet, en ik geef geen voedings- of medisch advies; een huisarts of diëtist kan je daarbij helpen.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "Your food diary holds nothing the last 7 days (Wed, Nov 11 to Tue, Nov 17), so there is nothing to describe yet. Log a meal in Health → Food, or describe it in words, and ask again. Whether that is healthy is not something I judge, and I give no diet or medical advice; a GP or a dietitian can help with that.",
+  "freshNl": "Je eetdagboek bevat niets de afgelopen 7 dagen (wo 11 nov t/m di 17 nov), dus er valt nog niets te beschrijven. Log een maaltijd in Health → Food, of beschrijf hem in woorden, en vraag het opnieuw. Of dat gezond is, beoordeel ik niet, en ik geef geen voedings- of medisch advies; een huisarts of diëtist kan je daarbij helpen."
+ },
+ "awfr-compare-weeks": {
+  "en": "Your records this week (Mon, Nov 16 to Tue, Nov 17) beside the period before (Mon, Nov 9 to Tue, Nov 10): habits 11 of 14 done, 3 still open (12 of 12 the period before); 6 open tasks, 2 overdue; steps 8,450 steps a day (7,050 steps the period before); water 1,550 mL a day (2,100 mL the period before); sleep 6 h 57 min a day (7 h 18 min the period before).",
+  "nl": "Je gegevens deze week (ma 16 nov t/m di 17 nov) naast de periode ervoor (ma 9 nov t/m di 10 nov): gewoontes 11 van 14 gedaan, 3 nog open (12 van 12 de periode ervoor); 6 open taken, 2 te laat; stappen 8.450 stappen per dag (7.050 stappen de periode ervoor); water 1.550 mL per dag (2.100 mL de periode ervoor); slaap 6 h 57 min per dag (7 h 18 min de periode ervoor).",
+  "facts": {
+   "about": "life",
+   "ask": "compare",
+   "period": {
+    "token": "this-week",
+    "from": "2026-11-16",
+    "to": "2026-11-17"
+   },
+   "versus": {
+    "from": "2026-11-09",
+    "to": "2026-11-10"
+   },
+   "habits": {
+    "now": {
+     "done": 11,
+     "due": 14,
+     "open": 3
+    },
+    "before": {
+     "done": 12,
+     "due": 12,
+     "open": 0
+    }
+   },
+   "tasks": {
+    "open": 6,
+    "overdue": 2,
+    "today": 0
+   },
+   "steps": {
+    "value": 8450,
+    "days": 2,
+    "before": 7050,
+    "beforeDays": 2
+   },
+   "water": {
+    "value": 1550,
+    "days": 2,
+    "before": 2100,
+    "beforeDays": 1
+   },
+   "sleep": {
+    "value": 417,
+    "days": 2,
+    "before": 437.5,
+    "beforeDays": 2
+   }
+  },
+  "widgets": [
+   "life-radar",
+   "habit-week"
+  ],
+  "fresh": "Nothing is recorded yet. Add a habit, a task or a goal and ask me again.",
+  "freshNl": "Er is nog niets vastgelegd. Voeg een gewoonte, taak of doel toe en vraag het me opnieuw."
+ },
+ "awfr-mood-reflective": {
+  "en": "It is good that you ask yourself this. I can't tell whether you are depressed: that is not something an app can judge, and I don't read it from your records. Writing in your journal can help you notice how your days feel, and your GP (family doctor) is a good person to talk it through with.\nIf things feel heavy, or you might hurt yourself, help is there today:\n- If you might hurt yourself or you are in danger, call your local emergency number now (112 in the EU, 911 in the US).\n- US: call or text 988 (Suicide & Crisis Lifeline). UK and Ireland: Samaritans, 116 123. Netherlands: 113 Zelfmoordpreventie, call 113 or 0800-0113, or chat at 113.nl. Belgium: 1813.\n- Elsewhere: findahelpline.com lists free, confidential lines in your country.\nZIGi is an app, not a counsellor; the people at these lines are there for exactly this.",
+  "nl": "Goed dat je het jezelf afvraagt. Of je depressief bent, kan ik niet beoordelen: dat kan een app niet, en ik lees het niet uit je gegevens. Schrijven in je dagboek kan helpen om te zien hoe je dagen voelen, en je huisarts is een goede persoon om het mee te bespreken.\nVoelt het zwaar, of denk je eraan jezelf iets aan te doen, dan is er vandaag hulp:\n- Ben je in gevaar of denk je eraan jezelf iets aan te doen, bel dan nu 112.\n- Nederland: 113 Zelfmoordpreventie, bel 113 of gratis 0800-0113, of chat via 113.nl (dag en nacht). België: Zelfmoordlijn 1813.\n- Elders: findahelpline.com noemt gratis, vertrouwelijke hulplijnen in jouw land.\nZIGi is een app, geen hulpverlener; de mensen bij deze lijnen zijn er juist hiervoor.",
+  "facts": null,
+  "widgets": [],
+  "fresh": "It is good that you ask yourself this. I can't tell whether you are depressed: that is not something an app can judge, and I don't read it from your records. Writing in your journal can help you notice how your days feel, and your GP (family doctor) is a good person to talk it through with.\nIf things feel heavy, or you might hurt yourself, help is there today:\n- If you might hurt yourself or you are in danger, call your local emergency number now (112 in the EU, 911 in the US).\n- US: call or text 988 (Suicide & Crisis Lifeline). UK and Ireland: Samaritans, 116 123. Netherlands: 113 Zelfmoordpreventie, call 113 or 0800-0113, or chat at 113.nl. Belgium: 1813.\n- Elsewhere: findahelpline.com lists free, confidential lines in your country.\nZIGi is an app, not a counsellor; the people at these lines are there for exactly this.",
+  "freshNl": "Goed dat je het jezelf afvraagt. Of je depressief bent, kan ik niet beoordelen: dat kan een app niet, en ik lees het niet uit je gegevens. Schrijven in je dagboek kan helpen om te zien hoe je dagen voelen, en je huisarts is een goede persoon om het mee te bespreken.\nVoelt het zwaar, of denk je eraan jezelf iets aan te doen, dan is er vandaag hulp:\n- Ben je in gevaar of denk je eraan jezelf iets aan te doen, bel dan nu 112.\n- Nederland: 113 Zelfmoordpreventie, bel 113 of gratis 0800-0113, of chat via 113.nl (dag en nacht). België: Zelfmoordlijn 1813.\n- Elders: findahelpline.com noemt gratis, vertrouwelijke hulplijnen in jouw land.\nZIGi is een app, geen hulpverlener; de mensen bij deze lijnen zijn er juist hiervoor."
  }
 }
