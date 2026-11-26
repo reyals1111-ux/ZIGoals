@@ -73,8 +73,8 @@ function photoEveryDay(a: Asked): LocalReply | null {
   const days = (n: number, l: 'en' | 'nl') => count(n, l, ['day', 'days'], ['dag', 'dagen']);
   if (!withPhoto) return answer(say(lang, `No photo in your journal in ${name}${last ? '' : ' yet'}. Add one to an entry under Write; the day’s first photo stands for it, or press Photo of the day on the one you like best. ${where}`, `Nog geen foto in je dagboek in ${name}. Voeg er een toe aan een stuk onder Write; de eerste foto van de dag staat ervoor, of druk op Photo of the day bij de foto die je het mooist vindt. ${where}`), JOURNAL_CALL);
   if (withPhoto >= soFar) return answer(say(lang, `Yes: every day of ${name}${last ? '' : ' so far'} has a photo (${days(withPhoto, 'en')}). ${where}`, `Ja: elke dag van ${name}${last ? '' : ' tot nu toe'} heeft een foto (${days(withPhoto, 'nl')}). ${where}`), JOURNAL_CALL);
-  return answer(say(lang, `Not every day: a photo on ${days(withPhoto, 'en')} of the ${soFar} in ${name}${last ? '' : ' so far'}. A day without one simply stays blank; nothing is counted as missed. ${where}`,
-    `Niet elke dag: een foto op ${days(withPhoto, 'nl')} van de ${soFar} in ${name}${last ? '' : ' tot nu toe'}. Een dag zonder foto blijft gewoon leeg; er wordt niets als gemist geteld. ${where}`), JOURNAL_CALL);
+  return answer(say(lang, `Not every day: a photo on ${days(withPhoto, 'en')} of the ${soFar} in ${name}${last ? '' : ' so far'}. A day without one simply stays blank; it is never counted against you. ${where}`, // Session AW (showcase): the corpus never says "missed" here (cases-aw-x3), which the Showcase's first photos showed
+    `Niet elke dag: een foto op ${days(withPhoto, 'nl')} van de ${soFar} in ${name}${last ? '' : ' tot nu toe'}. Een dag zonder foto blijft gewoon leeg; die telt nooit tegen je. ${where}`), JOURNAL_CALL);
 }
 
 /** LEDGER #441: "my saved searches in notes", "which searches have I saved in my notes", "mijn bewaarde zoekopdrachten in notities". */

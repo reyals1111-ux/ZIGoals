@@ -57,7 +57,10 @@ describe('a photo a day (#445)', () => {
     const all = withJournal(Array.from({length: 17}, (_, i) => photo(`2026-11-${String(i + 1).padStart(2, '0')}`, `m-photo00${String(i + 10)}`)));
     expect(text(nova('do I have a photo for every day this month', all))).toMatch(/^Yes: every day of November so far has a photo \(17 days\)\./);
     const some = withJournal([photo('2026-11-03', 'm-photo0001'), photo('2026-11-09', 'm-photo0002')]);
-    expect(text(nova('do I have a photo for every day this month', some))).toMatch(/^Not every day: a photo on 2 days of the 17 in November so far\. A day without one simply stays blank; nothing is counted as missed\./);
+    // Session AW (showcase, deliberate): the answer said "nothing is counted as missed", which the corpus forbids here
+    // (cases-aw-x3 `never: ['missed']`) and which first showed once the Showcase journal had photos; equally strict.
+    expect(text(nova('do I have a photo for every day this month', some))).toMatch(/^Not every day: a photo on 2 days of the 17 in November so far\. A day without one simply stays blank; it is never counted against you\./);
+    expect(text(nova('do I have a photo for every day this month', some))).not.toContain('missed');
     expect(text(nova('heb ik deze maand elke dag een foto', some))).toMatch(/^Niet elke dag: een foto op 2 dagen van de 17 in november tot nu toe\./);
     expect(text(nova('do I have a photo for every day this month', freshAll()))).toMatch(/^No photo in your journal in November yet\./);
     expect(text(nova('did I have a photo every day last month', withJournal([photo('2026-10-31', 'm-photo0001')])))).toMatch(/^Not every day: a photo on 1 day of the 31 in October\./);
