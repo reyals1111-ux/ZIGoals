@@ -8,7 +8,8 @@ import {defaultMoneyCurrency, type HeldTotal, type MoneyCurrency} from '../../li
  * else the currency that holds the most of what is tracked (`held`, when the caller has it), else the device's.
  * USD during hydration, as useDefaultCurrency, so the first render never mismatches.
  */
-export function useMoneyCurrency(held?: readonly HeldTotal[]): MoneyCurrency {
+export function useMoneyCurrency(held?: readonly HeldTotal[], used?: readonly string[]): MoneyCurrency {
   const prefs = useUiPrefs(), device = useDefaultCurrency();
-  return defaultMoneyCurrency({stored: prefs.loaded ? prefs.data.baseCurrency : undefined, held, device});
+  // Session AW (fr-money, FR-AW-2): `used`, the currencies of the records already kept, before the device's (wealth-currency.ts).
+  return defaultMoneyCurrency({stored: prefs.loaded ? prefs.data.baseCurrency : undefined, held, ...(used ? {used} : {}), device});
 }
