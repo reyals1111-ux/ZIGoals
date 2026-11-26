@@ -63,7 +63,9 @@ export function strictClaim(q: Query): boolean {
   if (q.ask === 'why') return false;
   if (q.domain === 'nova') return false;
   // "How is my day going" (the older layers read "day" as a goal's name); "my day" and the week keep their own briefs.
-  if (q.domain === 'life') return /\b(?:day going|gaat mijn dag|mijn dag gaat)\b/.test(q.read);
+  // Session AW (fr-answers, FR-AW-19): one period beside another, for the records as a whole ("compare this week with
+  // last week", "how was my week compared to last week"): the older layers made a task of it or read it as steps.
+  if (q.domain === 'life') return /\b(?:day going|gaat mijn dag|mijn dag gaat)\b/.test(q.read) || q.ask === 'compare';
   // "Which habits am I behind on" has its own answer (behind on schedule over seven days); a goal behind plan is ours.
   if (q.domain === 'habits' && q.ask === 'late') return false;
   // What was missed, skipped, not done or late; which days; on a weekday.
@@ -117,7 +119,8 @@ export function strictClaim(q: Query): boolean {
   if ((q.domain === 'spending' || q.domain === 'income') && q.subject?.kind === 'category' && q.lang === 'nl') return true;
   if (q.domain === 'networth' && (!!q.period || q.ask === 'trend' || q.ask === 'compare')) return true;
   // Tasks due tomorrow or this week (the older answer lists every open task).
-  if (q.domain === 'tasks' && (q.ask === 'open' || q.ask === 'status') && /\b(?:tomorrow|morgen|week)\b/.test(q.read)) return true;
+  // Session AW (fr-answers, FR-AW-6): and next week or the week ahead ("next" is the ask those words read as).
+  if (q.domain === 'tasks' && (q.ask === 'open' || q.ask === 'status' || (q.ask === 'next' && /\b(?:next week|volgende week|komende week|coming week|week ahead|next 7 days|komende 7 dagen)\b/.test(q.read))) && /\b(?:tomorrow|morgen|week|7 days|7 dagen)\b/.test(q.read)) return true;
   return false;
 }
 /**
