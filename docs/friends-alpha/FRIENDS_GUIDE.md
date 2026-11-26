@@ -273,6 +273,28 @@ A two-minute start: [First week with ZIGoals](FIRST_WEEK.md).
 - **Journal and Today:** three good things, tags, a line on Today, an entry's whole day, your own templates and the
   daily question in Dutch; countdowns that come back every year, with a reminder.
 
+## 8k. New in this release (Session AW, "Finish line")
+
+Each line has its own answer in Help → What's new, which also says where to find it.
+
+- **Calmer first screens.** Every page opens with what you came to do: Today with your Checklist and today's habits,
+  Tasks with "New task", the Journal with today's entry, Notes with "New note". Cards with nothing to show yet wait
+  behind one line that says how to start. Nothing was removed: Help says where each moved tool is, and Settings has a
+  search (in English or Dutch).
+- **Health:** five written programmes (beginner strength, 0 to 5 km, a habit starter, a sleep reset, a meditation
+  starter) and Collections in Guided journeys, with seven short sleep lessons; Read aloud uses your device's own voice
+  only, so nothing is sent. An activity keeps the distance, the effort and the calories you typed (ZIGoals no longer
+  estimates calories burned). A cooking view with timers from the method; recipe files from Paprika or Markdown; the
+  weight trend on a day you name; your sleep goal over two weeks or a month.
+- **Tasks:** reminders that come back until you tick Done, your own snooze times, named timers, and help with a task you
+  keep putting off.
+- **Journal and Notes:** a morning and an evening page, a photo of the day, voice notes faster or 15 seconds either way,
+  saved note searches.
+- **Money:** an entry you remove waits 30 days in Removed recently; copy an entry; a bill that ends; a credit card's next
+  payment from your own entries.
+- **ZIGi and NOVA** answer in Dutch with Dutch dates, the 24-hour clock and the app's own screen names.
+- **Offline:** a page you opened once keeps what it opens on a tap, so it works without a connection.
+
 ## 9. What the Alpha can't do yet
 
 - **Accounts and sync aren't open yet.** Until they are, everything stays in the browser or installed app you use.
