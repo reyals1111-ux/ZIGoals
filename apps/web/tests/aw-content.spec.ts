@@ -49,6 +49,9 @@ for (const theme of THEMES) test(`${theme}: the collections fold below what is t
   if (!isMobile) await page.setViewportSize({width: 1440, height: 900});
   await openHealth(page, healthRecord(health()), '/app/guided');
   // Below the programmes and journeys: no new card on the first screen, four closed folds.
+  // Session AW (integration, deliberate): the page's body arrives in its own chunk since speed2, so its headings are read
+  // once the last one is drawn; the same order check follows.
+  await expect(page.locator('.guided-page > section > h2', {hasText: 'Collections'})).toBeVisible();
   const sections = await page.locator('.guided-page > section > h2').allTextContents();
   expect(sections.slice(-1)).toEqual(['Collections']);
   for (const [id, title] of [['sleep-better', 'Sleep better'], ['calm-down', 'Calm down'], ['move-gently', 'Move gently'], ['start-a-habit', 'Start a habit']] as const) {

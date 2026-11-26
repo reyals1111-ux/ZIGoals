@@ -148,7 +148,7 @@ test('Tasks and Today offline: a dreaded task, Pick one, a named timer and its s
     // X2: the dread mark, today's progress line and Pick one.
     await openOffline(page, '/app/tasks?view=today'); await tasksReady(page);
     await expect(taskRow(page, 'Fictional tax form').locator('.task-dread')).toHaveText('Dreading · a lot');
-    await expect(page.locator('.tasks-view-head .tasks-day-progress')).toContainText('1 of 3 of today’s tasks done');
+    await expect(page.locator('.tasks-main .tasks-day-progress')).toContainText('1 of 3 of today’s tasks done');
     const pick = page.locator('details.tasks-pick');
     await pick.locator('summary').click();
     await pick.getByRole('button', {name: 'Pick one', exact: true}).click();
@@ -258,7 +258,7 @@ test('Wealth offline: copy an entry, Removed recently, a store card, a card’s 
     await phone.getByRole('button', {name: 'Edit Phone contract'}).click();
     const billForm = phone.getByRole('form', {name: 'Edit Phone contract'});
     await billForm.getByLabel('When it ends').selectOption('after');
-    await billForm.getByLabel('Number of payments').fill('24');
+    await billForm.getByRole('textbox', {name: 'Number of payments'}).fill('24');
     await billForm.getByLabel('First payment on').fill('2025-02-20');
     await billForm.getByRole('button', {name: 'Save bill'}).click();
     await expect(bills.locator('.bill-tracker .bills-status')).toHaveText('Phone contract saved. 3 of 24 left · the last on Jan 20, 2027');
@@ -537,7 +537,7 @@ test('Notes offline: a search kept by name and opened again, a review card answe
     await search.locator('details.note-narrow-fold > summary').click();
     await search.getByLabel(/^Tag/).selectOption('travel');
     await expect(search.locator('.note-results > li')).toHaveCount(1);
-    await search.getByLabel('Keep this search as').fill('Fictional trip search');
+    await search.getByRole('textbox', {name: 'Keep this search as'}).fill('Fictional trip search');
     await search.getByRole('button', {name: 'Keep this search', exact: true}).click();
     await expect.poll(async () => orEmpty(await stored<{searches?: unknown[]}>(page, NOTE_SEARCHES_KEY)).searches).toEqual([expect.objectContaining({name: 'Fictional trip search', words: 'trip', tag: 'travel'})]);
     await search.getByLabel('Search', {exact: true}).fill('');
