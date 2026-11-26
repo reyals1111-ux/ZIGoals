@@ -116,6 +116,9 @@ test('Journal: "Today’s entry" whole on the first screen; the feeling word and
     const form = page.getByRole('form', {name: 'Write in your journal'}), entry = form.getByLabel('Today’s entry');
     await wholeOnFirstScreen(page, entry, `Journal, ${said(p)}: Today's entry`);
     // The energy scale stays above it, one row; Three good things (folded) and the feeling word come after the form.
+    // Session AW (local re-run on build-9, deliberate): Three good things is its own chunk; the order is read once it is on
+    // the page (was: read at once, so on a phone it could still be on its way). Both orders are still required.
+    await expect(page.locator('details.good-things-fold')).toBeAttached();
     expect(await follows(page, 'fieldset.journal-energy', 'form[aria-label="Write in your journal"]'), said(p)).toBe(true);
     expect(await follows(page, 'form[aria-label="Write in your journal"]', 'details.good-things-fold'), said(p)).toBe(true);
     const write = page.getByRole('region', {name: 'Write'}), fold = write.locator('details.good-things-fold');
