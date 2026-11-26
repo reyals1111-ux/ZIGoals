@@ -9623,12 +9623,12 @@
   "freshNl": "Er staat geen schuld in Wealth → What you owe op dit apparaat."
  },
  "awfr-money-loan-advice": {
-  "en": "I can’t advise on buying, selling, staking or investing: that choice is yours. I can show the facts from your records here, for example “What is the price of BTC?” or “What is my net worth?”.",
-  "nl": "Ik kan geen advies geven over kopen, verkopen, staken of beleggen: die keuze is aan jou. Ik kan de feiten uit je gegevens laten zien, bijvoorbeeld “Wat is mijn nettovermogen?”.",
+  "en": "I can’t advise on borrowing or on which debt to pay off first: that choice is yours. I can show the facts from your records here, for example “What do I owe?” or “How much have I paid off this month?”.",
+  "nl": "Ik kan geen advies geven over lenen of over welke schuld je eerst aflost: die keuze is aan jou. Ik kan de feiten uit je gegevens laten zien, bijvoorbeeld “Hoeveel schuld heb ik?” of “Hoeveel heb ik deze maand afgelost?”.",
   "facts": null,
   "widgets": [],
-  "fresh": "I can’t advise on buying, selling, staking or investing: that choice is yours. I can show the facts from your records here, for example “What is the price of BTC?” or “What is my net worth?”.",
-  "freshNl": "Ik kan geen advies geven over kopen, verkopen, staken of beleggen: die keuze is aan jou. Ik kan de feiten uit je gegevens laten zien, bijvoorbeeld “Wat is mijn nettovermogen?”."
+  "fresh": "I can’t advise on borrowing or on which debt to pay off first: that choice is yours. I can show the facts from your records here, for example “What do I owe?” or “How much have I paid off this month?”.",
+  "freshNl": "Ik kan geen advies geven over lenen of over welke schuld je eerst aflost: die keuze is aan jou. Ik kan de feiten uit je gegevens laten zien, bijvoorbeeld “Hoeveel schuld heb ik?” of “Hoeveel heb ik deze maand afgelost?”."
  },
  "awfr-average-kcal": {
   "en": "On average 2,019.5 kcal of energy a day this week (Mon, Nov 16 to Tue, Nov 17), over the 2 days whose entries all say.",
@@ -9661,11 +9661,11 @@
  },
  "awfr-health-shared": {
   "en": "Yes: Health is shared with me on this device right now, so I can read your diary, water, sleep and the rest when you ask. Settings → ZIGi → Include Health turns it off.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"settings\",\"view\":\"zigi\"}\n```",
-  "nl": "Opening Health.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"health\"}\n```",
+  "nl": "Ja: Health is nu op dit apparaat met mij gedeeld, dus ik kan je dagboek, water, slaap en de rest lezen als je het vraagt. Settings → ZIGi → Include Health zet het uit.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"settings\",\"view\":\"zigi\"}\n```",
   "facts": null,
   "widgets": [],
   "fresh": "Yes: Health is shared with me on this device right now, so I can read your diary, water, sleep and the rest when you ask. Settings → ZIGi → Include Health turns it off.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"settings\",\"view\":\"zigi\"}\n```",
-  "freshNl": "Opening Health.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"health\"}\n```"
+  "freshNl": "Ja: Health is nu op dit apparaat met mij gedeeld, dus ik kan je dagboek, water, slaap en de rest lezen als je het vraagt. Settings → ZIGi → Include Health zet het uit.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"settings\",\"view\":\"zigi\"}\n```"
  },
  "awfr-sleep-nl": {
   "en": "Last night: 7 h 17 min asleep, 8 h 00 min in bed, from 23:20 to 07:20.\n- You rated it 3 of 5",

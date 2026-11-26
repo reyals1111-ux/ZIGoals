@@ -82,7 +82,7 @@ export const SAYS: Readonly<Record<string, readonly string[]>> = {
   // Session AW (fr-money, persona walks FR-AW-3/4/11): a payment recorded on a debt, never spending; what is owed after it.
   'awfr-money-paid-month': ['300', 'Car loan'], 'awfr-money-paid-week': [], 'awfr-money-owed': ['Car loan', 'Credit card', '640'], 'awfr-money-loan-advice': [],
   // Session AW (fr-answers, persona walks FR-AW-5/6/9/10/17/19/22).
-  'awfr-average-kcal': ['kcal'], 'awfr-due-ahead': [], /* each phrasing names its own period's tasks */ 'awfr-health-shared': [], 'awfr-sleep-nl': ['7 h 17 min'],
+  'awfr-average-kcal': ['kcal'], 'awfr-due-ahead': [], /* each phrasing names its own period's tasks */ 'awfr-health-shared': ['Settings → ZIGi'], 'awfr-sleep-nl': ['7 h 17 min'],
   'awfr-eating-healthy': ['Berry overnight oats'], 'awfr-compare-weeks': ['11', '14'], 'awfr-mood-reflective': ['113'],
 };
 
