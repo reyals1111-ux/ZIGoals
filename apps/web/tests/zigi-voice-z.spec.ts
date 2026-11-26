@@ -46,6 +46,10 @@ async function fakes(page: Page, {recognition = true, onDevice = false, onlineVo
     Object.defineProperty(navigator, 'mediaDevices', {configurable: true, value: {getUserMedia: async () => { const ctx = new AudioContext(), dest = ctx.createMediaStreamDestination(); log.streams++; for (const t of dest.stream.getTracks()) { log.tracks.push(t); const stop = t.stop.bind(t); t.stop = () => { log.ended++; stop(); }; } return dest.stream; }}});
     const spoken: {text: string; lang: string; voice: string | null}[] = [];
     w.__spoken = spoken;
+    // Session AW (deliberate): the engine's own utterance as well, since Chromium's refuses a mock voice object, and ZIGoals
+    // never falls back to the browser's default voice (which may be online); the stand-in keeps lang, voice and the events.
+    class MockUtterance { text: string; lang = ''; voice: unknown = null; volume = 1; rate = 1; pitch = 1; onend: ((e: Event) => void) | null = null; onerror: ((e: Event) => void) | null = null; onstart: ((e: Event) => void) | null = null; constructor(text = '') { this.text = text; } addEventListener() { /* events are the on* handlers */ } removeEventListener() { /* nothing */ } }
+    Object.defineProperty(window, 'SpeechSynthesisUtterance', {configurable: true, writable: true, value: MockUtterance});
     Object.defineProperty(window, 'speechSynthesis', {configurable: true, value: {speaking: false, speak(u: SpeechSynthesisUtterance) { if (u.text) spoken.push({text: u.text, lang: u.lang, voice: u.voice?.name ?? null}); setTimeout(() => u.onend?.(new Event('end') as SpeechSynthesisEvent), 10); }, cancel() {}, getVoices() { return [{lang: 'en-GB', name: 'Daniel'}, {lang: 'en-US', name: 'Samantha'}, {lang: 'nl-BE', name: 'Ellen'}, {lang: 'nl-NL', name: 'Xander'}].map(v => ({...v, localService: !onlineVoices})); }}});
   }, {recognition, onDevice, onlineVoices});
 }
